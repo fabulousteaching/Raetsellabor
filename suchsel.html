@@ -70,11 +70,6 @@ button:focus-visible,summary:focus-visible,input[type=checkbox]:focus-visible{ou
 .btn:disabled{opacity:.6;cursor:progress}
 
 /* ---------- Thema, Vorschläge, Wörter ---------- */
-.themen{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.themen-label{width:100%;font-size:.8rem;color:var(--muted)}
-.thema{font-size:.8rem;border:1px solid var(--line);background:#f8fafc;color:#374151;border-radius:999px;padding:3px 10px;cursor:pointer;transition:background .15s,border-color .15s}
-.thema:hover{border-color:var(--accent-line);background:var(--accent-soft)}
-.thema[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
 .vorschlaege{margin-top:14px;border:1px solid var(--accent-line);background:#f9fbff;border-radius:12px;padding:12px}
 .vorschlaege-kopf{display:flex;align-items:center;justify-content:space-between;gap:4px 8px;flex-wrap:wrap;margin-bottom:10px}
 .vorschlaege-kopf strong{font-size:.92rem;font-weight:650}
@@ -218,14 +213,13 @@ svg.gitter .startpunkt{fill:none;stroke:#2563eb;stroke-width:1}
   <section class="spalte-eingabe" aria-label="Eingaben">
     <div class="karte">
       <div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span>
-        <div><h2>Thema und Wörter</h2><p>Thema eingeben oder auswählen, Vorschläge anklicken – eigene Wörter gehen immer.</p></div>
+        <div><h2>Thema und Wörter</h2><p>Thema eingeben und Wörter vorschlagen lassen. Vorschläge anklicken – eigene Wörter gehen immer.</p></div>
       </div>
       <label class="feld-label" for="titel">Thema</label>
       <div class="zeile">
         <input type="text" id="titel" maxlength="60" placeholder="z. B. Tiere, Berufe, Weltraum …" autocomplete="off">
         <button type="button" class="btn soft" id="vorschlagen">Wörter vorschlagen</button>
       </div>
-      <div class="themen" id="themen"></div>
       <div class="vorschlaege" id="vorschlaege" hidden>
         <div class="vorschlaege-kopf">
           <strong id="vorschlagTitel"></strong>
@@ -297,7 +291,7 @@ svg.gitter .startpunkt{fill:none;stroke:#2563eb;stroke-width:1}
       <h2>Noch kein Suchsel</h2>
       <p>In drei Schritten zum Arbeitsblatt:</p>
       <ol>
-        <li>Thema wählen und Wörter übernehmen oder eigene eingeben</li>
+        <li>Thema eingeben, Wörter vorschlagen lassen und übernehmen – oder eigene eingeben</li>
         <li>Lösungszahl eintragen, z. B. 7 oder 2026</li>
         <li>«Suchsel erstellen» klicken</li>
       </ol>
@@ -1019,30 +1013,11 @@ function schreibweise(w){ // «hund» → «Hund», «HUND» bleibt
 var titel = $('#titel');
 titel.value = st.titel || '';
 titel.addEventListener('input', function(){
-  st.titel = titel.value; speichern(); themenMarkieren(); if (aktuell) blattBeschriften();
+  st.titel = titel.value; speichern(); if (aktuell) blattBeschriften();
   if (!vorschlag || !vorschlag.woerter.length) $('#vorschlaege').hidden = true;   // alter Hinweis passt nicht mehr
 });
 titel.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); vorschlagen(false); } });
 $('#vorschlagen').addEventListener('click', function(){ vorschlagen(false); });
-(function(){
-  var box = $('#themen');
-  box.innerHTML = '<span class="themen-label">Oder ein Thema auswählen:</span>';
-  THEMEN.forEach(function(th){
-    var b = document.createElement('button');
-    b.type = 'button'; b.className = 'thema'; b.textContent = th.name; b.setAttribute('aria-pressed', 'false');
-    b.addEventListener('click', function(){
-      titel.value = st.titel = th.name; speichern(); themenMarkieren();
-      if (aktuell) blattBeschriften();
-      vorschlagen(false);
-    });
-    box.appendChild(b);
-  });
-})();
-function themenMarkieren(){
-  var th = findeThema(titel.value);
-  [].forEach.call(document.querySelectorAll('#themen .thema'), function(b){ b.setAttribute('aria-pressed', th && th.name === b.textContent ? 'true' : 'false'); });
-}
-
 /* ---------- Wortvorschläge ---------- */
 // Als Artefakt kann die Seite Claude fragen; sonst gibt es nur die eingebauten Themen.
 var kiZusage = (window.claude && typeof window.claude.use === 'function') ? Promise.resolve(window.claude.use('sample')).catch(function(){ return null; }) : Promise.resolve(null);
@@ -1067,7 +1042,7 @@ function vorschlagen(mehr){
     if (!ki || kiAus){
       vorschlagLaedt(false);
       if (th) zeigeVorschlaege(mischen(th.w.split(' ')).slice(0, 20), 'Themenliste');
-      else zeigeVorschlagInfo('Für «' + esc(t) + '» gibt es hier keine eingebauten Vorschläge. Wähle ein Thema aus der Liste oder gib eigene Wörter ein.', true);
+      else zeigeVorschlagInfo('Für «' + esc(t) + '» gibt es hier keine Vorschläge. ' + eingebauteThemen(), true);
       return;
     }
     var schon = Object.keys(vorschlag.gezeigt).slice(-80);
@@ -1099,12 +1074,15 @@ function vorschlagen(mehr){
       if (['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'].indexOf(c) >= 0){
         kiAus = true;
         if (th){ zeigeVorschlaege(mischen(th.w.split(' ')).slice(0, 20), 'Themenliste'); return; }
-        zeigeVorschlagInfo('Vorschläge von Claude sind hier nicht verfügbar. Wähle ein Thema aus der Liste oder gib eigene Wörter ein.', true);
+        zeigeVorschlagInfo('Vorschläge von Claude sind hier nicht verfügbar. ' + eingebauteThemen(), true);
       } else if (c === 'rate_limited') zeigeVorschlagInfo('Gerade zu viele Anfragen – bitte in einem Moment nochmals versuchen.', true);
       else if (c === 'session_expired') zeigeVorschlagInfo('Bitte melde dich bei Claude neu an und versuche es dann nochmals.', true);
       else zeigeVorschlagInfo('Die Vorschläge konnten nicht geladen werden. Versuch es nochmals oder formuliere das Thema etwas anders.', true);
     });
   });
+}
+function eingebauteThemen(){
+  return 'Ohne Claude gibt es Vorschläge zu diesen Themen: ' + THEMEN.map(function(th){ return th.name; }).join(', ') + '. Oder gib eigene Wörter ein.';
 }
 function vorschlagLaedt(ja){
   var b = $('#vorschlagen'); b.disabled = ja; $('#mehrVorschlaege').disabled = ja;
@@ -1125,7 +1103,7 @@ function zeigeVorschlaege(woerter, quelle){
   vorschlag.woerter = woerter; vorschlag.quelle = quelle;
   woerter.forEach(function(w){ vorschlag.gezeigt[norm(w)] = true; });
   $('#vorschlaege').hidden = false;
-  $('#vorschlagTitel').innerHTML = 'Vorschläge zu «' + esc(vorschlag.thema) + '»<span class="quelle">' + (quelle === 'Claude' ? 'von Claude' : 'aus der Themenliste') + '</span>';
+  $('#vorschlagTitel').innerHTML = 'Vorschläge zu «' + esc(vorschlag.thema) + '»<span class="quelle">' + (quelle === 'Claude' ? 'von Claude' : 'eingebaute Liste') + '</span>';
   $('#vorschlagInfo').textContent = 'Anklicken, um ein Wort zu übernehmen oder wieder zu entfernen.';
   $('#alleUebernehmen').hidden = false; $('#mehrVorschlaege').hidden = false;
   zeichneVorschlaege();
@@ -1771,7 +1749,6 @@ if (window.claude && typeof window.claude.use === 'function'){
 /* ---------- Start ---------- */
 zeichneWoerter();
 zeichneZahlen();
-themenMarkieren();
 infoAktualisieren();
 if (auswerten().woerter.length && zahlenListe().length) erstellen(); else leerZustand();
 })();
