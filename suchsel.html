@@ -64,6 +64,7 @@ input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-vis
 .btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--kante)}
 .btn.klein{font-size:.9rem;padding:.32em .75em;border-radius:10px}
 .btn.leise{border-color:var(--line);box-shadow:none;background:transparent;color:var(--ink-soft)}
+.btn.leise.sicher{border-color:var(--rust);color:#fff;background:var(--rust)}
 .btn.haupt{background:var(--ochre);color:#2b2118}
 .btn.haupt:hover{background:#efb43d}
 .btn.gross{width:100%;font-size:1.2rem;padding:.65em 1em;margin-top:14px}
@@ -233,8 +234,9 @@ svg.gitter .startpunkt{fill:none;stroke:#3c7fd6;stroke-width:1.2}
       <button type="button" class="btn klein" id="zeigeLoesung" aria-pressed="false">👁 Lösung zeigen</button>
       <button type="button" class="btn klein" id="markWeg">↺ Markierungen löschen</button>
       <span class="abstand"></span>
-      <label><input type="checkbox" id="mitLoesung"> Lösungsblatt mitdrucken</label>
+      <label><input type="checkbox" id="mitLoesung"> mit Lösungsblatt</label>
       <button type="button" class="btn klein haupt" id="drucken">🖨 Drucken</button>
+      <button type="button" class="btn klein haupt" id="herunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">⬇ Arbeitsblatt herunterladen</button>
     </div>
     <article class="blatt" id="blatt" hidden>
       <h2 id="blattTitel"></h2>
@@ -745,8 +747,17 @@ $('#wortPlus').addEventListener('click', function(){
   if (leer >= 0 && leer === st.woerter.length - 1){ zeichneWoerter(leer); return; }
   st.woerter.push(''); zeichneWoerter(st.woerter.length - 1); geaendert();
 });
+/* Zweimal klicken statt confirm() (das in eingebetteten Seiten blockiert sein kann) */
+var loeschTimer = 0;
 $('#alleWeg').addEventListener('click', function(){
-  if (!confirm('Alle Wörter löschen?')) return;
+  var b = this;
+  if (!b.classList.contains('sicher')){
+    b.classList.add('sicher'); b.textContent = 'Wirklich alle löschen?';
+    clearTimeout(loeschTimer);
+    loeschTimer = setTimeout(function(){ b.classList.remove('sicher'); b.textContent = 'Alle löschen'; }, 4000);
+    return;
+  }
+  clearTimeout(loeschTimer); b.classList.remove('sicher'); b.textContent = 'Alle löschen';
   st.woerter = ['']; zeichneWoerter(0); geaendert();
 });
 function listeBox(auf){
@@ -1213,6 +1224,53 @@ $('#markWeg').addEventListener('click', function(){
 function druckVorbereiten(){ document.body.classList.toggle('mit-loesung', !!st.opt.mitLoesung); }
 window.addEventListener('beforeprint', druckVorbereiten);
 $('#drucken').addEventListener('click', function(){ druckVorbereiten(); window.print(); });
+
+/* Als Artefakt läuft die Seite in einem Rahmen ohne Druckfunktion. Dort wird das Arbeitsblatt
+   als eigene HTML-Datei gespeichert, die man öffnet und druckt. */
+function druckDatei(){
+  var blatt = $('#blatt').cloneNode(true);
+  blatt.removeAttribute('id'); blatt.classList.remove('veraltet', 'zeige-loesung', 'geschafft');
+  [].forEach.call(blatt.querySelectorAll('.ebene-markiert, .ebene-auswahl, .ebene-loesung, .fortschritt'), function(e){ e.remove(); });
+  [].forEach.call(blatt.querySelectorAll('.gefunden'), function(e){ e.classList.remove('gefunden'); });
+  [].forEach.call(blatt.querySelectorAll('[id]'), function(e){ e.removeAttribute('id'); });
+  var teile = blatt.outerHTML;
+  if (st.opt.mitLoesung){
+    var l = $('#loesungsblatt').cloneNode(true);
+    l.removeAttribute('id'); l.removeAttribute('aria-hidden');
+    [].forEach.call(l.querySelectorAll('[id]'), function(e){ e.removeAttribute('id'); });
+    teile += l.outerHTML;
+  }
+  var t = (st.titel || '').trim();
+  var css = document.querySelector('style').textContent +
+    '\nbody{background:#efe6d4;color-scheme:light}.seite{max-width:960px;margin:0 auto;padding:18px}' +
+    '.leiste{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 14px;color:#4b3d30}' +
+    '.loesungsblatt{display:block;margin-top:22px}svg.gitter{cursor:default}' +
+    '@media print{.leiste{display:none}.seite{max-width:none;padding:0}.loesungsblatt{break-before:page;margin-top:0}}';
+  return '<!DOCTYPE html>\n<html lang="de">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
+    '<title>' + esc('Suchsel' + (t ? ' – ' + t : '')) + '</title>\n' +
+    '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@500;600;700&display=swap">\n' +
+    '<style>' + css + '</style>\n</head>\n<body class="mit-loesung">\n<div class="seite">\n' +
+    '<div class="leiste"><button class="btn haupt" onclick="window.print()">🖨 Drucken</button><span>Tipp: Im Druckdialog «Hintergrundgrafiken» einschalten, damit das Lösungsblatt farbig wird.</span></div>\n' +
+    teile + '\n</div>\n</body>\n</html>\n';
+}
+var speicherOrt = null;
+$('#herunterladen').addEventListener('click', function(){
+  if (!aktuell || !speicherOrt) return;
+  var t = (st.titel || '').trim().replace(/[^\p{L}\p{N} _-]+/gu, '').replace(/\s+/g, '-').slice(0, 40);
+  var name = 'Suchsel' + (t ? '-' + t : '') + '-' + aktuell.feld.zahlen.join('-') + '.html';
+  speicherOrt.save({ filename:name, data:druckDatei() }).catch(function(e){
+    if (e && e.code === 'declined') return;
+    meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+  });
+});
+if (window.claude && typeof window.claude.use === 'function'){
+  // Im Artefakt: kein Drucken, dafür Herunterladen (falls erlaubt)
+  $('#drucken').hidden = true;
+  Promise.resolve(window.claude.use('downloads')).then(function(d){
+    if (!d) return;
+    speicherOrt = d; $('#herunterladen').hidden = false;
+  }).catch(function(){});
+}
 
 /* ---------- Start ---------- */
 zeichneWoerter();
