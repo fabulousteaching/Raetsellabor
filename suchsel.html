@@ -6,156 +6,195 @@
 <title>Zahlen-Suchsel – Generator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <style>
 :root{
-  --paper:#fffdf7; --paper-2:#f3ecdd; --paper-3:#e8dcc4; --ink:#2b2118; --ink-soft:#6b5a48; --line:#b9ab95;
-  --ochre:#e4a428; --ochre-2:#b47d12; --charcoal:#2b2118; --kante:#2b2118; --moss:#4e7a3a; --rust:#b5452b; --sky:#3c7fd6;
-  --bg:#efe6d4;
-  --font-body:'Andika','Trebuchet MS','Segoe UI',system-ui,sans-serif;
-  --font-head:'Fredoka','Arial Rounded MT Bold','Trebuchet MS',system-ui,sans-serif;
-  color-scheme:light dark;
-}
-@media (prefers-color-scheme: dark){
-  :root{ --paper:#2a231c; --paper-2:#382e24; --paper-3:#4a3d2f; --ink:#f6eddd; --ink-soft:#cdbb9f; --line:#6c5a46; --kante:#0d0906; --bg:#1b1611; }
+  --bg:#f5f7fa; --card:#fff; --line:#e4e7ec; --line-2:#cfd4dc; --text:#1f2937; --muted:#6b7280; --muted-2:#9aa1ad;
+  --accent:#2563eb; --accent-2:#1d4ed8; --accent-soft:#eef3ff; --accent-line:#c3d4fb;
+  --ok:#15803d; --ok-soft:#ecf8f0; --ok-line:#b9e3c6;
+  --warn:#a15c07; --warn-soft:#fff8eb; --warn-line:#f4d79e;
+  --err:#c62828; --err-soft:#fdf1f1; --err-line:#f2c4c4;
+  --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --schatten:0 1px 2px rgba(16,24,40,.05),0 6px 20px rgba(16,24,40,.05);
+  color-scheme:light;
 }
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);line-height:1.45}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
 [hidden]{display:none!important}
 .vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
-/* ---------- Kopf ---------- */
-.kopf{max-width:1440px;margin:0 auto;padding:22px 20px 4px;display:flex;align-items:baseline;gap:6px 16px;flex-wrap:wrap}
-.kopf h1{font-family:var(--font-head);font-weight:700;font-size:clamp(1.7rem,3.6vw,2.4rem);margin:0;letter-spacing:.01em}
-.kopf p{margin:0;color:var(--ink-soft);font-size:1.02rem}
+/* ---------- Kopfleiste ---------- */
+.topbar{background:#fff;border-bottom:1px solid var(--line)}
+.topbar-inner{max-width:1440px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:12px}
+.marke{width:38px;height:38px;border-radius:10px;background:var(--accent);display:grid;place-items:center;flex:none}
+.topbar h1{font-size:1.15rem;font-weight:700;margin:0;letter-spacing:-.01em;line-height:1.2}
+.topbar p{margin:1px 0 0;color:var(--muted);font-size:.88rem}
 
 /* ---------- Aufbau ---------- */
-.layout{max-width:1440px;margin:0 auto;padding:14px 20px 48px;display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:22px;align-items:start}
-@media (min-width:921px){ .eingabe{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;scrollbar-width:thin} }
-@media (max-width:920px){ .layout{grid-template-columns:minmax(0,1fr)} }
-.panel{background:var(--paper);border:2px solid var(--kante);border-radius:18px;box-shadow:0 4px 0 var(--kante);padding:16px 18px 18px}
-.gruppe{padding:12px 0 14px;border-bottom:2px dashed var(--line)}
-.gruppe:first-child{padding-top:2px}
-.gruppe:last-of-type{border-bottom:0}
-.schritt{display:flex;align-items:center;gap:9px;font-family:var(--font-head);font-weight:600;font-size:1.12rem;margin:0 0 8px}
-.schritt .kreis{flex:none;width:28px;height:28px;border-radius:50%;background:var(--ochre);color:#2b2118;border:2px solid var(--kante);display:grid;place-items:center;font-size:.95rem;font-weight:700}
-.hinweis{font-size:.86rem;color:var(--ink-soft);margin:6px 0 0}
+.layout{max-width:1440px;margin:0 auto;padding:22px 24px 48px;display:grid;grid-template-columns:minmax(320px,440px) minmax(0,1fr);gap:24px;align-items:start}
+.spalte-eingabe{display:grid;gap:16px;min-width:0}
+@media (min-width:961px){ .spalte-eingabe{position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto;padding:2px 4px 2px 2px;scrollbar-width:thin} }
+@media (max-width:960px){ .layout{grid-template-columns:minmax(0,1fr);padding:16px;gap:18px} }
+.karte{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--schatten);padding:18px}
+.karte-kopf{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px}
+.stufe{flex:none;width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent-2);font-weight:700;font-size:.82rem;display:grid;place-items:center;margin-top:1px}
+.karte-kopf h2{font-size:1rem;font-weight:650;margin:0;line-height:1.35}
+.karte-kopf p{margin:2px 0 0;color:var(--muted);font-size:.86rem}
+.feld-label{display:block;font-size:.76rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 6px}
+.zeile{display:flex;gap:8px}
+.zeile input{flex:1;min-width:0}
+.trenner{height:1px;background:var(--line);margin:16px -18px}
+.hinweis{font-size:.84rem;color:var(--muted);margin:8px 0 0}
+.hinweis:empty{display:none}
 
-input[type=text],textarea,select{background:var(--paper-2);border:2px solid var(--line);border-radius:10px;padding:.42em .6em;width:100%}
-textarea{resize:vertical;min-height:6em}
-input:focus-visible,textarea:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+input[type=text],select{background:#fff;border:1px solid var(--line-2);border-radius:8px;padding:8px 11px;width:100%;transition:border-color .15s,box-shadow .15s}
+input::placeholder{color:var(--muted-2)}
+input[type=text]:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.16)}
+button:focus-visible,summary:focus-visible,input[type=checkbox]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
-.liste{list-style:none;margin:0;padding:0;display:grid;gap:6px}
-.wortliste{grid-template-columns:repeat(auto-fill,minmax(168px,1fr))}
-.liste li{display:flex;align-items:center;gap:5px;min-width:0}
-.liste .nr{flex:none;width:1.5em;text-align:right;color:var(--ink-soft);font-size:.8rem;font-variant-numeric:tabular-nums}
-.liste input{flex:1;min-width:0}
-.liste .zahl{font-family:var(--font-head);font-weight:600;font-size:1.15rem;letter-spacing:.12em;max-width:9em}
-.weg{flex:none;width:30px;height:30px;border-radius:50%;border:2px solid var(--line);background:transparent;cursor:pointer;font-size:1.1rem;line-height:1;color:var(--ink-soft);display:grid;place-items:center;padding:0}
-.weg:hover{border-color:var(--rust);color:var(--rust)}
-.chip{flex:none;font-size:.8rem;background:var(--paper-3);border-radius:999px;padding:.18em .65em;white-space:nowrap;color:var(--ink)}
-.knopfzeile{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4em;font-family:var(--font-head);font-weight:600;font-size:1rem;border:2px solid var(--kante);border-radius:12px;
-  padding:.48em .95em;background:var(--paper-2);color:var(--ink);box-shadow:0 3px 0 var(--kante);cursor:pointer;transition:transform .08s, box-shadow .08s;text-decoration:none}
-.btn:hover{background:var(--paper-3)}
-.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--kante)}
-.btn.klein{font-size:.9rem;padding:.32em .75em;border-radius:10px}
-.btn.leise{border-color:var(--line);box-shadow:none;background:transparent;color:var(--ink-soft)}
-.btn.leise.sicher{border-color:var(--rust);color:#fff;background:var(--rust)}
-.btn.haupt{background:var(--ochre);color:#2b2118}
-.btn.haupt:hover{background:#efb43d}
-.btn.gross{width:100%;font-size:1.2rem;padding:.65em 1em;margin-top:14px}
-.btn[aria-pressed="true"]{background:var(--moss);color:#fff}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:600;font-size:.9rem;border:1px solid var(--line-2);border-radius:8px;padding:8px 14px;
+  background:#fff;color:var(--text);cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,color .15s}
+.btn:hover{background:#f8fafc;border-color:#b6bdc8}
+.btn.primary,.btn.haupt{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover,.btn.haupt:hover{background:var(--accent-2);border-color:var(--accent-2)}
+.btn.soft{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent-2)}
+.btn.soft:hover{background:#e3ecff}
+.btn.ghost,.btn.leise{background:transparent;border-color:transparent;color:var(--muted);padding:6px 8px}
+.btn.ghost:hover,.btn.leise:hover{background:#f1f3f6;color:var(--text)}
+.btn.klein{font-size:.82rem;padding:5px 9px}
+.btn.gross{width:100%;font-size:1rem;padding:12px 16px}
+.btn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent-2)}
+.btn.sicher,.btn.sicher:hover{background:var(--err);border-color:var(--err);color:#fff}
 .btn:disabled{opacity:.6;cursor:progress}
 
-.bedarf{margin:10px 0 0;border-radius:12px;padding:.55em .75em;font-size:.92rem;border:2px solid transparent}
-.bedarf.gut{background:rgba(78,122,58,.14);border-color:rgba(78,122,58,.45)}
-.bedarf.knapp{background:rgba(228,164,40,.17);border-color:rgba(180,125,18,.5)}
-.bedarf.schlecht{background:rgba(181,69,43,.13);border-color:rgba(181,69,43,.55)}
-.striche{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:.82rem;color:var(--ink-soft);margin-top:8px}
-.striche b{font-family:var(--font-head);color:var(--ink)}
+/* ---------- Thema, Vorschläge, Wörter ---------- */
+.themen{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.themen-label{width:100%;font-size:.8rem;color:var(--muted)}
+.thema{font-size:.8rem;border:1px solid var(--line);background:#f8fafc;color:#374151;border-radius:999px;padding:3px 10px;cursor:pointer;transition:background .15s,border-color .15s}
+.thema:hover{border-color:var(--accent-line);background:var(--accent-soft)}
+.thema[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.vorschlaege{margin-top:14px;border:1px solid var(--accent-line);background:#f9fbff;border-radius:12px;padding:12px}
+.vorschlaege-kopf{display:flex;align-items:center;justify-content:space-between;gap:4px 8px;flex-wrap:wrap;margin-bottom:10px}
+.vorschlaege-kopf strong{font-size:.92rem;font-weight:650}
+.quelle{white-space:nowrap;display:inline-block;font-size:.7rem;font-weight:600;color:var(--accent-2);background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:999px;padding:1px 7px;margin-left:6px;vertical-align:1px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip-vorschlag{font-size:.86rem;border:1px solid var(--line-2);background:#fff;border-radius:999px;padding:4px 12px 4px 10px;cursor:pointer;color:var(--text);transition:background .12s,border-color .12s}
+.chip-vorschlag::before{content:'+';display:inline-block;width:.9em;margin-right:3px;color:var(--muted-2);font-weight:600}
+.chip-vorschlag:hover{border-color:var(--accent)}
+.chip-vorschlag[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip-vorschlag[aria-pressed="true"]::before{content:'✓';color:#fff}
+.woerter-kopf{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.woerter-kopf .feld-label{margin:0}
+.zaehler{font-weight:600;color:var(--accent-2);text-transform:none;letter-spacing:0;margin-left:4px}
+.chips.gewaehlt{min-height:44px;padding:8px;border:1px dashed var(--line-2);border-radius:10px;margin-bottom:10px;align-content:flex-start}
+.chips.gewaehlt:empty::before{content:'Noch keine Wörter – übernimm Vorschläge oder füge eigene hinzu.';color:var(--muted-2);font-size:.86rem;padding:3px 4px}
+.chip-wort{display:inline-flex;align-items:center;gap:1px;font-size:.86rem;background:#f2f4f7;border:1px solid var(--line);border-radius:999px;padding:2px 3px 2px 11px}
+.chip-wort button{border:0;background:transparent;width:22px;height:22px;border-radius:50%;cursor:pointer;color:var(--muted);font-size:1rem;line-height:1;display:grid;place-items:center;padding:0}
+.chip-wort button:hover{background:var(--err-soft);color:var(--err)}
+.chip-wort.ungueltig{background:var(--warn-soft);border-color:var(--warn-line);color:var(--warn)}
 
-details.optionen{margin-top:12px;border:2px solid var(--line);border-radius:12px;padding:0 12px;background:var(--paper-2)}
-details.optionen summary{cursor:pointer;font-family:var(--font-head);font-weight:600;padding:9px 0;list-style-position:inside}
-details.optionen[open]{padding-bottom:12px}
-.opt{display:flex;align-items:flex-start;gap:9px;margin:8px 0;font-size:.95rem}
-.opt input[type=checkbox],.opt input[type=radio]{width:1.15em;height:1.15em;margin:.18em 0 0;accent-color:var(--ochre-2);flex:none}
-.opt-raster{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:center;margin-top:10px;font-size:.95rem}
-.opt-raster select{width:auto}
+/* ---------- Lösungszahlen ---------- */
+.liste{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.liste li{display:flex;align-items:center;gap:8px;min-width:0}
+.liste .nr{flex:none;width:1.2em;text-align:right;color:var(--muted-2);font-size:.8rem;font-variant-numeric:tabular-nums}
+.liste .zahl{font-weight:600;font-size:1.05rem;letter-spacing:.14em;max-width:10em;font-variant-numeric:tabular-nums}
+.liste .zahl::placeholder{letter-spacing:0;font-weight:400;font-size:.95rem}
+.chip{flex:none;font-size:.78rem;color:var(--muted);background:#f2f4f7;border-radius:999px;padding:3px 9px;white-space:nowrap}
+.weg{flex:none;width:30px;height:30px;border-radius:8px;border:0;background:transparent;cursor:pointer;color:var(--muted);font-size:1.15rem;line-height:1;display:grid;place-items:center;padding:0}
+.weg:hover{background:var(--err-soft);color:var(--err)}
+.knopfzeile{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.bedarf{margin:12px 0 0;border-radius:10px;padding:9px 12px;font-size:.86rem;border:1px solid transparent}
+.bedarf.gut{background:var(--ok-soft);border-color:var(--ok-line);color:#14532d}
+.bedarf.knapp{background:var(--warn-soft);border-color:var(--warn-line);color:#78400a}
+.bedarf.schlecht{background:var(--err-soft);border-color:var(--err-line);color:#8b1c1c}
+.striche{display:flex;flex-wrap:wrap;gap:3px 12px;font-size:.78rem;color:var(--muted);margin-top:10px}
+.striche b{color:var(--text);font-weight:600;letter-spacing:.06em}
+
+/* ---------- Einstellungen ---------- */
+details.optionen summary{cursor:pointer;font-weight:650;font-size:1rem;list-style:none;display:flex;align-items:center;justify-content:space-between}
+details.optionen summary::-webkit-details-marker{display:none}
+details.optionen summary::after{content:'';width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .2s;margin:0 6px 4px 0}
+details.optionen[open] summary::after{transform:rotate(-135deg);margin-bottom:0}
+details.optionen[open] summary{margin-bottom:6px}
+.opt{display:flex;align-items:flex-start;gap:10px;margin:10px 0;font-size:.9rem}
+.opt input[type=checkbox]{width:16px;height:16px;margin:3px 0 0;accent-color:var(--accent);flex:none}
+.opt-raster{display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center;margin-top:12px;font-size:.9rem}
+.opt-raster select{width:auto;min-width:9em}
 
 /* ---------- Ausgabe ---------- */
 .ausgabe{min-width:0}
-.meldung{background:var(--paper);border:2px solid var(--kante);border-left-width:8px;border-radius:14px;box-shadow:0 3px 0 var(--kante);padding:12px 16px;margin-bottom:14px}
-.meldung h3{font-family:var(--font-head);font-weight:600;font-size:1.15rem;margin:0 0 4px}
-.meldung p{margin:.3em 0}
-.meldung ul{margin:.3em 0;padding-left:1.2em}
-.meldung.fehler{border-left-color:var(--rust)}
-.meldung.info{border-left-color:var(--sky)}
-.meldung.erfolg{border-left-color:var(--moss)}
-.meldung.warnung{border-left-color:var(--ochre)}
+.leer-zustand{background:#fff;border:1px dashed var(--line-2);border-radius:14px;padding:48px 24px;text-align:center;color:var(--muted)}
+.leer-zustand h2{color:var(--text);font-size:1.15rem;font-weight:650;margin:12px 0 4px}
+.leer-zustand ol{display:inline-grid;gap:10px;text-align:left;margin:18px 0 0;padding:0;list-style:none;counter-reset:s}
+.leer-zustand li{counter-increment:s;display:flex;gap:10px;align-items:center;color:var(--text);font-size:.92rem}
+.leer-zustand li::before{content:counter(s);flex:none;width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent-2);font-weight:700;font-size:.78rem;display:grid;place-items:center}
+.meldung{background:#fff;border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;box-shadow:var(--schatten);padding:12px 16px;margin-bottom:14px;font-size:.92rem}
+.meldung h3{font-size:1rem;font-weight:650;margin:0 0 4px}
+.meldung p{margin:.35em 0}
+.meldung ul{margin:.35em 0;padding-left:1.2em}
+.meldung.fehler{border-left-color:var(--err)}
+.meldung.erfolg{border-left-color:var(--ok)}
+.meldung.warnung{border-left-color:#e2a23b}
 .alternativen{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0 4px}
-.alt-knopf{flex-direction:column;align-items:flex-start;gap:0;background:var(--ochre);color:#2b2118;text-align:left}
-.alt-knopf:hover{background:#efb43d}
-.alt-knopf .gross{font-size:1.45rem;letter-spacing:.1em;line-height:1.1}
-.alt-knopf .klein{font-family:var(--font-body);font-weight:400;font-size:.84rem}
-.lade{display:inline-block;width:1em;height:1em;border-radius:50%;border:3px solid var(--line);border-top-color:var(--ochre-2);animation:dreh 0.8s linear infinite;vertical-align:-.15em;margin-right:.4em}
+.alt-knopf{flex-direction:column;align-items:flex-start;gap:0;background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent-2);text-align:left;padding:8px 14px;white-space:normal}
+.alt-knopf:hover{background:#e3ecff;border-color:var(--accent)}
+.alt-knopf .gross{font-size:1.35rem;font-weight:700;letter-spacing:.08em;line-height:1.25}
+.alt-knopf .klein{font-weight:500;font-size:.8rem;color:var(--muted)}
+.lade{display:inline-block;width:1em;height:1em;border-radius:50%;border:2px solid var(--line-2);border-top-color:var(--accent);animation:dreh .8s linear infinite;vertical-align:-.15em;margin-right:.45em}
 @keyframes dreh{to{transform:rotate(360deg)}}
-
 .werkzeug{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
 .werkzeug .abstand{flex:1}
-.werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.92rem}
-.werkzeug input[type=checkbox]{width:1.1em;height:1.1em;accent-color:var(--ochre-2)}
+.werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
+.werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
 
-.blatt{background:#fff;color:#2b2118;border-radius:8px;box-shadow:0 2px 0 rgba(0,0,0,.08),0 12px 32px rgba(43,33,24,.16);padding:26px clamp(14px,3vw,34px) 28px;position:relative}
-.blatt.veraltet::before{content:'Eingaben geändert – «Suchsel erstellen» drücken, um das Feld zu aktualisieren.';display:block;margin:-8px 0 14px;
-  background:#2b2118;color:#fffdf7;font-size:.9rem;padding:.4em .9em;border-radius:10px}
-.blatt h2{font-family:var(--font-head);font-weight:700;font-size:clamp(1.4rem,2.6vw,1.9rem);margin:0 0 4px;color:#2b2118}
-.anleitung{margin:0 0 14px;color:#4b3d30}
+.blatt{background:#fff;color:#111827;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:30px clamp(16px,3.2vw,40px) 30px}
+.blatt.veraltet::before{content:'Eingaben geändert – «Suchsel erstellen» klicken, um das Feld zu aktualisieren.';display:block;margin:-10px 0 16px;
+  background:var(--warn-soft);color:#78400a;border:1px solid var(--warn-line);font-size:.86rem;padding:7px 12px;border-radius:8px}
+.blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#111827}
+.anleitung{margin:0 0 16px;color:#4b5563}
 .gitter-rahmen{display:flex;justify-content:center}
 svg.gitter{display:block;width:100%;height:auto;max-height:80vh;max-width:calc(var(--spalten, 30) * 44px);touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair}
-svg.gitter text{font-family:var(--font-body);font-weight:700;font-size:6.1px;fill:#2b2118;text-anchor:middle;dominant-baseline:central;pointer-events:none}
-svg.gitter .kapsel{opacity:.5}
+svg.gitter text{font-family:var(--font);font-weight:600;font-size:5.6px;fill:#111827;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+svg.gitter .kapsel{opacity:.55}
 svg.gitter .ebene-loesung{display:none}
 .zeige-loesung svg.gitter .ebene-loesung{display:inline}
-.zeige-loesung svg.gitter .ebene-loesung .kapsel{opacity:.38}
-svg.gitter .auswahl{opacity:.45}
-svg.gitter .auswahl.falsch{stroke:#b5452b;animation:weg .45s ease forwards}
-svg.gitter .startpunkt{fill:none;stroke:#3c7fd6;stroke-width:1.2}
+.zeige-loesung svg.gitter .ebene-loesung .kapsel{opacity:.42}
+svg.gitter .auswahl{opacity:.35}
+svg.gitter .auswahl.falsch{stroke:#dc2626;animation:weg .45s ease forwards}
+svg.gitter .startpunkt{fill:none;stroke:#2563eb;stroke-width:1}
 @keyframes weg{to{opacity:0}}
 .geschafft svg.gitter .ebene-markiert .kapsel{animation:puls 1.1s ease 2}
-@keyframes puls{50%{opacity:.85}}
-.woerter-box h3{font-family:var(--font-head);font-weight:600;font-size:1.05rem;margin:18px 0 4px;color:#2b2118}
-.blatt-woerter{columns:4 9.5em;column-gap:18px;list-style:none;padding:0;margin:0}
-.blatt-woerter li{break-inside:avoid;padding:.12em 0;font-weight:700;letter-spacing:.05em}
-.blatt-woerter li::before{content:'';display:inline-block;width:.8em;height:.8em;border:1.6px solid #8a7a68;border-radius:3px;margin-right:.45em;vertical-align:-.05em}
-.blatt-woerter li.gefunden{color:#9a8b7a;text-decoration:line-through;text-decoration-thickness:2px}
-.blatt-woerter li.gefunden::before{background:#4e7a3a;border-color:#4e7a3a}
-.loesungszeile{margin:18px 0 0;font-family:var(--font-head);font-weight:600;font-size:1.15rem;color:#2b2118;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end}
-.loesungszeile .linie{display:inline-block;width:6.5em;border-bottom:2px solid #2b2118;height:1.3em}
-.loesungszeile .wert{letter-spacing:.12em;font-size:1.35rem}
-.fortschritt{margin:14px 0 0;font-size:.98rem;color:#4b3d30;min-height:1.5em}
-.fortschritt.fertig{font-family:var(--font-head);font-weight:600;font-size:1.15rem;color:#2f5a1f}
+@keyframes puls{50%{opacity:.9}}
+.woerter-box h3{font-size:.95rem;font-weight:650;margin:22px 0 6px;color:#111827}
+.blatt-woerter{columns:4 9.5em;column-gap:20px;list-style:none;padding:0;margin:0}
+.blatt-woerter li{break-inside:avoid;padding:.14em 0;font-weight:600;letter-spacing:.05em;font-size:.92rem}
+.blatt-woerter li::before{content:'';display:inline-block;width:.8em;height:.8em;border:1.5px solid #9ca3af;border-radius:3px;margin-right:.5em;vertical-align:-.05em}
+.blatt-woerter li.gefunden{color:#9ca3af;text-decoration:line-through;text-decoration-thickness:2px}
+.blatt-woerter li.gefunden::before{background:var(--accent);border-color:var(--accent)}
+.loesungszeile{margin:22px 0 0;font-weight:600;color:#111827;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end}
+.loesungszeile .linie{display:inline-block;width:6.5em;border-bottom:1.5px solid #111827;height:1.3em}
+.loesungszeile .wert{letter-spacing:.14em;font-size:1.3rem}
+.fortschritt{margin:16px 0 0;font-size:.92rem;color:var(--muted);min-height:1.5em}
+.fortschritt.fertig{font-weight:650;font-size:1rem;color:var(--ok)}
 .loesungsblatt{display:none}
 .loesungsblatt svg.gitter .ebene-loesung{display:inline}
 .loesungsblatt svg.gitter{cursor:default}
-.leer{color:var(--ink-soft);text-align:center;padding:40px 10px}
 
 @media (prefers-reduced-motion: reduce){ .lade{animation-duration:2.5s} .geschafft svg.gitter .ebene-markiert .kapsel{animation:none} }
 
 /* ---------- Drucken: nur das Arbeitsblatt (und auf Wunsch die Lösung) ---------- */
 @media print{
   @page{size:A4;margin:12mm}
-  html,body{background:#fff!important;color:#000}
-  .kopf,.eingabe,.werkzeug,#meldung,.fortschritt{display:none!important}
+  html,body{background:#fff!important}
+  .topbar,.spalte-eingabe,.werkzeug,#meldung,#leer,.fortschritt{display:none!important}
   .layout{display:block;padding:0;max-width:none}
-  .blatt{box-shadow:none;border-radius:0;padding:0;break-inside:avoid}
+  .blatt{box-shadow:none;border:0;border-radius:0;padding:0;break-inside:avoid}
   .blatt.veraltet::before{display:none}
   #blatt .ebene-loesung,#blatt .ebene-markiert,#blatt .ebene-auswahl{display:none!important}
-  .blatt-woerter li.gefunden{color:#2b2118;text-decoration:none}
-  .blatt-woerter li.gefunden::before{background:none;border-color:#8a7a68}
+  .blatt-woerter li.gefunden{color:#111827;text-decoration:none}
+  .blatt-woerter li.gefunden::before{background:none;border-color:#9ca3af}
   svg.gitter{max-height:200mm;max-width:calc(var(--spalten, 30) * 12mm)}
   body.mit-loesung .loesungsblatt{display:block;break-before:page}
   body.mit-loesung .loesungsblatt svg.gitter{max-height:235mm}
@@ -163,80 +202,109 @@ svg.gitter .startpunkt{fill:none;stroke:#3c7fd6;stroke-width:1.2}
 </style>
 </head>
 <body>
-<header class="kopf">
-  <h1>🔎 Zahlen-Suchsel</h1>
-  <p>Wörter verstecken – wer alle findet und markiert, sieht eine Zahl.</p>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="marke" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><g fill="#fff" opacity=".45"><circle cx="4" cy="4" r="1.6"/><circle cx="11" cy="4" r="1.6"/><circle cx="18" cy="4" r="1.6"/><circle cx="4" cy="11" r="1.6"/><circle cx="11" cy="11" r="1.6"/><circle cx="18" cy="11" r="1.6"/><circle cx="4" cy="18" r="1.6"/><circle cx="11" cy="18" r="1.6"/><circle cx="18" cy="18" r="1.6"/></g><path d="M4 4h14v14" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div>
+      <h1>Zahlen-Suchsel</h1>
+      <p>Wörter verstecken – wer alle findet und markiert, sieht die Lösungszahl.</p>
+    </div>
+  </div>
 </header>
 
 <main class="layout">
-  <section class="panel eingabe" aria-label="Eingaben">
-    <div class="gruppe">
-      <label class="schritt" for="titel"><span class="kreis" aria-hidden="true">1</span>Kategorie</label>
-      <input type="text" id="titel" maxlength="60" placeholder="z. B. Tiere der Steinzeit" autocomplete="off">
-    </div>
-
-    <div class="gruppe">
-      <h2 class="schritt"><span class="kreis" aria-hidden="true">2</span>Wörter zur Kategorie</h2>
-      <ol class="liste wortliste" id="wortListe"></ol>
-      <div class="knopfzeile">
-        <button type="button" class="btn klein" id="wortPlus">+ Wort</button>
-        <button type="button" class="btn klein" id="listeAuf" aria-expanded="false" aria-controls="listeBox">Liste einfügen</button>
-        <button type="button" class="btn klein leise" id="alleWeg">Alle löschen</button>
+  <section class="spalte-eingabe" aria-label="Eingaben">
+    <div class="karte">
+      <div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span>
+        <div><h2>Thema und Wörter</h2><p>Thema eingeben oder auswählen, Vorschläge anklicken – eigene Wörter gehen immer.</p></div>
       </div>
-      <div id="listeBox" hidden>
-        <label class="vh" for="listeText">Wörterliste</label>
-        <textarea id="listeText" rows="5" placeholder="Wörter mit Komma oder je auf einer eigenen Zeile"></textarea>
-        <div class="knopfzeile">
-          <button type="button" class="btn klein haupt" id="listeOk">Hinzufügen</button>
-          <button type="button" class="btn klein leise" id="listeZu">Abbrechen</button>
+      <label class="feld-label" for="titel">Thema</label>
+      <div class="zeile">
+        <input type="text" id="titel" maxlength="60" placeholder="z. B. Tiere, Berufe, Weltraum …" autocomplete="off">
+        <button type="button" class="btn soft" id="vorschlagen">Wörter vorschlagen</button>
+      </div>
+      <div class="themen" id="themen"></div>
+      <div class="vorschlaege" id="vorschlaege" hidden>
+        <div class="vorschlaege-kopf">
+          <strong id="vorschlagTitel"></strong>
+          <span>
+            <button type="button" class="btn ghost klein" id="alleUebernehmen">Alle übernehmen</button>
+            <button type="button" class="btn ghost klein" id="mehrVorschlaege">Andere Vorschläge</button>
+          </span>
         </div>
+        <div class="chips" id="vorschlagChips" role="group" aria-label="Vorgeschlagene Wörter"></div>
+        <p class="hinweis" id="vorschlagInfo" aria-live="polite"></p>
+      </div>
+      <div class="trenner"></div>
+      <div class="woerter-kopf">
+        <span class="feld-label">Deine Wörter<span class="zaehler" id="wortZaehler"></span></span>
+        <button type="button" class="btn ghost klein" id="alleWeg">Alle entfernen</button>
+      </div>
+      <div class="chips gewaehlt" id="wortChips" aria-live="polite"></div>
+      <div class="zeile">
+        <input type="text" id="eigenesWort" maxlength="200" placeholder="Eigenes Wort (mehrere mit Komma)" autocomplete="off" spellcheck="false" aria-label="Eigenes Wort hinzufügen">
+        <button type="button" class="btn" id="wortPlus">Hinzufügen</button>
       </div>
       <p class="hinweis" id="wortInfo" aria-live="polite"></p>
     </div>
 
-    <div class="gruppe">
-      <h2 class="schritt"><span class="kreis" aria-hidden="true">3</span>Lösungszahlen</h2>
-      <ol class="liste" id="zahlListe"></ol>
-      <div class="knopfzeile">
-        <button type="button" class="btn klein" id="zahlPlus">+ Zahl</button>
+    <div class="karte">
+      <div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span>
+        <div><h2>Lösungszahlen</h2><p>Diese Zahlen entstehen, wenn alle Wörter markiert sind.</p></div>
       </div>
+      <ol class="liste" id="zahlListe"></ol>
+      <div class="knopfzeile"><button type="button" class="btn klein" id="zahlPlus">+ Weitere Zahl</button></div>
       <p class="bedarf" id="bedarf" aria-live="polite"></p>
       <div class="striche" aria-label="Mindestens nötige Wörter je Ziffer">
         <span>Wörter je Ziffer mindestens:</span>
-        <span><b>1</b> → 1</span><span><b>7</b> → 2</span><span><b>4</b> → 3</span><span><b>0 3 9</b> → 4</span><span><b>2 5 6 8</b> → 5</span>
+        <span><b>1</b> 1</span><span><b>7</b> 2</span><span><b>4</b> 3</span><span><b>0 3 9</b> 4</span><span><b>2 5 6 8</b> 5</span>
       </div>
     </div>
 
-    <details class="optionen" id="optionen">
-      <summary>Einstellungen</summary>
-      <label class="opt"><input type="checkbox" id="optRueckwaerts"><span>Wörter auch rückwärts verstecken (schwieriger)</span></label>
-      <label class="opt"><input type="checkbox" id="optSchraeg"><span>Die 1 darf ein schräges Fähnchen haben (ein Wort steht dann schräg)</span></label>
-      <label class="opt"><input type="checkbox" id="optUmlaute"><span>Umlaute ersetzen (Ä → AE, Ö → OE, Ü → UE)</span></label>
-      <label class="opt"><input type="checkbox" id="optWortliste"><span>Wörter auf dem Blatt auflisten</span></label>
-      <label class="opt"><input type="checkbox" id="optLinien"><span>Gitterlinien zeichnen</span></label>
-      <div class="opt-raster">
-        <label for="optAnordnung">Mehrere Zahlen</label>
-        <select id="optAnordnung"><option value="neben">nebeneinander</option><option value="unter">untereinander</option></select>
-        <label for="optAbstand">Abstand der Ziffern</label>
-        <select id="optAbstand"><option value="1">1 Feld</option><option value="2">2 Felder</option><option value="3">3 Felder</option></select>
-        <label for="optRand">Rand um die Zahlen</label>
-        <select id="optRand"><option value="1">1 Feld</option><option value="2">2 Felder</option><option value="3">3 Felder</option><option value="4">4 Felder</option><option value="5">5 Felder</option></select>
-      </div>
-    </details>
+    <div class="karte">
+      <details class="optionen" id="optionen">
+        <summary>Einstellungen</summary>
+        <label class="opt"><input type="checkbox" id="optRueckwaerts"><span>Wörter auch rückwärts verstecken (schwieriger)</span></label>
+        <label class="opt"><input type="checkbox" id="optSchraeg"><span>Die 1 darf ein schräges Fähnchen haben (ein Wort steht dann schräg)</span></label>
+        <label class="opt"><input type="checkbox" id="optUmlaute"><span>Umlaute ersetzen (Ä → AE, Ö → OE, Ü → UE)</span></label>
+        <label class="opt"><input type="checkbox" id="optWortliste"><span>Wörter auf dem Blatt auflisten</span></label>
+        <label class="opt"><input type="checkbox" id="optLinien"><span>Gitterlinien zeichnen</span></label>
+        <div class="opt-raster">
+          <label for="optAnordnung">Mehrere Zahlen</label>
+          <select id="optAnordnung"><option value="neben">nebeneinander</option><option value="unter">untereinander</option></select>
+          <label for="optAbstand">Abstand der Ziffern</label>
+          <select id="optAbstand"><option value="1">1 Feld</option><option value="2">2 Felder</option><option value="3">3 Felder</option></select>
+          <label for="optRand">Rand um die Zahlen</label>
+          <select id="optRand"><option value="1">1 Feld</option><option value="2">2 Felder</option><option value="3">3 Felder</option><option value="4">4 Felder</option><option value="5">5 Felder</option></select>
+        </div>
+      </details>
+    </div>
 
-    <button type="button" class="btn haupt gross" id="los">Suchsel erstellen</button>
+    <button type="button" class="btn primary gross" id="los">Suchsel erstellen</button>
   </section>
 
   <section class="ausgabe" aria-label="Ergebnis">
     <div id="meldung" aria-live="polite"></div>
+    <div class="leer-zustand" id="leer">
+      <svg width="56" height="56" viewBox="0 0 56 56" fill="none" aria-hidden="true"><rect x="1" y="1" width="54" height="54" rx="12" fill="#eef3ff" stroke="#c3d4fb"/><g fill="#9aa1ad"><circle cx="14" cy="14" r="2"/><circle cx="28" cy="14" r="2"/><circle cx="42" cy="14" r="2"/><circle cx="14" cy="28" r="2"/><circle cx="28" cy="28" r="2"/><circle cx="42" cy="28" r="2"/><circle cx="14" cy="42" r="2"/><circle cx="28" cy="42" r="2"/><circle cx="42" cy="42" r="2"/></g><path d="M14 14h28v28" stroke="#2563eb" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/></svg>
+      <h2>Noch kein Suchsel</h2>
+      <p>In drei Schritten zum Arbeitsblatt:</p>
+      <ol>
+        <li>Thema wählen und Wörter übernehmen oder eigene eingeben</li>
+        <li>Lösungszahl eintragen, z. B. 7 oder 2026</li>
+        <li>«Suchsel erstellen» klicken</li>
+      </ol>
+    </div>
     <div class="werkzeug" id="werkzeug" hidden>
-      <button type="button" class="btn klein" id="mischen" title="Gleiche Wörter und Zahlen, neue Anordnung">🔀 Neu mischen</button>
-      <button type="button" class="btn klein" id="zeigeLoesung" aria-pressed="false">👁 Lösung zeigen</button>
-      <button type="button" class="btn klein" id="markWeg">↺ Markierungen löschen</button>
+      <button type="button" class="btn klein" id="mischen" title="Gleiche Wörter und Zahlen, neue Anordnung">Neu mischen</button>
+      <button type="button" class="btn klein" id="zeigeLoesung" aria-pressed="false">Lösung zeigen</button>
+      <button type="button" class="btn klein" id="markWeg">Markierungen löschen</button>
       <span class="abstand"></span>
       <label><input type="checkbox" id="mitLoesung"> mit Lösungsblatt</label>
-      <button type="button" class="btn klein haupt" id="drucken">🖨 Drucken</button>
-      <button type="button" class="btn klein haupt" id="herunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">⬇ Arbeitsblatt herunterladen</button>
+      <button type="button" class="btn klein primary" id="drucken">Drucken</button>
+      <button type="button" class="btn klein primary" id="herunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>
     </div>
     <article class="blatt" id="blatt" hidden>
       <h2 id="blattTitel"></h2>
@@ -638,16 +706,46 @@ return { FORMEN:FORMEN, loese:loese, bauen:bauen, analyse:analyse, minWoerter:mi
 (function(){
 'use strict';
 var $ = function(s){ return document.querySelector(s); };
-var SPEICHER = 'zahlen-suchsel-v1';
-var BEISPIEL = {
-  titel:'Steinzeit',
-  woerter:['Faustkeil', 'Mammut', 'Höhle', 'Feuer', 'Speer', 'Jäger', 'Fell', 'Knochen', 'Beeren', 'Pfeil', 'Bogen', 'Nadel', 'Hirsch', 'Zelt'],
-  zahlen:['24']
-};
+var SPEICHER = 'zahlen-suchsel-v2';
 var STANDARD = { rueckwaerts:false, schraeg:true, umlaute:false, wortliste:true, linien:true, anordnung:'neben', abstand:1, rand:2, mitLoesung:true };
-var FARBEN = ['#f4c430', '#6cc35a', '#4fb0ea', '#f2837a', '#b393ee', '#f69d45', '#3fcfb0', '#f286c4'];
+var FARBEN = ['#fcd34d', '#86efac', '#93c5fd', '#fca5a5', '#c4b5fd', '#fdba74', '#5eead4', '#f9a8d4'];
 var S = 10, NS = 'http://www.w3.org/2000/svg';
 var ZAHLWORT = ['null', 'eine', 'zwei', 'drei', 'vier', 'fünf', 'sechs', 'sieben', 'acht'];
+
+/* Eingebaute Themen: funktionieren sofort und ohne Internet. Für alle anderen Themen fragt die Seite Claude (falls verfügbar). */
+var THEMEN = [
+  { name:'Tiere', alias:['tier', 'haustiere', 'zoo', 'bauernhof'], w:'Hund Katze Pferd Kuh Schaf Ziege Schwein Hase Maus Fuchs Wolf Bär Löwe Tiger Elefant Giraffe Zebra Affe Igel Eule Adler Frosch Delfin Krokodil Pinguin Biber Hirsch Dachs Esel Kamel Papagei Schildkröte' },
+  { name:'Obst und Gemüse', alias:['obst', 'gemüse', 'früchte', 'frucht'], w:'Apfel Birne Banane Kirsche Traube Erdbeere Himbeere Pflaume Zitrone Orange Melone Ananas Mango Kiwi Karotte Gurke Tomate Paprika Zwiebel Kartoffel Salat Spinat Kürbis Lauch Erbse Bohne Brokkoli Radieschen Sellerie Knoblauch Aprikose Feige' },
+  { name:'Berufe', alias:['beruf', 'arbeit'], w:'Bäcker Lehrerin Arzt Pilot Koch Maler Gärtner Polizist Förster Bauer Metzger Schreiner Elektriker Pflegerin Coiffeur Fischer Kellner Zahnarzt Tierarzt Richter Journalist Architekt Mechaniker Floristin Sänger Schneider Apotheker Postbote Dachdecker Informatiker Hebamme Zimmermann' },
+  { name:'Sport', alias:['sportarten'], w:'Fussball Tennis Handball Hockey Golf Rudern Segeln Skifahren Schwimmen Turnen Boxen Judo Reiten Klettern Laufen Radfahren Volleyball Basketball Badminton Curling Biathlon Fechten Tischtennis Surfen Tauchen Rugby Eishockey Snowboard Kanu Yoga Schwingen Unihockey' },
+  { name:'Musikinstrumente', alias:['musik', 'instrumente', 'instrument'], w:'Gitarre Klavier Geige Flöte Trompete Posaune Trommel Harfe Cello Orgel Tuba Oboe Fagott Klarinette Saxofon Bratsche Kontrabass Akkordeon Xylofon Banjo Ukulele Mundharmonika Alphorn Hackbrett Triangel Pauke Zither Dudelsack Blockflöte Schlagzeug Horn Tamburin' },
+  { name:'Länder', alias:['land', 'staaten', 'geografie', 'europa'], w:'Schweiz Deutschland Österreich Italien Frankreich Spanien Portugal Belgien Polen Ungarn Schweden Norwegen Finnland Dänemark Irland Island Griechenland Türkei Kroatien Rumänien Japan China Indien Brasilien Kanada Mexiko Ägypten Kenia Peru Chile Australien Marokko' },
+  { name:'Wetter', alias:['klima', 'wetterlage'], w:'Regen Sonne Wolke Wind Sturm Nebel Schnee Hagel Gewitter Blitz Donner Regenbogen Frost Tau Glatteis Hitze Orkan Tornado Föhn Bise Lawine Schauer Graupel Dunst Thermometer Hochdruck Tiefdruck Wetterbericht Nieselregen Schneeflocke Sonnenschein Kälte' },
+  { name:'Schule', alias:['schulsachen', 'schulzimmer', 'unterricht'], w:'Heft Buch Füller Bleistift Radiergummi Lineal Schere Leim Pinsel Wandtafel Kreide Pause Lehrerin Klasse Zeugnis Prüfung Hausaufgabe Stundenplan Turnhalle Pult Zirkel Atlas Etui Spitzer Mathematik Deutsch Musik Zeichnen Schulweg Ferien Pausenplatz Wörterbuch' },
+  { name:'Körper', alias:['körperteile', 'mensch', 'menschlicher körper'], w:'Kopf Auge Nase Mund Ohr Hals Schulter Arm Ellbogen Hand Finger Daumen Bauch Rücken Bein Knie Fuss Zehe Herz Lunge Magen Leber Niere Gehirn Haut Knochen Muskel Zahn Zunge Wimper Stirn Kinn' },
+  { name:'Verkehr', alias:['fahrzeuge', 'fahrzeug', 'mobilität'], w:'Auto Bus Zug Tram Velo Motorrad Lastwagen Traktor Flugzeug Schiff Fähre Helikopter Rakete Taxi Ampel Strasse Brücke Tunnel Bahnhof Flughafen Hafen Kreisel Trottoir Fahrplan Gondel Seilbahn Roller Kutsche Ballon Lokomotive Zebrastreifen Autobahn' },
+  { name:'Weltraum', alias:['all', 'universum', 'planeten', 'astronomie'], w:'Sonne Mond Erde Mars Venus Merkur Jupiter Saturn Uranus Neptun Stern Komet Planet Galaxie Rakete Astronaut Satellit Meteorit Krater Teleskop Raumstation Umlaufbahn Asteroid Sternbild Milchstrasse Schwerkraft Raumanzug Mondlandung Polarstern Sonnensystem Weltall Sternschnuppe' },
+  { name:'Pflanzen und Wald', alias:['pflanzen', 'wald', 'bäume', 'blumen'], w:'Baum Blume Tanne Fichte Buche Eiche Birke Ahorn Linde Moos Farn Pilz Rose Tulpe Nelke Lilie Sonnenblume Löwenzahn Klee Efeu Kaktus Wurzel Stamm Rinde Blatt Knospe Blüte Samen Zapfen Lichtung Waldboden Brombeere' },
+  { name:'Essen und Küche', alias:['essen', 'küche', 'lebensmittel', 'kochen'], w:'Brot Butter Käse Milch Joghurt Honig Nudeln Reis Suppe Pizza Salat Kuchen Gipfeli Rösti Fondue Raclette Müesli Wurst Schinken Pfanne Topf Löffel Gabel Messer Teller Tasse Ofen Herd Rezept Gewürz Schokolade Zopf' },
+  { name:'Kleidung', alias:['kleider', 'mode'], w:'Hose Hemd Jacke Mantel Pullover Rock Kleid Socke Schuh Stiefel Mütze Schal Handschuh Gürtel Krawatte Bluse Weste Pyjama Badehose Sandale Kappe Hut Regenjacke Strumpfhose Unterhemd Turnschuh Kapuze Knopf Reissverschluss Anzug Schürze Halstuch' },
+  { name:'Farben und Formen', alias:['farben', 'formen', 'geometrie'], w:'Rot Blau Gelb Grün Violett Rosa Braun Schwarz Weiss Grau Türkis Silber Gold Kreis Dreieck Quadrat Rechteck Kugel Würfel Kegel Zylinder Pyramide Oval Raute Stern Herz Spirale Linie Punkt Fünfeck Sechseck Prisma' },
+  { name:'Meer und Wasser', alias:['meer', 'wasser', 'see', 'ozean'], w:'Meer See Fluss Bach Welle Strand Insel Muschel Koralle Qualle Fisch Wal Robbe Krebs Seestern Anker Leuchtturm Boot Segel Hafen Ebbe Flut Ufer Quelle Wasserfall Gletscher Tropfen Algen Möwe Tintenfisch Seepferdchen Delfin' },
+  { name:'Jahreszeiten', alias:['herbst', 'winter', 'frühling', 'sommer', 'jahreszeit'], w:'Frühling Sommer Herbst Winter Kastanie Eichel Laub Drachen Ernte Kürbis Nebel Pilz Igel Eichhörnchen Vogelzug Regenschirm Gummistiefel Marroni Laterne Schneemann Schlitten Knospe Badesee Glace Gewitter Blütenduft Osterhase Maikäfer Sonnenhut Erntedank Raureif Eiszapfen' },
+  { name:'Weihnachten', alias:['advent', 'weihnacht', 'winterfest'], w:'Advent Kerze Krippe Engel Stern Geschenk Tannenbaum Christkind Lebkuchen Guetzli Schlitten Rentier Schneemann Glocke Kugel Lametta Adventskranz Samichlaus Schmutzli Grittibänz Zimtstern Mandarine Nüsse Krippenspiel Lichterkette Bescherung Hirten Ochse Esel Weihnachtsmarkt Tannzapfen Geschenkpapier' },
+  { name:'Steinzeit', alias:['urgeschichte', 'altsteinzeit', 'jungsteinzeit', 'steinzeitmenschen'], w:'Faustkeil Mammut Höhle Feuer Speer Jäger Sammler Fell Knochen Beeren Pfeil Bogen Nadel Hirsch Zelt Rentier Harpune Feuerstein Höhlenbild Wollnashorn Sippe Schaber Speerschleuder Bernstein Pfahlbau Getreide Töpfern Sichel Mahlstein Langhaus Webstuhl Steinbeil' },
+  { name:'Römer', alias:['römerzeit', 'rom', 'antike', 'römisches reich'], w:'Kolosseum Aquädukt Legionär Toga Therme Forum Tempel Senat Kaiser Gladiator Amphore Mosaik Villa Strasse Münze Latrine Tunika Wagen Schild Arena Zenturio Sklave Konsul Triumphbogen Kastell Helm Sandalen Galeere Lorbeerkranz Hypokaustum Abakus Wölfin' },
+  { name:'Mittelalter', alias:['ritter', 'burg', 'ritterzeit'], w:'Burg Ritter König Königin Knappe Page Turnier Lanze Schwert Rüstung Wappen Zugbrücke Burggraben Bergfried Kloster Mönch Nonne Markt Händler Bauer Zunft Handwerker Pest Kathedrale Gaukler Minnesänger Pranger Stadtmauer Schmied Kogge Burgfräulein Urkunde' }
+];
+function themaSchluessel(t){ return String(t || '').toLocaleLowerCase('de-CH').replace(/ß/g, 'ss').replace(/[^\p{L} ]/gu, '').replace(/\s+/g, ' ').trim(); }
+function findeThema(t){
+  var k = themaSchluessel(t);
+  if (!k) return null;
+  for (var i = 0; i < THEMEN.length; i++){
+    var th = THEMEN[i];
+    if (themaSchluessel(th.name) === k || th.alias.some(function(a){ return themaSchluessel(a) === k; })) return th;
+  }
+  return null;
+}
 
 /* ---------- Zustand ---------- */
 var st = laden();
@@ -656,12 +754,12 @@ function laden(){
     var d = JSON.parse(localStorage.getItem(SPEICHER));
     if (d && Array.isArray(d.woerter) && Array.isArray(d.zahlen)){
       d.opt = Object.assign({}, STANDARD, d.opt || {});
-      if (!d.woerter.length) d.woerter = [''];
+      d.woerter = d.woerter.filter(function(w){ return String(w || '').trim(); });
       if (!d.zahlen.length) d.zahlen = [''];
       return d;
     }
   } catch(e){}
-  return { titel:BEISPIEL.titel, woerter:BEISPIEL.woerter.slice(), zahlen:BEISPIEL.zahlen.slice(), opt:Object.assign({}, STANDARD) };
+  return { titel:'', woerter:[], zahlen:[''], opt:Object.assign({}, STANDARD) };
 }
 var speicherTimer = 0;
 function speichern(){
@@ -698,81 +796,222 @@ function auswerten(){
 function zahlenListe(){ return st.zahlen.map(function(z){ return String(z || '').replace(/\D/g, ''); }).filter(Boolean); }
 function minWoerterZahl(z){ return z.split('').reduce(function(s, d){ return s + Kern.minWoerter(d); }, 0); }
 function zahlWort(n, eins, mehr){ return n === 1 ? eins : mehr; }
+function teileListe(t){ return String(t).split(/[\n,;\t]+/).map(function(s){ return s.trim(); }).filter(Boolean); }
+function schreibweise(w){ // «hund» → «Hund», «HUND» bleibt
+  w = String(w).trim();
+  return w && w === w.toLocaleLowerCase('de-CH') ? w.charAt(0).toLocaleUpperCase('de-CH') + w.slice(1) : w;
+}
 
-/* ---------- Eingabe: Titel ---------- */
+/* ---------- Thema ---------- */
 var titel = $('#titel');
 titel.value = st.titel || '';
-titel.addEventListener('input', function(){ st.titel = titel.value; speichern(); if (aktuell) blattBeschriften(); });
-
-/* ---------- Eingabe: Wörter ---------- */
-function zeichneWoerter(fokus){
-  var ol = $('#wortListe'); ol.innerHTML = '';
-  st.woerter.forEach(function(w, i){
-    var li = document.createElement('li');
-    li.innerHTML = '<span class="nr" aria-hidden="true">' + (i + 1) + '</span>' +
-      '<input type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="30" aria-label="Wort ' + (i + 1) + '">' +
-      '<button type="button" class="weg" aria-label="Wort ' + (i + 1) + ' entfernen" title="Entfernen">×</button>';
-    var inp = li.querySelector('input');
-    inp.value = w;
-    inp.addEventListener('input', function(){ st.woerter[i] = inp.value; geaendert(); });
-    inp.addEventListener('keydown', function(e){
-      if (e.key === 'Enter'){ e.preventDefault(); st.woerter.splice(i + 1, 0, ''); zeichneWoerter(i + 1); geaendert(); }
-      else if (e.key === 'Backspace' && !inp.value && st.woerter.length > 1){ e.preventDefault(); st.woerter.splice(i, 1); zeichneWoerter(Math.max(0, i - 1)); geaendert(); }
+titel.addEventListener('input', function(){
+  st.titel = titel.value; speichern(); themenMarkieren(); if (aktuell) blattBeschriften();
+  if (!vorschlag || !vorschlag.woerter.length) $('#vorschlaege').hidden = true;   // alter Hinweis passt nicht mehr
+});
+titel.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); vorschlagen(false); } });
+$('#vorschlagen').addEventListener('click', function(){ vorschlagen(false); });
+(function(){
+  var box = $('#themen');
+  box.innerHTML = '<span class="themen-label">Oder ein Thema auswählen:</span>';
+  THEMEN.forEach(function(th){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'thema'; b.textContent = th.name; b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('click', function(){
+      titel.value = st.titel = th.name; speichern(); themenMarkieren();
+      if (aktuell) blattBeschriften();
+      vorschlagen(false);
     });
-    inp.addEventListener('paste', function(e){
-      var t = (e.clipboardData || window.clipboardData).getData('text');
-      if (!/[\n,;\t]/.test(t)) return;
-      e.preventDefault();
-      var neu = teileListe(t);
-      if (!neu.length) return;
-      if (!inp.value.trim()) st.woerter.splice(i, 1);
-      else i++;
-      Array.prototype.splice.apply(st.woerter, [i, 0].concat(neu));
-      zeichneWoerter(Math.min(st.woerter.length - 1, i + neu.length - 1)); geaendert();
-    });
-    li.querySelector('.weg').addEventListener('click', function(){
-      st.woerter.splice(i, 1); if (!st.woerter.length) st.woerter.push('');
-      zeichneWoerter(Math.min(i, st.woerter.length - 1)); geaendert();
-    });
-    ol.appendChild(li);
+    box.appendChild(b);
   });
-  if (fokus != null){
-    var f = ol.querySelectorAll('input')[fokus];
-    if (f){ f.focus(); try { f.setSelectionRange(f.value.length, f.value.length); } catch(e){} }
+})();
+function themenMarkieren(){
+  var th = findeThema(titel.value);
+  [].forEach.call(document.querySelectorAll('#themen .thema'), function(b){ b.setAttribute('aria-pressed', th && th.name === b.textContent ? 'true' : 'false'); });
+}
+
+/* ---------- Wortvorschläge ---------- */
+// Als Artefakt kann die Seite Claude fragen; sonst gibt es nur die eingebauten Themen.
+var kiZusage = (window.claude && typeof window.claude.use === 'function') ? Promise.resolve(window.claude.use('sample')).catch(function(){ return null; }) : Promise.resolve(null);
+var kiAus = false, vorschlag = null, vorschlagLauf = 0;
+
+function vorschlagen(mehr){
+  var t = titel.value.trim(), token = ++vorschlagLauf;
+  if (!t){ titel.focus(); zeigeVorschlagInfo('Gib zuerst ein Thema ein oder wähle eines aus der Liste.'); return; }
+  if (!mehr || !vorschlag || vorschlag.thema !== t) vorschlag = { thema:t, woerter:[], gezeigt:{}, quelle:'' };
+  var th = findeThema(t);
+  if (th){
+    var pool = th.w.split(' ').filter(function(w){ return !vorschlag.gezeigt[norm(w)]; });
+    if (pool.length >= 8 || !mehr){
+      if (pool.length < 20) pool = pool.concat(th.w.split(' ').filter(function(w){ return pool.indexOf(w) < 0; }));
+      zeigeVorschlaege(mischen(pool).slice(0, 20), 'Themenliste');
+      return;
+    }
+  }
+  vorschlagLaedt(true);
+  kiZusage.then(function(ki){
+    if (token !== vorschlagLauf) return;
+    if (!ki || kiAus){
+      vorschlagLaedt(false);
+      if (th) zeigeVorschlaege(mischen(th.w.split(' ')).slice(0, 20), 'Themenliste');
+      else zeigeVorschlagInfo('Für «' + esc(t) + '» gibt es hier keine eingebauten Vorschläge. Wähle ein Thema aus der Liste oder gib eigene Wörter ein.', true);
+      return;
+    }
+    var schon = Object.keys(vorschlag.gezeigt).slice(-80);
+    var prompt = 'Du hilfst einer Lehrperson, ein Suchsel (Wortsuchrätsel) zu erstellen.\n' +
+      'Thema: «' + t.slice(0, 80) + '»\n' +
+      'Schlage genau 20 passende deutsche Wörter zu diesem Thema vor.\n' +
+      'Regeln:\n- Je ein einzelnes Wort, meist Nomen, ohne Leerzeichen, Bindestriche, Ziffern oder Abkürzungen.\n' +
+      '- 3 bis 12 Buchstaben, gemischte Längen.\n- Schweizer Rechtschreibung (ss statt ß), normale Gross- und Kleinschreibung.\n' +
+      '- Allgemein bekannt, eindeutig zum Thema, keine Wiederholungen.\n' +
+      (schon.length ? '- Nicht diese Wörter (schon vorgeschlagen): ' + schon.join(', ') + '\n' : '') +
+      'Antworte nur mit einem JSON-Array aus 20 Strings, z. B. ["Apfel", "Birne"].';
+    ki.json(prompt, mehr ? { modelTier:'quick', cache:false } : { modelTier:'quick' }).then(function(liste){
+      if (token !== vorschlagLauf) return;
+      vorschlagLaedt(false);
+      var gut = [], seen = {};
+      (Array.isArray(liste) ? liste : []).forEach(function(x){
+        var w = schreibweise(String(x == null ? '' : x).replace(/ß/g, 'ss'));
+        var n = norm(w);
+        if (!/^[\p{L}]+$/u.test(w) || n.length < 2 || n.length > 16 || seen[n]) return;
+        seen[n] = true; gut.push(w);
+      });
+      if (!gut.length){ zeigeVorschlagInfo('Es kamen keine brauchbaren Vorschläge. Versuch es nochmals oder formuliere das Thema etwas anders.', true); return; }
+      zeigeVorschlaege(gut.slice(0, 20), 'Claude');
+    }).catch(function(e){
+      if (token !== vorschlagLauf) return;
+      vorschlagLaedt(false);
+      var c = e && e.code;
+      if (c === 'cancelled') return;
+      if (['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'].indexOf(c) >= 0){
+        kiAus = true;
+        if (th){ zeigeVorschlaege(mischen(th.w.split(' ')).slice(0, 20), 'Themenliste'); return; }
+        zeigeVorschlagInfo('Vorschläge von Claude sind hier nicht verfügbar. Wähle ein Thema aus der Liste oder gib eigene Wörter ein.', true);
+      } else if (c === 'rate_limited') zeigeVorschlagInfo('Gerade zu viele Anfragen – bitte in einem Moment nochmals versuchen.', true);
+      else if (c === 'session_expired') zeigeVorschlagInfo('Bitte melde dich bei Claude neu an und versuche es dann nochmals.', true);
+      else zeigeVorschlagInfo('Die Vorschläge konnten nicht geladen werden. Versuch es nochmals oder formuliere das Thema etwas anders.', true);
+    });
+  });
+}
+function vorschlagLaedt(ja){
+  var b = $('#vorschlagen'); b.disabled = ja; $('#mehrVorschlaege').disabled = ja;
+  if (ja){
+    $('#vorschlaege').hidden = false;
+    $('#vorschlagTitel').innerHTML = 'Vorschläge zu «' + esc(vorschlag.thema) + '»';
+    $('#vorschlagInfo').innerHTML = '<span class="lade" aria-hidden="true"></span>Claude sucht passende Wörter …';
   }
 }
-function teileListe(t){ return String(t).split(/[\n,;\t]+/).map(function(s){ return s.trim(); }).filter(Boolean); }
-$('#wortPlus').addEventListener('click', function(){
-  var leer = st.woerter.indexOf('');
-  if (leer >= 0 && leer === st.woerter.length - 1){ zeichneWoerter(leer); return; }
-  st.woerter.push(''); zeichneWoerter(st.woerter.length - 1); geaendert();
+function zeigeVorschlagInfo(html, imPanel){
+  $('#vorschlaege').hidden = false;
+  if (!vorschlag || !vorschlag.woerter.length){ $('#vorschlagChips').innerHTML = ''; $('#vorschlagTitel').textContent = 'Wortvorschläge'; }
+  $('#vorschlagInfo').innerHTML = html;
+  $('#alleUebernehmen').hidden = !vorschlag || !vorschlag.woerter.length;
+  $('#mehrVorschlaege').hidden = !vorschlag || !vorschlag.woerter.length;
+}
+function zeigeVorschlaege(woerter, quelle){
+  vorschlag.woerter = woerter; vorschlag.quelle = quelle;
+  woerter.forEach(function(w){ vorschlag.gezeigt[norm(w)] = true; });
+  $('#vorschlaege').hidden = false;
+  $('#vorschlagTitel').innerHTML = 'Vorschläge zu «' + esc(vorschlag.thema) + '»<span class="quelle">' + (quelle === 'Claude' ? 'von Claude' : 'aus der Themenliste') + '</span>';
+  $('#vorschlagInfo').textContent = 'Anklicken, um ein Wort zu übernehmen oder wieder zu entfernen.';
+  $('#alleUebernehmen').hidden = false; $('#mehrVorschlaege').hidden = false;
+  zeichneVorschlaege();
+}
+function zeichneVorschlaege(){
+  var box = $('#vorschlagChips');
+  box.innerHTML = '';
+  if (!vorschlag) return;
+  var drin = {}; st.woerter.forEach(function(w){ drin[norm(w)] = true; });
+  vorschlag.woerter.forEach(function(w){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip-vorschlag'; b.textContent = w;
+    b.setAttribute('aria-pressed', drin[norm(w)] ? 'true' : 'false');
+    b.addEventListener('click', function(){
+      if (b.getAttribute('aria-pressed') === 'true') wortEntfernen(norm(w));
+      else woerterHinzu([w]);
+    });
+    box.appendChild(b);
+  });
+}
+$('#alleUebernehmen').addEventListener('click', function(){ if (vorschlag) woerterHinzu(vorschlag.woerter); });
+$('#mehrVorschlaege').addEventListener('click', function(){ vorschlagen(true); });
+function mischen(a){ a = a.slice(); for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+
+/* ---------- Deine Wörter ---------- */
+function woerterHinzu(liste){
+  var drin = {}, zuKurz = [], schon = [];
+  st.woerter.forEach(function(w){ drin[norm(w)] = true; });
+  liste.forEach(function(w){
+    w = schreibweise(w);
+    var n = norm(w);
+    if (n.length < 2){ if (w) zuKurz.push(w); return; }
+    if (drin[n]){ schon.push(w); return; }
+    drin[n] = true; st.woerter.push(w);
+  });
+  var notiz = [];
+  if (zuKurz.length) notiz.push('Zu kurz: ' + zuKurz.map(esc).join(', '));
+  if (schon.length && liste.length === 1) notiz.push('«' + esc(schon[0]) + '» ist schon in der Liste');
+  zeichneWoerter(); geaendert(notiz.join(' · '));
+}
+function wortEntfernen(n){
+  st.woerter = st.woerter.filter(function(w){ return norm(w) !== n; });
+  zeichneWoerter(); geaendert();
+}
+function zeichneWoerter(){
+  var box = $('#wortChips');
+  box.innerHTML = '';
+  var gesehen = {};
+  st.woerter.forEach(function(w){
+    var n = norm(w), chip = document.createElement('span'), problem = n.length < 2 ? 'zu kurz' : gesehen[n] ? 'doppelt' : '';
+    gesehen[n] = true;
+    chip.className = 'chip-wort' + (problem ? ' ungueltig' : '');
+    if (problem) chip.title = 'Wird weggelassen (' + problem + ')';
+    chip.innerHTML = '<span></span><button type="button" aria-label="' + esc(w) + ' entfernen" title="Entfernen">×</button>';
+    chip.firstChild.textContent = w;
+    chip.lastChild.addEventListener('click', function(){
+      var i = st.woerter.indexOf(w); if (i >= 0) st.woerter.splice(i, 1);
+      zeichneWoerter(); geaendert();
+    });
+    box.appendChild(chip);
+  });
+  vorschlagStatus();
+}
+/* Nur den Zustand der Vorschlags-Chips nachführen (Fokus bleibt erhalten) */
+function vorschlagStatus(){
+  var drin = {}; st.woerter.forEach(function(w){ drin[norm(w)] = true; });
+  [].forEach.call(document.querySelectorAll('#vorschlagChips .chip-vorschlag'), function(b){
+    b.setAttribute('aria-pressed', drin[norm(b.textContent)] ? 'true' : 'false');
+  });
+}
+var eigen = $('#eigenesWort');
+function eigeneUebernehmen(){
+  var liste = teileListe(eigen.value);
+  if (!liste.length){ eigen.focus(); return; }
+  eigen.value = '';
+  woerterHinzu(liste);
+  eigen.focus();
+}
+$('#wortPlus').addEventListener('click', eigeneUebernehmen);
+eigen.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); eigeneUebernehmen(); } });
+eigen.addEventListener('paste', function(e){
+  var t = (e.clipboardData || window.clipboardData).getData('text');
+  if (!/[\n,;\t]/.test(t)) return;
+  e.preventDefault();
+  woerterHinzu(teileListe(t));
 });
 /* Zweimal klicken statt confirm() (das in eingebetteten Seiten blockiert sein kann) */
 var loeschTimer = 0;
 $('#alleWeg').addEventListener('click', function(){
   var b = this;
+  if (!st.woerter.length) return;
   if (!b.classList.contains('sicher')){
-    b.classList.add('sicher'); b.textContent = 'Wirklich alle löschen?';
+    b.classList.add('sicher'); b.textContent = 'Wirklich alle entfernen?';
     clearTimeout(loeschTimer);
-    loeschTimer = setTimeout(function(){ b.classList.remove('sicher'); b.textContent = 'Alle löschen'; }, 4000);
+    loeschTimer = setTimeout(function(){ b.classList.remove('sicher'); b.textContent = 'Alle entfernen'; }, 4000);
     return;
   }
-  clearTimeout(loeschTimer); b.classList.remove('sicher'); b.textContent = 'Alle löschen';
-  st.woerter = ['']; zeichneWoerter(0); geaendert();
-});
-function listeBox(auf){
-  $('#listeBox').hidden = !auf; $('#listeAuf').setAttribute('aria-expanded', auf ? 'true' : 'false');
-  if (auf) $('#listeText').focus();
-}
-$('#listeAuf').addEventListener('click', function(){ listeBox($('#listeBox').hidden); });
-$('#listeZu').addEventListener('click', function(){ listeBox(false); });
-$('#listeOk').addEventListener('click', function(){
-  var neu = teileListe($('#listeText').value);
-  if (neu.length){
-    st.woerter = st.woerter.filter(function(w){ return String(w).trim(); }).concat(neu);
-    zeichneWoerter(); geaendert();
-  }
-  $('#listeText').value = ''; listeBox(false);
+  clearTimeout(loeschTimer); b.classList.remove('sicher'); b.textContent = 'Alle entfernen';
+  st.woerter = []; zeichneWoerter(); geaendert();
 });
 
 /* ---------- Eingabe: Zahlen ---------- */
@@ -811,9 +1050,10 @@ $('#zahlPlus').addEventListener('click', function(){
 /* ---------- Live-Hinweise ---------- */
 function infoAktualisieren(){
   var a = auswerten(), N = a.woerter.length, teile = [];
-  teile.push(N + ' ' + zahlWort(N, 'Wort', 'Wörter') + ' · ' + a.buchstaben + ' Buchstaben');
-  if (a.kurz.length) teile.push('zu kurz, wird weggelassen: ' + a.kurz.map(esc).join(', '));
-  if (a.doppelt.length) teile.push('doppelt, wird weggelassen: ' + a.doppelt.map(esc).join(', '));
+  $('#wortZaehler').textContent = N ? N + ' · ' + a.buchstaben + ' Buchstaben' : '';
+  if (wortNotiz) teile.push(wortNotiz);
+  if (a.kurz.length) teile.push('Zu kurz, wird weggelassen: ' + a.kurz.map(esc).join(', '));
+  if (a.doppelt.length) teile.push('Doppelt, wird weggelassen: ' + a.doppelt.map(esc).join(', '));
   $('#wortInfo').innerHTML = teile.join(' · ');
 
   var chips = document.querySelectorAll('#zahlListe .chip');
@@ -838,7 +1078,9 @@ function infoAktualisieren(){
     box.textContent = was + ' mindestens ' + noetig + ' Wörter – du hast ' + N + '. Das reicht gut.';
   }
 }
-function geaendert(){
+var wortNotiz = '';
+function geaendert(notiz){
+  wortNotiz = notiz || '';
   speichern(); infoAktualisieren();
   if (aktuell) $('#blatt').classList.add('veraltet');
 }
@@ -854,7 +1096,7 @@ Object.keys(OPT_FELDER).forEach(function(k){
   el.addEventListener('change', function(){
     st.opt[k] = el.type === 'checkbox' ? el.checked : (k === 'anordnung' ? el.value : parseInt(el.value, 10));
     speichern();
-    if (k === 'umlaute') infoAktualisieren();
+    if (k === 'umlaute'){ zeichneWoerter(); infoAktualisieren(); }
     if (!aktuell || k === 'mitLoesung') return;
     if (k === 'wortliste' || k === 'linien') anzeigen();                       // nur neu zeichnen
     else if (k === 'anordnung' || k === 'abstand' || k === 'rand' || k === 'rueckwaerts') neuBauen(); // gleiche Verteilung, neues Feld
@@ -865,10 +1107,12 @@ Object.keys(OPT_FELDER).forEach(function(k){
 /* ---------- Meldungen ---------- */
 function meldung(art, html){
   var m = $('#meldung');
-  if (!html){ m.innerHTML = ''; return null; }
+  if (!html){ m.innerHTML = ''; leerZustand(); return null; }
   m.innerHTML = '<div class="meldung ' + art + '">' + html + '</div>';
+  leerZustand();
   return m.firstChild;
 }
+function leerZustand(){ $('#leer').hidden = !!aktuell || !!$('#meldung').innerHTML; }
 
 /* ---------- Erstellen ---------- */
 var lauf = 0, aktuell = null;
@@ -892,7 +1136,7 @@ function erstellen(){
       neuBauen();
       return;
     }
-    aktuell = null; $('#blatt').hidden = true; $('#werkzeug').hidden = true;
+    aktuell = null; $('#blatt').hidden = true; $('#werkzeug').hidden = true; leerZustand();
     var grund = an.woerter < an.minWoerter ? 'zuWenig' : an.buchstaben < an.minBuchstaben ? 'zuKurz' : an.buchstaben > an.maxBuchstaben ? 'zuViel' : 'passtNicht';
     zeigeFehler(zahlen, a, an, grund, r.zeit, token);
   }, 40);
@@ -1063,9 +1307,9 @@ function baueSvg(f, art){
     var d = '';
     for (var c = 1; c < f.spalten; c++) d += 'M' + c * S + ' 0V' + h;
     for (var r = 1; r < f.zeilen; r++) d += 'M0 ' + r * S + 'H' + w;
-    el('path', { d:d, stroke:'#d9cfbf', 'stroke-width':0.35, fill:'none' }, svg);
+    el('path', { d:d, stroke:'#e3e6eb', 'stroke-width':0.35, fill:'none' }, svg);
   }
-  el('rect', { x:0.4, y:0.4, width:w - 0.8, height:h - 0.8, fill:'none', stroke:'#2b2118', 'stroke-width':0.8, rx:1.2 }, svg);
+  el('rect', { x:0.4, y:0.4, width:w - 0.8, height:h - 0.8, fill:'none', stroke:'#374151', 'stroke-width':0.7, rx:1.2 }, svg);
   var gT = el('g', { 'class':'ebene-text' }, svg);
   f.gitter.forEach(function(zeile, r){
     zeile.forEach(function(ch, c){ var t = el('text', { x:c * S + S / 2, y:r * S + S / 2 + 0.3 }, gT); t.textContent = ch; });
@@ -1108,7 +1352,7 @@ function anzeigen(){
   // gefundene Wörter wieder einzeichnen
   var gM = svg.querySelector('.ebene-markiert'), n = 0;
   f.woerter.forEach(function(w, i){ if (spiel.gefunden[i]) kapsel(gM, w.zellen, FARBEN[n++ % FARBEN.length]); });
-  $('#blatt').hidden = false; $('#werkzeug').hidden = false;
+  $('#blatt').hidden = false; $('#werkzeug').hidden = false; leerZustand();
   fortschritt();
 }
 
@@ -1136,7 +1380,7 @@ function spielEinrichten(svg){
   }
   function zeigeTemp(z){
     if (temp) temp.remove();
-    temp = kapsel(gA, z, '#3c7fd6', 'auswahl');
+    temp = kapsel(gA, z, '#2563eb', 'auswahl');
   }
   function startPunkt(rc){
     if (punkt){ punkt.remove(); punkt = null; }
@@ -1242,15 +1486,15 @@ function druckDatei(){
   }
   var t = (st.titel || '').trim();
   var css = document.querySelector('style').textContent +
-    '\nbody{background:#efe6d4;color-scheme:light}.seite{max-width:960px;margin:0 auto;padding:18px}' +
-    '.leiste{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 14px;color:#4b3d30}' +
+    '\nbody{background:#f5f7fa}.seite{max-width:960px;margin:0 auto;padding:18px}' +
+    '.leiste{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 14px;color:#6b7280;font-size:.9rem}' +
     '.loesungsblatt{display:block;margin-top:22px}svg.gitter{cursor:default}' +
     '@media print{.leiste{display:none}.seite{max-width:none;padding:0}.loesungsblatt{break-before:page;margin-top:0}}';
   return '<!DOCTYPE html>\n<html lang="de">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
     '<title>' + esc('Suchsel' + (t ? ' – ' + t : '')) + '</title>\n' +
-    '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@500;600;700&display=swap">\n' +
+    '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">\n' +
     '<style>' + css + '</style>\n</head>\n<body class="mit-loesung">\n<div class="seite">\n' +
-    '<div class="leiste"><button class="btn haupt" onclick="window.print()">🖨 Drucken</button><span>Tipp: Im Druckdialog «Hintergrundgrafiken» einschalten, damit das Lösungsblatt farbig wird.</span></div>\n' +
+    '<div class="leiste"><button class="btn primary" onclick="window.print()">Drucken</button><span>Tipp: Im Druckdialog «Hintergrundgrafiken» einschalten, damit das Lösungsblatt farbig wird.</span></div>\n' +
     teile + '\n</div>\n</body>\n</html>\n';
 }
 var speicherOrt = null;
@@ -1275,8 +1519,9 @@ if (window.claude && typeof window.claude.use === 'function'){
 /* ---------- Start ---------- */
 zeichneWoerter();
 zeichneZahlen();
+themenMarkieren();
 infoAktualisieren();
-erstellen();
+if (auswerten().woerter.length && zahlenListe().length) erstellen(); else leerZustand();
 })();
 </script>
 </body>
