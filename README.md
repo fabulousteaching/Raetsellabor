@@ -56,7 +56,7 @@ raetsel/rebus/                  der Generator «Rebus»
   rebus.css                     Aussehen dieses Generators
 ```
 
-Kein Build-Schritt, keine Abhängigkeiten ausser den Schriften Inter und Bricolage Grotesque von Google Fonts. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel` öffnet direkt den Generator, `…/#start` die Startseite.
+Kein Build-Schritt, keine Abhängigkeiten ausser den Schriften Fredoka und Inter von Google Fonts. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel` oder `…/#rebus` öffnet direkt einen Generator, `…/#start` die Startseite.
 
 ## Einen neuen Generator hinzufügen
 
