@@ -26,6 +26,15 @@ Wortvorschläge: Als Claude-Artefakt kommen sie für jedes Thema von Claude. Als
 
 Thema, Wörter und Lösungszahl gelten nur für den geöffneten Tab: Neu laden behält sie, ein neuer Tab beginnt leer. Die Einstellungen bleiben im Browser gespeichert.
 
+### Suchsel
+
+Das klassische Wortsuchrätsel: Die Wörter liegen kreuz und quer im Buchstabenfeld. Thema und Wörter wie beim Zahlen-Suchsel (Vorschläge zum Thema oder eigene Wörter).
+
+- **Schwierigkeit:** *Leicht* (waagrecht → und senkrecht ↓), *Mittel* (dazu schräg ↘ ↗), *Schwer* (dazu rückwärts ← ↑ ↖ ↙). Wörter dürfen sich auf Wunsch kreuzen.
+- **Feldgrösse:** automatisch (so klein wie möglich) oder fest 10 × 10 bis 20 × 20.
+- **Look passend zum Thema:** Das Blatt bekommt Farbe, Deko-Emojis und ein Muster, z. B. Fussball als Rasen mit Eckfahnen, Weltraum als Sternenhimmel, Essen als karierte Tischdecke, Schule als Häuschenpapier, Verkehr als Strasse, Weihnachten mit Schnee. Erkannt wird der Look über die eingebauten Themen und Stichworte (`gemeinsam/looks.js`); für andere Themen entwirft im Artefakt Claude einen Look. Er lässt sich auch selbst wählen oder auf «Schlicht» stellen.
+- Markieren am Bildschirm, Lösung zeigen, Drucken bzw. Herunterladen mit Lösungsblatt (die Farben des Looks werden mitgedruckt).
+
 ### Rebus
 
 Aus Wörtern und ganzen Sätzen werden Bilderrätsel. Jedes Bild steht für ein Wort (Einzahl, ohne Artikel); die Regeln darunter wendet man der Reihe nach an:
@@ -47,15 +56,19 @@ Drei Stufen: *Einfach* (höchstens eine Regel pro Bild), *Mittel* (bis zwei Rege
 index.html                      Rätsellabor: Kopfleiste mit Menü, Startseite, Platz für den Generator
 gemeinsam/labor.css             gemeinsames Aussehen (Farben, Schriften, Kopfleiste, Menü, Karten, Knöpfe)
 gemeinsam/labor.js              Menü, Startseite und Wechsel zwischen den Generatoren
+gemeinsam/wortwahl.js           Baustein «Thema und Wörter»: Themenliste, Vorschläge, Wort-Chips
+gemeinsam/looks.js              Looks: thematische Gestaltung (Farbe, Deko-Emojis, Muster)
+gemeinsam/gitter.js             Baustein «Buchstabengitter»: Zeichnen, Markieren, Füllbuchstaben
 raetsel/zahlen-suchsel/         der Generator «Zahlen-Suchsel»
   zahlen-suchsel.js             Kern (Ziffern bauen, Wörter verteilen), Oberfläche, Bedienung
   zahlen-suchsel.css            Aussehen dieses Generators (nur aktiv, solange er offen ist)
+raetsel/suchsel/                der Generator «Suchsel» (Wörter setzen, Oberfläche, Bedienung)
 raetsel/rebus/                  der Generator «Rebus»
   rebus.js                      Bilderliste, Kern (Zerlegung), Oberfläche, Bedienung
   rebus.css                     Aussehen dieses Generators
 ```
 
-Kein Build-Schritt, keine Abhängigkeiten ausser den Schriften Fredoka und Inter von Google Fonts. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel` oder `…/#rebus` öffnet direkt einen Generator, `…/#start` die Startseite.
+Kein Build-Schritt, keine Abhängigkeiten ausser den Schriften Fredoka und Inter von Google Fonts. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel` oder `…/#rebus` öffnet direkt einen Generator, `…/#start` die Startseite.
 
 ## Einen neuen Generator hinzufügen
 
@@ -81,7 +94,7 @@ Kein Build-Schritt, keine Abhängigkeiten ausser den Schriften Fredoka und Inter
 
 3. In `index.html` unten eine Zeile ergänzen: `<script src="raetsel/mein-raetsel/mein-raetsel.js"></script>`
 
-Der neue Generator erscheint dann automatisch im Menü und auf der Startseite. Gemeinsame Bausteine wie `.karte`, `.btn`, Eingabefelder und `.meldung` stehen in `gemeinsam/labor.css` bereit. In `gemeinsam/labor.js` gibt es Helfer für alle Generatoren: `Labor.imArtefakt()`, `Labor.claude(name)` (Claude-Fähigkeiten im Artefakt), `Labor.blattDatei(titel, html)` (Arbeitsblatt als Datei) und `Labor.esc()`.
+Der neue Generator erscheint dann automatisch im Menü und auf der Startseite. Gemeinsame Bausteine wie `.karte`, `.btn`, Eingabefelder und `.meldung` stehen in `gemeinsam/labor.css` bereit. Bausteine zum Wiederverwenden: `Wortwahl` (Thema und Wörter), `Gitter` (Buchstabengitter) und `Looks` (thematische Gestaltung). In `gemeinsam/labor.js` gibt es Helfer für alle Generatoren: `Labor.imArtefakt()`, `Labor.claude(name)` (Claude-Fähigkeiten im Artefakt), `Labor.blattDatei(titel, html)` (Arbeitsblatt als Datei) und `Labor.esc()`.
 
 ## Veröffentlichen
 

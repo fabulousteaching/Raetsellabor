@@ -108,6 +108,27 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input[type=checkbox]:
 .lade{display:inline-block;width:1em;height:1em;border-radius:50%;border:2px solid var(--line-2);border-top-color:var(--accent);animation:dreh .8s linear infinite;vertical-align:-.15em;margin-right:.45em}
 @keyframes dreh{to{transform:rotate(360deg)}}
 
+/* ---------- Baustein «Thema und Wörter» (gemeinsam/wortwahl.js) ---------- */
+.vorschlaege{margin-top:14px;border:1px solid var(--accent-line);background:#f6fafd;border-radius:12px;padding:12px}
+.vorschlaege-kopf{display:flex;align-items:center;justify-content:space-between;gap:4px 8px;flex-wrap:wrap;margin-bottom:10px}
+.vorschlaege-kopf strong{font-size:.92rem;font-weight:650}
+.quelle{white-space:nowrap;display:inline-block;font-size:.7rem;font-weight:600;color:var(--accent-2);background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:999px;padding:1px 7px;margin-left:6px;vertical-align:1px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip-vorschlag{font-size:.86rem;border:1px solid var(--line-2);background:#fff;border-radius:999px;padding:4px 12px 4px 10px;cursor:pointer;color:var(--text);transition:background .12s,border-color .12s}
+.chip-vorschlag::before{content:'+';display:inline-block;width:.9em;margin-right:3px;color:var(--muted-2);font-weight:600}
+.chip-vorschlag:hover{border-color:var(--accent)}
+.chip-vorschlag[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip-vorschlag[aria-pressed="true"]::before{content:'✓';color:#fff}
+.woerter-kopf{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.woerter-kopf .feld-label{margin:0}
+.zaehler{font-weight:600;color:var(--accent-2);text-transform:none;letter-spacing:0;margin-left:4px}
+.chips.gewaehlt{min-height:44px;padding:8px;border:1px dashed var(--line-2);border-radius:10px;margin-bottom:10px;align-content:flex-start}
+.chips.gewaehlt:empty::before{content:'Noch keine Wörter – übernimm Vorschläge oder füge eigene hinzu.';color:var(--muted-2);font-size:.86rem;padding:3px 4px}
+.chip-wort{display:inline-flex;align-items:center;gap:1px;font-size:.86rem;background:#f2f4f7;border:1px solid var(--line);border-radius:999px;padding:2px 3px 2px 11px}
+.chip-wort button{border:0;background:transparent;width:22px;height:22px;border-radius:50%;cursor:pointer;color:var(--muted);font-size:1rem;line-height:1;display:grid;place-items:center;padding:0}
+.chip-wort button:hover{background:var(--err-soft);color:var(--err)}
+.chip-wort.ungueltig{background:var(--warn-soft);border-color:var(--warn-line);color:var(--warn)}
+
 /* ---------- Startseite ---------- */
 .startseite{max-width:1180px;margin:0 auto;display:grid;gap:56px;padding-block:44px 64px;
   padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
