@@ -7,17 +7,17 @@
 
 /* KERN-START */
 /* ===== Kern des Rebus =====
-   Ein Lösungswort wird von links nach rechts in Teile zerlegt. Jeder Teil ist ein Bild (Emoji mit deutschem Namen),
-   dessen Name mit klassischen Rebus-Zeichen verändert wird, oder ein einzelner Buchstabe:
-     ’ vor dem Bild  = so viele Buchstaben am Anfang weglassen     ’ nach dem Bild = am Ende weglassen
-     A=E             = jedes A durch E ersetzen                     durchgestrichen = diesen Buchstaben streichen
-     1 3 4           = nur diese Buchstaben in dieser Reihenfolge   Bild auf dem Kopf = rückwärts lesen
-   Gesucht wird die Zerlegung mit den kleinsten «Kosten» (wenige Bilder, wenige Zeichen); ein wenig Zufall sorgt für Abwechslung. */
+   Jedes Wort wird von links nach rechts in Teile zerlegt, meist genau ein Bild pro Wort. Ein Bild (Emoji mit deutschem Namen)
+   wird mit Regeln zum gesuchten Teil, die man der Reihe nach anwendet:
+     ko=i  = «ko» durch «i» ersetzen (auch mehrere Buchstaben)     −k = den Buchstaben k weglassen     +r = r am Ende anhängen
+   Beispiel «Ich arbeite gerne»: 👨‍🍳 KOCH ko=i → ICH, 🐜 AMEISE m=rb s=t → ARBEITE, 🍐 BIRNE bi=ge → GERNE.
+   Gesucht wird die Zerlegung mit den kleinsten «Kosten» (wenige Bilder, wenige Regeln); ein wenig Zufall sorgt für Abwechslung. */
 var Kern = (function(){
 'use strict';
 
 /* Bilder: Name (Einzahl, ohne Artikel) und Emoji. Nur gut erkennbare, verbreitete Emojis. */
 var LISTE = (
+  'KOCH👨‍🍳 PILOT👨‍✈️ MALER👨‍🎨 BAUER👨‍🌾 ASTRONAUT👨‍🚀 LEHRER👨‍🏫 ARZT👨‍⚕️ ' +
   'HUND🐶 KATZE🐱 MAUS🐭 HAMSTER🐹 HASE🐰 FUCHS🦊 BÄR🐻 PANDA🐼 KOALA🐨 TIGER🐯 LÖWE🦁 KUH🐮 SCHWEIN🐷 FROSCH🐸 AFFE🐵 ' +
   'HUHN🐔 PINGUIN🐧 VOGEL🐦 KÜKEN🐤 ENTE🦆 ADLER🦅 EULE🦉 WOLF🐺 PFERD🐴 EINHORN🦄 BIENE🐝 RAUPE🐛 SCHMETTERLING🦋 ' +
   'SCHNECKE🐌 MARIENKÄFER🐞 AMEISE🐜 SPINNE🕷️ SCHILDKRÖTE🐢 SCHLANGE🐍 ECHSE🦎 KRAKE🐙 KRABBE🦀 HUMMER🦞 FISCH🐟 DELFIN🐬 ' +
@@ -57,92 +57,124 @@ function norm(t){ return String(t || '').normalize('NFC').toLocaleUpperCase('de-
 /* Text → Wörter aus Grossbuchstaben (ß wird SS, Umlaute bleiben) */
 function woerter(t){ return norm(t).split(/[^A-ZÄÖÜ]+/).filter(Boolean); }
 
+/* Stufen: wie viele Regeln ein Bild haben darf und wie viele Buchstaben eine Regel umfassen darf */
 var STUFEN = {
-  einfach:{ tausch:false, streich:false, kopf:false, zahlen:false },
-  mittel:{ tausch:true, streich:true, kopf:false, zahlen:false },
-  schwer:{ tausch:true, streich:true, kopf:true, zahlen:true }
+  einfach:{ regeln:1, tausch:2, weg:2, dazu:2 },
+  mittel:{ regeln:2, tausch:2, weg:2, dazu:2 },
+  schwer:{ regeln:3, tausch:3, weg:2, dazu:3 }
 };
 
-/* Alle Möglichkeiten, ab Stelle i des Wortes W mit einem Bild oder einem Buchstaben weiterzumachen */
-function kandidaten(W, i, st, rnd, meiden){
+function haeufigkeit(s){ var h = {}; for (var k = 0; k < s.length; k++) h[s[k]] = (h[s[k]] || 0) + 1; return h; }
+LISTE.forEach(function(b){ b.h = haeufigkeit(b.wort); });
+function gemeinsam(h1, s){ var h = haeufigkeit(s), n = 0; for (var k in h) n += Math.min(h[k], h1[k] || 0); return n; }
+
+/* Regeln der Reihe nach anwenden, so wie sie ein Kind löst. Jede Tausch- und Minus-Regel muss eindeutig sein. */
+function anwenden(P, regeln){
+  var w = P;
+  for (var k = 0; k < regeln.length; k++){
+    var r = regeln[k];
+    if (r.art === 'dazu'){ w += r.zu; continue; }
+    var p = w.indexOf(r.von);
+    if (p < 0 || w.indexOf(r.von, p + 1) >= 0) return null;
+    w = w.slice(0, p) + (r.art === 'tausch' ? r.zu : '') + w.slice(p + r.von.length);
+  }
+  return w;
+}
+
+/* Wie wird aus dem Bildwort P der Teil S? Gesucht sind wenige zusammenhängende Änderungen:
+   tauschen (x=y), weglassen (−x) und am Ende anhängen (+y). Liefert { regeln, kosten } oder null. */
+function verwandle(P, S, st){
+  var m = P.length, L = S.length, B = L + 1, N = (m + 1) * B, INF = 1e9;
+  var kost = [new Float64Array(N).fill(INF), new Float64Array(N).fill(INF)];
+  var zurueck = [new Int32Array(N).fill(-1), new Int32Array(N).fill(-1)];   // vorheriger Zustand: s * N + Index
+  kost[0][0] = 0;
+  function setze(s, i, j, c, vorher){ var x = i * B + j; if (c < kost[s][x]){ kost[s][x] = c; zurueck[s][x] = vorher; } }
+  for (var i = 0; i <= m; i++) for (var j = 0; j <= L; j++){
+    for (var s = 0; s < 2; s++){
+      var x = i * B + j, c = kost[s][x];
+      if (c >= INF) continue;
+      if (i < m && j < L && P[i] === S[j]) setze(0, i + 1, j + 1, c, s * N + x);
+      if (s === 1) continue;   // zwei Änderungen direkt hintereinander wären eine
+      for (var a = 0; a <= Math.max(st.tausch, st.weg) && i + a <= m; a++){
+        for (var b = 0; b <= Math.max(st.tausch, st.dazu) && j + b <= L; b++){
+          if (!a && !b) continue;
+          var kosten;
+          if (a && b){ if (a > st.tausch || b > st.tausch) continue; kosten = 1.7 + 0.45 * (a + b); }
+          else if (a){ if (a > st.weg) continue; kosten = 1.5 + 0.45 * a; }
+          else { if (b > st.dazu || i !== m || j + b !== L) continue; kosten = 1.5 + 0.45 * b; }   // Plus nur am Ende
+          setze(1, i + a, j + b, c + kosten, s * N + x);
+        }
+      }
+    }
+  }
+  var ende = m * B + L, sEnde = kost[0][ende] <= kost[1][ende] ? 0 : 1;
+  if (kost[sEnde][ende] >= INF) return null;
+  // Weg zurückverfolgen: Folge von Übereinstimmungen (je ein Buchstabe) und Änderungen
+  var schritte = [], z = sEnde * N + ende;
+  while (z !== 0){
+    var sz = Math.floor(z / N), xz = z % N, v = zurueck[sz][xz];
+    if (v < 0) return null;
+    var xv = v % N, iv = Math.floor(xv / B), jv = xv % B, iz = Math.floor(xz / B), jz = xz % B;
+    schritte.unshift({ gleich:sz === 0, p:P.slice(iv, iz), s:S.slice(jv, jz) });
+    z = v;
+  }
+  var gleich = schritte.filter(function(t){ return t.gleich; }).length;
+  if (gleich < 2 || gleich < 0.45 * L || gleich < 0.35 * m) return null;
+  // Regeln bauen. Kommt die Stelle im Bildwort mehrmals vor, wird sie um gleiche Nachbarbuchstaben erweitert.
+  var regeln = [], kosten = 0, pos = 0, frei = 0;   // frei: ab hier darf eine Regel nach links greifen
+  for (var k = 0; k < schritte.length; k++){
+    var t = schritte[k];
+    if (t.gleich){ pos += 1; continue; }
+    var von = t.p, zu = t.s, start = pos, ende2 = pos + von.length, versuche = 0;
+    while (von && P.indexOf(von) !== P.lastIndexOf(von) && versuche < 3){
+      var nach = schritte[k + 1];
+      if (nach && nach.gleich){ von += nach.p; zu += nach.s; schritte.splice(k + 1, 1); ende2 += 1; }
+      else if (start > frei){ von = P[start - 1] + von; zu = P[start - 1] + zu; start -= 1; }
+      else break;
+      kosten += 0.6; versuche++;
+    }
+    if (von && P.indexOf(von) !== P.lastIndexOf(von)) return null;
+    pos = ende2; frei = ende2;
+    var r = !von ? { art:'dazu', zu:zu } : !zu ? { art:'weg', von:von } : { art:'tausch', von:von, zu:zu };
+    kosten += (r.art === 'tausch' ? 1.7 : 1.5) + 0.45 * (von.length + zu.length);
+    regeln.push(r);
+  }
+  if (regeln.length > st.regeln) return null;
+  if (anwenden(P, regeln) !== S) return null;
+  return { regeln:regeln, kosten:kosten };
+}
+
+/* Alle Möglichkeiten, ab Stelle i des Wortes W mit einem Bild oder Buchstaben weiterzumachen */
+function kandidaten(W, i, st, rnd, meiden, einzelwort){
   var k = [], rest = W.length - i;
-  function neu(c){ c.kosten += rnd() * 0.9 + (meiden[c.bild ? c.bild.wort : ''] || 0); k.push(c); }
+  function neu(c){ c.kosten += rnd() * 0.9 + (c.bild ? (meiden[c.bild.wort] || 0) : 0); k.push(c); }
   LISTE.forEach(function(b){
     var P = b.wort, m = P.length;
-    // Heisst das Bild genau wie das Lösungswort, dann nur unverändert (und ungern): sonst entstehen Dinge wie «S + ’SONNE»
-    if (P === W){ if (i === 0) neu({ bild:b, vorne:0, hinten:0, laenge:m, kosten:13 }); return; }
-    // Kommas: vorne / hinten Buchstaben weglassen
-    for (var v = 0; v <= Math.min(3, m - 2); v++){
-      for (var h = 0; h <= Math.min(3, m - v - 2); h++){
-        var teil = P.slice(v, m - h), L = teil.length;
-        if (L > rest) continue;
-        var weg = v + h, ziel = W.substr(i, L);
-        // nichts weglassen und das ganze Wort treffen ist zu einfach
-        var ganz = (i === 0 && L === W.length && !weg) ? 9 : 0;
-        if (teil === ziel && (weg <= L)){
-          neu({ bild:b, vorne:v, hinten:h, laenge:L, kosten:4 + 1.15 * weg + ganz });
-        }
-        if (weg > 2) continue;
-        // ein Buchstabe wird ausgetauscht (A=E: jedes A)
-        if (st.tausch && teil !== ziel && ziel.length === L){
-          var x = null, y = null, ok = true;
-          for (var q = 0; q < L && ok; q++){
-            if (teil[q] !== ziel[q]){
-              if (x === null){ x = teil[q]; y = ziel[q]; } else if (teil[q] !== x || ziel[q] !== y) ok = false;
-            } else if (teil[q] === x) ok = false;
-          }
-          if (ok && x !== null && teil.indexOf(x) >= 0){
-            // auch vor der ersten Abweichung darf x nicht unverändert vorkommen
-            var alle = true; for (q = 0; q < L; q++) if (teil[q] === x && ziel[q] !== y) alle = false;
-            if (alle) neu({ bild:b, vorne:v, hinten:h, tausch:[x, y], laenge:L, kosten:4 + 1.15 * weg + 2.6 });
-          }
-        }
-        // ein Buchstabe wird gestrichen (alle Vorkommen)
-        if (st.streich){
-          var gesehen = {};
-          for (var s = 0; s < L; s++){
-            var ch = teil[s]; if (gesehen[ch]) continue; gesehen[ch] = true;
-            var ohne = teil.split(ch).join(''), anz = L - ohne.length;
-            if (anz > 2 || ohne.length < 2 || ohne.length > rest) continue;
-            if (W.substr(i, ohne.length) === ohne) neu({ bild:b, vorne:v, hinten:h, streich:ch, laenge:ohne.length, kosten:4 + 1.15 * weg + 2.3 + 0.6 * (anz - 1) });
-          }
-        }
+    for (var L = 2; L <= rest; L++){
+      if (Math.abs(m - L) > 3) continue;
+      var S = W.substr(i, L);
+      if (P === S){
+        // genau das Lösungswort als einziges Bild wäre zu leicht
+        neu({ bild:b, regeln:[], laenge:L, kosten:(einzelwort && i === 0 && L === W.length) ? 13 : 4 });
+        continue;
       }
-    }
-    // Bild auf dem Kopf: rückwärts lesen
-    if (st.kopf && m <= rest && m >= 3){
-      var rueck = P.split('').reverse().join('');
-      if (rueck !== P && W.substr(i, m) === rueck) neu({ bild:b, kopf:true, laenge:m, kosten:4 + 2.6 });
-    }
-    // Zahlen: bestimmte Buchstaben in bestimmter Reihenfolge
-    if (st.zahlen && m <= 7){
-      for (var L2 = 2; L2 <= Math.min(m - 1, rest, 4); L2++){
-        var z = W.substr(i, L2), pos = [], frei = P.split('');
-        for (var t = 0; t < L2; t++){
-          var p = frei.indexOf(z[t]); if (p < 0){ pos = null; break; }
-          pos.push(p + 1); frei[p] = null;
-        }
-        if (!pos) continue;
-        var zusammen = true; for (t = 1; t < pos.length; t++) if (pos[t] !== pos[t - 1] + 1) zusammen = false;
-        if (zusammen) continue;   // das gingen auch Kommas
-        var steigend = true; for (t = 1; t < pos.length; t++) if (pos[t] < pos[t - 1]) steigend = false;
-        if (!steigend && L2 > 3) continue;   // lange Zahlenreihen kreuz und quer sind kaum zu lesen
-        neu({ bild:b, zahlen:pos, laenge:L2, kosten:4 + 2.8 + 0.3 * m + (steigend ? 0 : 1.5) });
-      }
+      if (gemeinsam(b.h, S) < Math.max(2, Math.ceil(0.45 * L))) continue;
+      var v = verwandle(P, S, st);
+      if (v) neu({ bild:b, regeln:v.regeln, laenge:L, kosten:4 + v.kosten });
     }
   });
-  // einzelner Buchstabe als Notlösung
   neu({ buchstabe:W[i], laenge:1, kosten:6.5 });
+  if (i === 0 && W.length === 2) neu({ buchstabe:W, laenge:2, kosten:7 });   // kurze Wörter wie «IN» als Buchstaben
   return k;
 }
 
 /* Beste Zerlegung eines Wortes (dynamische Programmierung von hinten nach vorn) */
-function zerlegeWort(W, st, rnd, meiden){
+function zerlegeWort(W, st, rnd, meiden, einzelwort){
   var n = W.length, best = new Array(n + 1), wahl = new Array(n + 1);
   best[n] = 0;
   for (var i = n - 1; i >= 0; i--){
     best[i] = Infinity;
-    kandidaten(W, i, st, rnd, meiden).forEach(function(c){
+    kandidaten(W, i, st, rnd, meiden, einzelwort).forEach(function(c){
       var j = i + c.laenge;
       if (j <= n && c.kosten + best[j] < best[i]){ best[i] = c.kosten + best[j]; wahl[i] = c; }
     });
@@ -152,17 +184,8 @@ function zerlegeWort(W, st, rnd, meiden){
   return teile;
 }
 
-/* Was ein Teil ergibt (zur Kontrolle und für die Lösung) */
-function ergebnis(c){
-  if (c.buchstabe) return c.buchstabe;
-  var P = c.bild.wort;
-  if (c.kopf) return P.split('').reverse().join('');
-  if (c.zahlen) return c.zahlen.map(function(p){ return P[p - 1]; }).join('');
-  var t = P.slice(c.vorne || 0, P.length - (c.hinten || 0));
-  if (c.tausch) t = t.split(c.tausch[0]).join(c.tausch[1]);
-  if (c.streich) t = t.split(c.streich).join('');
-  return t;
-}
+/* Was ein Teil ergibt */
+function ergebnis(c){ return c.buchstabe ? c.buchstabe : anwenden(c.bild.wort, c.regeln); }
 
 /* Text → Rebus: für jedes Wort die Teile. Bilder werden möglichst nicht doppelt verwendet. */
 function rebus(text, o){
@@ -171,13 +194,13 @@ function rebus(text, o){
   (o.schonBenutzt || []).forEach(function(w){ meiden[w] = (meiden[w] || 0) + 2.5; });
   var ws = woerter(text);
   return ws.map(function(W){
-    var teile = zerlegeWort(W, st, rnd, meiden);
+    var teile = zerlegeWort(W, st, rnd, meiden, ws.length === 1);
     teile.forEach(function(c){ if (c.bild) meiden[c.bild.wort] = (meiden[c.bild.wort] || 0) + 4; });
     return { wort:W, teile:teile };
   });
 }
 
-return { LISTE:LISTE, STUFEN:STUFEN, rebus:rebus, ergebnis:ergebnis, woerter:woerter, norm:norm };
+return { LISTE:LISTE, STUFEN:STUFEN, rebus:rebus, ergebnis:ergebnis, anwenden:anwenden, woerter:woerter, norm:norm };
 })();
 /* KERN-ENDE */
 
@@ -186,16 +209,16 @@ var VORLAGE = `<div class="rb">
   <header class="rb-kopf">
     <p class="augenbraue">Rätselgenerator</p>
     <h1>Rebus</h1>
-    <p>Wörter und Sätze als Bilderrätsel: Bilder, bei denen Buchstaben weggelassen, gestrichen oder ausgetauscht werden.</p>
+    <p>Wörter und ganze Sätze als Bilderrätsel: Zu jedem Bild gehören Regeln wie «ko=i», «−m» oder «+e».</p>
   </header>
   <div class="rb-layout">
     <section class="rb-eingabe" aria-label="Eingaben">
       <div class="karte">
         <div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span>
-          <div><h2>Lösungswörter</h2><p>Jedes Wort oder jeder kurze Satz wird ein eigener Rebus.</p></div>
+          <div><h2>Wörter und Sätze</h2><p>Jedes Wort oder jeder Satz wird ein eigener Rebus, meist mit einem Bild pro Wort.</p></div>
         </div>
         <div class="zeile">
-          <input type="text" id="rbNeu" maxlength="40" placeholder="z. B. Ferien oder Viel Glück" autocomplete="off" aria-label="Lösungswort oder Satz">
+          <input type="text" id="rbNeu" maxlength="90" placeholder="z. B. Ich arbeite gerne" autocomplete="off" aria-label="Wort oder Satz">
           <button type="button" class="btn" id="rbPlus">Hinzufügen</button>
         </div>
         <ol class="rb-liste" id="rbListe" aria-label="Lösungswörter"></ol>
@@ -207,9 +230,9 @@ var VORLAGE = `<div class="rb">
           <div><h2>Schwierigkeit</h2><p>Welche Zeichen in den Rätseln vorkommen.</p></div>
         </div>
         <div class="rb-stufen" role="radiogroup" aria-label="Schwierigkeit">
-          <label class="rb-stufe"><input type="radio" name="rbStufe" value="einfach"><span><b>Einfach</b><small>Bilder, Kommas und einzelne Buchstaben</small></span></label>
-          <label class="rb-stufe"><input type="radio" name="rbStufe" value="mittel"><span><b>Mittel</b><small>dazu Buchstaben austauschen und streichen</small></span></label>
-          <label class="rb-stufe"><input type="radio" name="rbStufe" value="schwer"><span><b>Schwer</b><small>dazu Zahlen und Bilder auf dem Kopf</small></span></label>
+          <label class="rb-stufe"><input type="radio" name="rbStufe" value="einfach"><span><b>Einfach</b><small>höchstens eine Regel pro Bild</small></span></label>
+          <label class="rb-stufe"><input type="radio" name="rbStufe" value="mittel"><span><b>Mittel</b><small>bis zu zwei Regeln pro Bild</small></span></label>
+          <label class="rb-stufe"><input type="radio" name="rbStufe" value="schwer"><span><b>Schwer</b><small>bis zu drei Regeln, auch längere Buchstabengruppen</small></span></label>
         </div>
       </div>
 
@@ -247,8 +270,8 @@ var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke
 Labor.registriere({
   id:'rebus',
   titel:'Rebus',
-  kurz:'Wörter als Bilderrätsel mit Kommas und Buchstabenzeichen',
-  beschreibung:'Aus einem Wort oder Satz wird ein Bilderrätsel: Bilder, bei denen man Buchstaben weglässt, streicht oder austauscht. Mehrere Rätsel auf einem Blatt.',
+  kurz:'Wörter und Sätze als Bilderrätsel',
+  beschreibung:'Aus Wörtern und ganzen Sätzen werden Bilderrätsel: Zu jedem Bild gehören Regeln wie «ko=i», «−m» oder «+e». Mehrere Rätsel auf einem Blatt.',
   merkmale:['Drei Schwierigkeitsstufen', 'Mehrere Rätsel pro Blatt', 'Mit Lösungsblatt'],
   symbol:SYMBOL,
   css:'raetsel/rebus/rebus.css',
@@ -292,7 +315,7 @@ function starte(bereich){
     teile.forEach(function(t){
       var w = Kern.woerter(t);
       if (!w.length){ notiz.push('«' + esc(t) + '» enthält keine Buchstaben'); return; }
-      if (w.join('').length > 30){ notiz.push('«' + esc(t) + '» ist zu lang (höchstens 30 Buchstaben)'); return; }
+      if (w.join('').length > 60){ notiz.push('«' + esc(t) + '» ist zu lang (höchstens 60 Buchstaben)'); return; }
       if (st.eintraege.some(function(x){ return schluessel(x) === w.join(' '); })){ notiz.push('«' + esc(t) + '» ist schon in der Liste'); return; }
       if (st.eintraege.length >= MAX){ notiz.push('Höchstens ' + MAX + ' Rätsel pro Blatt'); return; }
       st.eintraege.push(t);
@@ -335,23 +358,16 @@ function starte(bereich){
   });
 
   /* ---------- Darstellung ---------- */
-  function teilHtml(c, loesung){
-    var oben = '', bild, vorne = '', hinten = '', name = '';
-    if (c.buchstabe){
-      bild = '<span class="rb-buchstabe">' + esc(c.buchstabe) + '</span>';
-    } else {
-      if (c.tausch) oben = '<span class="rb-tausch">' + esc(c.tausch[0]) + '=' + esc(c.tausch[1]) + '</span>';
-      else if (c.streich) oben = '<span class="rb-streich">' + esc(c.streich) + '</span>';
-      else if (c.zahlen) oben = '<span class="rb-zahlen">' + c.zahlen.join(' ') + '</span>';
-      if (c.vorne) vorne = '<span class="rb-kommas">' + Array(c.vorne + 1).join('<span class="rb-komma">’</span>') + '</span>';
-      if (c.hinten) hinten = '<span class="rb-kommas">' + Array(c.hinten + 1).join('<span class="rb-komma">’</span>') + '</span>';
-      bild = '<span class="rb-bild' + (c.kopf ? ' rb-kopfueber' : '') + '">' + c.bild.emoji + '</span>';
-      name = '<span class="rb-name' + (st.opt.namen ? ' rb-hilfe' : '') + '">' + esc(c.bild.wort) + '</span>';
-    }
-    return '<div class="rb-teil' + (c.buchstabe ? ' rb-nur-buchstabe' : '') + '">' +
-      '<div class="rb-oben">' + oben + '</div>' +
-      '<div class="rb-bildzeile">' + vorne + bild + hinten + '</div>' +
-      name + '<span class="rb-ergebnis">' + esc(Kern.ergebnis(c)) + '</span></div>';
+  function klein(t){ return String(t).toLocaleLowerCase('de-CH'); }
+  function regelText(r){ return r.art === 'tausch' ? klein(r.von) + '=' + klein(r.zu) : r.art === 'weg' ? '−' + klein(r.von) : '+' + klein(r.zu); }
+  /* Ein Teil: Bildkärtchen mit den Regeln darunter; in der Lösung zusätzlich Bildname und Ergebnis */
+  function teilHtml(c){
+    if (c.buchstabe) return '<div class="rb-teil rb-nur-buchstabe"><div class="rb-karte"><span class="rb-buchstabe">' + esc(c.buchstabe) + '</span></div>' +
+      '<span class="rb-ergebnis">' + esc(c.buchstabe) + '</span></div>';
+    return '<div class="rb-teil"><div class="rb-karte"><span class="rb-bild">' + c.bild.emoji + '</span>' +
+      (c.regeln.length ? '<span class="rb-regeln">' + c.regeln.map(function(r){ return '<span class="rb-regel">' + esc(regelText(r)) + '</span>'; }).join('') + '</span>' : '') +
+      '</div><span class="rb-name' + (st.opt.namen ? ' rb-hilfe' : '') + '">' + esc(c.bild.wort) + '</span>' +
+      '<span class="rb-ergebnis">' + esc(Kern.ergebnis(c)) + '</span></div>';
   }
   function kaestchen(woerter, fuellen){
     return '<div class="rb-kaestchen" aria-hidden="true">' + woerter.map(function(w){
@@ -359,19 +375,15 @@ function starte(bereich){
     }).join('') + '</div>';
   }
   var LEGENDE = [
-    ['vorne', '<span class="rb-kommas"><span class="rb-komma">’</span></span><span class="rb-bild">🐭</span>', 'Komma vor dem Bild: den ersten Buchstaben weglassen, bei zwei Kommas die ersten zwei. 🐭 MAUS wird zu AUS.'],
-    ['hinten', '<span class="rb-bild">🦆</span><span class="rb-kommas"><span class="rb-komma">’</span><span class="rb-komma">’</span></span>', 'Komma nach dem Bild: den letzten Buchstaben weglassen, bei zwei Kommas die letzten zwei. 🦆 ENTE wird zu EN.'],
-    ['tausch', '<span class="rb-tausch">O=Ä</span>', 'Buchstaben austauschen: im Wort jedes O durch Ä ersetzen.'],
-    ['streich', '<span class="rb-streich">F</span>', 'Durchgestrichener Buchstabe: diesen Buchstaben aus dem Wort streichen.'],
-    ['zahlen', '<span class="rb-zahlen">2 4 5</span>', 'Zahlen: nur diese Buchstaben in dieser Reihenfolge nehmen (1 = erster Buchstabe).'],
-    ['kopf', '<span class="rb-bild rb-kopfueber">🚪</span>', 'Bild auf dem Kopf: das Wort rückwärts lesen.'],
+    ['tausch', '<span class="rb-regel">ko=i</span>', 'Tauschen: im Bildwort «ko» durch «i» ersetzen. 👨‍🍳 KOCH wird zu ICH.'],
+    ['weg', '<span class="rb-regel">−m</span>', 'Minus: diesen Buchstaben weglassen. 🐭 MAUS wird zu AUS.'],
+    ['dazu', '<span class="rb-regel">+e</span>', 'Plus: diesen Buchstaben am Ende anhängen. 🐟 FISCH wird zu FISCHE.'],
     ['buchstabe', '<span class="rb-buchstabe">R</span>', 'Einzelne Buchstaben gehören einfach dazu.']
   ];
   function benutzteZeichen(liste){
     var z = {};
     liste.forEach(function(r){ r.forEach(function(w){ w.teile.forEach(function(c){
-      if (c.buchstabe) z.buchstabe = 1; if (c.vorne) z.vorne = 1; if (c.hinten) z.hinten = 1;
-      if (c.tausch) z.tausch = 1; if (c.streich) z.streich = 1; if (c.zahlen) z.zahlen = 1; if (c.kopf) z.kopf = 1;
+      if (c.buchstabe) z.buchstabe = 1; else c.regeln.forEach(function(g){ z[g.art] = 1; });
     }); }); });
     return z;
   }
@@ -379,7 +391,7 @@ function starte(bereich){
     var titel = st.titel.trim() || 'Bilderrätsel', z = benutzteZeichen(liste.map(function(x){ return x.r; }));
     var html = '<h2 class="rb-titel">' + esc(loesung ? 'Lösung – ' + titel : titel) + '</h2>';
     if (!loesung) html += '<p class="rb-anleitung">' + (beispiel ? 'So sieht ein Rebus aus: ' : '') +
-      'Welche Wörter verstecken sich in den Bildern? Die Bilder stehen für Wörter in der Einzahl, ohne Artikel.</p>';
+      'Welche Wörter verstecken sich in den Bildern? Die Bilder stehen für Wörter in der Einzahl, ohne Artikel. Die Regeln unter einem Bild wendet man der Reihe nach an.</p>';
     if (st.opt.legende && !loesung){
       var items = LEGENDE.filter(function(l){ return z[l[0]]; });
       if (items.length) html += '<div class="rb-legende">' + items.map(function(l){ return '<div class="rb-leg"><span class="rb-leg-zeichen" aria-hidden="true">' + l[1] + '</span><span>' + l[2] + '</span></div>'; }).join('') + '</div>';
@@ -387,7 +399,7 @@ function starte(bereich){
     html += '<ol class="rb-raetsel">';
     liste.forEach(function(x, i){
       html += '<li class="rb-eintrag" data-i="' + i + '"><span class="rb-nr">' + (liste.length > 1 ? (i + 1) + '.' : '') + '</span><div class="rb-inhalt">' +
-        '<div class="rb-zeile">' + x.r.map(function(w){ return '<div class="rb-wort">' + w.teile.map(function(c){ return teilHtml(c, loesung); }).join('') + '</div>'; }).join('<span class="rb-wortgrenze" aria-hidden="true"></span>') + '</div>';
+        '<div class="rb-zeile">' + x.r.map(function(w){ return '<div class="rb-wort">' + w.teile.map(teilHtml).join('') + '</div>'; }).join('<span class="rb-wortgrenze" aria-hidden="true"></span>') + '</div>';
       if (loesung) html += '<p class="rb-loesungswort">' + esc(x.r.map(function(w){ return w.wort; }).join(' ')) + '</p>';
       else if (st.opt.kaestchen) html += kaestchen(x.r, false);
       else html += '<div class="rb-linie" aria-hidden="true"></div>';
@@ -404,9 +416,10 @@ function starte(bereich){
     var blatt = $('#rbBlatt'), loes = $('#rbLoesung');
     if (!st.eintraege.length){
       // Leerer Zustand: ein Beispiel zeigt, wie ein Rebus aussieht
-      var bsp = [{ r:Kern.rebus('Rätsel', { stufe:'mittel', rnd:festerZufall(7) }) }];
+      var bsp = [{ r:Kern.rebus('Ich arbeite gerne', { stufe:'mittel', rnd:festerZufall(11) }) }];
       blatt.innerHTML = '<p class="rb-beispiel-marke">Beispiel</p>' + blattHtml(bsp, false, true) +
-        '<p class="rb-beispiel-text">Lösung: <b>RÄTSEL</b> = ' + bsp[0].r[0].teile.map(erklaere).map(esc).join(' + ') + '. Füge links ein Wort hinzu, um dein eigenes Rätsel zu erstellen.</p>';
+        '<p class="rb-beispiel-text">Lösung: <b>ICH ARBEITE GERNE</b> – ' + bsp[0].r.map(function(w){ return w.teile.map(erklaere).map(esc).join(' + '); }).join(' · ') +
+        '. Gib links ein Wort oder einen Satz ein, um dein eigenes Rätsel zu erstellen.</p>';
       blatt.classList.add('rb-beispiel'); blatt.classList.remove('zeige-loesung');
       loes.innerHTML = ''; $('#rbWerkzeug').hidden = true; meldung('', '');
       $('#rbZeigeLoesung').setAttribute('aria-pressed', 'false');
@@ -428,17 +441,10 @@ function starte(bereich){
     });
     meldung(hinweise.length ? 'warnung' : '', hinweise.length ? '<ul>' + hinweise.map(function(h){ return '<li>' + h + '</li>'; }).join('') + '</ul>' : '');
   }
-  /* Ein Teil in Worten, z. B. «BROT ohne den ersten Buchstaben, O wird zu Ä → RÄT» */
+  /* Ein Teil in Worten, z. B. «KOCH, ko=i → ICH» */
   function erklaere(c){
     if (c.buchstabe) return c.buchstabe;
-    var t = [];
-    if (c.vorne) t.push(c.vorne === 1 ? 'ohne den ersten Buchstaben' : 'ohne die ersten ' + c.vorne);
-    if (c.hinten) t.push(c.hinten === 1 ? 'ohne den letzten Buchstaben' : 'ohne die letzten ' + c.hinten);
-    if (c.tausch) t.push(c.tausch[0] + ' wird zu ' + c.tausch[1]);
-    if (c.streich) t.push('ohne ' + c.streich);
-    if (c.zahlen) t.push('Buchstaben ' + c.zahlen.join(', '));
-    if (c.kopf) t.push('rückwärts');
-    return c.bild.wort + (t.length ? ' ' + t.join(', ') : '') + ' → ' + Kern.ergebnis(c);
+    return c.bild.wort + (c.regeln.length ? ', ' + c.regeln.map(regelText).join(', ') : '') + ' → ' + Kern.ergebnis(c);
   }
   function festerZufall(seed){ return function(){ seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }; }
 

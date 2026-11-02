@@ -28,19 +28,18 @@ Thema, Wörter und Lösungszahl gelten nur für den geöffneten Tab: Neu laden b
 
 ### Rebus
 
-Aus Wörtern oder kurzen Sätzen werden Bilderrätsel. Jedes Bild steht für ein Wort (Einzahl, ohne Artikel); Zeichen verändern es:
+Aus Wörtern und ganzen Sätzen werden Bilderrätsel. Jedes Bild steht für ein Wort (Einzahl, ohne Artikel); die Regeln darunter wendet man der Reihe nach an:
 
-| Zeichen | Bedeutung | Beispiel |
+| Regel | Bedeutung | Beispiel |
 |---|---|---|
-| ’ vor dem Bild | so viele Buchstaben am Anfang weglassen | ’🐭 MAUS → AUS |
-| ’ nach dem Bild | so viele Buchstaben am Ende weglassen | 🦆’’ ENTE → EN |
-| A=E über dem Bild | jedes A durch E ersetzen | 🚪 T=Z: TÜR → ZÜR |
-| durchgestrichener Buchstabe | diesen Buchstaben streichen | 🦚 ~~F~~: PFAU → PAU |
-| Zahlen über dem Bild | nur diese Buchstaben in dieser Reihenfolge | 🐟 2 4 5: FISCH → ICH |
-| Bild auf dem Kopf | rückwärts lesen | |
+| `ko=i` | im Bildwort «ko» durch «i» ersetzen (auch mehrere Buchstaben) | 👨‍🍳 KOCH → ICH |
+| `−m` | diesen Buchstaben weglassen | 🐭 MAUS → AUS |
+| `+e` | diesen Buchstaben am Ende anhängen | 🐟 FISCH → FISCHE |
 | einzelner Buchstabe | gehört so dazu | |
 
-Drei Stufen: *Einfach* (Bilder, Kommas, Buchstaben), *Mittel* (dazu tauschen und streichen), *Schwer* (dazu Zahlen und Bilder auf dem Kopf). Bis zu 12 Rätsel pro Blatt, jedes einzeln neu würfelbar; am Bildschirm mit Lösungsfeld, ausgedruckt mit Kästchen und Zeichenerklärung, auf Wunsch mit Lösungsblatt. Die Bilder sind rund 350 Emojis mit deutschen Namen (`LISTE` in `rebus.js`); gesucht wird die Zerlegung mit möglichst wenigen Bildern und Zeichen.
+Beispiel «Ich arbeite gerne»: 👨‍🍳 `ko=i` · 🐜 `m=rb` `s=t` · 🍐 `bi=ge`.
+
+Drei Stufen: *Einfach* (höchstens eine Regel pro Bild), *Mittel* (bis zwei Regeln), *Schwer* (bis drei Regeln, auch längere Buchstabengruppen). Meist ein Bild pro Wort, bei langen Wörtern auch mehrere. Bis zu 12 Rätsel pro Blatt (je bis 60 Buchstaben), jedes einzeln neu würfelbar; am Bildschirm mit Lösungsfeld, ausgedruckt mit Kästchen und Zeichenerklärung, auf Wunsch mit Lösungsblatt. Die Bilder sind rund 360 Emojis mit deutschen Namen (`LISTE` in `rebus.js`). Gesucht wird die Zerlegung mit möglichst wenigen Bildern und Regeln; jede Regel wird nachgespielt und muss eindeutig sein.
 
 ## Aufbau
 
