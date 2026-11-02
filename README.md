@@ -44,7 +44,7 @@ Mit ein, zwei Wörtern mehr als dem Minimum klappt es fast immer.
 
 ## Technik
 
-Alles steckt in einer einzigen Datei, [`index.html`](index.html) – ohne Build-Schritt und ohne Abhängigkeiten (nur die Schrift Inter von Google Fonts). Die Eingaben bleiben im Browser gespeichert (`localStorage`).
+Alles steckt in einer einzigen Datei, [`index.html`](index.html) – ohne Build-Schritt und ohne Abhängigkeiten (nur die Schrift Inter von Google Fonts). Thema, Wörter und Lösungszahl gelten nur für den geöffneten Tab (`sessionStorage`): Neu laden behält sie, ein neuer Tab beginnt leer. Die Einstellungen bleiben im Browser gespeichert (`localStorage`).
 
 Im Skript gibt es zwei Teile:
 

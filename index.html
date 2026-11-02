@@ -909,7 +909,7 @@ return { FORMEN:FORMEN, loese:loese, bauen:bauen, analyse:analyse, minWoerter:mi
 (function(){
 'use strict';
 var $ = function(s){ return document.querySelector(s); };
-var SPEICHER = 'zahlen-suchsel-v2';
+var SPEICHER = 'zahlen-suchsel-v2', SPEICHER_TAB = 'zahlen-suchsel-eingaben', SPEICHER_OPT = 'zahlen-suchsel-einstellungen';
 var STANDARD = { rueckwaerts:false, schraeg:true, umlaute:false, wortliste:true, linien:true, anordnung:'neben', abstand:1, rand:2, mitLoesung:true,
   ueberlappen:true, verschieden:false, liegen:false, ziffern:'neben' };
 var FARBEN = ['#fcd34d', '#86efac', '#93c5fd', '#fca5a5', '#c4b5fd', '#fdba74', '#5eead4', '#f9a8d4'];
@@ -953,22 +953,32 @@ function findeThema(t){
 
 /* ---------- Zustand ---------- */
 var st = laden();
+/* Thema, Wörter und Lösungszahl gelten nur für diesen Tab (sessionStorage): Neu laden behält sie,
+   ein neu geöffneter Tab beginnt leer. Die Einstellungen bleiben gespeichert (localStorage). */
 function laden(){
+  var d = { titel:'', woerter:[], zahlen:[''], opt:Object.assign({}, STANDARD) }, e = null;
   try {
-    var d = JSON.parse(localStorage.getItem(SPEICHER));
-    if (d && Array.isArray(d.woerter) && Array.isArray(d.zahlen)){
-      d.opt = Object.assign({}, STANDARD, d.opt || {});
-      d.woerter = d.woerter.filter(function(w){ return String(w || '').trim(); });
-      d.zahlen = [String(d.zahlen.filter(function(z){ return String(z || '').trim(); })[0] || '')];   // nur eine Lösungszahl
-      return d;
-    }
-  } catch(e){}
-  return { titel:'', woerter:[], zahlen:[''], opt:Object.assign({}, STANDARD) };
+    // frühere Speicherung (alles in localStorage): Einstellungen übernehmen, Wörter verwerfen
+    var alt = JSON.parse(localStorage.getItem(SPEICHER));
+    if (alt && alt.opt) Object.assign(d.opt, alt.opt);
+    localStorage.removeItem(SPEICHER);
+  } catch(x){}
+  try { var o = JSON.parse(localStorage.getItem(SPEICHER_OPT)); if (o) Object.assign(d.opt, o); } catch(x){}
+  try { e = JSON.parse(sessionStorage.getItem(SPEICHER_TAB)); } catch(x){}
+  if (e && Array.isArray(e.woerter) && Array.isArray(e.zahlen)){
+    d.titel = String(e.titel || '');
+    d.woerter = e.woerter.filter(function(w){ return String(w || '').trim(); });
+    d.zahlen = [String(e.zahlen.filter(function(z){ return String(z || '').trim(); })[0] || '')];   // nur eine Lösungszahl
+  }
+  return d;
 }
 var speicherTimer = 0;
 function speichern(){
   clearTimeout(speicherTimer);
-  speicherTimer = setTimeout(function(){ try { localStorage.setItem(SPEICHER, JSON.stringify(st)); } catch(e){} }, 200);
+  speicherTimer = setTimeout(function(){
+    try { sessionStorage.setItem(SPEICHER_TAB, JSON.stringify({ titel:st.titel, woerter:st.woerter, zahlen:st.zahlen })); } catch(x){}
+    try { localStorage.setItem(SPEICHER_OPT, JSON.stringify(st.opt)); } catch(x){}
+  }, 200);
 }
 
 /* ---------- Hilfen ---------- */
