@@ -670,7 +670,7 @@ var VORLAGE = `<div class="zs">
   <section class="ausgabe" aria-label="Ergebnis">
     <div id="meldung" aria-live="polite"></div>
     <div class="leer-zustand" id="leer">
-      <svg width="56" height="56" viewBox="0 0 56 56" fill="none" aria-hidden="true"><rect x="1" y="1" width="54" height="54" rx="12" fill="#eef3ff" stroke="#c3d4fb"/><g fill="#9aa1ad"><circle cx="14" cy="14" r="2"/><circle cx="28" cy="14" r="2"/><circle cx="42" cy="14" r="2"/><circle cx="14" cy="28" r="2"/><circle cx="28" cy="28" r="2"/><circle cx="42" cy="28" r="2"/><circle cx="14" cy="42" r="2"/><circle cx="28" cy="42" r="2"/><circle cx="42" cy="42" r="2"/></g><path d="M14 14h28v28" stroke="#2563eb" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/></svg>
+      <svg width="56" height="56" viewBox="0 0 56 56" fill="none" aria-hidden="true"><rect x="1" y="1" width="54" height="54" rx="12" fill="#e8f3fa" stroke="#b5d8ee"/><g fill="#9aa1ad"><circle cx="14" cy="14" r="2"/><circle cx="28" cy="14" r="2"/><circle cx="42" cy="14" r="2"/><circle cx="14" cy="28" r="2"/><circle cx="28" cy="28" r="2"/><circle cx="42" cy="28" r="2"/><circle cx="14" cy="42" r="2"/><circle cx="28" cy="42" r="2"/><circle cx="42" cy="42" r="2"/></g><path d="M14 14h28v28" stroke="#0075BA" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/></svg>
       <h2>Noch kein Suchsel</h2>
       <p>In drei Schritten zum Arbeitsblatt:</p>
       <ol>
@@ -729,7 +729,7 @@ function starte(bereich){
   var SPEICHER = 'zahlen-suchsel-v2', SPEICHER_TAB = 'zahlen-suchsel-eingaben', SPEICHER_OPT = 'zahlen-suchsel-einstellungen';
   var STANDARD = { rueckwaerts:false, schraeg:true, umlaute:false, wortliste:true, linien:true, anordnung:'neben', abstand:1, rand:2, mitLoesung:true,
     ueberlappen:true, verschieden:false, liegen:false, ziffern:'neben' };
-  var FARBEN = ['#fcd34d', '#86efac', '#93c5fd', '#fca5a5', '#c4b5fd', '#fdba74', '#5eead4', '#f9a8d4'];
+  var FARBEN = ['#fcd34d', '#86efac', '#86c5ea', '#fca5a5', '#c4b5fd', '#fdba74', '#5eead4', '#f9a8d4'];
   var S = 10, NS = 'http://www.w3.org/2000/svg';
   var ZAHLWORT = ['null', 'eine', 'zwei', 'drei', 'vier', 'fünf', 'sechs', 'sieben', 'acht'];
 
@@ -1423,7 +1423,7 @@ function starte(bereich){
     }
     function zeigeTemp(z){
       if (temp) temp.remove();
-      temp = kapsel(gA, z, '#2563eb', 'auswahl');
+      temp = kapsel(gA, z, '#0075BA', 'auswahl');
     }
     function startPunkt(rc){
       if (punkt){ punkt.remove(); punkt = null; }

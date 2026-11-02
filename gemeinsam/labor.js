@@ -76,7 +76,7 @@ var Labor = (function(){
     function el(tag, a){ var e = document.createElementNS(NS, tag); for (var k in a) e.setAttribute(k, a[k]); svg.appendChild(e); return e; }
     el('rect', { x:0, y:0, width:zeilen[0].length * S, height:zeilen.length * S, fill:'#fff' });
     el('line', { x1:1.5 * S, y1:1.5 * S, x2:6.5 * S, y2:1.5 * S, stroke:'#fcd34d', 'stroke-width':S * 0.78, 'stroke-linecap':'round', opacity:.75 });
-    el('line', { x1:6.5 * S, y1:1.5 * S, x2:6.5 * S, y2:5.5 * S, stroke:'#93c5fd', 'stroke-width':S * 0.78, 'stroke-linecap':'round', opacity:.7 });
+    el('line', { x1:6.5 * S, y1:1.5 * S, x2:6.5 * S, y2:5.5 * S, stroke:'#86c5ea', 'stroke-width':S * 0.78, 'stroke-linecap':'round', opacity:.7 });
     var d = '';
     for (var c = 1; c < zeilen[0].length; c++) d += 'M' + c * S + ' 0V' + zeilen.length * S;
     for (var r = 1; r < zeilen.length; r++) d += 'M0 ' + r * S + 'H' + zeilen[0].length * S;

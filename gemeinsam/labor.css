@@ -1,14 +1,15 @@
 /* Rätsellabor – gemeinsames Erscheinungsbild für Startseite, Menü und alle Rätselgeneratoren.
+   Farben und Schrift aus dem Logo «Puzzle-Kolben»: Schwarz, Blau #0075BA (hell #1A8FD6, dunkel #005A90), Weiss; Fredoka.
    Aufbau: helle Kopfleiste mit Menü oben rechts; darunter die Startseite oder genau ein Generator.
    Bewusst nur ein helles Erscheinungsbild (Arbeitsblätter zum Drucken). */
 :root{
-  --bg:#f5f7fa; --card:#fff; --line:#e4e7ec; --line-2:#cfd4dc; --text:#1f2937; --ink:#111827; --muted:#6b7280; --muted-2:#9aa1ad;
-  --accent:#2563eb; --accent-2:#1d4ed8; --accent-soft:#eef3ff; --accent-line:#c3d4fb;
+  --bg:#f4f7f9; --card:#fff; --line:#e2e7eb; --line-2:#cdd5dc; --text:#1c2530; --ink:#000; --muted:#6b7280; --muted-2:#9aa1ad;
+  --accent:#0075BA; --accent-2:#005A90; --accent-hell:#1A8FD6; --accent-soft:#e8f3fa; --accent-line:#b5d8ee;
   --ok:#15803d; --ok-soft:#ecf8f0; --ok-line:#b9e3c6;
   --warn:#a15c07; --warn-soft:#fff8eb; --warn-line:#f4d79e;
   --err:#c62828; --err-soft:#fdf1f1; --err-line:#f2c4c4;
   --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
-  --display:'Bricolage Grotesque','Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --display:'Fredoka','Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
   --schatten:0 1px 2px rgba(16,24,40,.05),0 6px 20px rgba(16,24,40,.05);
   --kopf-h:60px;
   color-scheme:light;
@@ -29,9 +30,11 @@ h1,h2,h3{text-wrap:balance}
 .labor-kopf-innen{position:relative;max-width:1440px;margin:0 auto;height:var(--kopf-h);display:flex;align-items:center;gap:14px;
   padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
 .marke{display:flex;align-items:center;gap:10px;flex:none;color:var(--ink);text-decoration:none;border-radius:10px}
-.marke-logo{width:34px;height:34px;border-radius:9px;background:var(--accent);display:grid;place-items:center;flex:none}
-.marke-name{font-family:var(--display);font-weight:700;font-size:1.25rem;letter-spacing:-.015em}
-.pfad{display:flex;align-items:center;gap:14px;min-width:0;font-weight:600;color:var(--text);font-size:.92rem}
+.marke .kolben{height:36px;width:auto;flex:none}
+.marke .wortmarke{font-size:1.45rem}
+.wortmarke{font-family:var(--display);font-weight:600;letter-spacing:-.01em;line-height:1;color:var(--ink);white-space:nowrap}
+.wortmarke .blau{color:var(--accent)}
+.pfad{display:flex;align-items:center;gap:14px;min-width:0;font-family:var(--display);font-weight:500;color:var(--text);font-size:1.02rem}
 .pfad::before{content:"";flex:none;width:1px;height:22px;background:var(--line-2)}
 .pfad span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kopf-luecke{flex:1}
@@ -77,7 +80,7 @@ h1,h2,h3{text-wrap:balance}
 
 input[type=text],select{background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:8px 11px;width:100%;transition:border-color .15s,box-shadow .15s}
 input::placeholder{color:var(--muted-2)}
-input[type=text]:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.16)}
+input[type=text]:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.18)}
 a:focus-visible,button:focus-visible,summary:focus-visible,input[type=checkbox]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:600;font-size:.9rem;border:1px solid var(--line-2);border-radius:8px;padding:8px 14px;
@@ -86,7 +89,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input[type=checkbox]:
 .btn.primary,.btn.haupt{background:var(--accent);border-color:var(--accent);color:#fff}
 .btn.primary:hover,.btn.haupt:hover{background:var(--accent-2);border-color:var(--accent-2)}
 .btn.soft{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent-2)}
-.btn.soft:hover{background:#e3ecff}
+.btn.soft:hover{background:#d9ecf7}
 .btn.ghost,.btn.leise{background:transparent;border-color:transparent;color:var(--muted);padding:6px 8px}
 .btn.ghost:hover,.btn.leise:hover{background:#f1f3f6;color:var(--text)}
 .btn.klein{font-size:.82rem;padding:5px 9px}
@@ -110,7 +113,8 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input[type=checkbox]:
   padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
 .held{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:44px;align-items:center}
 .held-text{min-width:0}
-.held h1{font-family:var(--display);font-weight:700;font-size:clamp(2.5rem,5.6vw,3.8rem);line-height:1;letter-spacing:-.03em;margin:12px 0 16px;color:var(--ink)}
+.held-marke{display:flex;align-items:center;gap:.3em;margin:14px 0 18px;font-size:clamp(2.6rem,6vw,4rem);font-weight:600;line-height:1}
+.held-marke .kolben{height:1.5em;width:auto;flex:none}
 .held .lead{margin:0;max-width:54ch;font-size:1.08rem;color:#374151}
 .held-knoepfe{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
 .held-knoepfe .btn{padding:11px 18px;font-size:.95rem}
@@ -119,14 +123,14 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input[type=checkbox]:
 .probe svg text{font-family:var(--font);font-weight:600;font-size:5.6px;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
 .probe figcaption{margin-top:12px;font-size:.86rem;color:var(--muted)}
 .abschnitt{display:grid;gap:18px}
-.abschnitt-kopf h2{font-family:var(--display);font-weight:700;font-size:1.6rem;letter-spacing:-.02em;margin:0;color:var(--ink)}
+.abschnitt-kopf h2{font-family:var(--display);font-weight:600;font-size:1.7rem;letter-spacing:-.01em;margin:0;color:var(--ink)}
 .abschnitt-kopf p{margin:4px 0 0;color:var(--muted);max-width:62ch}
 .raetsel-karten{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr));gap:16px;align-items:start}
 .raetsel-karte{display:flex;flex-direction:column;gap:12px;min-width:0;padding:20px;background:var(--card);border:1px solid var(--line);border-radius:14px;
   box-shadow:var(--schatten);color:var(--text);text-decoration:none;transition:border-color .15s,transform .15s,box-shadow .15s}
-a.raetsel-karte:hover{border-color:var(--accent);box-shadow:0 10px 28px rgba(37,99,235,.12);transform:translateY(-2px)}
+a.raetsel-karte:hover{border-color:var(--accent);box-shadow:0 10px 28px rgba(0,117,186,.14);transform:translateY(-2px)}
 .raetsel-karte .sym{width:44px;height:44px;border-radius:11px;display:grid;place-items:center;background:var(--accent);color:#fff}
-.raetsel-karte h3{font-family:var(--display);font-weight:700;font-size:1.22rem;letter-spacing:-.01em;margin:0;color:var(--ink)}
+.raetsel-karte h3{font-family:var(--display);font-weight:600;font-size:1.3rem;letter-spacing:-.005em;margin:0;color:var(--ink)}
 .raetsel-karte p{margin:0;font-size:.92rem;color:#4b5563}
 .merkmale{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:0;padding:0}
 .merkmale li{font-size:.76rem;color:#374151;background:#f2f4f7;border-radius:999px;padding:3px 9px}
@@ -152,7 +156,7 @@ a.raetsel-karte:hover{border-color:var(--accent);box-shadow:0 10px 28px rgba(37,
 .labor-fuss{border-top:1px solid var(--line);background:var(--card)}
 .labor-fuss-innen{max-width:1440px;margin:0 auto;display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 16px;padding-block:16px;
   padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px));color:var(--muted);font-size:.86rem}
-.labor-fuss b{font-family:var(--display);font-weight:700;color:var(--ink)}
+.labor-fuss .wortmarke{font-size:1.05rem}
 @media (max-width:640px){ .labor-fuss-innen{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))} }
 
 @media (prefers-reduced-motion: reduce){

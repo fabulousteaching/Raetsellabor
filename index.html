@@ -8,17 +8,16 @@
 <meta name="description" content="Rätselgeneratoren für Schule und Freizeit: Rätsel aus eigenen Inhalten erstellen, am Bildschirm lösen oder als Arbeitsblatt drucken.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 4 100 160"%3E%3Ccircle cx="34" cy="21" r="6" fill="%230075BA"/%3E%3Ccircle cx="44" cy="12" r="6.5" fill="%230075BA"/%3E%3Ccircle cx="57" cy="13" r="6.5" fill="%230075BA"/%3E%3Ccircle cx="66" cy="25" r="6" fill="%230075BA"/%3E%3Ccircle cx="60" cy="39" r="5.5" fill="%230075BA"/%3E%3Ccircle cx="51" cy="51" r="5" fill="%230075BA"/%3E%3Ccircle cx="50" cy="70" r="5" fill="%230075BA"/%3E%3Cpath d="M27.4 132 H42 C44 129 40 124 44.5 121 C47 119.3 53 119.3 55.5 121 C60 124 56 129 58 132 H72.6 L84 152 Q88 160 79 160 H21 Q12 160 16 152 Z" fill="%230075BA"/%3E%3Cpath d="M40 82 V110 L16 152 Q12 160 21 160 H79 Q88 160 84 152 L60 110 V82" fill="none" stroke="%23000" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/%3E%3C/svg%3E">
 <link rel="stylesheet" href="gemeinsam/labor.css">
 </head>
 <body>
 <header class="labor-kopf">
   <div class="labor-kopf-innen">
     <a class="marke" href="#start" aria-label="Rätsellabor – zur Startseite">
-      <span class="marke-logo" aria-hidden="true">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v6.2L4.6 18.4A1.7 1.7 0 0 0 6.1 21h11.8a1.7 1.7 0 0 0 1.5-2.6L14 9.2V3"/><path d="M7.5 15h9"/><circle cx="10.5" cy="18" r=".6" fill="#fff"/><circle cx="13.8" cy="17.6" r=".6" fill="#fff"/></svg>
-      </span>
-      <span class="marke-name">Rätsellabor</span>
+      <svg class="kolben" viewBox="0 4 100 160" aria-hidden="true"><circle cx="34" cy="21" r="6" fill="#0075BA"/><circle cx="44" cy="12" r="6.5" fill="#0075BA"/><circle cx="57" cy="13" r="6.5" fill="#0075BA"/><circle cx="66" cy="25" r="6" fill="#0075BA"/><circle cx="60" cy="39" r="5.5" fill="#0075BA"/><circle cx="51" cy="51" r="5" fill="#0075BA"/><circle cx="50" cy="70" r="5" fill="#0075BA"/><path d="M27.4 132 H42 C44 129 40 124 44.5 121 C47 119.3 53 119.3 55.5 121 C60 124 56 129 58 132 H72.6 L84 152 Q88 160 79 160 H21 Q12 160 16 152 Z" fill="#0075BA"/><path d="M40 82 V110 L16 152 Q12 160 21 160 H79 Q88 160 84 152 L60 110 V82" fill="none" stroke="#000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M33 82 H67" fill="none" stroke="#000" stroke-width="6" stroke-linecap="round"/></svg>
+      <span class="wortmarke">Rätsel<span class="blau">labor</span></span>
     </a>
     <div class="pfad" id="kopfPfad" hidden><span></span></div>
     <span class="kopf-luecke"></span>
@@ -36,7 +35,7 @@
     <section class="held" aria-labelledby="startTitel">
       <div class="held-text">
         <p class="augenbraue">Rätselgeneratoren für Schule und Freizeit</p>
-        <h1 id="startTitel">Rätsellabor</h1>
+        <h1 id="startTitel" class="held-marke"><svg class="kolben" viewBox="0 4 100 160" aria-hidden="true"><circle cx="34" cy="21" r="5.2" fill="#0075BA"/><circle cx="42" cy="13" r="5.6" fill="#0075BA"/><circle cx="54" cy="12" r="5.8" fill="#0075BA"/><circle cx="64" cy="19" r="5.4" fill="#0075BA"/><circle cx="66" cy="31" r="5" fill="#0075BA"/><circle cx="60" cy="41" r="4.6" fill="#0075BA"/><circle cx="53" cy="49" r="4.2" fill="#0075BA"/><circle cx="50" cy="59" r="3.8" fill="#0075BA"/><circle cx="50" cy="72" r="3.5" fill="#0075BA"/><circle cx="51" cy="94" r="2.4" fill="#0075BA"/><circle cx="48.5" cy="103" r="1.8" fill="#0075BA"/><path d="M27.4 132 H42 C44 129 40 124 44.5 121 C47 119.3 53 119.3 55.5 121 C60 124 56 129 58 132 H72.6 L84 152 Q88 160 79 160 H21 Q12 160 16 152 Z" fill="#0075BA"/><path d="M40 82 V110 L16 152 Q12 160 21 160 H79 Q88 160 84 152 L60 110 V82" fill="none" stroke="#000" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M33 82 H67" fill="none" stroke="#000" stroke-width="5" stroke-linecap="round"/></svg><span class="wortmarke">Rätsel<span class="blau">labor</span></span></h1>
         <p class="lead">Hier entstehen Rätsel aus deinen eigenen Inhalten. Du wählst einen Generator, gibst Thema und Wörter ein, und das Labor baut daraus ein Rätsel. Lösen kannst du es direkt am Bildschirm oder als Arbeitsblatt ausgeben.</p>
         <div class="held-knoepfe">
           <a class="btn primary" id="heldStart" href="#start">Generator öffnen</a>
@@ -73,7 +72,7 @@
 
 <footer class="labor-fuss">
   <div class="labor-fuss-innen">
-    <span><b>Rätsellabor</b> · Rätsel aus eigenen Inhalten</span>
+    <span><span class="wortmarke">Rätsel<span class="blau">labor</span></span> · Rätsel aus eigenen Inhalten</span>
     <span>Alle Rätsel entstehen direkt im Browser.</span>
   </div>
 </footer>
