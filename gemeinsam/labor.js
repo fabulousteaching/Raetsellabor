@@ -145,5 +145,37 @@ var Labor = (function(){
   var HAUS = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/></svg>';
   var PLUS = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
 
-  return { registriere:registriere, start:start };
+  /* ---------- Helfer für alle Generatoren ---------- */
+  // Läuft die Seite als Claude-Artefakt? Dort gibt es kein Drucken, dafür Download und Claude.
+  function imArtefakt(){ return !!(window.claude && typeof window.claude.use === 'function'); }
+  var faehig = {};
+  function claude(name){
+    if (!imArtefakt()) return Promise.resolve(null);
+    if (!faehig[name]) faehig[name] = Promise.resolve(window.claude.use(name)).catch(function(){ return null; });
+    return faehig[name];
+  }
+  // Alle aktiven Stilregeln der Seite (für eine gespeicherte Datei)
+  function sammleCss(){
+    return [].map.call(document.styleSheets, function(s){
+      if (s.disabled) return '';
+      try { return [].map.call(s.cssRules, function(r){ return r.cssText; }).join('\n'); } catch(e){ return ''; }
+    }).join('\n');
+  }
+  // Ein Arbeitsblatt als eigenständige HTML-Datei, die man öffnet und druckt
+  function blattDatei(titel, inhalt, extraCss){
+    var css = sammleCss() + '\n' + (extraCss || '') +
+      '\nbody{display:block;background:#f4f7f9}body::before{display:none}.seite{max-width:960px;margin:0 auto;padding:18px;display:grid;gap:22px}' +
+      '.leiste{display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:#6b7280;font-size:.9rem}' +
+      '@media print{.leiste{display:none}.seite{max-width:none;padding:0;display:block}.neue-seite{break-before:page}}';
+    return '<!DOCTYPE html>\n<html lang="de">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
+      '<title>' + esc(titel) + '</title>\n' +
+      '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Inter:wght@400;500;600;700&display=swap">\n' +
+      '<style>' + css + '</style>\n</head>\n<body>\n<div class="seite">\n' +
+      '<div class="leiste"><button class="btn primary" onclick="window.print()">Drucken</button><span>Tipp: Im Druckdialog «Hintergrundgrafiken» einschalten, damit Farben mitgedruckt werden.</span></div>\n' +
+      inhalt + '\n</div>\n</body>\n</html>\n';
+  }
+  // Dateinamen-tauglicher Text
+  function dateiname(t){ return String(t || '').trim().replace(/[^\p{L}\p{N} _-]+/gu, '').replace(/\s+/g, '-').slice(0, 40); }
+
+  return { registriere:registriere, start:start, imArtefakt:imArtefakt, claude:claude, sammleCss:sammleCss, blattDatei:blattDatei, dateiname:dateiname, esc:esc };
 })();

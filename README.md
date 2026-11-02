@@ -26,6 +26,22 @@ Wortvorschläge: Als Claude-Artefakt kommen sie für jedes Thema von Claude. Als
 
 Thema, Wörter und Lösungszahl gelten nur für den geöffneten Tab: Neu laden behält sie, ein neuer Tab beginnt leer. Die Einstellungen bleiben im Browser gespeichert.
 
+### Rebus
+
+Aus Wörtern oder kurzen Sätzen werden Bilderrätsel. Jedes Bild steht für ein Wort (Einzahl, ohne Artikel); Zeichen verändern es:
+
+| Zeichen | Bedeutung | Beispiel |
+|---|---|---|
+| ’ vor dem Bild | so viele Buchstaben am Anfang weglassen | ’🐭 MAUS → AUS |
+| ’ nach dem Bild | so viele Buchstaben am Ende weglassen | 🦆’’ ENTE → EN |
+| A=E über dem Bild | jedes A durch E ersetzen | 🚪 T=Z: TÜR → ZÜR |
+| durchgestrichener Buchstabe | diesen Buchstaben streichen | 🦚 ~~F~~: PFAU → PAU |
+| Zahlen über dem Bild | nur diese Buchstaben in dieser Reihenfolge | 🐟 2 4 5: FISCH → ICH |
+| Bild auf dem Kopf | rückwärts lesen | |
+| einzelner Buchstabe | gehört so dazu | |
+
+Drei Stufen: *Einfach* (Bilder, Kommas, Buchstaben), *Mittel* (dazu tauschen und streichen), *Schwer* (dazu Zahlen und Bilder auf dem Kopf). Bis zu 12 Rätsel pro Blatt, jedes einzeln neu würfelbar; am Bildschirm mit Lösungsfeld, ausgedruckt mit Kästchen und Zeichenerklärung, auf Wunsch mit Lösungsblatt. Die Bilder sind rund 350 Emojis mit deutschen Namen (`LISTE` in `rebus.js`); gesucht wird die Zerlegung mit möglichst wenigen Bildern und Zeichen.
+
 ## Aufbau
 
 ```
@@ -35,6 +51,9 @@ gemeinsam/labor.js              Menü, Startseite und Wechsel zwischen den Gener
 raetsel/zahlen-suchsel/         der Generator «Zahlen-Suchsel»
   zahlen-suchsel.js             Kern (Ziffern bauen, Wörter verteilen), Oberfläche, Bedienung
   zahlen-suchsel.css            Aussehen dieses Generators (nur aktiv, solange er offen ist)
+raetsel/rebus/                  der Generator «Rebus»
+  rebus.js                      Bilderliste, Kern (Zerlegung), Oberfläche, Bedienung
+  rebus.css                     Aussehen dieses Generators
 ```
 
 Kein Build-Schritt, keine Abhängigkeiten ausser den Schriften Inter und Bricolage Grotesque von Google Fonts. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel` öffnet direkt den Generator, `…/#start` die Startseite.
@@ -63,7 +82,7 @@ Kein Build-Schritt, keine Abhängigkeiten ausser den Schriften Inter und Bricola
 
 3. In `index.html` unten eine Zeile ergänzen: `<script src="raetsel/mein-raetsel/mein-raetsel.js"></script>`
 
-Der neue Generator erscheint dann automatisch im Menü und auf der Startseite. Gemeinsame Bausteine wie `.karte`, `.btn`, Eingabefelder und `.meldung` stehen in `gemeinsam/labor.css` bereit.
+Der neue Generator erscheint dann automatisch im Menü und auf der Startseite. Gemeinsame Bausteine wie `.karte`, `.btn`, Eingabefelder und `.meldung` stehen in `gemeinsam/labor.css` bereit. In `gemeinsam/labor.js` gibt es Helfer für alle Generatoren: `Labor.imArtefakt()`, `Labor.claude(name)` (Claude-Fähigkeiten im Artefakt), `Labor.blattDatei(titel, html)` (Arbeitsblatt als Datei) und `Labor.esc()`.
 
 ## Veröffentlichen
 

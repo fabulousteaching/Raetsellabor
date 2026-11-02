@@ -1,0 +1,116 @@
+/* Rätsellabor · Rebus – nur aktiv, solange dieser Generator offen ist.
+   Gemeinsame Bausteine (Karten, Knöpfe, Eingabefelder, Meldungen) stehen in gemeinsam/labor.css. */
+.rb{max-width:1440px;margin:0 auto;padding-block:22px 48px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.rb-kopf{display:grid;gap:4px;margin:0 0 20px}
+.rb-kopf h1{font-family:var(--display);font-weight:600;font-size:clamp(1.7rem,3vw,2.2rem);letter-spacing:-.01em;line-height:1.1;margin:0;color:var(--ink)}
+.rb-kopf h1:focus{outline:none}
+.rb-kopf p:last-child{margin:2px 0 0;color:var(--muted);max-width:70ch}
+.rb-layout{display:grid;grid-template-columns:minmax(300px,400px) minmax(0,1fr);gap:24px;align-items:start}
+.rb-eingabe{display:grid;gap:16px;min-width:0}
+@media (min-width:961px){ .rb-eingabe{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--kopf-h) + 16px);max-height:calc(100vh - var(--kopf-h) - 32px);overflow:auto;padding:2px 4px 2px 2px;scrollbar-width:thin} }
+@media (max-width:960px){ .rb-layout{grid-template-columns:minmax(0,1fr);gap:18px} }
+@media (max-width:640px){ .rb{padding-block:18px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))} }
+
+/* ---------- Eingaben ---------- */
+.rb-liste{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:6px}
+.rb-liste:empty{display:none}
+.rb-liste li{display:flex;align-items:center;gap:10px;min-width:0;padding:6px 6px 6px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.rb-liste-nr{flex:none;width:1.4em;color:var(--muted-2);font-size:.82rem;font-variant-numeric:tabular-nums}
+.rb-liste-text{flex:1;min-width:0;font-weight:600;overflow-wrap:anywhere}
+.weg{flex:none;width:30px;height:30px;border-radius:8px;border:0;background:transparent;cursor:pointer;color:var(--muted);font-size:1.15rem;line-height:1;display:grid;place-items:center;padding:0}
+.weg:hover{background:var(--err-soft);color:var(--err)}
+.rb-stufen{display:grid;gap:8px}
+.rb-stufe{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;transition:border-color .15s,background .15s}
+.rb-stufe:hover{border-color:var(--accent-line)}
+.rb-stufe:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.rb-stufe input{margin:3px 0 0;accent-color:var(--accent);width:16px;height:16px;flex:none}
+.rb-stufe b{display:block;font-weight:600}
+.rb-stufe small{display:block;color:var(--muted);font-size:.84rem}
+details.optionen summary{cursor:pointer;font-weight:650;font-size:1rem;list-style:none;display:flex;align-items:center;justify-content:space-between}
+details.optionen summary::-webkit-details-marker{display:none}
+details.optionen summary::after{content:'';width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .2s;margin:0 6px 4px 0}
+details.optionen[open] summary::after{transform:rotate(-135deg);margin-bottom:0}
+details.optionen[open] summary{margin-bottom:12px}
+.opt{display:flex;align-items:flex-start;gap:10px;margin:10px 0;font-size:.9rem}
+.opt input[type=checkbox]{width:16px;height:16px;margin:3px 0 0;accent-color:var(--accent);flex:none}
+
+/* ---------- Ausgabe ---------- */
+.rb-ausgabe{min-width:0}
+.rb-werkzeug{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.rb-werkzeug .abstand{flex:1}
+.rb-werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
+.rb-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+.rb-blatt{background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:30px clamp(16px,3.2vw,40px)}
+.rb-blatt.rb-beispiel{border-style:dashed;box-shadow:none}
+.rb-beispiel-marke{display:inline-block;margin:0 0 12px;padding:2px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent-2);font-size:.76rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.rb-beispiel-text{margin:18px 0 0;color:#4b5563;font-size:.92rem;max-width:70ch}
+.rb-titel{font-family:var(--display);font-weight:600;font-size:1.7rem;margin:0 0 6px;letter-spacing:-.01em;color:var(--ink)}
+.rb-anleitung{margin:0 0 16px;color:#4b5563;max-width:75ch}
+
+.rb-legende{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:8px 18px;margin:0 0 22px;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:#fafbfc;font-size:.84rem;color:#374151}
+.rb-leg{display:flex;align-items:center;gap:10px}
+.rb-leg-zeichen{flex:none;min-width:64px;display:flex;align-items:center;justify-content:center;gap:1px}
+.rb-leg-zeichen .rb-bild{font-size:1.6rem}
+.rb-leg-zeichen .rb-komma{font-size:1.5rem}
+.rb-leg-zeichen .rb-buchstabe{font-size:1.4rem;width:1.6em;height:1.6em}
+
+.rb-raetsel{list-style:none;margin:0;padding:0;display:grid;gap:22px}
+.rb-eintrag{display:grid;grid-template-columns:2em minmax(0,1fr);gap:4px 10px;align-items:start;padding-bottom:20px;border-bottom:1px dashed var(--line-2);break-inside:avoid}
+.rb-eintrag:last-child{border-bottom:0;padding-bottom:0}
+.rb-nr{font-family:var(--display);font-weight:600;font-size:1.25rem;color:var(--accent);padding-top:26px}
+.rb-inhalt{min-width:0;display:grid;gap:12px}
+.rb-zeile{display:flex;flex-wrap:wrap;align-items:flex-start;gap:10px 6px}
+.rb-wort{display:flex;flex-wrap:wrap;align-items:flex-start;gap:6px 22px}
+.rb-wortgrenze{width:1px;align-self:stretch;margin:6px 10px;background:var(--line-2)}
+
+/* Ein Teil: Zeichen oben, Bild mit Kommas, darunter (in der Lösung) der Bildname */
+.rb-teil{display:grid;justify-items:center;align-content:start;gap:2px;min-width:3.6em}
+.rb-oben{min-height:1.5em;display:flex;align-items:flex-end;justify-content:center;font-weight:700;font-size:1.05rem;color:var(--ink);letter-spacing:.04em}
+.rb-tausch{white-space:nowrap}
+.rb-streich{position:relative;padding:0 .15em;color:var(--ink)}
+.rb-streich::after{content:'';position:absolute;left:-.1em;right:-.1em;top:50%;height:2px;background:var(--err);transform:rotate(-20deg)}
+.rb-zahlen{font-variant-numeric:tabular-nums;word-spacing:.15em}
+.rb-bildzeile{display:flex;align-items:flex-start;gap:1px;line-height:1}
+.rb-bild{font-size:3.1rem;line-height:1.1;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif}
+.rb-kopfueber{display:inline-block;transform:rotate(180deg)}
+.rb-kommas{display:flex;gap:.12em}
+.rb-komma{font-size:2.6rem;font-weight:700;line-height:.9;color:var(--ink);font-family:Georgia,'Times New Roman',serif}
+.rb-buchstabe{display:grid;place-items:center;width:1.55em;height:1.55em;margin-top:.12em;font-family:var(--display);font-weight:600;font-size:2.1rem;color:var(--ink);border:2px solid var(--ink);border-radius:10px}
+.rb-name,.rb-ergebnis{display:none;font-size:.74rem;font-weight:600;letter-spacing:.05em;color:var(--muted)}
+.rb-name.rb-hilfe{display:block}
+.rb-ergebnis{color:var(--accent-2)}
+.zeige-loesung .rb-name,.rb-loesungsblatt .rb-name{display:block}
+.zeige-loesung .rb-ergebnis,.rb-loesungsblatt .rb-ergebnis{display:block}
+.zeige-loesung .rb-ergebnis::before,.rb-loesungsblatt .rb-ergebnis::before{content:'→ '}
+
+.rb-kaestchen{display:flex;flex-wrap:wrap;gap:6px 16px}
+.rb-kwort{display:flex}
+.rb-k{display:grid;place-items:center;width:1.9em;height:2.1em;border:1.5px solid #9ca3af;border-left-width:0;font-weight:700;font-size:1rem;color:var(--ink)}
+.rb-k:first-child{border-left-width:1.5px;border-radius:5px 0 0 5px}
+.rb-k:last-child{border-radius:0 5px 5px 0}
+.rb-linie{height:1.8em;max-width:22em;border-bottom:1.5px solid var(--ink)}
+.rb-loesungswort{margin:0;font-family:var(--display);font-weight:600;font-size:1.3rem;letter-spacing:.08em;color:var(--accent-2)}
+
+.rb-pruefen{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.rb-pruefen input{max-width:16em}
+.rb-status{font-weight:600;font-size:.9rem;color:var(--muted)}
+.rb-richtig .rb-status{color:var(--ok)}
+.rb-richtig .rb-pruefen input{border-color:var(--ok);background:var(--ok-soft)}
+.rb-loesungsblatt{display:none}
+
+@media (max-width:640px){
+  .rb-bild{font-size:2.5rem}
+  .rb-komma{font-size:2.1rem}
+  .rb-teil{min-width:3em}
+}
+@media print{
+  @page{size:A4;margin:14mm}
+  html,body{background:#fff!important}
+  .rb-kopf,.rb-eingabe,.rb-werkzeug,#rbMeldung,.nur-bildschirm{display:none!important}
+  .rb{padding:0;max-width:none}
+  .rb-layout{display:block}
+  .rb-blatt{border:0;box-shadow:none;border-radius:0;padding:0}
+  #rbBlatt .rb-name:not(.rb-hilfe),#rbBlatt .rb-ergebnis{display:none!important}
+  body.mit-loesung .rb-loesungsblatt{display:block;break-before:page}
+  .rb-eintrag{break-inside:avoid}
+}
