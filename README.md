@@ -1,54 +1,70 @@
-# Zahlen-Suchsel
+# Rätsellabor
 
-Ein Generator für Suchsel (Wortsuchrätsel) mit Lösungszahl: Wer alle versteckten Wörter findet und markiert, sieht eine Zahl.
+Eine Webseite mit Rätselgeneratoren für Schule und Freizeit. Man wählt einen Generator, gibt eigene Inhalte ein, und das Labor baut daraus ein Rätsel, das man am Bildschirm lösen oder als Arbeitsblatt ausgeben kann.
 
-Die Wörter liegen nicht zufällig im Feld, sondern bilden die Striche der Ziffern – ähnlich wie auf einer Digitalanzeige. Rundherum stehen Füllbuchstaben.
+Die Startseite erklärt kurz, was das Labor kann, und zeigt alle Generatoren. Über das Menü oben rechts wechselt man jederzeit zwischen Startseite und Generatoren. Das Labor wird Schritt für Schritt um weitere Generatoren erweitert.
 
-## So funktioniert es
+## Generatoren
+
+### Zahlen-Suchsel
+
+Ein Suchsel mit Lösungszahl: Die versteckten Wörter bilden zusammen die Ziffern einer Zahl, ähnlich wie auf einer Digitalanzeige.
 
 1. **Thema und Wörter:** Thema eingeben und «Wörter vorschlagen» klicken. Vorschläge anklicken oder eigene Wörter ergänzen (mehrere mit Komma).
 2. **Lösungszahl:** z. B. `7` oder `2026`. Die Seite zeigt laufend, wie viele Wörter mindestens nötig sind.
 3. **Suchsel erstellen:** Das Feld wird so gross, wie es die Wörter verlangen.
 
-Lässt sich die Zahl mit den Wörtern nicht bilden (zu wenige Wörter, zu viele Buchstaben, oder die Wortlängen gehen nicht auf), erklärt die Seite den Grund und schlägt eine Lösung mit einer anderen Ziffer vor.
-
-Mindestens nötige Wörter je Ziffer (ein Wort pro Strich):
+Lässt sich die Zahl mit den Wörtern nicht bilden, erklärt die Seite den Grund und schlägt eine Lösung mit einer anderen Ziffer vor.
 
 | Ziffer | 1 | 7 | 4 | 0 3 9 | 2 5 6 8 |
 |---|---|---|---|---|---|
-| Wörter | 1 | 2 | 3 | 4 | 5 |
+| Wörter mindestens | 1 | 2 | 3 | 4 | 5 |
 
-Mit ein, zwei Wörtern mehr als dem Minimum klappt es fast immer.
+Einstellungen: Wörter dürfen sich überlappen, Ziffern unterschiedlich gross oder liegend, Ziffern neben- oder untereinander, Wörter rückwärts, die 1 mit Fähnchen, Umlaute ersetzen, Wortliste, Gitterlinien, Abstand und Rand.
 
-## Einstellungen
+Wortvorschläge: Als Claude-Artefakt kommen sie für jedes Thema von Claude. Als normale Webseite gibt es Vorschläge für 21 eingebaute Themen (Tiere, Berufe, Weltraum, Römer …); eigene Wörter gehen immer.
 
-- Wörter dürfen sich überlappen (letzter Buchstabe des einen = erster des nächsten)
-- Ziffern dürfen unterschiedlich gross sein
-- Ziffern dürfen liegen (zufällig um 90° gedreht)
-- Ziffern nebeneinander oder untereinander
-- Wörter auch rückwärts verstecken
-- Die 1 mit schrägem Fähnchen
-- Umlaute ersetzen (Ä → AE …)
-- Wortliste auf dem Blatt, Gitterlinien, Abstand der Ziffern, Rand
+Thema, Wörter und Lösungszahl gelten nur für den geöffneten Tab: Neu laden behält sie, ein neuer Tab beginnt leer. Die Einstellungen bleiben im Browser gespeichert.
 
-## Im Browser lösen und drucken
+## Aufbau
 
-- Wörter lassen sich direkt im Feld markieren: vom ersten bis zum letzten Buchstaben ziehen oder beide antippen.
-- «Lösung zeigen» blendet alle Wörter ein, «Neu mischen» erzeugt eine neue Anordnung.
-- «Drucken» gibt ein A4-Arbeitsblatt aus, auf Wunsch mit Lösungsblatt als zweite Seite.
+```
+index.html                      Rätsellabor: Kopfleiste mit Menü, Startseite, Platz für den Generator
+gemeinsam/labor.css             gemeinsames Aussehen (Farben, Schriften, Kopfleiste, Menü, Karten, Knöpfe)
+gemeinsam/labor.js              Menü, Startseite und Wechsel zwischen den Generatoren
+raetsel/zahlen-suchsel/         der Generator «Zahlen-Suchsel»
+  zahlen-suchsel.js             Kern (Ziffern bauen, Wörter verteilen), Oberfläche, Bedienung
+  zahlen-suchsel.css            Aussehen dieses Generators (nur aktiv, solange er offen ist)
+```
 
-## Wortvorschläge
+Kein Build-Schritt, keine Abhängigkeiten ausser den Schriften Inter und Bricolage Grotesque von Google Fonts. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel` öffnet direkt den Generator, `…/#start` die Startseite.
 
-- **Als Claude-Artefakt** kommen die Vorschläge für jedes beliebige Thema von Claude.
-- **Als normale Webseite** (z. B. über GitHub Pages) gibt es Vorschläge für 21 eingebaute Themen: Tiere, Obst und Gemüse, Berufe, Sport, Musikinstrumente, Länder, Wetter, Schule, Körper, Verkehr, Weltraum, Pflanzen und Wald, Essen und Küche, Kleidung, Farben und Formen, Meer und Wasser, Jahreszeiten, Weihnachten, Steinzeit, Römer, Mittelalter. Eigene Wörter gehen immer.
+## Einen neuen Generator hinzufügen
 
-## Technik
+1. Ordner `raetsel/<name>/` mit `<name>.js` und `<name>.css` anlegen.
+2. In `<name>.js` den Generator beim Labor anmelden:
 
-Alles steckt in einer einzigen Datei, [`index.html`](index.html) – ohne Build-Schritt und ohne Abhängigkeiten (nur die Schrift Inter von Google Fonts). Thema, Wörter und Lösungszahl gelten nur für den geöffneten Tab (`sessionStorage`): Neu laden behält sie, ein neuer Tab beginnt leer. Die Einstellungen bleiben im Browser gespeichert (`localStorage`).
+   ```js
+   Labor.registriere({
+     id: 'mein-raetsel',                 // Adresse: …/#mein-raetsel
+     titel: 'Mein Rätsel',
+     kurz: 'ein Satz für das Menü',
+     beschreibung: 'zwei, drei Sätze für die Startseite',
+     merkmale: ['Stichwort', 'Stichwort'],
+     symbol: '<svg …>…</svg>',           // zeichnet mit currentColor
+     css: 'raetsel/mein-raetsel/mein-raetsel.css',
+     html: '<div>…Oberfläche…</div>',
+     start: function(bereich){
+       // Oberfläche steht jetzt im Dokument: Ereignisse verbinden, loslegen
+       return function stopp(){ /* aufräumen, wenn man das Rätsel verlässt */ };
+     }
+   });
+   ```
 
-Im Skript gibt es zwei Teile:
+3. In `index.html` unten eine Zeile ergänzen: `<script src="raetsel/mein-raetsel/mein-raetsel.js"></script>`
 
-- **Kern** (zwischen `KERN-START` und `KERN-ENDE`): baut die Ziffern aus geraden Strichen, verteilt die Wortlängen exakt auf die Striche (Suche mit Rückverfolgung) und setzt danach die Wörter samt Füllbuchstaben ins Feld. Dabei steht kein Wort zufällig ein zweites Mal im Feld.
-- **Bedienung:** Eingaben, Wortvorschläge, Meldungen und Alternativen, Anzeige als SVG, Markieren, Drucken und Herunterladen.
+Der neue Generator erscheint dann automatisch im Menü und auf der Startseite. Gemeinsame Bausteine wie `.karte`, `.btn`, Eingabefelder und `.meldung` stehen in `gemeinsam/labor.css` bereit.
 
-Zum Veröffentlichen genügt es, GitHub Pages für den Branch `main` einzuschalten (Settings → Pages). Die Seite ist dann unter `https://fabulousteaching.github.io/Zahlensuchsel/` erreichbar.
+## Veröffentlichen
+
+GitHub Pages für den Branch `main` einschalten (Settings → Pages). Die Seite ist dann unter `https://fabulousteaching.github.io/Zahlensuchsel/` erreichbar. Wird das Repository umbenannt (z. B. in «Raetsellabor»), ändert sich die Adresse entsprechend.
