@@ -201,10 +201,10 @@ var Kern = (function(){
 })();
 /* KERN-ENDE */
 
-var ARTEN = [
-  ['rechnen', 'Rechnen'], ['dezimalbrueche', 'Dezimalbrüche'], ['stellenwerte', 'Stellenwerte'], ['brueche', 'Brüche in Worten'],
-  ['englisch', 'Englisch'], ['franzoesisch', 'Französisch'], ['eigene', 'Eigene Paare']
-];
+// zuerst das Fach; die Mathe-Themen erscheinen erst, wenn Mathe gewählt ist
+var FAECHER = [['mathe', 'Mathe'], ['englisch', 'Englisch'], ['franzoesisch', 'Französisch'], ['eigene', 'Eigene Paare']];
+var MATHE = [['rechnen', 'Rechnen'], ['dezimalbrueche', 'Dezimalbrüche'], ['stellenwerte', 'Stellenwerte'], ['brueche', 'Brüche in Worten']];
+var MATHE_ARTEN = MATHE.map(function(m){ return m[0]; }).join(' ');
 var SPRACHE = { englisch:['Deutsch', 'Englisch', 'Hund = dog'], franzoesisch:['Deutsch', 'Französisch', 'Hund = le chien'], eigene:['Begriff', 'Partner', 'Hauptstadt der Schweiz = Bern'] };
 var FARBEN = [['#F28C38', 'Orange'], ['#C62828', 'Rot'], ['#1E63C4', 'Blau'], ['#2E7D32', 'Grün'], ['#7B3FB5', 'Lila'], ['#E3B505', 'Gelb'], ['#9E9E9E', 'Grau']];
 var MARKE = '#D32F2F';   // farbige Ziffer bei den Stellenwerten
@@ -229,26 +229,29 @@ var VORLAGE = '<div class="tr">' +
         Object.keys(Kern.FORMEN).map(function(k){ var f = Kern.FORMEN[k]; return '<label><input type="radio" name="trForm" value="' + k + '"><span>' + formBild(k) + '<b>' + f.name + '</b><small>' + f.teile + ' Teile · ' + f.paare + ' Paare</small></span></label>'; }).join('') +
       '</div></div>' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Inhalt</h2></div></div>' +
-      '<div class="tr-chips" role="radiogroup" aria-label="Inhalt">' + chips('trArt', ARTEN) + '</div>' +
-      '<div class="tr-teil" data-art="rechnen">' +
+      '<p class="feld-label">Fach</p><div class="tr-chips" role="radiogroup" aria-label="Fach">' + chips('trFach', FAECHER) + '</div>' +
+      '<div class="tr-teil" data-art="' + MATHE_ARTEN + '">' +
+      '<p class="feld-label">Thema</p><div class="tr-chips" role="radiogroup" aria-label="Mathe-Thema">' + chips('trArt', MATHE) + '</div>' +
+      '<div class="tr-unter" data-art="rechnen">' +
         '<p class="feld-label">Rechenarten</p><div class="tr-chips tr-mehr">' +
           [['plus', 'Plus +'], ['minus', 'Minus −'], ['mal', 'Mal ·'], ['geteilt', 'Geteilt :']].map(function(x){ return '<label><input type="checkbox" name="trOp" value="' + x[0] + '"><span>' + x[1] + '</span></label>'; }).join('') + '</div>' +
         '<p class="feld-label">Zahlenraum</p><div class="tr-chips">' + chips('trZr', [['10', 'bis 10'], ['20', 'bis 20'], ['100', 'bis 100'], ['1000', 'bis 1000']]) + '</div>' +
       '</div>' +
-      '<div class="tr-teil" data-art="dezimalbrueche">' +
+      '<div class="tr-unter" data-art="dezimalbrueche">' +
         '<p class="feld-label">Brüche</p><div class="tr-chips">' + chips('trDez', [['1', 'Zehntel'], ['2', 'bis Hundertstel'], ['3', 'bis Tausendstel']]) + '</div>' +
         '<p class="hinweis">z. B. 7/100 und 0.07</p>' +
       '</div>' +
-      '<div class="tr-teil" data-art="stellenwerte">' +
+      '<div class="tr-unter" data-art="stellenwerte">' +
         '<p class="feld-label">Zahlen</p><div class="tr-chips">' + chips('trStellen', [['dezimal', 'Dezimalzahlen'], ['ganz', 'Ganze Zahlen'], ['gemischt', 'Gemischt']]) + '</div>' +
         '<p class="hinweis">Eine Ziffer ist farbig, z. B. 0.3<b style="color:' + MARKE + '">4</b>5 und «4 Hundertstel».</p>' +
       '</div>' +
-      '<div class="tr-teil" data-art="brueche">' +
+      '<div class="tr-unter" data-art="brueche">' +
         '<p class="feld-label">Nenner</p><div class="tr-chips">' + chips('trBruch', [['6', 'bis Sechstel'], ['10', 'bis Zehntel'], ['12', 'bis Zwölftel']]) + '</div>' +
         '<p class="hinweis">z. B. «drei Fünftel» und 3/5. Reichen die echten Brüche nicht, kommen unechte dazu (z. B. fünf Viertel).</p>' +
       '</div>' +
-      '<div class="tr-teil tr-dezimal-trenner" data-art="dezimalbrueche stellenwerte">' +
+      '<div class="tr-unter" data-art="dezimalbrueche stellenwerte">' +
         '<p class="feld-label">Dezimaltrennzeichen</p><div class="tr-chips">' + chips('trSep', [['.', 'Punkt 0.5'], [',', 'Komma 0,5']]) + '</div>' +
+      '</div>' +
       '</div>' +
       '<div class="tr-teil" data-art="englisch franzoesisch eigene">' +
         '<label class="feld-label" for="trWoerter" id="trWoerterLabel"></label>' +
@@ -301,7 +304,7 @@ Labor.registriere({
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, esc = Labor.esc, aus = false;
   var TAB = 'trimino-eingaben', OPT = 'trimino-einstellungen';
-  var STANDARD = { form:'stern', art:'rechnen', ops:['plus', 'minus'], zr:'100', dez:'2', stellen:'dezimal', bruch:'10', sep:'.', rand:'leer', farbe:'#F28C38',
+  var STANDARD = { form:'stern', art:'rechnen', matheArt:'rechnen', ops:['plus', 'minus'], zr:'100', dez:'2', stellen:'dezimal', bruch:'10', sep:'.', rand:'leer', farbe:'#F28C38',
     mitLoesung:true, titelAn:true, anleitungAn:true };
   var st = { titel:'', woerter:{ englisch:'', franzoesisch:'', eigene:'' }, seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
@@ -321,7 +324,18 @@ function starte(bereich){
       r.addEventListener('change', function(){ if (!r.checked) return; st.opt[k] = r.value; speichern(); if (nachher) nachher(); erzeugen(); });
     });
   }
-  radios('trForm', 'form'); radios('trArt', 'art', artZeigen); radios('trZr', 'zr'); radios('trDez', 'dez'); radios('trStellen', 'stellen');
+  if (!SPRACHE[st.opt.art] && MATHE_ARTEN.split(' ').indexOf(st.opt.art) < 0) st.opt.art = 'rechnen';
+  if (MATHE_ARTEN.split(' ').indexOf(st.opt.matheArt) < 0) st.opt.matheArt = 'rechnen';
+  function fach(){ return SPRACHE[st.opt.art] ? st.opt.art : 'mathe'; }
+  [].forEach.call(bereich.querySelectorAll('input[name="trFach"]'), function(r){
+    r.checked = r.value === fach();
+    r.addEventListener('change', function(){ if (!r.checked) return; st.opt.art = r.value === 'mathe' ? st.opt.matheArt : r.value; speichern(); artZeigen(); erzeugen(); });
+  });
+  [].forEach.call(bereich.querySelectorAll('input[name="trArt"]'), function(r){
+    r.checked = r.value === st.opt.matheArt;
+    r.addEventListener('change', function(){ if (!r.checked) return; st.opt.art = st.opt.matheArt = r.value; speichern(); artZeigen(); erzeugen(); });
+  });
+  radios('trForm', 'form'); radios('trZr', 'zr'); radios('trDez', 'dez'); radios('trStellen', 'stellen');
   radios('trBruch', 'bruch'); radios('trSep', 'sep'); radios('trRand', 'rand'); radios('trFarbe', 'farbe');
   [].forEach.call(bereich.querySelectorAll('input[name="trOp"]'), function(c){
     c.checked = st.opt.ops.indexOf(c.value) >= 0;
@@ -340,7 +354,7 @@ function starte(bereich){
   var warte = 0;
   function baldErzeugen(){ clearTimeout(warte); warte = setTimeout(erzeugen, 250); }
   function artZeigen(){
-    [].forEach.call(bereich.querySelectorAll('.tr-teil'), function(d){ d.hidden = d.dataset.art.split(' ').indexOf(st.opt.art) < 0; });
+    [].forEach.call(bereich.querySelectorAll('.tr-teil, .tr-unter'), function(d){ d.hidden = d.dataset.art.split(' ').indexOf(st.opt.art) < 0; });
     if (sprache()){
       var s = SPRACHE[st.opt.art];
       $('#trWoerterLabel').textContent = s[0] + ' = ' + s[1] + ' (ein Paar pro Zeile)';
