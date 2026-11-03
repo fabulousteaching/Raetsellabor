@@ -175,7 +175,7 @@ function vorlage(artKarte){
   return '<div class="sl"><div class="sl-layout"><section class="sl-eingabe" aria-label="Eingaben">' + artKarte +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Lösungssatz</h2><p>Dieser Satz steht Buchstabe für Buchstabe auf dem Weg vom Eingang zum Ausgang – ohne Leerzeichen.</p></div></div>' +
       '<label class="vh" for="slSatz">Lösungssatz</label>' +
-      '<textarea id="slSatz" rows="3" maxlength="150" placeholder="z. B. Die nächste Lösung findest du im Kühlschrank"></textarea>' +
+      '<textarea id="slSatz" rows="3" maxlength="150"></textarea>' +
       '<p class="hinweis" id="slInfo"></p>' +
     '</div>' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Schwierigkeit</h2><p>Je schwerer, desto grösser das Labyrinth und desto mehr Irrwege.</p></div></div>' +
@@ -183,7 +183,7 @@ function vorlage(artKarte){
         Object.keys(STUFEN).map(function(k){ return '<label><input type="radio" name="slStufe" value="' + k + '"><span>' + STUFEN[k].name + '</span></label>'; }).join('') + '</div>' +
     '</div>' +
     '<div class="karte"><details class="optionen"><summary>Einstellungen</summary>' +
-      '<div class="opt-raster"><label for="slTitel">Titel auf dem Blatt</label><input type="text" id="slTitel" maxlength="60" placeholder="Finde den Lösungssatz!">' +
+      '<div class="opt-raster"><label for="slTitel">Titel auf dem Blatt</label><input type="text" id="slTitel" maxlength="60">' +
         '<label for="slSchrift">Buchstaben</label><select id="slSchrift"><option value="wie">wie eingegeben</option><option value="gross">nur Grossbuchstaben</option></select>' +
         '<label for="slLinie">Linien</label><select id="slLinie"><option value="0.6">dünn</option><option value="0.9">mittel</option><option value="1.3">dick</option></select></div>' +
     '</details></div>' +
@@ -198,8 +198,9 @@ function vorlage(artKarte){
       '<button type="button" class="btn klein" id="slZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
       '<button type="button" class="btn klein" id="slWegWeg">Weg löschen</button>' +
       '<span class="abstand"></span>' +
+      Labor.blattSchalterHtml() +
       '<label><input type="checkbox" id="slMitLoesung"> mit Lösungsblatt</label>' +
-      '<button type="button" class="btn klein primary" id="slDrucken">Drucken</button>' +
+      '<button type="button" class="btn klein primary" id="slDrucken">PDF herunterladen</button>' +
       '<button type="button" class="btn klein primary" id="slHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
     '</div>' +
     '<article class="sl-blatt" id="slBlatt" hidden></article>' +
@@ -214,7 +215,7 @@ window.LabyrinthSatz = { vorlage:vorlage, starte:starte, Kern:Kern };
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, esc = Labor.esc, aus = false, NS = 'http://www.w3.org/2000/svg';
   var TAB = 'satz-labyrinth-eingaben', OPT = 'satz-labyrinth-einstellungen';
-  var STANDARD = { stufe:'mittel', schrift:'wie', linie:'0.9', mitLoesung:true };
+  var STANDARD = { stufe:'mittel', schrift:'wie', linie:'0.9', mitLoesung:true, titelAn:true, anleitungAn:true };
   var st = { satz:'', titel:'', seed:1, opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
   try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.satz = String(e.satz || ''); st.titel = String(e.titel || ''); st.seed = +e.seed || 1; } } catch(x){}
@@ -245,6 +246,7 @@ function starte(bereich){
   $('#slTitel').addEventListener('input', function(){ st.titel = this.value; speichern(); if (aktuell) zeichnen(); });
   $('#slSchrift').value = st.opt.schrift; $('#slSchrift').addEventListener('change', function(){ st.opt.schrift = this.value; speichern(); info(); if (erstellt) erstellen(); });
   $('#slLinie').value = st.opt.linie; $('#slLinie').addEventListener('change', function(){ st.opt.linie = this.value; speichern(); if (aktuell) zeichnen(); });
+  Labor.blattSchalter(bereich, st.opt, function(){ speichern(); if (aktuell) zeichnen(); });
   $('#slMitLoesung').checked = st.opt.mitLoesung; $('#slMitLoesung').addEventListener('change', function(){ st.opt.mitLoesung = this.checked; speichern(); });
 
   /* ---------- Erstellen ---------- */
@@ -289,17 +291,17 @@ function starte(bereich){
     return s;
   }
   function zeichnen(){
-    var lab = aktuell.lab, titel = st.titel.trim() || 'Finde den Lösungssatz!', blatt = $('#slBlatt'), loes = $('#slLoesung');
+    var lab = aktuell.lab, titel = st.titel.trim() || 'Finde den Lösungssatz!', blatt = $('#slBlatt'), loes = $('#slLoesung'), o = st.opt;
     var linien = Math.min(4, Math.max(1, Math.ceil(lab.n / 34))), l = '';
     for (var i = 1; i < linien; i++) l += '<span class="sl-linie voll"></span>';
     blatt.classList.remove('veraltet', 'zeige-loesung', 'geschafft');
-    blatt.innerHTML = '<h2>' + esc(titel) + '</h2>' +
-      '<p class="sl-anleitung">Finde den Weg vom Eingang zum Ausgang (bei den Pfeilen), ohne eine Wand zu überqueren. Die Buchstaben auf dem richtigen Weg ergeben einen Satz – die Wörter stehen ohne Lücke hintereinander. Schreibe ihn auf die Linie' + (linien > 1 ? 'n' : '') + '.</p>' +
+    blatt.innerHTML = (o.titelAn ? '<h2>' + esc(titel) + '</h2>' : '') +
+      (o.anleitungAn ? '<p class="sl-anleitung">Finde den Weg vom Eingang zum Ausgang (bei den Pfeilen), ohne eine Wand zu überqueren. Die Buchstaben auf dem richtigen Weg ergeben einen Satz – die Wörter stehen ohne Lücke hintereinander. Schreibe ihn auf die Linie' + (linien > 1 ? 'n' : '') + '.</p>' : '') +
       '<div class="sl-feld"></div><p class="sl-fortschritt nur-bildschirm" id="slFortschritt" aria-live="polite"></p>' +
       '<div class="sl-antwort"><span>Lösungssatz:</span><span class="sl-linie"></span>' + l + '</div>';
     var svg = labSvg(false);
     blatt.querySelector('.sl-feld').appendChild(svg);
-    loes.innerHTML = '<h2>Lösung – ' + esc(titel) + '</h2><div class="sl-feld"></div><p class="sl-satz-loesung"><b>Lösungssatz:</b> ' + esc(lab.satz) + '</p>';
+    loes.innerHTML = '<h2>Lösung' + (o.titelAn ? ' – ' + esc(titel) : '') + '</h2><div class="sl-feld"></div><p class="sl-satz-loesung"><b>Lösungssatz:</b> ' + esc(lab.satz) + '</p>';
     loes.querySelector('.sl-feld').appendChild(labSvg(true));
     blatt.hidden = false; $('#slWerkzeug').hidden = false; leer();
     wegVerbinden(svg); wegZeichnen();
@@ -354,7 +356,7 @@ function starte(bereich){
   $('#slWegWeg').addEventListener('click', function(){ if (!aktuell) return; weg = [aktuell.lab.start]; wegZeichnen(); });
   function druckVorbereiten(){ document.body.classList.toggle('mit-loesung', !!st.opt.mitLoesung); }
   window.addEventListener('beforeprint', druckVorbereiten);
-  $('#slDrucken').addEventListener('click', function(){ druckVorbereiten(); window.print(); });
+  Labor.pdfKnopf($('#slDrucken'), function(){ return aktuell && { blaetter:[$('#slBlatt'), st.opt.mitLoesung && $('#slLoesung')], name:Labor.pdfName('Labyrinth-Loesungssatz', st.titel) }; }, function(t){ meldung('fehler', '<p>' + Labor.esc(t) + '</p>'); });
   var speicherOrt = null;
   if (Labor.imArtefakt()){ $('#slDrucken').hidden = true; Labor.claude('downloads').then(function(d){ if (!d || aus) return; speicherOrt = d; $('#slHerunterladen').hidden = false; }); }
   function sauber(el){

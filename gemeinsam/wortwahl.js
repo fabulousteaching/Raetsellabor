@@ -170,7 +170,7 @@ var Wortwahl = (function(){
       '<div class="karte-kopf"><span class="stufe" aria-hidden="true">' + (nr || 1) + '</span>' +
         '<div><h2>Thema und Wörter</h2><p>Thema eingeben, Wortarten wählen und Wörter vorschlagen lassen. Vorschläge anklicken – eigene Wörter gehen immer.</p></div></div>' +
       '<label class="feld-label" for="titel">Thema</label>' +
-      '<div class="zeile"><input type="text" id="titel" maxlength="60" placeholder="z. B. Fussball, Weltraum, Römer …" autocomplete="off">' +
+      '<div class="zeile"><input type="text" id="titel" maxlength="60" autocomplete="off">' +
         '<button type="button" class="btn soft" id="vorschlagen">Wörter vorschlagen</button></div>' +
       '<div class="wortarten" role="group" aria-label="Wortarten für die Vorschläge"><span class="wortarten-titel">Vorschlagen:</span>' +
         REIHE.map(function(a){ return '<label class="wortart"><input type="checkbox" value="' + a + '"><span>' + ARTEN[a].name + '</span></label>'; }).join('') + '</div>' +
@@ -184,7 +184,8 @@ var Wortwahl = (function(){
       '<div class="woerter-kopf"><span class="feld-label">Deine Wörter<span class="zaehler" id="wortZaehler"></span></span>' +
         '<button type="button" class="btn ghost klein" id="alleWeg">Alle entfernen</button></div>' +
       '<div class="chips gewaehlt" id="wortChips" aria-live="polite"></div>' +
-      '<div class="zeile"><input type="text" id="eigenesWort" maxlength="200" placeholder="Eigenes Wort (mehrere mit Komma)" autocomplete="off" spellcheck="false" aria-label="Eigenes Wort hinzufügen">' +
+      '<label class="feld-label eigenes-label" for="eigenesWort">Eigene Wörter (mehrere mit Komma trennen)</label>' +
+      '<div class="zeile"><input type="text" id="eigenesWort" maxlength="200" autocomplete="off" spellcheck="false">' +
         '<button type="button" class="btn" id="wortPlus">Hinzufügen</button></div>' +
       '<p class="hinweis" id="wortInfo" aria-live="polite"></p>' +
     '</div>';

@@ -653,8 +653,9 @@ var VORLAGE = `<div class="zs">
       <button type="button" class="btn klein" id="zeigeLoesung" aria-pressed="false">Lösung zeigen</button>
       <button type="button" class="btn klein" id="markWeg">Markierungen löschen</button>
       <span class="abstand"></span>
+      ${Labor.blattSchalterHtml()}
       <label><input type="checkbox" id="mitLoesung"> mit Lösungsblatt</label>
-      <button type="button" class="btn klein primary" id="drucken">Drucken</button>
+      <button type="button" class="btn klein primary" id="drucken">PDF herunterladen</button>
       <button type="button" class="btn klein primary" id="herunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>
     </div>
     <article class="blatt" id="blatt" hidden>
@@ -697,7 +698,7 @@ function starte(bereich){
   var $ = function(s){ return document.querySelector(s); };
   var SPEICHER = 'zahlen-suchsel-v2', SPEICHER_TAB = 'zahlen-suchsel-eingaben', SPEICHER_OPT = 'zahlen-suchsel-einstellungen';
   var STANDARD = { rueckwaerts:false, schraeg:true, umlaute:false, wortliste:true, linien:true, anordnung:'neben', abstand:1, rand:2, mitLoesung:true,
-    ueberlappen:true, verschieden:false, liegen:false, ziffern:'neben' };
+    ueberlappen:true, verschieden:false, liegen:false, ziffern:'neben', titelAn:true, anleitungAn:true };
   var FARBEN = ['#FAD852', '#68D77E', '#63C2EA', '#F7A25D', '#F27A8A', '#C4B5FD', '#5EEAD4', '#D8BC94'];
   var S = 10, NS = 'http://www.w3.org/2000/svg';
   var ZAHLWORT = ['null', 'eine', 'zwei', 'drei', 'vier', 'fünf', 'sechs', 'sieben', 'acht'];
@@ -776,7 +777,7 @@ function starte(bereich){
   function zeichneZahlen(fokus){
     var ol = $('#zahlListe'); ol.innerHTML = '';
     var li = document.createElement('li');
-    li.innerHTML = '<input type="text" class="zahl" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="z. B. 7 oder 2026" aria-label="Lösungszahl">' +
+    li.innerHTML = '<input type="text" class="zahl" inputmode="numeric" autocomplete="off" maxlength="6" aria-label="Lösungszahl">' +
       '<span class="chip"></span>';
     var inp = li.querySelector('input');
     inp.value = st.zahlen[0] || '';
@@ -830,6 +831,7 @@ function starte(bereich){
   }
 
   /* ---------- Einstellungen ---------- */
+  Labor.blattSchalter(bereich, st.opt, function(){ speichern(); if (aktuell) blattBeschriften(); });
   var OPT_FELDER = {
     rueckwaerts:'#optRueckwaerts', schraeg:'#optSchraeg', umlaute:'#optUmlaute', wortliste:'#optWortliste', linien:'#optLinien',
     abstand:'#optAbstand', rand:'#optRand', mitLoesung:'#mitLoesung',
@@ -1101,7 +1103,9 @@ function starte(bereich){
   function blattBeschriften(){
     var f = aktuell.feld, t = (st.titel || '').trim(), N = f.woerter.length, Z = f.zahlen.length, ri = richtungen(f);
     $('#blattTitel').textContent = t ? 'Suchsel: ' + t : 'Suchsel';
-    $('#loesungTitel').textContent = 'Lösung' + (t ? ' – ' + t : '');
+    $('#blattTitel').hidden = !st.opt.titelAn;
+    $('#anleitung').hidden = !st.opt.anleitungAn;
+    $('#loesungTitel').textContent = 'Lösung' + (t && st.opt.titelAn ? ' – ' + t : '');
     var wie = 'waagrecht' + (ri.schraeg ? ', senkrecht oder schräg' : ' oder senkrecht') + (ri.rueck ? ', manche auch rückwärts' : '');
     var extra = [];
     if (ueberlappungen(f)) extra.push('Manche Wörter teilen sich einen Buchstaben.');
@@ -1251,7 +1255,7 @@ function starte(bereich){
   });
   function druckVorbereiten(){ document.body.classList.toggle('mit-loesung', !!st.opt.mitLoesung); }
   window.addEventListener('beforeprint', druckVorbereiten);
-  $('#drucken').addEventListener('click', function(){ druckVorbereiten(); window.print(); });
+  Labor.pdfKnopf($('#drucken'), function(){ return aktuell && { blaetter:[$('#blatt'), st.opt.mitLoesung && $('#loesungsblatt')], name:Labor.pdfName('Zahlen-Suchsel', st.titel) }; }, function(t){ meldung('fehler', '<p>' + Labor.esc(t) + '</p>'); });
 
   /* Alle Stilregeln der Seite (Labor und Generator) für die gespeicherte Datei */
   function sammleCss(){

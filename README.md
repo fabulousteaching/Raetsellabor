@@ -1,8 +1,14 @@
 # Rätsellabor
 
-Eine Webseite mit Rätselgeneratoren für Schule und Freizeit. Man wählt einen Generator, gibt eigene Inhalte ein, und das Labor baut daraus ein Rätsel, das man am Bildschirm lösen oder als Arbeitsblatt ausgeben kann.
+Eine Webseite mit Rätselgeneratoren für Schule und Freizeit. Man wählt einen Generator, gibt eigene Inhalte ein, und das Labor baut daraus ein Rätsel, das man am Bildschirm lösen oder als PDF-Arbeitsblatt mit Lösungsblatt herunterladen kann.
 
-Die Startseite erklärt kurz, was das Labor kann, und zeigt alle Generatoren. Über das Menü oben rechts wechselt man jederzeit zwischen Startseite und Generatoren. Das Labor wird Schritt für Schritt um weitere Generatoren erweitert.
+Die Startseite erklärt kurz, was das Labor kann, zählt die vorhandenen Rätselarten auf (aus den angemeldeten Generatoren, stimmt also immer) und zeigt alle Generatoren als gleich grosse Karten. Über das Menü oben rechts wechselt man jederzeit zwischen Startseite und Generatoren. Das Labor wird Schritt für Schritt um weitere Generatoren erweitert.
+
+## Für alle Arbeitsblätter
+
+- **PDF herunterladen** statt Drucken: Arbeitsblatt und – wenn angekreuzt – Lösungsblatt kommen als A4-PDF, jedes Blatt auf eine Seite. Das PDF sieht aus wie der Ausdruck: `Labor.pdfHerunterladen()` zeichnet die Blätter mit *html2canvas* in einer Kopie der Seite, in der die Druckregeln (`@media print`) der Generatoren gelten, und legt sie mit *jsPDF* in die Datei (beide MIT-Lizenz, `gemeinsam/extern/`, erst beim ersten Download geladen). Grafiken bekommen ihre Stile und Schriften eingebettet; am Bildschirm eingeblendete Lösungen, Markierungen und gezogene Wege kommen nicht ins PDF. Im Claude-Artefakt gibt es stattdessen «Arbeitsblatt herunterladen» (HTML-Datei).
+- **Titel** und **Arbeitsanweisung** lassen sich in der Werkzeugleiste über dem Blatt an- und abwählen (`Labor.blattSchalterHtml()`, `Labor.blattSchalter()`).
+- **Keine Beispieltexte** in Eingabefeldern (kein `placeholder`); was ein Feld bedeutet, steht in seiner Beschriftung.
 
 ## Generatoren
 
@@ -42,7 +48,7 @@ Das klassische Wortsuchrätsel: Die Wörter liegen kreuz und quer im Buchstabenf
 
 - **Schwierigkeit:** *Leicht* (waagrecht → und senkrecht ↓), *Mittel* (dazu schräg ↘ ↗), *Schwer* (dazu rückwärts ← ↑ ↖ ↙). Wörter dürfen sich auf Wunsch kreuzen.
 - **Feldgrösse:** automatisch (so klein wie möglich) oder fest 10 × 10 bis 20 × 20.
-- Markieren am Bildschirm, Lösung zeigen, Drucken bzw. Herunterladen mit Lösungsblatt.
+- Markieren am Bildschirm, Lösung zeigen, PDF mit Lösungsblatt.
 
 ### Rebus
 
@@ -81,11 +87,11 @@ Links mit «www.» bekommen automatisch «https://» davor, damit das Handy sie 
 
 Zwei Arten, oben in der ersten Karte wählbar:
 
-**Mit Start und Ziel** – ein Labyrinth als Rechteck, Kreis, Herz oder Stern.
+**Mit Start und Ziel** – ein Labyrinth als Rechteck, Kreis, Herz, Stern oder **Zufall**: eine bei jedem Erstellen und Mischen neue Form (ein Umriss um die Mitte, dessen Radius mit ein paar zufälligen Wellen schwankt).
 
 - Die Form wird in Felder zerlegt; darin entsteht ein «perfektes» Labyrinth: Jedes Feld ist erreichbar, und zwischen zwei Feldern gibt es genau einen Weg (Algorithmus «wachsender Baum»). Start links, Ziel rechts – unter mehreren Randfeldern wird das Paar mit dem längsten Weg gewählt.
 - **Schwierigkeit:** *Leicht* bis *Sehr schwer* – schmalere Gänge und längere, verschlungenere Wege.
-- **Start und Ziel:** 🐭 → 🧀, 🐰 → 🥕, 🐝 → 🌻, 🚀 → 🪐, 🐶 → 🦴, 🦜 → 💰 oder ▶ → 🏁, mit passendem Auftrag («Hilf der Maus zum Käse!»).
+- **Start und Ziel:** ▶ → 🏁 (zuerst), 🐭 → 🧀, 🐰 → 🥕, 🐝 → 🌻, 🚀 → 🪐, 🐶 → 🦴 oder 🦜 → 💰, mit passendem Auftrag («Hilf der Maus zum Käse!»). Die Bilder stehen neben den Öffnungen, mit Abstand zu allen Wänden auf ihrer Höhe – sie berühren keine Linie.
 - Einstellungen: Titel, Liniendicke, Farbe der Wände, Form leicht einfärben.
 
 **Mit Lösungssatz** – in jedem Feld steht ein Buchstabe, ohne Lücken. Nur auf dem einzigen Weg vom Eingang (Pfeil links) zum Ausgang (Pfeil rechts) ergeben die Buchstaben den Satz, z. B. «Die nächste Lösung findest du im Kühlschrank» (`labyrinth-satz.js`).
@@ -95,7 +101,7 @@ Zwei Arten, oben in der ersten Karte wählbar:
 - In den Irrwegen stehen Zufallsbuchstaben aus dem Satz selbst (gleich häufig wie im Satz), damit der richtige Weg nicht auffällt.
 - **Schwierigkeit:** etwa drei (*Leicht*), fünf, acht oder zwölf (*Sehr schwer*) Mal so viele Felder, wie der Satz Buchstaben hat. Schrift Andika (gut unterscheidbare Buchstaben), Linien zum Aufschreiben auf dem Blatt.
 
-Beide Arten: am Bildschirm lösbar (Weg vom Start aus ziehen; durch Wände geht es nicht, zurückziehen löscht), Lösung zeigen, «Neu mischen», Drucken mit Lösungsblatt.
+Beide Arten: am Bildschirm lösbar (Weg vom Start aus ziehen; durch Wände geht es nicht, zurückziehen löscht), Lösung zeigen, «Neu mischen», PDF mit Lösungsblatt.
 
 ## Aufbau
 
@@ -119,6 +125,7 @@ raetsel/labyrinth/              der Generator «Labyrinth»
   labyrinth-satz.js             Art «Mit Lösungssatz» (Buchstaben in jedem Feld)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)
+gemeinsam/extern/html2canvas.min.js, jspdf.umd.min.js   für den PDF-Download (html2canvas 1.4.1, jsPDF 2.5.2, MIT, unverändert; Lizenzen daneben)
 B/                              Botschaftsseiten /B/<ID>/ (werden auf dem Server angelegt)
 api/botschaft.php               Server-Teil (PHP): speichert Botschaften für QR-Codes; Anzeige: api/botschaft-seite.php
 .htaccess                       Server-Regel: Seite, Skripte und Stile nicht ungeprüft aus dem Browser-Cache nehmen
@@ -130,7 +137,7 @@ api/botschaft.php               Server-Teil (PHP): speichert Botschaften für QR
 - Der Server schickt Seite, Skripte und Stile mit `Cache-Control: no-cache` (`.htaccess`): Der Browser fragt bei jedem Laden nach, ob es eine neue Version gibt.
 - Beim Hochladen hängt der GitHub-Workflow eine Versionsnummer an alle Skripte und Stile (`…/labor.js?v=1a2b3c4d`, auch für die Stile der Generatoren). Nach jeder Änderung lädt der Browser so sicher die neuen Dateien.
 
-Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und der mitgelieferten QR-Code-Bibliothek keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code` oder `…/#labyrinth` öffnet direkt einen Generator, `…/#start` die Startseite.
+Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und den mitgelieferten Bibliotheken in `gemeinsam/extern/` keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code` oder `…/#labyrinth` öffnet direkt einen Generator, `…/#start` die Startseite.
 
 ## Einen neuen Generator hinzufügen
 
@@ -156,7 +163,9 @@ Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fo
 
 3. In `index.html` unten eine Zeile ergänzen: `<script src="raetsel/mein-raetsel/mein-raetsel.js"></script>`
 
-Der neue Generator erscheint dann automatisch im Menü und auf der Startseite. Gemeinsame Bausteine wie `.karte`, `.btn`, Eingabefelder und `.meldung` stehen in `gemeinsam/labor.css` bereit. Bausteine zum Wiederverwenden: `Wortwahl` (Thema und Wörter mit Vorschlägen) und `Gitter` (Buchstabengitter). In `gemeinsam/labor.js` gibt es Helfer für alle Generatoren: `Labor.imArtefakt()`, `Labor.claude(name)` (Claude-Fähigkeiten im Artefakt), `Labor.blattDatei(titel, html)` (Arbeitsblatt als Datei) und `Labor.esc()`.
+Der neue Generator erscheint dann automatisch im Menü und auf der Startseite. Gemeinsame Bausteine wie `.karte`, `.btn`, Eingabefelder und `.meldung` stehen in `gemeinsam/labor.css` bereit. Bausteine zum Wiederverwenden: `Wortwahl` (Thema und Wörter mit Vorschlägen) und `Gitter` (Buchstabengitter). In `gemeinsam/labor.js` gibt es Helfer für alle Generatoren: `Labor.pdfKnopf(knopf, auftrag, fehler)` und `Labor.pdfName(art, titel)` (PDF-Download), `Labor.blattSchalterHtml()` und `Labor.blattSchalter(bereich, opt, nachher)` (Titel und Arbeitsanweisung an/aus), `Labor.imArtefakt()`, `Labor.claude(name)` (Claude-Fähigkeiten im Artefakt), `Labor.blattDatei(titel, html)` (Arbeitsblatt als HTML-Datei) und `Labor.esc()`.
+
+Jeder neue Generator bekommt: einen Knopf «PDF herunterladen» (statt Drucken) mit `Labor.pdfKnopf`, die Schalter für Titel und Arbeitsanweisung, Druckregeln (`@media print`) für sein Blatt – sie gelten auch für das PDF – und keine Beispieltexte in Eingabefeldern.
 
 ## Veröffentlichen
 

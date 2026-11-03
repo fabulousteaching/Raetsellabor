@@ -218,7 +218,7 @@ var VORLAGE = `<div class="rb">
           <div><h2>Wörter und Sätze</h2><p>Jedes Wort oder jeder Satz wird ein eigener Rebus, meist mit einem Bild pro Wort.</p></div>
         </div>
         <div class="zeile">
-          <input type="text" id="rbNeu" maxlength="90" placeholder="z. B. Ich arbeite gerne" autocomplete="off" aria-label="Wort oder Satz">
+          <input type="text" id="rbNeu" maxlength="90" autocomplete="off" aria-label="Wort oder Satz">
           <button type="button" class="btn" id="rbPlus">Hinzufügen</button>
         </div>
         <ol class="rb-liste" id="rbListe" aria-label="Lösungswörter"></ol>
@@ -240,7 +240,7 @@ var VORLAGE = `<div class="rb">
         <details class="optionen" id="rbOptionen">
           <summary>Einstellungen</summary>
           <label class="feld-label" for="rbTitel">Titel auf dem Blatt</label>
-          <input type="text" id="rbTitel" maxlength="60" placeholder="Bilderrätsel" autocomplete="off">
+          <input type="text" id="rbTitel" maxlength="60" autocomplete="off">
           <label class="opt"><input type="checkbox" id="rbKaestchen"><span>Für jeden Buchstaben der Lösung ein Kästchen</span></label>
           <label class="opt"><input type="checkbox" id="rbLegende"><span>Zeichenerklärung auf dem Blatt</span></label>
           <label class="opt"><input type="checkbox" id="rbNamen"><span>Bildnamen als Hilfe klein unter die Bilder schreiben</span></label>
@@ -254,8 +254,9 @@ var VORLAGE = `<div class="rb">
         <button type="button" class="btn klein" id="rbWuerfeln" title="Alle Rätsel mit anderen Bildern">Neu würfeln</button>
         <button type="button" class="btn klein" id="rbZeigeLoesung" aria-pressed="false">Lösung zeigen</button>
         <span class="abstand"></span>
+        ${Labor.blattSchalterHtml()}
         <label><input type="checkbox" id="rbMitLoesung"> mit Lösungsblatt</label>
-        <button type="button" class="btn klein primary" id="rbDrucken">Drucken</button>
+        <button type="button" class="btn klein primary" id="rbDrucken">PDF herunterladen</button>
         <button type="button" class="btn klein primary" id="rbHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>
       </div>
       <article class="rb-blatt" id="rbBlatt"></article>
@@ -284,7 +285,7 @@ function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); };
   var esc = Labor.esc, aus = false;
   var TAB = 'rebus-eingaben', OPT = 'rebus-einstellungen', MAX = 12;
-  var STANDARD = { stufe:'mittel', kaestchen:true, legende:true, namen:false, mitLoesung:true };
+  var STANDARD = { stufe:'mittel', kaestchen:true, legende:true, namen:false, mitLoesung:true, titelAn:true, anleitungAn:true };
 
   /* ---------- Zustand: Einträge nur für diesen Tab, Einstellungen bleiben ---------- */
   var st = { titel:'', eintraege:[], opt:Object.assign({}, STANDARD) };
@@ -352,6 +353,7 @@ function starte(bereich){
   var titelFeld = $('#rbTitel');
   titelFeld.value = st.titel;
   titelFeld.addEventListener('input', function(){ st.titel = titelFeld.value; speichern(); zeige(); });
+  Labor.blattSchalter(bereich, st.opt, function(){ speichern(); zeige(); });
   [['rbKaestchen', 'kaestchen'], ['rbLegende', 'legende'], ['rbNamen', 'namen'], ['rbMitLoesung', 'mitLoesung']].forEach(function(p){
     var el = $('#' + p[0]); el.checked = !!st.opt[p[1]];
     el.addEventListener('change', function(){ st.opt[p[1]] = el.checked; speichern(); if (p[1] !== 'mitLoesung') zeige(); });
@@ -389,8 +391,8 @@ function starte(bereich){
   }
   function blattHtml(liste, loesung, beispiel){
     var titel = st.titel.trim() || 'Bilderrätsel', z = benutzteZeichen(liste.map(function(x){ return x.r; }));
-    var html = '<h2 class="rb-titel">' + esc(loesung ? 'Lösung – ' + titel : titel) + '</h2>';
-    if (!loesung) html += '<p class="rb-anleitung">' + (beispiel ? 'So sieht ein Rebus aus: ' : '') +
+    var html = loesung ? '<h2 class="rb-titel">' + esc(st.opt.titelAn ? 'Lösung – ' + titel : 'Lösung') + '</h2>' : st.opt.titelAn || beispiel ? '<h2 class="rb-titel">' + esc(titel) + '</h2>' : '';
+    if (!loesung && (st.opt.anleitungAn || beispiel)) html += '<p class="rb-anleitung">' + (beispiel ? 'So sieht ein Rebus aus: ' : '') +
       'Welche Wörter verstecken sich in den Bildern? Die Bilder stehen für Wörter in der Einzahl, ohne Artikel. Die Regeln unter einem Bild wendet man der Reihe nach an.</p>';
     if (st.opt.legende && !loesung){
       var items = LEGENDE.filter(function(l){ return z[l[0]]; });
@@ -403,7 +405,7 @@ function starte(bereich){
       if (loesung) html += '<p class="rb-loesungswort">' + esc(x.r.map(function(w){ return w.wort; }).join(' ')) + '</p>';
       else if (st.opt.kaestchen) html += kaestchen(x.r, false);
       else html += '<div class="rb-linie" aria-hidden="true"></div>';
-      if (!loesung && !beispiel) html += '<div class="rb-pruefen nur-bildschirm"><input type="text" class="rb-eingabe-loesung" aria-label="Deine Lösung für Rätsel ' + (i + 1) + '" placeholder="Deine Lösung" autocomplete="off" spellcheck="false">' +
+      if (!loesung && !beispiel) html += '<div class="rb-pruefen nur-bildschirm"><span class="rb-pruefen-text">Deine Lösung:</span><input type="text" class="rb-eingabe-loesung" aria-label="Deine Lösung für Rätsel ' + (i + 1) + '" autocomplete="off" spellcheck="false">' +
         '<span class="rb-status" aria-live="polite"></span><button type="button" class="btn ghost klein rb-anders" title="Nur dieses Rätsel mit anderen Bildern">Anders</button></div>';
       html += '</div></li>';
     });
@@ -470,7 +472,7 @@ function starte(bereich){
   });
   function druckVorbereiten(){ document.body.classList.toggle('mit-loesung', !!st.opt.mitLoesung); }
   window.addEventListener('beforeprint', druckVorbereiten);
-  $('#rbDrucken').addEventListener('click', function(){ druckVorbereiten(); window.print(); });
+  Labor.pdfKnopf($('#rbDrucken'), function(){ return st.eintraege.length && { blaetter:[$('#rbBlatt'), st.opt.mitLoesung && $('#rbLoesung')], name:Labor.pdfName('Rebus', st.titel) }; }, function(t){ meldung('fehler', '<p>' + Labor.esc(t) + '</p>'); });
   var speicherOrt = null;
   if (Labor.imArtefakt()){
     $('#rbDrucken').hidden = true;

@@ -87,6 +87,7 @@ details.optionen[open] summary{margin-bottom:12px}
 
 .rb-pruefen{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .rb-pruefen input{max-width:16em}
+.rb-pruefen-text{font-size:.85rem;color:var(--muted)}
 .rb-status{font-weight:600;font-size:.9rem;color:var(--muted)}
 .rb-richtig .rb-status{color:var(--ok)}
 .rb-richtig .rb-pruefen input{border-color:var(--ok);background:var(--ok-soft)}

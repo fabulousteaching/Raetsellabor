@@ -68,8 +68,8 @@ details.optionen[open] summary{margin-bottom:6px}
 .qr-liste{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:10px;counter-reset:code}
 .qr-liste li{display:grid;grid-template-columns:1fr auto;gap:6px;padding:10px 10px 10px 36px;border:1px solid var(--line);border-radius:10px;position:relative;counter-increment:code}
 .qr-liste li::before{content:counter(code);position:absolute;left:10px;top:12px;width:18px;height:18px;border-radius:50%;background:var(--accent-soft);color:var(--accent-2);font-size:.72rem;font-weight:700;display:grid;place-items:center}
-.qr-liste .qr-titel{grid-column:1}
-.qr-liste .qr-inhalt{grid-column:1}
+.qr-liste .qr-feld{grid-column:1;display:grid;gap:3px;font-size:.78rem;color:var(--muted);font-weight:600}
+.qr-liste .qr-feld input{font-weight:400}
 .qr-liste .qr-weg{grid-column:2;grid-row:1 / span 2;align-self:center;width:30px;height:30px;border:0;border-radius:8px;background:none;color:var(--muted);font-size:1.2rem;cursor:pointer}
 .qr-liste .qr-weg:hover{background:var(--err-soft);color:var(--err)}
 
@@ -186,3 +186,5 @@ svg.qr-raster .ebene-gemalt path{fill:#1C1714;pointer-events:none}
 .qr-lesbar.schlecht{color:#8a2a1a;font-weight:600;background:var(--err-soft);border-radius:6px;padding:3px 8px}
 .qr-downloads{display:inline-flex;gap:4px}
 @media (max-width:480px){ .qr-form{min-width:58px;padding:6px 5px 4px;font-size:.68rem} }
+.qr-blatt-schalter{display:inline-flex;flex-wrap:wrap;align-items:center;gap:8px}
+.qr-blatt-schalter[hidden]{display:none}

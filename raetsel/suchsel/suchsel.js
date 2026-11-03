@@ -98,8 +98,9 @@ var VORLAGE = '<div class="sb">' +
       '<button type="button" class="btn klein" id="sbZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
       '<button type="button" class="btn klein" id="sbMarkWeg">Markierungen löschen</button>' +
       '<span class="abstand"></span>' +
+      Labor.blattSchalterHtml() +
       '<label><input type="checkbox" id="sbMitLoesung"> mit Lösungsblatt</label>' +
-      '<button type="button" class="btn klein primary" id="sbDrucken">Drucken</button>' +
+      '<button type="button" class="btn klein primary" id="sbDrucken">PDF herunterladen</button>' +
       '<button type="button" class="btn klein primary" id="sbHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
     '</div>' +
     '<article class="sb-blatt" id="sbBlatt" hidden></article>' +
@@ -125,7 +126,7 @@ Labor.registriere({
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, esc = Labor.esc, aus = false;
   var TAB = 'suchsel-eingaben', OPT = 'suchsel-einstellungen';
-  var STANDARD = { stufe:'mittel', groesse:'auto', kreuzen:true, umlaute:false, wortliste:true, linien:true, mitLoesung:true };
+  var STANDARD = { stufe:'mittel', groesse:'auto', kreuzen:true, umlaute:false, wortliste:true, linien:true, mitLoesung:true, titelAn:true, anleitungAn:true };
 
   /* ---------- Zustand: Thema und Wörter nur für diesen Tab, Einstellungen bleiben ---------- */
   var st = { titel:'', woerter:[], opt:Object.assign({}, STANDARD) };
@@ -182,6 +183,7 @@ function starte(bereich){
   });
   var groesse = $('#sbGroesse'); groesse.value = String(st.opt.groesse);
   groesse.addEventListener('change', function(){ st.opt.groesse = groesse.value === 'auto' ? 'auto' : +groesse.value; speichern(); if (erstellt) erstellen(); });
+  Labor.blattSchalter(bereich, st.opt, function(){ speichern(); if (aktuell) anzeigen(); });
   [['sbKreuzen', 'kreuzen', 'neu'], ['sbUmlaute', 'umlaute', 'neu'], ['sbWortliste', 'wortliste', 'zeigen'], ['sbLinien', 'linien', 'zeigen'], ['sbMitLoesung', 'mitLoesung', '']].forEach(function(p){
     var el = $('#' + p[0]); el.checked = !!st.opt[p[1]];
     el.addEventListener('change', function(){
@@ -232,8 +234,8 @@ function starte(bereich){
   function blattHtml(art){
     var f = aktuell.feld, t = st.titel.trim(), ri = Gitter.richtungen(f);
     var titel = art === 'loesung' ? 'Lösung' + (t ? ' – ' + t : '') : (t ? 'Suchsel: ' + t : 'Suchsel');
-    var html = '<h2>' + esc(titel) + '</h2>';
-    if (art === 'spiel'){
+    var html = art === 'loesung' || st.opt.titelAn ? '<h2>' + esc(art === 'loesung' && !st.opt.titelAn ? 'Lösung' : titel) + '</h2>' : '';
+    if (art === 'spiel' && st.opt.anleitungAn){
       var wie = 'waagrecht' + (ri.schraeg ? ', senkrecht oder schräg' : ' oder senkrecht') + (ri.rueck ? ', manche auch rückwärts' : '');
       html += '<p class="sb-anleitung">Finde die ' + f.woerter.length + ' versteckten Wörter' + (t ? ' zum Thema «' + esc(t) + '»' : '') + ' und markiere sie. Sie stehen ' + wie + '.' +
         (kreuzungen(f) ? ' Manche Wörter kreuzen sich.' : '') + '</p>';
@@ -280,7 +282,7 @@ function starte(bereich){
   $('#sbMarkWeg').addEventListener('click', function(){ if (!aktuell) return; spiel = { gefunden:{} }; $('#sbBlatt').classList.remove('geschafft'); anzeigen(); });
   function druckVorbereiten(){ document.body.classList.toggle('mit-loesung', !!st.opt.mitLoesung); }
   window.addEventListener('beforeprint', druckVorbereiten);
-  $('#sbDrucken').addEventListener('click', function(){ druckVorbereiten(); window.print(); });
+  Labor.pdfKnopf($('#sbDrucken'), function(){ return aktuell && { blaetter:[$('#sbBlatt'), st.opt.mitLoesung && $('#sbLoesung')], name:Labor.pdfName('Suchsel', st.titel) }; }, function(t){ meldung('fehler', '<p>' + Labor.esc(t) + '</p>'); });
   var speicherOrt = null;
   if (Labor.imArtefakt()){
     $('#sbDrucken').hidden = true;

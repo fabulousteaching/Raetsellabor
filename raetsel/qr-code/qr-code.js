@@ -223,13 +223,13 @@ var VORLAGE = '<div class="qr">' +
           '<label><input type="radio" name="qrZiel" value="link"><span>Link</span></label>' +
           '<label id="qrZielBotschaft" hidden><input type="radio" name="qrZiel" value="botschaft"><span>Botschaft</span></label></div>' +
         '<div data-ziel="text"><label class="vh" for="qrText">Text</label>' +
-          '<textarea id="qrText" rows="3" maxlength="300" placeholder="z. B. Super gemacht! Das Lösungswort ist SONNE." spellcheck="true"></textarea></div>' +
+          '<textarea id="qrText" rows="3" maxlength="300" spellcheck="true"></textarea></div>' +
         '<div data-ziel="link"><label class="vh" for="qrLink">Ziellink</label>' +
-          '<input type="url" id="qrLink" maxlength="300" placeholder="z. B. www.fabulousteaching.ch/geschafft" autocomplete="url" spellcheck="false" inputmode="url"></div>' +
-        '<div data-ziel="botschaft" class="qr-botschaft-eingabe"><label class="vh" for="qrBTitel">Titel der Botschaft</label>' +
-          '<input type="text" id="qrBTitel" maxlength="80" placeholder="Titel, z. B. Bravo, Klasse 4a!" autocomplete="off">' +
-          '<label class="vh" for="qrBText">Botschaft</label>' +
-          '<textarea id="qrBText" rows="5" maxlength="1500" placeholder="Deine Botschaft – gerne auch mehrere Sätze oder Absätze."></textarea>' +
+          '<input type="url" id="qrLink" maxlength="300" autocomplete="url" spellcheck="false" inputmode="url"></div>' +
+        '<div data-ziel="botschaft" class="qr-botschaft-eingabe"><label class="feld-label" for="qrBTitel">Titel der Botschaft</label>' +
+          '<input type="text" id="qrBTitel" maxlength="80" autocomplete="off">' +
+          '<label class="feld-label" for="qrBText">Botschaft</label>' +
+          '<textarea id="qrBText" rows="5" maxlength="1500"></textarea>' +
           '<div class="qr-symbole" role="radiogroup" aria-label="Symbol auf der Botschaftsseite">' +
             SYMBOLE.map(function(x){ return '<label><input type="radio" name="qrSymbol" value="' + x + '"><span>' + x + '</span></label>'; }).join('') + '</div></div>' +
         '<p class="hinweis" id="qrTextInfo" aria-live="polite"></p></div>' +
@@ -249,7 +249,7 @@ var VORLAGE = '<div class="qr">' +
       '<div class="karte"><details class="optionen"><summary>Einstellungen</summary>' +
         '<div class="opt-raster"><label for="qrStufe">Fehlertoleranz</label><select id="qrStufe">' +
           '<option value="L">gering – kleinstes Raster</option><option value="M">mittel</option><option value="Q">hoch (empfohlen)</option><option value="H">sehr hoch – grösstes Raster</option></select>' +
-          '<label for="qrTitel">Titel auf dem Blatt</label><input type="text" id="qrTitel" maxlength="60" placeholder="Male den QR-Code aus!"></div>' +
+          '<label for="qrTitel">Titel auf dem Blatt</label><input type="text" id="qrTitel" maxlength="60"></div>' +
         '<label class="opt"><input type="checkbox" id="qrEcken"><span>Erkennungsquadrate in den Ecken schon ausgemalt</span></label>' +
         '<label class="opt"><input type="checkbox" id="qrNummern"><span>Zeilen und Spalten nummerieren</span></label>' +
         '<p class="hinweis">Die Fehlertoleranz bestimmt, wie viele falsch ausgemalte Felder der Code verzeiht. Mehr Toleranz gibt ein grösseres Raster.</p>' +
@@ -303,8 +303,9 @@ var VORLAGE = '<div class="qr">' +
       '<button type="button" class="btn klein" id="qrZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
       '<button type="button" class="btn klein" id="qrMalWeg">Ausmalen löschen</button>' +
       '<span class="abstand"></span>' +
+      '<span class="qr-blatt-schalter" id="qrBlattSchalter">' + Labor.blattSchalterHtml() + '</span>' +
       '<label id="qrMitLoesungWahl"><input type="checkbox" id="qrMitLoesung"> mit Lösungsblatt</label>' +
-      '<button type="button" class="btn klein primary" id="qrDrucken">Drucken</button>' +
+      '<button type="button" class="btn klein primary" id="qrDrucken">PDF herunterladen</button>' +
       '<button type="button" class="btn klein primary" id="qrHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
     '</div>' +
     '<div id="qrBlaetter"></div>' +
@@ -330,7 +331,7 @@ Labor.registriere({
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, esc = Labor.esc, aus = false;
   var TAB = 'qr-code-eingaben', OPT = 'qr-code-einstellungen', NS = 'http://www.w3.org/2000/svg';
-  var STANDARD = { modus:'malen', ziel:'text', symbol:'🎉', art:'punkte', regel:'gerade', zahlenraum:20, rechenart:'plus20', stufe:'Q', ecken:true, nummern:true, mitLoesung:true,
+  var STANDARD = { modus:'malen', ziel:'text', symbol:'🎉', art:'punkte', regel:'gerade', zahlenraum:20, rechenart:'plus20', stufe:'Q', ecken:true, nummern:true, mitLoesung:true, titelAn:true, anleitungAn:true,
     proBlatt:4, stufeFertig:'M', titelZeigen:true, inhaltZeigen:false, schnitt:true };
 
   /* ---------- Zustand: Inhalte nur für diesen Tab, Einstellungen bleiben ---------- */
@@ -391,7 +392,7 @@ function starte(bereich){
     var malen = st.opt.modus === 'malen';
     $('#qrMischen').hidden = !malen || st.opt.art === 'punkte';   // bei Kreisen gibt es nichts zu mischen
     $('#qrZeigeLoesung').hidden = !malen; $('#qrMalWeg').hidden = !malen;
-    $('#qrMitLoesungWahl').hidden = !malen;
+    $('#qrMitLoesungWahl').hidden = !malen; $('#qrBlattSchalter').hidden = !malen;
   }
   [].forEach.call(bereich.querySelectorAll('.qr-modus [role=tab]'), function(t){
     t.addEventListener('click', function(){
@@ -468,6 +469,7 @@ function starte(bereich){
     var el = $('#' + p[0]); el.value = String(st.opt[p[1]]);
     el.addEventListener('change', function(){ st.opt[p[1]] = p[2] ? +el.value : el.value; speichern(); textInfo(); if (erstellt) erstellen(); });
   });
+  Labor.blattSchalter(bereich, st.opt, function(){ speichern(); if (aktuell && st.opt.modus === 'malen') zeichnen(); });
   [['qrEcken', 'ecken'], ['qrNummern', 'nummern'], ['qrMitLoesung', 'mitLoesung']].forEach(function(p){
     var el = $('#' + p[0]); el.checked = !!st.opt[p[1]];
     el.addEventListener('change', function(){ st.opt[p[1]] = el.checked; speichern(); if (p[1] !== 'mitLoesung' && erstellt) erstellen(); });
@@ -567,12 +569,12 @@ function starte(bereich){
     return s;
   }
   function zeichnen(){
-    var titel = st.titel.trim() || 'Male den QR-Code aus!', box = $('#qrBlaetter');
+    var titel = st.titel.trim() || 'Male den QR-Code aus!', box = $('#qrBlaetter'), o = st.opt;
     box.innerHTML = '';
     var blatt = document.createElement('article');
     blatt.className = 'qr-blatt';
-    blatt.innerHTML = '<h2>' + esc(titel) + '</h2><p class="qr-anleitung">' + esc(anleitung()) + '</p><div class="qr-gitter"></div>' +
-      '<p class="qr-fuss">Fertig? Scanne den Code mit einem Tablet oder Handy – ' + (aktuell.ziel === 'link' ? 'er führt dich zu einer Überraschung.' : aktuell.ziel === 'botschaft' ? 'er öffnet eine Botschaft für dich.' : 'er verrät dir eine Botschaft.') + '</p>' +
+    blatt.innerHTML = (o.titelAn ? '<h2>' + esc(titel) + '</h2>' : '') + (o.anleitungAn ? '<p class="qr-anleitung">' + esc(anleitung()) + '</p>' : '') + '<div class="qr-gitter"></div>' +
+      (o.anleitungAn ? '<p class="qr-fuss">Fertig? Scanne den Code mit einem Tablet oder Handy – ' + (aktuell.ziel === 'link' ? 'er führt dich zu einer Überraschung.' : aktuell.ziel === 'botschaft' ? 'er öffnet eine Botschaft für dich.' : 'er verrät dir eine Botschaft.') + '</p>' : '') +
       '<p class="qr-fortschritt nur-bildschirm" id="qrFortschritt" aria-live="polite"></p>';
     var svg = rasterSvg('spiel');
     blatt.querySelector('.qr-gitter').appendChild(svg);
@@ -581,7 +583,7 @@ function starte(bereich){
     loes.className = 'qr-blatt qr-loesungsblatt';
     loes.setAttribute('aria-hidden', 'true');
     var b = aktuell.botschaft;
-    loes.innerHTML = '<h2>Lösung – ' + esc(titel) + '</h2><p class="qr-anleitung">So sieht der fertig ausgemalte Code aus. ' +
+    loes.innerHTML = '<h2>Lösung' + (o.titelAn ? ' – ' + esc(titel) : '') + '</h2><p class="qr-anleitung">So sieht der fertig ausgemalte Code aus. ' +
       (aktuell.ziel === 'link' ? 'Er öffnet diesen Link:' : aktuell.ziel === 'botschaft' ? 'Er öffnet diese Botschaftsseite:' : 'Er enthält:') + '</p>' +
       '<p class="qr-botschaft">' + (aktuell.oeffnet ? '<a href="' + esc(aktuell.text) + '" target="_blank" rel="noopener">' + esc(aktuell.text) + '</a>' : esc(aktuell.text)) + '</p>' +
       (b ? '<div class="qr-botschaft qr-botschaft-voll">' + (b.titel ? '<b>' + esc(b.titel) + '</b>' : '') + '<span>' + esc(b.text) + '</span></div>' : '') +
@@ -646,8 +648,8 @@ function starte(bereich){
     liste.innerHTML = '';
     st.liste.forEach(function(x, i){
       var li = document.createElement('li');
-      li.innerHTML = '<input type="text" class="qr-titel" maxlength="60" placeholder="Titel (freiwillig)" aria-label="Titel von Code ' + (i + 1) + '">' +
-        '<input type="text" class="qr-inhalt" maxlength="500" placeholder="Text oder Link, z. B. www.fabulousteaching.ch" aria-label="Inhalt von Code ' + (i + 1) + '">' +
+      li.innerHTML = '<label class="qr-feld"><span>Titel (freiwillig)</span><input type="text" class="qr-titel" maxlength="60" aria-label="Titel von Code ' + (i + 1) + '"></label>' +
+        '<label class="qr-feld"><span>Text oder Link</span><input type="text" class="qr-inhalt" maxlength="500" aria-label="Inhalt von Code ' + (i + 1) + '"></label>' +
         '<button type="button" class="qr-weg" aria-label="Code ' + (i + 1) + ' entfernen" title="Entfernen">×</button>';
       var ti = li.querySelector('.qr-titel'), inh = li.querySelector('.qr-inhalt');
       ti.value = x.titel; inh.value = x.inhalt;
@@ -896,10 +898,14 @@ function starte(bereich){
     herunterladen(new Blob([text], { type:'image/svg+xml' }), dateiName(c, 'svg'));
   }
 
-  /* ---------- Drucken und Herunterladen ---------- */
+  /* ---------- PDF und Herunterladen ---------- */
   function druckVorbereiten(){ document.body.classList.toggle('mit-loesung', st.opt.modus === 'malen' && !!st.opt.mitLoesung); }
   window.addEventListener('beforeprint', druckVorbereiten);
-  $('#qrDrucken').addEventListener('click', function(){ druckVorbereiten(); window.print(); });
+  Labor.pdfKnopf($('#qrDrucken'), function(){
+    var malen = st.opt.modus === 'malen';
+    var b = [].filter.call(bereich.querySelectorAll('#qrBlaetter .qr-blatt'), function(x){ return !x.classList.contains('qr-loesungsblatt') || (malen && st.opt.mitLoesung); });
+    return { blaetter:b, name:Labor.pdfName(malen ? 'QR-Code-Ausmalen' : 'QR-Codes', malen ? st.titel : '') };
+  }, function(t){ meldung('fehler', '<p>' + Labor.esc(t) + '</p>'); });
   var speicherOrt = null;
   if (Labor.imArtefakt()){
     $('#qrDrucken').hidden = true;

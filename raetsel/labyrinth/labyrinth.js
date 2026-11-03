@@ -10,7 +10,12 @@
 var Kern = (function(){
   var O = 1, R = 2, U = 4, L = 8;   // offene Seiten eines Felds: oben, rechts, unten, links
   var RICHTUNG = [[O, -1, 0], [R, 0, 1], [U, 1, 0], [L, 0, -1]], GEGEN = { 1:4, 2:8, 4:1, 8:2 };
-  function zufall(seed){ var s = seed >>> 0 || 1; return function(){ s ^= s << 13; s ^= s >>> 17; s ^= s << 5; return (s >>> 0) / 4294967296; }; }
+  function zufall(seed){
+    var s = (Math.imul(seed >>> 0 || 1, 2654435761) ^ 0x5bd1e995) >>> 0 || 1;   // kleine Startwerte gut durchmischen
+    function n(){ s ^= s << 13; s ^= s >>> 17; s ^= s << 5; return (s >>> 0) / 4294967296; }
+    for (var i = 0; i < 8; i++) n();
+    return n;
+  }
   function leer(h, w){ var m = []; for (var r = 0; r < h; r++){ var z = []; for (var c = 0; c < w; c++) z.push(false); m.push(z); } return m; }
 
   /* Figuren als Maske (true = gehört zum Labyrinth) */
@@ -24,13 +29,22 @@ var Kern = (function(){
     }
     return drin;
   }
-  function figur(art, h, w){
-    var m = leer(h, w);
+  /* Zufällige Form: ein Umriss um die Mitte, dessen Radius mit ein paar Wellen schwankt (immer zusammenhängend) */
+  function zufallsRadius(rnd){
+    var wellen = [], n = 3 + Math.floor(rnd() * 3), max = 0, t;
+    for (var i = 0; i < n; i++) wellen.push({ f:2 + i + (rnd() < 0.35 ? 1 : 0), a:(0.12 + rnd() * 0.22) / (1 + i * 0.45), p:rnd() * Math.PI * 2 });
+    function roh(t){ var r = 0.8; wellen.forEach(function(q){ r += q.a * Math.cos(q.f * t + q.p); }); return Math.max(0.32, r); }
+    for (t = 0; t < Math.PI * 2; t += 0.02) max = Math.max(max, roh(t));
+    return function(t){ return roh(t) / max * 0.98; };
+  }
+  function figur(art, h, w, seed){
+    var m = leer(h, w), radius = art === 'zufall' ? zufallsRadius(zufall((seed || 1) * 7919 + 17)) : null;
     for (var r = 0; r < h; r++) for (var c = 0; c < w; c++){
       var x = (c + 0.5) / w * 2 - 1, y = (r + 0.5) / h * 2 - 1;   // −1 … 1, y nach unten
       if (art === 'kreis') m[r][c] = x * x + y * y <= 1;
       else if (art === 'herz'){ var X = x * 1.18, Y = -y * 1.18 + 0.18; m[r][c] = Math.pow(X * X + Y * Y - 1, 3) - X * X * Y * Y * Y <= 0; }
       else if (art === 'stern') m[r][c] = imVieleck(x * 1.02, y * 1.02, STERN);
+      else if (art === 'zufall') m[r][c] = Math.sqrt(x * x + y * y) <= radius(Math.atan2(y, x));
       else m[r][c] = true;
     }
     return m;
@@ -176,28 +190,28 @@ var Kern = (function(){
 
 /* ===== Vorlage ===== */
 var PAARE = [   // Kürzel, Start, Ziel, «Hilf … », «… zum …»
+  ['pfeile', '▶', '🏁', '', 'zum Ziel'],
   ['maus', '🐭', '🧀', 'der Maus', 'zum Käse'], ['hase', '🐰', '🥕', 'dem Hasen', 'zum Rüebli'], ['biene', '🐝', '🌻', 'der Biene', 'zur Blume'],
-  ['rakete', '🚀', '🪐', 'der Rakete', 'zum Planeten'], ['hund', '🐶', '🦴', 'dem Hund', 'zum Knochen'], ['pirat', '🦜', '💰', 'dem Papagei', 'zum Schatz'],
-  ['pfeile', '▶', '🏁', '', 'zum Ziel']
+  ['rakete', '🚀', '🪐', 'der Rakete', 'zum Planeten'], ['hund', '🐶', '🦴', 'dem Hund', 'zum Knochen'], ['pirat', '🦜', '💰', 'dem Papagei', 'zum Schatz']
 ];
 var STUFEN = { leicht:{ figur:10, neu:0.55, name:'Leicht' }, mittel:{ figur:16, neu:0.7, name:'Mittel' }, schwer:{ figur:24, neu:0.8, name:'Schwer' }, sehrschwer:{ figur:34, neu:0.85, name:'Sehr schwer' } };
-var FORMEN = { rechteck:'Rechteck', kreis:'Kreis', herz:'Herz', stern:'Stern' };
+var FORMEN = { rechteck:'Rechteck', kreis:'Kreis', herz:'Herz', stern:'Stern', zufall:'Zufall' };
 var KOPF = '<div class="lb">' +
   '<header class="lb-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Labyrinth</h1>' +
-    '<p>Ein Labyrinth als Rechteck, Kreis, Herz oder Stern – oder mit einem versteckten Lösungssatz: In jedem Feld steht ein Buchstabe, und nur auf dem richtigen Weg ergeben sie deinen Satz.</p></header>' +
+    '<p>Ein Labyrinth als Rechteck, Kreis, Herz, Stern oder in einer zufälligen Form – oder mit einem versteckten Lösungssatz: In jedem Feld steht ein Buchstabe, und nur auf dem richtigen Weg ergeben sie deinen Satz.</p></header>' +
   '<div class="lb-art-ort"></div></div>';
 // Karte 1 (bei beiden Arten gleich): welche Art von Labyrinth?
 function artKarte(art){
   function wahl(wert, titel, text){ return '<label><input type="radio" name="lbArt" value="' + wert + '"' + (art === wert ? ' checked' : '') + '><span><b>' + titel + '</b><small>' + text + '</small></span></label>'; }
   return '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Art des Labyrinths</h2></div></div>' +
     '<div class="lb-art" role="radiogroup" aria-label="Art des Labyrinths">' +
-      wahl('figur', 'Mit Start und Ziel', 'Rechteck, Kreis, Herz oder Stern – z. B. 🐭 → 🧀') +
+      wahl('figur', 'Mit Start und Ziel', 'Rechteck, Kreis, Herz, Stern oder eine zufällige Form') +
       wahl('satz', 'Mit Lösungssatz', 'In jedem Feld ein Buchstabe – der richtige Weg ergibt deinen Satz') +
     '</div></div>';
 }
 function figurVorlage(karte){
   return '<div class="lb-layout"><section class="lb-eingabe" aria-label="Eingaben">' + karte +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Form</h2></div></div>' +
+    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Form</h2><p>«Zufall» erfindet bei jedem Erstellen und Mischen eine neue Form.</p></div></div>' +
       '<div class="lb-wahl" role="radiogroup" aria-label="Form">' +
         Object.keys(FORMEN).map(function(f){ return '<label><input type="radio" name="lbForm" value="' + f + '"><span>' + FORMEN[f] + '</span></label>'; }).join('') + '</div>' +
     '</div>' +
@@ -210,7 +224,7 @@ function figurVorlage(karte){
         PAARE.map(function(p){ return '<label><input type="radio" name="lbPaar" value="' + p[0] + '"><span>' + p[1] + ' → ' + p[2] + '</span></label>'; }).join('') + '</div>' +
     '</div>' +
     '<div class="karte"><details class="optionen"><summary>Einstellungen</summary>' +
-      '<div class="opt-raster"><label for="lbTitel">Titel auf dem Blatt</label><input type="text" id="lbTitel" maxlength="60" placeholder="Finde den Weg!">' +
+      '<div class="opt-raster"><label for="lbTitel">Titel auf dem Blatt</label><input type="text" id="lbTitel" maxlength="60">' +
         '<label for="lbLinie">Linien</label><select id="lbLinie"><option value="0.9">dünn</option><option value="1.4">mittel</option><option value="2">dick</option></select>' +
         '<label for="lbFarbe">Farbe der Wände</label><input type="color" id="lbFarbe"></div>' +
       '<label class="opt"><input type="checkbox" id="lbToenen"><span>Form leicht einfärben</span></label>' +
@@ -226,8 +240,9 @@ function figurVorlage(karte){
       '<button type="button" class="btn klein" id="lbZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
       '<button type="button" class="btn klein" id="lbWegWeg">Weg löschen</button>' +
       '<span class="abstand"></span>' +
+      Labor.blattSchalterHtml() +
       '<label><input type="checkbox" id="lbMitLoesung"> mit Lösungsblatt</label>' +
-      '<button type="button" class="btn klein primary" id="lbDrucken">Drucken</button>' +
+      '<button type="button" class="btn klein primary" id="lbDrucken">PDF herunterladen</button>' +
       '<button type="button" class="btn klein primary" id="lbHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
     '</div>' +
     '<article class="lb-blatt" id="lbBlatt" hidden></article>' +
@@ -242,8 +257,8 @@ Labor.registriere({
   id:'labyrinth',
   titel:'Labyrinth',
   kurz:'Labyrinthe mit Start und Ziel oder mit Lösungssatz',
-  beschreibung:'Ein Labyrinth als Rechteck, Kreis, Herz oder Stern – oder mit einem versteckten Lösungssatz: In jedem Feld steht ein Buchstabe, nur auf dem richtigen Weg ergeben sie deinen Satz.',
-  merkmale:['Rechteck, Kreis, Herz, Stern', 'Mit Lösungssatz', 'Mit Lösungsblatt'],
+  beschreibung:'Ein Labyrinth als Rechteck, Kreis, Herz, Stern oder in einer zufälligen Form – oder mit einem versteckten Lösungssatz: In jedem Feld steht ein Buchstabe, nur auf dem richtigen Weg ergeben sie deinen Satz.',
+  merkmale:['Figuren und Zufallsformen', 'Mit Lösungssatz', 'Mit Lösungsblatt'],
   symbol:SYMBOL,
   css:'raetsel/labyrinth/labyrinth.css',
   html:KOPF,
@@ -273,7 +288,7 @@ function starte(bereich){
 function starteFigur(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, esc = Labor.esc, aus = false, NS = 'http://www.w3.org/2000/svg';
   var TAB = 'labyrinth-eingaben', OPT = 'labyrinth-einstellungen';
-  var STANDARD = { form:'rechteck', stufe:'mittel', paar:'maus', linie:'1.4', farbe:'#1C1714', toenen:true, mitLoesung:true };
+  var STANDARD = { form:'rechteck', stufe:'mittel', paar:'pfeile', linie:'1.4', farbe:'#1C1714', toenen:true, mitLoesung:true, titelAn:true, anleitungAn:true };
   var st = { titel:'', seed:1, opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
   if (!FORMEN[st.opt.form]) st.opt.form = 'rechteck';   // die frühere Wortform gibt es nicht mehr
@@ -300,6 +315,7 @@ function starteFigur(bereich){
   $('#lbLinie').value = st.opt.linie; $('#lbLinie').addEventListener('change', function(){ st.opt.linie = this.value; speichern(); if (aktuell) zeichnen(); });
   $('#lbFarbe').value = st.opt.farbe; $('#lbFarbe').addEventListener('input', function(){ st.opt.farbe = this.value; speichern(); if (aktuell) zeichnen(); });
   $('#lbToenen').checked = st.opt.toenen; $('#lbToenen').addEventListener('change', function(){ st.opt.toenen = this.checked; speichern(); if (aktuell) zeichnen(); });
+  Labor.blattSchalter(bereich, st.opt, function(){ speichern(); if (aktuell) zeichnen(); });
   $('#lbMitLoesung').checked = st.opt.mitLoesung; $('#lbMitLoesung').addEventListener('change', function(){ st.opt.mitLoesung = this.checked; speichern(); });
 
   /* ---------- Erstellen ---------- */
@@ -308,7 +324,8 @@ function starteFigur(bereich){
     var stufe = STUFEN[st.opt.stufe] || STUFEN.mittel;
     (function(){
       var g = st.opt.form === 'stern' ? Math.round(stufe.figur * 1.45) : stufe.figur;   // der Stern füllt seine Fläche nur zum Teil
-      var m = Kern.figur(st.opt.form, g, st.opt.form === 'rechteck' ? Math.round(g * 1.4) : st.opt.form === 'herz' ? Math.round(g * 1.1) : g);
+      var breit = { rechteck:1.4, herz:1.1, zufall:1.2 }[st.opt.form] || 1;
+      var m = Kern.figur(st.opt.form, g, Math.round(g * breit), st.seed);
       Kern.verbinden(m, 3);
       var lab = Kern.erzeugen(m, { seed:st.seed, neu:stufe.neu });
       if (!lab){ meldung('fehler', '<h3>Das hat nicht geklappt</h3><p>Klicke noch einmal auf «Neu mischen».</p>'); return; }
@@ -323,38 +340,52 @@ function starteFigur(bereich){
 
   /* ---------- Zeichnen ---------- */
   function labSvg(mitWeg){
-    var lab = aktuell.lab, S = 10, gross = Math.max(11, Math.min(42, Math.max(lab.h, lab.w * 0.5) * S * 0.11)), rand = Math.round(gross * 1.25),
-      w = lab.w * S + 2 * rand, h = lab.h * S + 2 * rand, p = aktuell.paar;
+    var lab = aktuell.lab, S = 10, gross = Math.max(11, Math.min(42, Math.max(lab.h, lab.w * 0.5) * S * 0.11)), p = aktuell.paar;
+    var lw = parseFloat(st.opt.linie) || 1.4, a = lab.start, z = lab.ziel;
+    // Start- und Zielbild neben die Öffnung setzen – mit Abstand zu allen Wänden auf ihrer Höhe
+    var halb = gross * 0.62, abstand = Math.max(2.5, S * 0.3) + lw / 2;
+    function stelle(zelle, links){
+      var yc = zelle[0] * S + S / 2, r0 = Math.max(0, Math.floor((yc - halb - abstand) / S)), r1 = Math.min(lab.h - 1, Math.floor((yc + halb + abstand) / S)), grenze = links ? Infinity : -Infinity;
+      for (var r = r0; r <= r1; r++){
+        var zeile = lab.maske[r];
+        if (links){ for (var c = 0; c < lab.w; c++) if (zeile[c]){ grenze = Math.min(grenze, c * S); break; } }
+        else { for (var c2 = lab.w - 1; c2 >= 0; c2--) if (zeile[c2]){ grenze = Math.max(grenze, (c2 + 1) * S); break; } }
+      }
+      return { x:links ? grenze - abstand - halb : grenze + abstand + halb, y:yc };
+    }
+    var sa = stelle(a, true), sz = stelle(z, false), pad = 2 + lw;
+    var x0 = Math.min(-pad, sa.x - halb - pad), x1 = Math.max(lab.w * S + pad, sz.x + halb + pad);
+    var y0 = Math.min(-pad, sa.y - halb - pad, sz.y - halb - pad), y1 = Math.max(lab.h * S + pad, sa.y + halb + pad, sz.y + halb + pad);
     var s = document.createElementNS(NS, 'svg');
-    s.setAttribute('viewBox', (-rand) + ' ' + (-rand) + ' ' + w + ' ' + h);
+    s.setAttribute('viewBox', z2(x0) + ' ' + z2(y0) + ' ' + z2(x1 - x0) + ' ' + z2(y1 - y0));
     s.setAttribute('class', 'lb-svg');
     s.style.setProperty('--seite', lab.w / lab.h);
     var h2 = [];
     if (st.opt.toenen){
       var t = [];
-      lab.maske.forEach(function(z, r){ z.forEach(function(v, c){ if (v) t.push('M' + c * S + ' ' + r * S + 'h' + S + 'v' + S + 'h-' + S + 'z'); }); });
+      lab.maske.forEach(function(zl, r){ zl.forEach(function(v, c){ if (v) t.push('M' + c * S + ' ' + r * S + 'h' + S + 'v' + S + 'h-' + S + 'z'); }); });
       h2.push('<path class="lb-ton" d="' + t.join('') + '"/>');
     }
-    var lw = parseFloat(st.opt.linie) || 1.4, a = lab.start, z = lab.ziel;
     h2.push('<path class="lb-loesung" d="' + linie(aktuell.loesung) + '" style="stroke-width:' + Math.max(2.4, S * 0.38) + '"/>');
     if (!mitWeg) h2.push('<path class="lb-weg" d="" style="stroke-width:' + Math.max(2.4, S * 0.38) + '"/>');
     h2.push('<path class="lb-waende" d="' + Kern.waende(lab) + '" style="stroke:' + esc(st.opt.farbe) + ';stroke-width:' + lw + '"/>');
-    h2.push('<text class="lb-figur" x="' + z2(a[1] * S - gross * 0.62) + '" y="' + (a[0] * S + S / 2) + '" style="font-size:' + z2(gross) + 'px">' + p[1] + '</text>');
-    h2.push('<text class="lb-figur" x="' + z2((z[1] + 1) * S + gross * 0.62) + '" y="' + (z[0] * S + S / 2) + '" style="font-size:' + z2(gross) + 'px">' + p[2] + '</text>');
+    h2.push('<text class="lb-figur" x="' + z2(sa.x) + '" y="' + z2(sa.y) + '" style="font-size:' + z2(gross) + 'px">' + p[1] + '</text>');
+    h2.push('<text class="lb-figur" x="' + z2(sz.x) + '" y="' + z2(sz.y) + '" style="font-size:' + z2(gross) + 'px">' + p[2] + '</text>');
     s.innerHTML = h2.join('');
     return s;
   }
   function z2(x){ return String(Math.round(x * 10) / 10); }
   function linie(zellen){ return zellen.map(function(q, i){ return (i ? 'L' : 'M') + (q[1] * 10 + 5) + ' ' + (q[0] * 10 + 5); }).join(''); }
   function zeichnen(){
-    var titel = st.titel.trim() || 'Finde den Weg!', p = aktuell.paar, blatt = $('#lbBlatt'), loes = $('#lbLoesung');
+    var titel = st.titel.trim() || 'Finde den Weg!', p = aktuell.paar, blatt = $('#lbBlatt'), loes = $('#lbLoesung'), o = st.opt;
     blatt.classList.remove('veraltet', 'zeige-loesung', 'geschafft');
     var auftrag = p[3] ? 'Hilf ' + p[3] + ' ' + p[1] + ' ' + p[4] + ' ' + p[2] + '!' : 'Finde den Weg vom Start ' + p[1] + ' zum Ziel ' + p[2] + '!';
-    blatt.innerHTML = '<h2>' + esc(titel) + '</h2><p class="lb-anleitung">' + auftrag + ' Zeichne den Weg durch das Labyrinth, ohne eine Wand zu überqueren.</p>' +
+    blatt.innerHTML = (o.titelAn ? '<h2>' + esc(titel) + '</h2>' : '') +
+      (o.anleitungAn ? '<p class="lb-anleitung">' + auftrag + ' Zeichne den Weg durch das Labyrinth, ohne eine Wand zu überqueren.</p>' : '') +
       '<div class="lb-feld"></div><p class="lb-fortschritt nur-bildschirm" id="lbFortschritt" aria-live="polite"></p>';
     var svg = labSvg(false);
     blatt.querySelector('.lb-feld').appendChild(svg);
-    loes.innerHTML = '<h2>Lösung – ' + esc(titel) + '</h2><div class="lb-feld"></div>';
+    loes.innerHTML = '<h2>Lösung' + (o.titelAn ? ' – ' + esc(titel) : '') + '</h2><div class="lb-feld"></div>';
     loes.querySelector('.lb-feld').appendChild(labSvg(true));
     blatt.hidden = false; $('#lbWerkzeug').hidden = false; leer();
     wegVerbinden(svg); wegZeichnen();
@@ -407,7 +438,7 @@ function starteFigur(bereich){
   $('#lbWegWeg').addEventListener('click', function(){ if (!aktuell) return; weg = [aktuell.lab.start]; wegZeichnen(); });
   function druckVorbereiten(){ document.body.classList.toggle('mit-loesung', !!st.opt.mitLoesung); }
   window.addEventListener('beforeprint', druckVorbereiten);
-  $('#lbDrucken').addEventListener('click', function(){ druckVorbereiten(); window.print(); });
+  Labor.pdfKnopf($('#lbDrucken'), function(){ return aktuell && { blaetter:[$('#lbBlatt'), st.opt.mitLoesung && $('#lbLoesung')], name:Labor.pdfName('Labyrinth', st.titel) }; }, function(t){ meldung('fehler', '<p>' + Labor.esc(t) + '</p>'); });
   var speicherOrt = null;
   if (Labor.imArtefakt()){ $('#lbDrucken').hidden = true; Labor.claude('downloads').then(function(d){ if (!d || aus) return; speicherOrt = d; $('#lbHerunterladen').hidden = false; }); }
   function sauber(el){

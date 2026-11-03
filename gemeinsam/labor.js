@@ -14,6 +14,9 @@
      });
    Danach erscheint er automatisch im Menü und auf der Startseite.
 
+   Für jedes Arbeitsblatt gilt: Titel und Arbeitsanweisung lassen sich an- und abwählen (Labor.blattSchalterHtml/
+   Labor.blattSchalter in der Werkzeugleiste), und Eingabefelder enthalten keine Beispieltexte (kein placeholder).
+
    Grundsatz für alle Generatoren: Beim Neuladen der Seite beginnt alles frisch. Eingaben dürfen in sessionStorage
    oder localStorage liegen (z. B. damit sie beim Wechsel zu einem anderen Generator und zurück erhalten bleiben),
    aber start() löscht beim Laden der Seite alles. Damit nach einer neuen Version sicher die neuen Dateien kommen,
@@ -72,28 +75,10 @@ var Labor = (function(){
       var z = $('#raetselListe');
       z.scrollIntoView({ behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start' });
     });
-    zeichneProbe();
+    // Welche Rätsel es gibt – aus den angemeldeten Generatoren, damit die Aufzählung immer stimmt
+    var namen = liste.map(function(r){ return r.titel; });
+    $('#heldArten').textContent = namen.length ? 'Im Labor: ' + (namen.length > 1 ? namen.slice(0, -1).join(', ') + ' und ' + namen[namen.length - 1] : namen[0]) + '.' : '';
   }
-  /* Kleines Beispiel: Markiert man RÄTSEL und LABOR, entsteht eine 7 (das L teilen sich beide Wörter). */
-  function zeichneProbe(){
-    var zeilen = ['KMUENDIS', 'HRÄTSELO', 'ENWIFGAT', 'ZOPDUKBE', 'ASNRIMOH', 'TEIGÜWRN', 'UFKLEDSI'], S = 10, NS = 'http://www.w3.org/2000/svg';
-    var svg = document.createElementNS(NS, 'svg');
-    svg.setAttribute('viewBox', '0 0 ' + zeilen[0].length * S + ' ' + zeilen.length * S);
-    svg.setAttribute('role', 'img');
-    svg.setAttribute('aria-label', 'Buchstabengitter: Die markierten Wörter RÄTSEL und LABOR bilden zusammen eine 7.');
-    function el(tag, a){ var e = document.createElementNS(NS, tag); for (var k in a) e.setAttribute(k, a[k]); svg.appendChild(e); return e; }
-    el('rect', { x:0, y:0, width:zeilen[0].length * S, height:zeilen.length * S, fill:'#fff' });
-    el('line', { x1:1.5 * S, y1:1.5 * S, x2:6.5 * S, y2:1.5 * S, stroke:'#F7A25D', 'stroke-width':S * 0.78, 'stroke-linecap':'round', opacity:.75 });
-    el('line', { x1:6.5 * S, y1:1.5 * S, x2:6.5 * S, y2:5.5 * S, stroke:'#63C2EA', 'stroke-width':S * 0.78, 'stroke-linecap':'round', opacity:.7 });
-    var d = '';
-    for (var c = 1; c < zeilen[0].length; c++) d += 'M' + c * S + ' 0V' + zeilen.length * S;
-    for (var r = 1; r < zeilen.length; r++) d += 'M0 ' + r * S + 'H' + zeilen[0].length * S;
-    el('path', { d:d, stroke:'#E9E2DB', 'stroke-width':0.35, fill:'none' });
-    el('rect', { x:0.4, y:0.4, width:zeilen[0].length * S - 0.8, height:zeilen.length * S - 0.8, fill:'none', stroke:'#3D3530', 'stroke-width':0.6, rx:1.2 });
-    zeilen.forEach(function(z, r){ Array.from(z).forEach(function(ch, c){ el('text', { x:c * S + S / 2, y:r * S + S / 2 + 0.3 }).textContent = ch; }); });
-    var probe = $('#probe'); probe.insertBefore(svg, probe.firstChild);
-  }
-
   /* ---------- Wechsel zwischen Startseite und Generatoren ---------- */
   function ladeCss(r, fertig){
     if (!r.css){ fertig(); return; }
@@ -189,8 +174,153 @@ var Labor = (function(){
       '<div class="leiste"><button class="btn primary" onclick="window.print()">Drucken</button><span>Tipp: Im Druckdialog «Hintergrundgrafiken» einschalten, damit Farben mitgedruckt werden.</span></div>\n' +
       inhalt + '\n</div>\n</body>\n</html>\n';
   }
+  /* Schalter «Titel» und «Arbeitsanweisung» für die Werkzeugleiste über dem Blatt – in jedem Generator gleich.
+     blattSchalterHtml() kommt in die Werkzeugleiste, blattSchalter() verbindet die Häkchen mit opt.titelAn und
+     opt.anleitungAn (Standard: beide an) und ruft nachher() auf, damit der Generator das Blatt neu zeichnet. */
+  function blattSchalterHtml(){
+    return '<label class="blatt-schalter"><input type="checkbox" data-blatt="titelAn"> Titel</label>' +
+      '<label class="blatt-schalter"><input type="checkbox" data-blatt="anleitungAn"> Arbeitsanweisung</label>';
+  }
+  function blattSchalter(bereich, opt, nachher){
+    [].forEach.call(bereich.querySelectorAll('input[data-blatt]'), function(c){
+      var k = c.getAttribute('data-blatt');
+      if (typeof opt[k] !== 'boolean') opt[k] = true;
+      c.checked = opt[k];
+      c.addEventListener('change', function(){ opt[k] = c.checked; if (nachher) nachher(); });
+    });
+  }
   // Dateinamen-tauglicher Text
   function dateiname(t){ return String(t || '').trim().replace(/[^\p{L}\p{N} _-]+/gu, '').replace(/\s+/g, '-').slice(0, 40); }
 
-  return { registriere:registriere, start:start, imArtefakt:imArtefakt, claude:claude, sammleCss:sammleCss, blattDatei:blattDatei, dateiname:dateiname, esc:esc };
+  /* ---------- Arbeitsblätter als PDF herunterladen (für alle Generatoren) ----------
+     Jedes übergebene Blatt (z. B. Arbeitsblatt und Lösungsblatt) wird zu einer A4-Seite. html2canvas zeichnet das Blatt
+     in einer Kopie der Seite, in der die Druckregeln (@media print) der Generatoren gelten – so sieht das PDF aus wie
+     der Ausdruck. Grafiken (SVG) bekommen ihre Stile und Schriften eingebettet, weil html2canvas sie als Bild zeichnet.
+     Bibliotheken (MIT-Lizenz, gemeinsam/extern/): html2canvas 1.4.1, jsPDF 2.5.2 – erst beim ersten Download geladen. */
+  var skripte = {};
+  function ladeSkript(src){
+    if (!skripte[src]) skripte[src] = new Promise(function(ok, fehler){
+      var s = document.createElement('script');
+      s.src = src + (VERSION ? '?v=' + VERSION : '');
+      s.onload = function(){ ok(); };
+      s.onerror = function(){ delete skripte[src]; fehler(new Error('Die PDF-Bausteine konnten nicht geladen werden')); };
+      document.head.appendChild(s);
+    });
+    return skripte[src];
+  }
+  // Webschriften als data:-Adressen (für Text in SVG-Grafiken), einmal pro Seitenaufruf geholt
+  var schriften = null;
+  function schriftBloecke(){
+    if (schriften) return schriften;
+    var link = document.querySelector('link[href*="fonts.googleapis.com/css2"]');
+    if (!link || !window.fetch || !window.FileReader) return (schriften = Promise.resolve([]));
+    var dateien = {};
+    function alsDaten(url){
+      if (!dateien[url]) dateien[url] = fetch(url).then(function(r){ if (!r.ok) throw new Error(r.status); return r.blob(); }).then(function(b){
+        return new Promise(function(ok){ var f = new FileReader(); f.onload = function(){ ok(f.result); }; f.onerror = function(){ ok(''); }; f.readAsDataURL(b); });
+      }).catch(function(){ return ''; });
+      return dateien[url];
+    }
+    schriften = fetch(link.href).then(function(r){ return r.text(); }).then(function(css){
+      var bloecke = [];
+      css.replace(/\/\*\s*([\w-]+)\s*\*\/\s*(@font-face\s*\{[^}]*\})/g, function(_, teil, block){
+        if (teil !== 'latin' && teil !== 'latin-ext') return;
+        var fam = /font-family:\s*'?([^';]+)'?;/.exec(block), url = /url\((https:[^)]+)\)/.exec(block);
+        if (fam && url) bloecke.push({ familie:fam[1].trim().toLowerCase(), css:block, url:url[1] });
+      });
+      return bloecke;
+    }).catch(function(){ return []; });
+    schriften.alsDaten = alsDaten;
+    return schriften;
+  }
+  function schriftCssFuer(familien){
+    if (!familien.length) return Promise.resolve('');
+    var p = schriftBloecke();
+    return p.then(function(bloecke){
+      var passend = bloecke.filter(function(b){ return familien.indexOf(b.familie) >= 0; });
+      return Promise.all(passend.map(function(b){ return p.alsDaten(b.url).then(function(d){ return d ? b.css.replace(b.url, d) : ''; }); }));
+    }).then(function(t){ return t.join('\n'); }).catch(function(){ return ''; });
+  }
+  var SVG_STILE = ['display', 'visibility', 'opacity', 'fill', 'fill-opacity', 'fill-rule', 'stroke', 'stroke-width', 'stroke-opacity', 'stroke-linecap',
+    'stroke-linejoin', 'stroke-dasharray', 'font-family', 'font-size', 'font-weight', 'font-style', 'text-anchor', 'dominant-baseline', 'letter-spacing', 'paint-order'];
+  // In der Kopie: Druckregeln einschalten, Bildschirm-Zustände entfernen, SVG-Stile und -Schriften einbetten.
+  // html2canvas schreibt beim Kopieren die Bildschirm-Stile in jedes SVG-Element; die werden zuerst durch die
+  // ursprünglichen Stil-Attribute ersetzt, damit die Druckregeln greifen.
+  function druckKopie(doc, blatt, original, ausgeschaltet){
+    var svgKopie = blatt.querySelectorAll('svg, svg *'), svgOriginal = original.querySelectorAll('svg, svg *');
+    if (svgKopie.length === svgOriginal.length) [].forEach.call(svgKopie, function(el, i){
+      el.setAttribute('style', (svgOriginal[i].getAttribute('style') || '') + ';transition:none');
+    });
+    var keineUebergaenge = doc.createElement('style');   // Ein- und Ausblenden sofort fertig, nicht mitten im Übergang zeichnen
+    keineUebergaenge.textContent = '*,*::before,*::after{transition:none!important;animation:none!important}';
+    doc.head.appendChild(keineUebergaenge);
+    [].slice.call(doc.querySelectorAll('link[rel="stylesheet"]')).forEach(function(l){ if (ausgeschaltet.indexOf(l.href) >= 0) l.remove(); });
+    [].forEach.call(doc.styleSheets, function(sh){
+      var regeln; try { regeln = sh.cssRules; } catch(e){ return; }
+      if (!regeln) return;
+      var neu = [];
+      [].forEach.call(regeln, function(r){ if (r.media && /\bprint\b/.test(r.media.mediaText)) [].forEach.call(r.cssRules, function(x){ if (x.type === 1) neu.push(x.cssText); }); });
+      neu.forEach(function(t){ try { sh.insertRule(t, sh.cssRules.length); } catch(e){} });
+    });
+    doc.body.classList.add('mit-loesung');
+    [blatt].concat([].slice.call(blatt.querySelectorAll('.zeige-loesung, .geschafft, .veraltet'))).forEach(function(e){ e.classList.remove('zeige-loesung', 'geschafft', 'veraltet'); });
+    blatt.removeAttribute('hidden');
+    var arbeit = [].map.call(blatt.querySelectorAll('svg'), function(svg){
+      var familien = [];
+      [svg].concat([].slice.call(svg.querySelectorAll('*'))).forEach(function(el){
+        var cs = doc.defaultView.getComputedStyle(el), st = [];
+        SVG_STILE.forEach(function(k){ var v = cs.getPropertyValue(k); if (v) st.push(k + ':' + v); });
+        el.setAttribute('style', st.join(';'));
+        if (/^(text|tspan)$/i.test(el.tagName)){ var f = cs.getPropertyValue('font-family').split(',')[0].replace(/["']/g, '').trim().toLowerCase(); if (familien.indexOf(f) < 0) familien.push(f); }
+      });
+      return schriftCssFuer(familien).then(function(css){
+        if (!css) return;
+        var stil = doc.createElementNS('http://www.w3.org/2000/svg', 'style');
+        stil.textContent = css;
+        svg.insertBefore(stil, svg.firstChild);
+      });
+    });
+    return Promise.all(arbeit);
+  }
+  function pdfHerunterladen(blaetter, dateiname){
+    blaetter = blaetter.filter(Boolean);
+    if (!blaetter.length) return Promise.resolve();
+    var ausgeschaltet = [].filter.call(document.styleSheets, function(s){ return s.disabled && s.href; }).map(function(s){ return s.href; });
+    var BREITE = 703;   // 186 mm bei 96 dpi: A4 mit 12 mm Rand
+    return Promise.all([ladeSkript('gemeinsam/extern/html2canvas.min.js'), ladeSkript('gemeinsam/extern/jspdf.umd.min.js')]).then(function(){
+      var pdf = new window.jspdf.jsPDF({ unit:'mm', format:'a4', orientation:'portrait', compress:true });
+      var kette = Promise.resolve();
+      blaetter.forEach(function(blatt, i){
+        kette = kette.then(function(){
+          return window.html2canvas(blatt, { scale:3, backgroundColor:'#ffffff', logging:false, useCORS:true, windowWidth:BREITE, scrollX:0, scrollY:0,
+            onclone:function(doc, kopie){ return druckKopie(doc, kopie, blatt, ausgeschaltet); } });
+        }).then(function(cv){
+          if (i) pdf.addPage();
+          var w = 186, h = cv.height * w / cv.width;
+          if (h > 273){ h = 273; w = cv.width * h / cv.height; }
+          pdf.addImage(cv, 'PNG', (210 - w) / 2, 12, w, h, undefined, 'FAST');
+        });
+      });
+      return kette.then(function(){ pdf.save(dateiname || 'Arbeitsblatt.pdf'); });
+    });
+  }
+  // Knopf «PDF herunterladen»: auftrag() liefert { blaetter:[…], name:'….pdf' }; fehler(text) zeigt eine Meldung
+  function pdfKnopf(knopf, auftrag, fehler){
+    if (!knopf) return;
+    knopf.addEventListener('click', function(){
+      if (knopf.disabled) return;
+      var a = auftrag(); if (!a || !a.blaetter || !a.blaetter.filter(Boolean).length) return;
+      var text = knopf.textContent; knopf.disabled = true; knopf.textContent = 'PDF wird erstellt …';
+      pdfHerunterladen(a.blaetter, a.name).catch(function(e){
+        if (window.console) console.error(e);
+        var t = 'Das PDF konnte nicht erstellt werden' + (e && e.message ? ' (' + e.message + ')' : '') + '. Bitte versuche es noch einmal.';
+        if (fehler) fehler(t); else alert(t);
+      }).then(function(){ knopf.disabled = false; knopf.textContent = text; });
+    });
+  }
+  // Dateiname für ein PDF: «Labyrinth» + Titel → Labyrinth-Titel.pdf
+  function pdfName(art, titel){ var t = dateiname(titel); return art + (t ? '-' + t : '') + '.pdf'; }
+
+  return { registriere:registriere, start:start, imArtefakt:imArtefakt, claude:claude, sammleCss:sammleCss, blattDatei:blattDatei, dateiname:dateiname, esc:esc,
+    blattSchalterHtml:blattSchalterHtml, blattSchalter:blattSchalter, pdfHerunterladen:pdfHerunterladen, pdfKnopf:pdfKnopf, pdfName:pdfName };
 })();
