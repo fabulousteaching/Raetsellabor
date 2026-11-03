@@ -19,7 +19,9 @@ var Kern = (function(){
   var BLOECKE = { L:[1, 1, 1, 1, 1, 2], M:[1, 1, 1, 2, 2, 4], Q:[1, 1, 2, 2, 4, 4], H:[1, 1, 2, 4, 4, 4] };   // Fehler verteilen sich ungleich auf Blöcke
   // Mittelpunkte der kleinen Ausrichtungsquadrate je Version (QR-Norm)
   var AUSRICHTUNG = [[], [], [6, 18], [6, 22], [6, 26], [6, 30], [6, 34], [6, 22, 38], [6, 24, 42], [6, 26, 46], [6, 28, 50]];
-  var GRENZE = { punkte:41, zahlen:33, rechnungen:25 };   // grösstes Raster je Ausmal-Art (Felder pro Seite)
+  var GRENZE = { punkte:41, zahlen:33, rechnungen:25, buchstaben:37 };   // grösstes Raster je Ausmal-Art (Felder pro Seite)
+  // Buchstaben (Grossbuchstaben, ohne Umlaute; ohne Y, das mal Vokal, mal Konsonant ist; ohne Q und X, die selten sind)
+  var VOKALE = 'AEIOU', KONSONANTEN = 'BCDFGHJKLMNPRSTVWZ';
 
   /* QR-Code berechnen → { n, version, dunkel[r][c] }; zu langer Text → null. version: feste Grösse (1 = 21 × 21 Felder), 0 = so klein wie möglich */
   function code(text, stufe, version){
@@ -69,6 +71,12 @@ var Kern = (function(){
   /* Inhalt eines Felds. dunkel = muss ausgemalt werden. */
   function feldinhalt(dunkel, o, r){
     if (o.art === 'punkte') return dunkel ? '○' : '';   // Kreis mit weisser Mitte: vor dem Ausmalen nicht scannbar
+    if (o.art === 'buchstaben'){   // auszumalende Felder: Vokale, Konsonanten oder die gewählten Buchstaben; die anderen: der Rest
+      var ja = o.buchstaben === 'konsonanten' ? KONSONANTEN : o.buchstaben === 'zufall' ? o.auswahl : VOKALE;
+      var nein = o.buchstaben === 'konsonanten' ? VOKALE : o.buchstaben === 'zufall' ? (VOKALE + KONSONANTEN).replace(new RegExp('[' + o.auswahl + ']', 'g'), '') : KONSONANTEN;
+      var q = dunkel ? ja : nein;
+      return q.charAt(Math.floor(r() * q.length));
+    }
     if (o.art === 'zahlen'){
       var k = o.regel === 'reihe' ? o.reihe : 2, max = o.regel === 'reihe' ? o.reihe * 10 : o.zahlenraum, x;   // Reihen wie im Einmaleins bis 10·k
       for (var i = 0; i < 500; i++){ x = zahl(1, max, r); if ((x % k === 0) === dunkel) return String(x); }
@@ -76,6 +84,28 @@ var Kern = (function(){
     }
     var rc = rechnung(dunkel, o.rechenart, r);
     return rc ? rc.text : '';
+  }
+  /* Drei zufällige Buchstaben zum Ausmalen (Art «Buchstaben – zufällig»), alphabetisch */
+  function auswahl(seed){
+    var r = zufall((seed || 1) * 31 + 7), vorrat = (VOKALE + KONSONANTEN).split(''), a = [];
+    while (a.length < 3) a.push(vorrat.splice(Math.floor(r() * vorrat.length), 1)[0]);
+    return a.sort().join('');
+  }
+  /* Vorgedruckte Felder: die Erkennungsquadrate in den Ecken (falls gewünscht) und zufällig gewählte schwarze Felder,
+     bis der Anteil o.schwarz aller schwarzen Felder erreicht ist (z. B. 0.75 → drei Viertel sind schon schwarz) → n×n oder null */
+  function vorgedruckt(q, o){
+    var n = q.n, m = o.ecken ? muster(n) : null, anteil = +o.schwarz || 0;
+    if (!anteil) return m;
+    if (!m){ m = []; for (var y = 0; y < n; y++){ var z = []; for (var x = 0; x < n; x++) z.push(false); m.push(z); } }
+    var alle = 0, schon = 0, frei = [];
+    for (var y2 = 0; y2 < n; y2++) for (var x2 = 0; x2 < n; x2++){
+      if (!q.dunkel[y2][x2]) continue;
+      alle++;
+      if (m[y2][x2]) schon++; else frei.push([y2, x2]);
+    }
+    var r = zufall((o.seed || 1) * 17 + 3), noch = Math.max(0, Math.round(alle * anteil) - schon);
+    for (var i = 0; i < noch && frei.length; i++){ var f = frei.splice(Math.floor(r() * frei.length), 1)[0]; m[f[0]][f[1]] = true; }
+    return m;
   }
   var GROESSEN = [21, 25, 29, 33, 37, 41];   // wählbare Raster (QR-Versionen 1–6)
   /* Kleinstes Raster, in das der Text überhaupt passt (mit der geringsten Fehlertoleranz) – null: zu lang */
@@ -94,7 +124,8 @@ var Kern = (function(){
     if (!q){ var min = kleinstesRaster(text); return min ? { fehler:'passtNicht', min:min } : { fehler:'zuLang' }; }
     var grenze = GRENZE[o.art] || 41;
     if (q.n > grenze) return { fehler:'zuGross', n:q.n, grenze:grenze };
-    var m = o.ecken ? muster(q.n) : null, r = zufall(o.seed || 1), inhalt = [], anzahl = 0;
+    var m = vorgedruckt(q, o), r = zufall(o.seed || 1), inhalt = [], anzahl = 0;
+    if (o.art === 'buchstaben' && o.buchstaben === 'zufall') o = Object.assign({}, o, { auswahl:auswahl(o.seed) });
     for (var y = 0; y < q.n; y++){
       var z = [];
       for (var x = 0; x < q.n; x++){
@@ -104,7 +135,7 @@ var Kern = (function(){
       }
       inhalt.push(z);
     }
-    return { n:q.n, version:q.version, stufe:q.stufe, dunkel:q.dunkel, vorgedruckt:m, inhalt:inhalt, anzahl:anzahl };
+    return { n:q.n, version:q.version, stufe:q.stufe, dunkel:q.dunkel, vorgedruckt:m, inhalt:inhalt, anzahl:anzahl, auswahl:o.auswahl || '' };
   }
   /* Etwa so viele falsch ausgemalte oder vergessene Felder verträgt der Code (vorsichtig geschätzt) */
   function verzeiht(n, stufe){
@@ -206,7 +237,7 @@ var Kern = (function(){
     }
     return h + '</svg>';
   }
-  return { STUFEN:STUFEN, GRENZE:GRENZE, code:code, muster:muster, raster:raster, rechnung:rechnung, zufall:zufall, GROESSEN:GROESSEN, imRaster:imRaster, kleinstesRaster:kleinstesRaster, verzeiht:verzeiht,
+  return { STUFEN:STUFEN, GRENZE:GRENZE, code:code, muster:muster, raster:raster, rechnung:rechnung, zufall:zufall, GROESSEN:GROESSEN, imRaster:imRaster, auswahl:auswahl, VOKALE:VOKALE, KONSONANTEN:KONSONANTEN, kleinstesRaster:kleinstesRaster, verzeiht:verzeiht,
     gestaltet:gestaltet, modulPfad:modulPfad, rahmenPfad:rahmenPfad, mittePfad:mittePfad, MITTE_ZU:MITTE_ZU, passendeMitte:passendeMitte };
 })();
 /* KERN-ENDE */
@@ -238,18 +269,22 @@ var VORLAGE = '<div class="qr">' +
           '<div class="qr-symbole" role="radiogroup" aria-label="Symbol auf der Botschaftsseite">' +
             SYMBOLE.map(function(x){ return '<label><input type="radio" name="qrSymbol" value="' + x + '"><span>' + x + '</span></label>'; }).join('') + '</div></div>' +
         '<p class="hinweis" id="qrTextInfo" aria-live="polite"></p></div>' +
-      '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Raster</h2><p>Kleine Raster sind schnell ausgemalt, grosse verzeihen mehr Fehler beim Ausmalen.</p></div></div>' +
-        '<div class="opt-raster"><label for="qrRaster">Grösse</label><select id="qrRaster"></select></div>' +
+      '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Raster</h2><p>Kleine Raster sind schnell ausgemalt, grosse verzeihen mehr Fehler beim Ausmalen. Sind schon viele Felder schwarz, bleibt weniger zum Ausmalen.</p></div></div>' +
+        '<div class="opt-raster"><label for="qrRaster">Grösse</label><select id="qrRaster"></select>' +
+          '<label for="qrSchwarz">Schon schwarz vorgedruckt</label><select id="qrSchwarz"><option value="0">keine Felder</option><option value="0.5">die Hälfte</option><option value="0.75">drei Viertel</option><option value="0.9">neun Zehntel</option></select></div>' +
         '<p class="hinweis" id="qrRasterInfo" aria-live="polite"></p></div>' +
       '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Welche Felder ausmalen?</h2><p>Woran die Kinder erkennen, welche Felder sie ausmalen.</p></div></div>' +
         '<div class="qr-arten" role="radiogroup" aria-label="Ausmal-Art">' +
           '<label class="qr-art"><input type="radio" name="qrArt" value="punkte"><span><b>Kreise</b><small>Felder mit einem Kreis ausmalen – schon ab der 1. Klasse</small></span></label>' +
           '<label class="qr-art"><input type="radio" name="qrArt" value="zahlen"><span><b>Zahlen</b><small>gerade Zahlen oder Zahlen einer Einmaleins-Reihe ausmalen</small></span></label>' +
           '<label class="qr-art"><input type="radio" name="qrArt" value="rechnungen"><span><b>Rechnungen</b><small>rechnen – ist das Ergebnis gerade, wird ausgemalt</small></span></label>' +
+          '<label class="qr-art"><input type="radio" name="qrArt" value="buchstaben"><span><b>Buchstaben</b><small>Vokale, Konsonanten oder bestimmte Buchstaben ausmalen</small></span></label>' +
         '</div>' +
         '<div class="opt-raster" data-fuer="zahlen"><label for="qrRegel">Ausmalen, wenn die Zahl …</label><select id="qrRegel"><option value="gerade">gerade ist</option>' +
           [3, 4, 5, 6, 7, 8, 9, 10].map(function(k){ return '<option value="' + k + '">in der ' + k + 'er-Reihe ist</option>'; }).join('') + '</select>' +
           '<label for="qrZahlenraum" data-gerade>Zahlenraum</label><select id="qrZahlenraum" data-gerade><option value="20">bis 20</option><option value="50">bis 50</option><option value="100">bis 100</option></select></div>' +
+        '<div class="opt-raster" data-fuer="buchstaben"><label for="qrBuchstaben">Ausmalen</label><select id="qrBuchstaben">' +
+          '<option value="vokale">Vokale (A, E, I, O, U)</option><option value="konsonanten">Konsonanten</option><option value="zufall">zufällige Buchstaben (z. B. B, M, R)</option></select></div>' +
         '<div class="opt-raster" data-fuer="rechnungen"><label for="qrRechenart">Rechnungen</label><select id="qrRechenart">' +
           '<option value="plus20">Plus bis 20</option><option value="minus20">Minus bis 20</option><option value="pm100">Plus und Minus bis 100</option>' +
           '<option value="mal">Einmaleins (mal)</option><option value="geteilt">Einmaleins (geteilt)</option></select></div>' +
@@ -337,7 +372,7 @@ Labor.registriere({
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, esc = Labor.esc, aus = false;
   var TAB = 'qr-code-eingaben', OPT = 'qr-code-einstellungen', NS = 'http://www.w3.org/2000/svg';
-  var STANDARD = { modus:'malen', ziel:'text', symbol:'🎉', art:'punkte', regel:'gerade', zahlenraum:20, rechenart:'plus20', raster:0, ecken:true, nummern:true, mitLoesung:true, titelAn:true, anleitungAn:true,
+  var STANDARD = { modus:'malen', ziel:'text', symbol:'🎉', art:'punkte', regel:'gerade', zahlenraum:20, rechenart:'plus20', buchstaben:'vokale', raster:0, schwarz:0.75, ecken:true, nummern:true, mitLoesung:true, titelAn:true, anleitungAn:true,
     proBlatt:4, stufeFertig:'M', titelZeigen:true, inhaltZeigen:false, schnitt:true };
 
   /* ---------- Zustand: Inhalte nur für diesen Tab, Einstellungen bleiben ---------- */
@@ -396,7 +431,7 @@ function starte(bereich){
     [].forEach.call(bereich.querySelectorAll('.qr-modus [role=tab]'), function(t){ t.setAttribute('aria-selected', t.dataset.modus === st.opt.modus ? 'true' : 'false'); });
     [].forEach.call(bereich.querySelectorAll('.qr-teil'), function(t){ t.hidden = t.dataset.teil !== st.opt.modus; });
     var malen = st.opt.modus === 'malen';
-    $('#qrMischen').hidden = !malen || st.opt.art === 'punkte';   // bei Kreisen gibt es nichts zu mischen
+    $('#qrMischen').hidden = !malen || (st.opt.art === 'punkte' && !+st.opt.schwarz);   // bei Kreisen ohne Vorgedrucktes gibt es nichts zu mischen
     $('#qrZeigeLoesung').hidden = !malen; $('#qrMalWeg').hidden = !malen;
     $('#qrMitLoesungWahl').hidden = !malen; $('#qrBlattSchalter').hidden = !malen;
   }
@@ -446,7 +481,7 @@ function starte(bereich){
     if (rasterWahl.selectedIndex < 0 || rasterWahl.options[rasterWahl.selectedIndex].disabled){ rasterWahl.value = '0'; if (st.opt.raster){ st.opt.raster = 0; speichern(); } }
     var info = $('#qrRasterInfo');
     if (!gueltig){ info.textContent = 'Das Raster richtet sich nach dem Inhalt: Je kürzer, desto kleiner.'; return; }
-    var o = { art:st.opt.art, regel:st.opt.regel, reihe:st.opt.reihe || 3, zahlenraum:st.opt.zahlenraum, rechenart:st.opt.rechenart, raster:+rasterWahl.value, ecken:st.opt.ecken, seed:st.seed };
+    var o = { art:st.opt.art, regel:st.opt.regel, reihe:st.opt.reihe || 3, zahlenraum:st.opt.zahlenraum, rechenart:st.opt.rechenart, buchstaben:st.opt.buchstaben, raster:+rasterWahl.value, schwarz:+st.opt.schwarz || 0, ecken:st.opt.ecken, seed:st.seed };
     var r = Kern.raster(t, o);
     if (r.fehler === 'zuLang'){ info.textContent = 'Der Inhalt ist zu lang für einen QR-Code.'; return; }
     if (r.fehler === 'passtNicht'){ info.textContent = 'Für diesen Inhalt braucht es mindestens ' + r.min + ' × ' + r.min + ' Felder.'; return; }
@@ -485,7 +520,7 @@ function starte(bereich){
     r.addEventListener('change', function(){ if (r.checked){ st.opt.symbol = r.value; speichern(); veraltet(); } });
   });
   linkFeld.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); erstellen(); } });
-  function artName(){ return { punkte:'Kreise', zahlen:'Zahlen', rechnungen:'Rechnungen' }[st.opt.art]; }
+  function artName(){ return { punkte:'Kreise', zahlen:'Zahlen', rechnungen:'Rechnungen', buchstaben:'Buchstaben' }[st.opt.art]; }
   textFeld.addEventListener('input', function(){ st.text = textFeld.value; speichern(); textInfo(); veraltet(); });
   $('#qrTitel').addEventListener('input', function(){ st.titel = this.value; speichern(); if (aktuell) zeichnen(); });
   function veraltet(){ var b = bereich.querySelector('.qr-blatt'); if (b && st.opt.modus === 'malen' && aktuell) b.classList.add('veraltet'); }
@@ -500,7 +535,9 @@ function starte(bereich){
   }
   var regel = $('#qrRegel'); regel.value = st.opt.regel === 'gerade' ? 'gerade' : String(st.opt.reihe || 3);
   regel.addEventListener('change', function(){ if (regel.value === 'gerade'){ st.opt.regel = 'gerade'; } else { st.opt.regel = 'reihe'; st.opt.reihe = +regel.value; } speichern(); unteroptionen(); if (erstellt) erstellen(); });
-  [['qrZahlenraum', 'zahlenraum', true], ['qrRechenart', 'rechenart', false]].forEach(function(p){
+  var schwarzWahl = $('#qrSchwarz'); schwarzWahl.value = String(st.opt.schwarz);
+  schwarzWahl.addEventListener('change', function(){ st.opt.schwarz = +schwarzWahl.value; speichern(); rasterZeigen(); modusZeigen(); if (erstellt) erstellen(); });
+  [['qrZahlenraum', 'zahlenraum', true], ['qrRechenart', 'rechenart', false], ['qrBuchstaben', 'buchstaben', false]].forEach(function(p){
     var el = $('#' + p[0]); el.value = String(st.opt[p[1]]);
     el.addEventListener('change', function(){ st.opt[p[1]] = p[2] ? +el.value : el.value; speichern(); textInfo(); if (erstellt) erstellen(); });
   });
@@ -531,7 +568,7 @@ function starte(bereich){
     var link = ziel === 'link';
     if (!t){ nichts(link ? '<h3>Noch kein Link</h3><p>Gib zuerst den Ziellink ein, z. B. www.fabulousteaching.ch.</p>' : '<h3>Noch keine Botschaft</h3><p>Gib zuerst einen Text ein.</p>'); return; }
     if (link && !linkGueltig(t)){ nichts('<h3>Kein gültiger Link</h3><p>«' + esc(st.link.trim()) + '» sieht nicht wie ein Link aus. Gib eine Adresse wie www.beispiel.ch oder https://www.beispiel.ch/seite ein.</p>'); return; }
-    var o = { art:st.opt.art, regel:st.opt.regel, reihe:st.opt.reihe || 3, zahlenraum:st.opt.zahlenraum, rechenart:st.opt.rechenart, raster:st.opt.raster || 0, ecken:st.opt.ecken, seed:st.seed };
+    var o = { art:st.opt.art, regel:st.opt.regel, reihe:st.opt.reihe || 3, zahlenraum:st.opt.zahlenraum, rechenart:st.opt.rechenart, buchstaben:st.opt.buchstaben, raster:st.opt.raster || 0, schwarz:+st.opt.schwarz || 0, ecken:st.opt.ecken, seed:st.seed };
     var r = Kern.raster(t, o);
     if (r.fehler){
       aktuell = null; $('#qrBlaetter').innerHTML = ''; $('#qrWerkzeug').hidden = true;
@@ -561,8 +598,12 @@ function starte(bereich){
     else if (o.art === 'zahlen') a = o.regel === 'reihe'
       ? 'Male alle Felder aus, deren Zahl in der ' + o.reihe + 'er-Reihe vorkommt (' + o.reihe + ', ' + 2 * o.reihe + ', ' + 3 * o.reihe + ' … ' + 10 * o.reihe + ').'
       : 'Male alle Felder mit einer geraden Zahl aus (2, 4, 6, 8, …).';
+    else if (o.art === 'buchstaben') a = o.buchstaben === 'konsonanten' ? 'Male alle Felder mit einem Konsonanten aus – also alle Buchstaben ausser A, E, I, O und U.'
+      : o.buchstaben === 'zufall' ? 'Male alle Felder mit den Buchstaben ' + aktuell.r.auswahl.split('').join(', ').replace(/, (\w)$/, ' oder $1') + ' aus.'
+      : 'Male alle Felder mit einem Vokal aus (A, E, I, O, U).';
     else a = 'Rechne in jedem Feld. Ist das Ergebnis gerade, malst du das Feld aus.';
-    return a + (o.ecken ? ' Die Quadrate in den Ecken sind schon ausgemalt.' : '') + ' Nimm einen dunklen Stift und male die Felder ganz aus.';
+    var vor = o.ecken && o.schwarz ? ' Die Quadrate in den Ecken und viele weitere Felder sind schon schwarz.' : o.ecken ? ' Die Quadrate in den Ecken sind schon ausgemalt.' : o.schwarz ? ' Viele Felder sind schon schwarz.' : '';
+    return a + vor + ' Nimm einen dunklen Stift und male die Felder ganz aus.';
   }
   // Raster als SVG. art: 'spiel' (mit Inhalt, ausmalbar) oder 'loesung' (fertiger Code)
   function rasterSvg(art){
@@ -579,7 +620,7 @@ function starte(bereich){
       h.push('<text class="nr" x="' + (-rand / 2) + '" y="' + (i * S + S / 2) + '">' + (i + 1) + '</text>');
     }
     h.push('<rect x="0" y="0" width="' + n * S + '" height="' + n * S + '" fill="#fff"/>');
-    var schrift = aktuell.o.art === 'rechnungen' ? 2.9 : aktuell.o.art === 'zahlen' ? 4 : 6;
+    var schrift = aktuell.o.art === 'rechnungen' ? 2.9 : aktuell.o.art === 'zahlen' ? 4 : aktuell.o.art === 'buchstaben' ? 5.2 : 6;
     for (var y = 0; y < n; y++) for (var x = 0; x < n; x++){
       var dunkel = r.dunkel[y][x], vor = r.vorgedruckt && r.vorgedruckt[y][x];
       if (art === 'loesung'){ if (dunkel) h.push('<rect x="' + x * S + '" y="' + y * S + '" width="' + S + '" height="' + S + '" fill="#000"/>'); continue; }
