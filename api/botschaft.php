@@ -10,6 +10,7 @@
    Gleicher Inhalt ergibt die gleiche ID (nichts wird doppelt gespeichert). Schutz: nur Anfragen von dieser Website,
    höchstens PRO_STUNDE neue Botschaften pro Stunde und Netz und PRO_TAG insgesamt. */
 declare(strict_types=1);
+ini_set('display_errors', '0');   // PHP-Hinweise nie auf der Seite zeigen (stehen weiter im Fehlerprotokoll des Servers)
 
 const MAX_TEXT = 1500;
 const MAX_TITEL = 80;

@@ -1,6 +1,7 @@
 <?php
 /* Rätsellabor – Anzeige einer Botschaft (wird von B/<ID>/index.php geladen) */
 declare(strict_types=1);
+ini_set('display_errors', '0');   // PHP-Hinweise nie auf der Seite zeigen (stehen weiter im Fehlerprotokoll des Servers)
 $id = isset($botschaftId) ? (string)$botschaftId : '';
 $b = null;
 if (preg_match('/^[A-Z0-9]{4}$/', $id)) {
@@ -48,7 +49,8 @@ $symbol = is_array($b) ? (string)($b['symbol'] ?? '🎉') : '🔍';
 <?php if (is_array($b)): ?>
 <div class="konfetti" aria-hidden="true"><?php
   $farben = ['#F28C38', '#FAD852', '#68D77E', '#63C2EA', '#EC4157', '#F7A25D'];
-  for ($i = 0; $i < 28; $i++) echo '<i style="left:' . (($i * 37) % 100) . '%;background:' . $farben[$i % 6] . ';animation-delay:' . (($i * 0.13) % 1.6) . 's;animation-duration:' . (2.6 + ($i % 5) * 0.3) . 's"></i>';
+  // Kommazahlen mit fmod() (der Operator % rechnet nur mit ganzen Zahlen und warnt bei Kommazahlen)
+  for ($i = 0; $i < 28; $i++) echo '<i style="left:' . (($i * 37) % 100) . '%;background:' . $farben[$i % 6] . ';animation-delay:' . round(fmod($i * 0.13, 1.6), 2) . 's;animation-duration:' . round(2.6 + ($i % 5) * 0.3, 2) . 's"></i>';
 ?></div>
 <main>
   <p class="symbol" aria-hidden="true"><?= h($symbol) ?></p>

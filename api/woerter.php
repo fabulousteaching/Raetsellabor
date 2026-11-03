@@ -13,6 +13,7 @@
    oft eine Adresse) und PRO_TAG insgesamt; gleiche Fragen kommen aus dem Zwischenspeicher und zählen nicht.
    Gespeichert werden nur Zähler (die IP-Adresse nur verschlüsselt im Dateinamen) und Wortlisten, im Ordner daten/. */
 declare(strict_types=1);
+ini_set('display_errors', '0');   // PHP-Hinweise nie auf der Seite zeigen (stehen weiter im Fehlerprotokoll des Servers)
 
 const PRO_STUNDE = 60;
 const PRO_TAG = 1000;
