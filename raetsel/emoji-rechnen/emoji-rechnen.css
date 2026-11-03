@@ -1,0 +1,111 @@
+/* Rätsellabor · Emoji-Rechnen – nur aktiv, solange dieser Generator offen ist.
+   Gemeinsame Bausteine (Karten, Knöpfe, Eingabefelder, Meldungen) stehen in gemeinsam/labor.css. */
+.em{max-width:1440px;margin:0 auto;padding-block:22px 48px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.em-kopf{display:grid;gap:4px;margin:0 0 20px}
+.em-kopf h1{font-family:var(--display);font-weight:600;font-size:clamp(1.7rem,3vw,2.2rem);letter-spacing:-.01em;line-height:1.1;margin:0;color:var(--ink)}
+.em-kopf h1:focus{outline:none}
+.em-kopf p:last-child{margin:2px 0 0;color:var(--muted);max-width:70ch}
+.em-layout{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:24px;align-items:start}
+.em-eingabe{display:grid;gap:16px;min-width:0}
+@media (min-width:961px){ .em-eingabe{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--kopf-h) + 16px);max-height:calc(100vh - var(--kopf-h) - 32px);overflow:auto;padding:2px 4px 2px 2px;scrollbar-width:thin} }
+@media (max-width:960px){ .em-layout{grid-template-columns:minmax(0,1fr);gap:18px} }
+@media (max-width:640px){ .em{padding-block:18px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))} }
+
+/* ---------- Eingaben ---------- */
+.em-stufen{display:grid;gap:8px}
+.em-stufe{position:relative;cursor:pointer;display:flex}
+.em-stufe input,.em-themen input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.em-stufe span{display:grid;gap:2px;width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;transition:border-color .15s,background .15s}
+.em-stufe b{font-weight:650;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.em-stufe em{font-style:normal;font-weight:600;font-size:.74rem;color:var(--accent-2)}
+.em-stufe small{color:var(--muted);font-size:.84rem}
+.em-stufe:hover span{border-color:var(--accent-line)}
+.em-stufe input:checked + span{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.em-stufe input:focus-visible + span,.em-themen input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+.em-themen{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:6px}
+.em-themen label{position:relative;cursor:pointer;display:flex}
+.em-themen span{display:grid;justify-items:center;gap:1px;width:100%;padding:7px 6px 6px;border:1px solid var(--line);border-radius:10px;background:#fff;font-size:.8rem;font-weight:600;color:var(--muted);transition:border-color .15s,background .15s}
+.em-themen i{font-style:normal;font-size:1.25rem;letter-spacing:1px;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif}
+.em-themen label:hover span{border-color:var(--accent-line)}
+.em-themen input:checked + span{border-color:var(--accent);background:var(--accent-soft);color:var(--text);box-shadow:inset 0 0 0 1px var(--accent)}
+.opt{display:flex;align-items:flex-start;gap:10px;margin:10px 0;font-size:.9rem}
+.opt input[type=checkbox]{width:16px;height:16px;margin:3px 0 0;accent-color:var(--accent);flex:none}
+.em .opt-raster{display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center;font-size:.9rem}
+.em .opt-raster select{width:auto;min-width:6em}
+.em .opt-raster input[type=text]{width:auto;min-width:12em}
+.em details.optionen summary{cursor:pointer;font-weight:650;font-size:1rem;list-style:none;display:flex;align-items:center;justify-content:space-between}
+.em details.optionen summary::-webkit-details-marker{display:none}
+.em details.optionen summary::after{content:'';width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .2s;margin:0 6px 4px 0}
+.em details.optionen[open] summary::after{transform:rotate(-135deg);margin-bottom:0}
+.em details.optionen[open] summary{margin-bottom:10px}
+@media (max-width:480px){ .em .opt-raster{grid-template-columns:1fr} .em .opt-raster input[type=text]{width:100%} }
+
+/* ---------- Ausgabe ---------- */
+.em-ausgabe{min-width:0}
+.em-werkzeug{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.em-werkzeug .abstand{flex:1}
+.em-werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
+.em-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+.em-blatt{background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:30px clamp(16px,3.2vw,40px)}
+.em-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
+.em-anleitung{margin:0 0 18px;color:#554C45;max-width:80ch}
+.em-loesungsblatt{display:none;margin-top:16px}
+
+/* Rätsel: Emojis, Zeichen, «=», Ergebnis – die Gleichheitszeichen stehen untereinander */
+.em-raster{display:grid;gap:18px;--em:2.4rem}
+.em-raster.pro-1{--em:3.1rem}
+.em-raster.pro-4,.em-raster.pro-6{grid-template-columns:repeat(2,minmax(0,1fr));--em:1.75rem}
+.em-raster.pro-6{--em:1.55rem;gap:14px}
+.em-raetsel{position:relative;display:grid;justify-items:center;gap:12px;padding:18px 18px 14px;border:1.5px solid #D8CEC4;border-radius:16px;break-inside:avoid;min-width:0}
+.em-raster:not(.pro-1) .em-raetsel{padding-left:38px}
+.em-nr{position:absolute;left:13px;top:10px;font-family:var(--display);font-weight:600;font-size:1.1rem;color:var(--marke)}
+.em-zeilen{display:grid;grid-template-columns:auto auto auto;align-items:center;gap:calc(var(--em) * .22) calc(var(--em) * .3)}
+.em-term{display:flex;align-items:center;justify-content:flex-end;gap:calc(var(--em) * .2)}
+.em-e{font-size:var(--em);line-height:1.15;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif}
+.em-op,.em-gleich{font-size:calc(var(--em) * .62);font-weight:600;color:#1C1714;line-height:1}
+.em-z{font-size:calc(var(--em) * .68);font-weight:700}
+.em-wert{font-size:calc(var(--em) * .68);font-weight:700;font-variant-numeric:tabular-nums;justify-self:start;color:#1C1714}
+.em-schluss{padding-top:calc(var(--em) * .2)}
+.em-schluss + .em-gleich,.em-schluss + .em-gleich + .em-wert{padding-top:calc(var(--em) * .2)}
+.em-frage{display:inline-grid;place-items:center;width:2.4em;height:1.45em;padding:0 .15em;border:2px solid #1C1714;border-radius:9px;background:#fff}
+.em .em-antwort,.em .em-wertfeld{width:100%;height:100%;min-width:0;border:0;border-radius:7px;padding:0;background:transparent;box-shadow:none;text-align:center;font:inherit;font-weight:700;color:#1C1714}
+.em .em-antwort:focus,.em .em-wertfeld:focus{outline:none;background:var(--accent-soft)}
+.em-hilfe{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 20px;width:100%;padding-top:10px;border-top:1px dashed #D8CEC4}
+.em-h{display:inline-flex;align-items:center;gap:6px}
+.em-h .em-e{font-size:calc(var(--em) * .62)}
+.em-ist{font-weight:600;font-size:1rem}
+.em-hfeld{display:inline-grid;place-items:center;width:2.6em;height:1.7em;border-bottom:1.5px solid #1C1714;font-size:1rem;font-weight:700}
+.em-loes{display:none;color:var(--accent-2);font-weight:700}
+.zeige-loesung .em-loes{display:inline}
+.zeige-loesung .em-antwort,.zeige-loesung .em-wertfeld{display:none}
+.em-frage.richtig{border-color:var(--ok);background:var(--ok-soft)}
+.em-hfeld.richtig{border-color:var(--ok);color:var(--ok)}
+.em-hfeld.richtig input{color:var(--ok)}
+.em-frage.falsch,.em-hfeld.falsch{border-color:#C9A27E}
+.em-status{margin:0;min-height:1.3em;font-size:.9rem;color:var(--muted)}
+.em-status.fertig{color:var(--ok);font-weight:650}
+.em-loesungsblatt .em-frage b,.em-loesungsblatt .em-hfeld b{color:var(--accent-2)}
+@media (max-width:640px){
+  .em-raster.pro-4,.em-raster.pro-6{grid-template-columns:minmax(0,1fr)}
+  .em-raster{--em:2rem} .em-raster.pro-1{--em:2.4rem}
+}
+
+/* ---------- Drucken (gilt auch für das PDF) ---------- */
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#fff!important}
+  .em-kopf,.em-eingabe,.em-werkzeug,#emMeldung,.nur-bildschirm{display:none!important}
+  .em{padding:0;max-width:none}
+  .em-layout{display:block}
+  .em-blatt{box-shadow:none;border:0;border-radius:0;padding:0}
+  #emBlatt .em-loes{display:none!important}
+  .em-raster.pro-4,.em-raster.pro-6{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .em-raster{gap:22px}
+  .em-raster.pro-1{--em:3.6rem}
+  .em-raster.pro-2{--em:2.9rem}
+  .em-raster.pro-4{--em:2.3rem}
+  .em-raster.pro-6{--em:1.9rem;gap:16px}
+  .em-frage.richtig,.em-frage.falsch{border-color:#1C1714;background:#fff}
+  .em-hfeld.richtig,.em-hfeld.falsch{border-color:#1C1714}
+  body.mit-loesung .em-loesungsblatt{display:block;break-before:page;margin-top:0}
+}
