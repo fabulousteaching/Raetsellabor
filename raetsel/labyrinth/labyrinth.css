@@ -67,6 +67,16 @@ svg.lb-svg .lb-loesung{fill:none;stroke:var(--accent);stroke-linecap:round;strok
 #lbBlatt.zeige-loesung svg.lb-svg .lb-loesung{opacity:.45}
 svg.lb-svg .lb-weg{fill:none;stroke:#2F7DC0;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
 .geschafft svg.lb-svg .lb-weg{stroke:var(--ok)}
+/* mit Lösungssatz: Linien heller, damit die Buchstaben darunter lesbar bleiben */
+svg.lb-svg.mit-satz .lb-weg,svg.lb-svg.mit-satz .lb-loesung{opacity:.45}
+#lbBlatt svg.lb-svg.mit-satz .lb-loesung{opacity:0}
+#lbBlatt.zeige-loesung svg.lb-svg.mit-satz .lb-loesung{opacity:.4}
+svg.lb-svg .lb-buchstaben text{font-family:var(--font);font-weight:600;font-size:6.3px;fill:#1C1714;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.lb-antwort{display:grid;grid-template-columns:auto 1fr;gap:14px 10px;align-items:end;margin:22px 0 0;font-weight:600;color:#1C1714}
+.lb-linie{border-bottom:1.5px solid #1C1714;height:1.6em}
+.lb-satz-loesung{margin:16px 0 0;padding:10px 14px;border:1px solid var(--line);border-radius:8px;background:#FCFAF8;font-size:1.05rem}
+.lb-karte-klein{font-weight:400}
+.karte-kopf h2 small{font-weight:500;color:var(--muted);font-size:.8em}
 svg.lb-svg .lb-figur{font-size:11px;text-anchor:middle;dominant-baseline:central;font-family:system-ui,'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif}
 
 @media print{
