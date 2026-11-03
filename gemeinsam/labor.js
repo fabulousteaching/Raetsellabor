@@ -69,15 +69,6 @@ var Labor = (function(){
     karten += '<div class="raetsel-karte bald"><span class="sym" aria-hidden="true">' + PLUS + '</span><h3>Weitere Generatoren</h3>' +
       '<p>Neue Rätselarten kommen Schritt für Schritt dazu. Sie erscheinen dann hier und im Menü.</p></div>';
     $('#raetselKarten').innerHTML = karten;
-    var erster = liste[0], k = $('#heldStart');
-    if (erster){ k.href = '#' + erster.id; k.textContent = erster.titel + ' öffnen'; } else k.hidden = true;
-    $('#heldListe').addEventListener('click', function(){
-      var z = $('#raetselListe');
-      z.scrollIntoView({ behavior:matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start' });
-    });
-    // Welche Rätsel es gibt – aus den angemeldeten Generatoren, damit die Aufzählung immer stimmt
-    var namen = liste.map(function(r){ return r.titel; });
-    $('#heldArten').textContent = namen.length ? 'Im Labor: ' + (namen.length > 1 ? namen.slice(0, -1).join(', ') + ' und ' + namen[namen.length - 1] : namen[0]) + '.' : '';
   }
   /* ---------- Wechsel zwischen Startseite und Generatoren ---------- */
   function ladeCss(r, fertig){

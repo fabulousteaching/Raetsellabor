@@ -2,7 +2,7 @@
 
 Eine Webseite mit Rätselgeneratoren für Schule und Freizeit. Man wählt einen Generator, gibt eigene Inhalte ein, und das Labor baut daraus ein Rätsel, das man am Bildschirm lösen oder als PDF-Arbeitsblatt mit Lösungsblatt herunterladen kann.
 
-Die Startseite erklärt kurz, was das Labor kann, zählt die vorhandenen Rätselarten auf (aus den angemeldeten Generatoren, stimmt also immer) und zeigt alle Generatoren als gleich grosse Karten. Über das Menü oben rechts wechselt man jederzeit zwischen Startseite und Generatoren. Das Labor wird Schritt für Schritt um weitere Generatoren erweitert.
+Die Startseite erklärt kurz, was das Labor kann, und zeigt alle Generatoren als gleich grosse Karten. Über das Menü oben rechts wechselt man jederzeit zwischen Startseite und Generatoren. Das Labor wird Schritt für Schritt um weitere Generatoren erweitert.
 
 ## Für alle Arbeitsblätter
 
