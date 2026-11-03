@@ -59,6 +59,19 @@ Beispiel «Ich arbeite gerne»: 👨‍🍳 `ko=i` · 🐜 `m=rb` `s=t` · 🍐 
 
 Drei Stufen: *Einfach* (höchstens eine Regel pro Bild), *Mittel* (bis zwei Regeln), *Schwer* (bis drei Regeln, auch längere Buchstabengruppen). Meist ein Bild pro Wort, bei langen Wörtern auch mehrere. Bis zu 12 Rätsel pro Blatt (je bis 60 Buchstaben), jedes einzeln neu würfelbar; am Bildschirm mit Lösungsfeld, ausgedruckt mit Kästchen und Zeichenerklärung, auf Wunsch mit Lösungsblatt. Die Bilder sind rund 360 Emojis mit deutschen Namen (`LISTE` in `rebus.js`). Gesucht wird die Zerlegung mit möglichst wenigen Bildern und Regeln; jede Regel wird nachgespielt und muss eindeutig sein.
 
+### QR-Code
+
+Aus einem Text oder Link wird ein QR-Code – in zwei Varianten:
+
+- **Zum Ausmalen:** Die Kinder malen die richtigen Felder eines Rasters aus. Ist alles richtig, lässt sich der Code mit Tablet oder Handy scannen und verrät die Botschaft (Selbstkontrolle). Woran sie die Felder erkennen:
+  - *Kreise* – Felder mit Kreis ausmalen (ab der 1. Klasse; Kreise mit weisser Mitte, damit das leere Blatt nicht schon scannbar ist),
+  - *Zahlen* – gerade Zahlen (bis 20, 50 oder 100) oder Zahlen einer Einmaleins-Reihe (3er bis 10er, bis 10·k),
+  - *Rechnungen* – Plus/Minus bis 20, Plus und Minus bis 100, Einmaleins mal oder geteilt; ist das Ergebnis gerade, wird ausgemalt.
+  Die Erkennungsquadrate in den Ecken können vorgedruckt sein, Zeilen und Spalten sind nummeriert. Die **Fehlertoleranz** (gering bis sehr hoch) bestimmt, wie viele falsch ausgemalte Felder der Code verzeiht; die Seite nennt die Zahl (vorsichtig geschätzt und mit einem QR-Leser nachgemessen). Am Bildschirm lässt sich der Code auch ausmalen (tippen oder ziehen). Drucken mit Lösungsblatt.
+- **Fertige QR-Codes:** ein oder mehrere Codes mit Titel, 1 bis 12 pro Blatt, auf Wunsch mit Schnittlinien und dem Inhalt als Text; einzeln als PNG-Bild speicherbar.
+
+Links mit «www.» bekommen automatisch «https://» davor, damit das Handy sie direkt öffnet. Die Codes berechnet die Bibliothek *qrcode-generator* von Kazuhiko Arase (MIT-Lizenz, `gemeinsam/extern/`).
+
 ## Aufbau
 
 ```
@@ -75,9 +88,11 @@ raetsel/suchsel/                der Generator «Suchsel» (Wörter setzen, Oberf
 raetsel/rebus/                  der Generator «Rebus»
   rebus.js                      Bilderliste, Kern (Zerlegung), Oberfläche, Bedienung
   rebus.css                     Aussehen dieses Generators
+raetsel/qr-code/                der Generator «QR-Code» (zum Ausmalen und fertige Codes)
+gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 ```
 
-Kein Build-Schritt, keine Abhängigkeiten ausser den Schriften Fredoka und Inter von Google Fonts. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel` oder `…/#rebus` öffnet direkt einen Generator, `…/#start` die Startseite.
+Kein Build-Schritt; ausser den Schriften Fredoka und Inter von Google Fonts und der mitgelieferten QR-Code-Bibliothek keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus` oder `…/#qr-code` öffnet direkt einen Generator, `…/#start` die Startseite.
 
 ## Einen neuen Generator hinzufügen
 

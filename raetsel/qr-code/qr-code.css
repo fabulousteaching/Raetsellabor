@@ -1,0 +1,138 @@
+/* Rätsellabor · QR-Code – nur aktiv, solange dieser Generator offen ist.
+   Gemeinsame Bausteine (Karten, Knöpfe, Eingabefelder, Meldungen) stehen in gemeinsam/labor.css. */
+.qr{max-width:1440px;margin:0 auto;padding-block:22px 48px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.qr-kopf{display:grid;gap:4px;margin:0 0 16px}
+.qr-kopf h1{font-family:var(--display);font-weight:600;font-size:clamp(1.7rem,3vw,2.2rem);letter-spacing:-.01em;line-height:1.1;margin:0;color:var(--ink)}
+.qr-kopf p:last-child{margin:2px 0 0;color:var(--muted);max-width:70ch}
+
+/* Umschalter «Zum Ausmalen» / «Fertige QR-Codes» */
+.qr-modus{display:inline-flex;gap:4px;padding:4px;margin:0 0 18px;background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--schatten)}
+.qr-modus [role=tab]{border:0;background:none;padding:8px 16px;border-radius:9px;font-weight:600;font-size:.92rem;color:var(--muted);cursor:pointer;transition:background .15s,color .15s}
+.qr-modus [role=tab]:hover{color:var(--text);background:var(--bg)}
+.qr-modus [role=tab][aria-selected="true"]{background:var(--accent);color:var(--auf-akzent)}
+
+.qr-layout{display:grid;grid-template-columns:minmax(320px,440px) minmax(0,1fr);gap:24px;align-items:start}
+.qr-eingabe,.qr-teil{display:grid;gap:16px;min-width:0}
+.qr-teil[hidden]{display:none}
+@media (min-width:961px){ .qr-eingabe{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--kopf-h) + 16px);max-height:calc(100vh - var(--kopf-h) - 32px);overflow:auto;padding:2px 4px 2px 2px;scrollbar-width:thin} }
+@media (max-width:960px){ .qr-layout{grid-template-columns:minmax(0,1fr);gap:18px} }
+@media (max-width:640px){ .qr{padding-block:18px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))} .qr-modus{display:flex} .qr-modus [role=tab]{flex:1;padding:8px 10px} }
+
+/* ---------- Eingaben ---------- */
+.qr textarea{display:block;width:100%;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;resize:vertical;min-height:4.5em;line-height:1.45;transition:border-color .15s,box-shadow .15s}
+.qr textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.qr-arten{display:grid;gap:8px}
+.qr-art{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;transition:border-color .15s,background .15s}
+.qr-art:hover{border-color:var(--accent-line)}
+.qr-art:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.qr-art input{margin:3px 0 0;accent-color:var(--accent);width:16px;height:16px;flex:none}
+.qr-art b{display:block;font-weight:600}
+.qr-art small{display:block;color:var(--muted);font-size:.84rem}
+.opt{display:flex;align-items:flex-start;gap:10px;margin:10px 0;font-size:.9rem}
+.opt input[type=checkbox]{width:16px;height:16px;margin:3px 0 0;accent-color:var(--accent);flex:none}
+.opt-raster{display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center;margin-top:12px;font-size:.9rem}
+.opt-raster[hidden]{display:none}
+.opt-raster select{width:auto;min-width:10em;max-width:100%}
+.opt-raster input[type=text]{width:auto;min-width:12em}
+details.optionen summary{cursor:pointer;font-weight:650;font-size:1rem;list-style:none;display:flex;align-items:center;justify-content:space-between}
+details.optionen summary::-webkit-details-marker{display:none}
+details.optionen summary::after{content:'';width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .2s;margin:0 6px 4px 0}
+details.optionen[open] summary::after{transform:rotate(-135deg);margin-bottom:0}
+details.optionen[open] summary{margin-bottom:6px}
+@media (max-width:480px){ .opt-raster{grid-template-columns:1fr} .opt-raster select,.opt-raster input[type=text]{width:100%} }
+
+/* Liste der fertigen Codes */
+.qr-liste{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:10px;counter-reset:code}
+.qr-liste li{display:grid;grid-template-columns:1fr auto;gap:6px;padding:10px 10px 10px 36px;border:1px solid var(--line);border-radius:10px;position:relative;counter-increment:code}
+.qr-liste li::before{content:counter(code);position:absolute;left:10px;top:12px;width:18px;height:18px;border-radius:50%;background:var(--accent-soft);color:var(--accent-2);font-size:.72rem;font-weight:700;display:grid;place-items:center}
+.qr-liste .qr-titel{grid-column:1}
+.qr-liste .qr-inhalt{grid-column:1}
+.qr-liste .qr-weg{grid-column:2;grid-row:1 / span 2;align-self:center;width:30px;height:30px;border:0;border-radius:8px;background:none;color:var(--muted);font-size:1.2rem;cursor:pointer}
+.qr-liste .qr-weg:hover{background:var(--err-soft);color:var(--err)}
+
+/* ---------- Ausgabe ---------- */
+.qr-ausgabe{min-width:0}
+.leer-zustand{background:#fff;border:1px dashed var(--line-2);border-radius:14px;padding:48px 24px;text-align:center;color:var(--muted)}
+.leer-zustand h2{color:var(--text);font-size:1.15rem;font-weight:650;margin:0 0 4px}
+.leer-zustand ol{display:inline-grid;gap:10px;text-align:left;margin:18px 0 0;padding:0;list-style:none;counter-reset:s}
+.leer-zustand li{counter-increment:s;display:flex;gap:10px;align-items:center;color:var(--text);font-size:.92rem}
+.leer-zustand li::before{content:counter(s);flex:none;width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent-2);font-weight:700;font-size:.78rem;display:grid;place-items:center}
+.qr-werkzeug{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.qr-werkzeug .abstand{flex:1}
+.qr-werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
+.qr-werkzeug label[hidden]{display:none}
+.qr-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+#qrBlaetter{display:grid;gap:16px}
+
+/* ---------- Arbeitsblatt ---------- */
+.qr-blatt{background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:30px clamp(16px,3.2vw,40px)}
+.qr-blatt.veraltet::before{content:'Eingaben geändert – «QR-Code erstellen» klicken, um das Blatt zu aktualisieren.';display:block;margin:-10px 0 16px;
+  background:var(--warn-soft);color:#6B4E00;border:1px solid var(--warn-line);font-size:.86rem;padding:7px 12px;border-radius:8px}
+.qr-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
+.qr-anleitung{margin:0 0 16px;color:#554C45;max-width:80ch}
+.qr-fuss{margin:16px 0 0;color:#554C45;font-size:.92rem}
+.qr-gitter{display:flex;justify-content:center}
+.qr-botschaft{margin:0 0 18px;padding:10px 14px;border:1px solid var(--line);border-radius:8px;background:#FCFAF8;font-weight:600;overflow-wrap:anywhere}
+.qr-fortschritt{margin:12px 0 0;font-size:.92rem;color:var(--muted);min-height:1.5em}
+.qr-fortschritt.fertig{font-weight:650;font-size:1rem;color:var(--ok)}
+.qr-loesungsblatt{display:none}
+
+/* Raster (SVG, 10 Einheiten pro Feld) */
+svg.qr-raster{display:block;width:100%;height:auto;max-width:calc(var(--felder, 25) * 30px + 30px);max-height:82vh}
+svg.qr-raster.spiel{touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair}
+svg.qr-raster.fertig{max-width:min(100%, 360px)}
+svg.qr-raster .feld{fill:#fff;stroke:#C9BFB5;stroke-width:.35}
+svg.qr-raster .rahmen{stroke:#3D3530;stroke-width:.6}
+svg.qr-raster text{font-family:var(--font);text-anchor:middle;dominant-baseline:central;pointer-events:none;fill:#1C1714}
+svg.qr-raster text.inhalt{font-weight:600}
+svg.qr-raster text.nr{font-size:3.4px;fill:#6E655E;font-weight:500}
+svg.qr-raster .kreis{fill:none;stroke:#1C1714;stroke-width:.9;pointer-events:none}
+.opt-raster [hidden]{display:none}
+svg.qr-raster .ebene-loesung{fill:var(--accent);opacity:0;pointer-events:none;transition:opacity .2s}
+.zeige-loesung svg.qr-raster .ebene-loesung{opacity:.45}
+svg.qr-raster .ebene-gemalt path{fill:#1C1714;pointer-events:none}
+.geschafft svg.qr-raster .ebene-gemalt path{animation:qrfertig 1.2s ease 1}
+@keyframes qrfertig{40%{fill:var(--accent-2)}}
+@media (prefers-reduced-motion: reduce){ .geschafft svg.qr-raster .ebene-gemalt path{animation:none} }
+
+/* Fertige Codes auf dem Blatt */
+.qr-karten{display:grid;gap:18px;justify-items:center;align-items:start}
+.qr-karten.pro-1,.qr-karten.pro-2{grid-template-columns:1fr}
+.qr-karten.pro-4,.qr-karten.pro-6{grid-template-columns:repeat(2,minmax(0,1fr))}
+.qr-karten.pro-12{grid-template-columns:repeat(3,minmax(0,1fr))}
+.qr-karte{margin:0;display:grid;justify-items:center;gap:6px;width:100%;padding:12px;text-align:center}
+.qr-karten.schnitt .qr-karte{border:1px dashed #C2B8AE;border-radius:4px}
+.qr-karte svg{display:block;width:100%;height:auto}
+.qr-karten.pro-1 .qr-karte svg{max-width:340px}
+.qr-karten.pro-2 .qr-karte svg{max-width:260px}
+.qr-karten.pro-4 .qr-karte svg{max-width:220px}
+.qr-karten.pro-6 .qr-karte svg{max-width:180px}
+.qr-karten.pro-12 .qr-karte svg{max-width:140px}
+.qr-karte-titel{font-family:var(--display);font-weight:600;font-size:1.15rem;color:#1C1714;overflow-wrap:anywhere}
+.qr-karten.pro-12 .qr-karte-titel{font-size:.95rem}
+.qr-karte-text{margin:0;font-size:.78rem;color:#554C45;overflow-wrap:anywhere;max-width:100%}
+.qr-bild{margin-top:2px}
+
+/* ---------- Drucken ---------- */
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#fff!important}
+  .qr-kopf,.qr-modus,.qr-eingabe,.qr-werkzeug,#qrMeldung,#qrLeer,.nur-bildschirm{display:none!important}
+  .qr{padding:0;max-width:none}
+  .qr-layout{display:block}
+  #qrBlaetter{display:block}
+  .qr-blatt{box-shadow:none;border:0;border-radius:0;padding:0;break-inside:avoid}
+  .qr-blatt.veraltet::before{display:none}
+  .qr-blatt + .qr-blatt{break-before:page}
+  .ebene-gemalt,.ebene-loesung{display:none!important}
+  svg.qr-raster{max-width:min(186mm, calc(var(--felder, 25) * 8.6mm + 8.6mm));max-height:225mm}
+  svg.qr-raster.fertig{max-width:120mm}
+  .qr-loesungsblatt{display:none!important}
+  body.mit-loesung .qr-loesungsblatt{display:block!important}
+  .qr-karten{gap:8mm}
+  .qr-karten.pro-1 .qr-karte svg{max-width:120mm}
+  .qr-karten.pro-2 .qr-karte svg{max-width:95mm}
+  .qr-karten.pro-4 .qr-karte svg{max-width:72mm}
+  .qr-karten.pro-6 .qr-karte svg{max-width:56mm}
+  .qr-karten.pro-12 .qr-karte svg{max-width:44mm}
+}
