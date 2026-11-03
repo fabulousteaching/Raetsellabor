@@ -25,13 +25,12 @@ Einstellungen: Wörter dürfen sich überlappen, Ziffern unterschiedlich gross o
 Wortvorschläge (gleich bei allen Generatoren mit Wörtern, `gemeinsam/wortwahl.js`):
 
 - **Wortarten wählen:** Unter dem Thema lässt sich ankreuzen, was vorgeschlagen wird: *Nomen*, *Verben*, *Adjektive* – einzeln oder kombiniert (mindestens eine). Bei mehreren Wortarten sind die Vorschläge nach Wortart gruppiert. Nomen werden gross geschrieben, Verben (Grundform) und Adjektive klein. Die Wahl bleibt im Browser gespeichert und gilt für alle Generatoren; wer sie ändert, bekommt gleich neue Vorschläge.
-- **Eingebaute Themen:** 22 Themen (Tiere, Fussball, Berufe, Weltraum, Römer …) mit Nomen; sie kommen sofort, auch ohne Internet, wenn nur «Nomen» gewählt ist.
-- **Alles andere schlägt eine KI vor** – mit dem klaren Auftrag: nur Wörter, die Kinder von 8 bis 14 Jahren sicher kennen und verstehen (einfache, alltagsnahe Wörter aus dem Grundwortschatz, keine Fachbegriffe, Fremdwörter oder seltenen Wörter), eng zum Thema, ohne Namen.
-  - **Über den eigenen Server (Infomaniak):** Die Seite fragt `api/woerter.php`; der Server fragt die KI (Google Gemini, Mistral oder Pollinations.ai) mit seinem eigenen Schlüssel. Niemand muss einen Schlüssel eintragen. Den Schlüssel legt man als GitHub-Secret `KI_SCHLUESSEL` ab (siehe «Veröffentlichen»); welche KI gefragt wird, erkennt der Server am Schlüssel: Google-Schlüssel beginnen mit `AIza` (Modell `gemini-flash-latest`), Pollinations-Schlüssel mit `sk_`, alles andere gilt als Mistral (`mistral-small-latest`). Hinweis zu Google: Die Gratis-Stufe darf laut Google nicht für Angebote an Nutzende in der Schweiz und der EU verwendet werden; dafür im Google-Konto die Abrechnung einschalten (die Kosten pro Anfrage sind sehr klein). Schutz: nur Anfragen von der eigenen Seite, höchstens 60 pro Stunde und Netz und 1000 pro Tag; gleiche Themen und Wortarten kommen 30 Tage aus dem Zwischenspeicher. Gespeichert werden nur Zähler (IP-Adresse verschlüsselt) und Wortlisten (`api/daten/`).
-  - **Ohne eigenen Server (z. B. GitHub Pages):** über [Pollinations.ai](https://pollinations.ai) direkt aus dem Browser. Dafür braucht es einen kostenlosen Schlüssel (beginnt mit `sk_`), den man im Labor unter «KI für Wortvorschläge» einträgt; er bleibt nur im eigenen Browser gespeichert.
-  - **Im Claude-Artefakt** schlägt Claude vor.
-- Jede Antwort der KI wird geprüft: einzelne Wörter, ß → ss, nichts doppelt und kein Wort, das das Suchwort enthält (bei «Film» also kein «Spielfilm», kein «filmen»). Das gilt auch für die eingebauten Listen. «Andere Vorschläge» zeigt zuerst die restlichen Wörter und fragt dann nochmals nach, ohne die schon gezeigten.
-- Antwortet die KI nicht, steht unter den Vorschlägen der Grund; bei einem eingebauten Thema kommt dessen Liste.
+- **Die Vorschläge kommen von einer KI: Mistral** (Mistral AI, Paris, Server in Europa) – über den eigenen Server `api/woerter.php`. Der Schlüssel liegt nur dort; alle können die Seite benutzen, ohne etwas einzutragen. Mistral ist im Tarif «Experiment» kostenlos (Anmeldung mit Telefonnummer; im Gratis-Tarif darf Mistral die Anfragen zum Verbessern der Modelle verwenden – übermittelt werden nur Thema und Wortarten).
+- **Auftrag an die KI:** nur Wörter, die Kinder von 8 bis 14 Jahren sicher kennen und verstehen (einfache, alltagsnahe Wörter aus dem Grundwortschatz, keine Fachbegriffe, Fremdwörter oder seltenen Wörter), eng zum Thema, ohne Namen.
+- Jede Antwort wird geprüft: einzelne Wörter, ß → ss, nichts doppelt und kein Wort, das das Suchwort enthält (bei «Film» also kein «Spielfilm», kein «filmen»). «Andere Vorschläge» zeigt zuerst die restlichen Wörter und fragt dann nochmals nach, ohne die schon gezeigten.
+- **Schutz auf dem Server:** nur Anfragen von der eigenen Seite, höchstens 60 pro Stunde und Netz und 1000 pro Tag; gleiche Themen und Wortarten kommen 30 Tage aus dem Zwischenspeicher. Gespeichert werden nur Zähler (IP-Adresse verschlüsselt) und Wortlisten (`api/daten/`).
+- **Wenn die KI nicht erreichbar ist** (oder ohne eigenen Server, z. B. auf GitHub Pages), kommen bei 22 bekannten Themen (Tiere, Fussball, Berufe, Weltraum, Römer …) eingebaute Listen mit Nomen, sonst ein Hinweis mit dem Grund.
+- Im Claude-Artefakt schlägt Claude vor.
 
 Eigene Wörter gehen immer; sie bleiben so geschrieben, wie man sie eingibt.
 
@@ -66,9 +65,9 @@ Drei Stufen: *Einfach* (höchstens eine Regel pro Bild), *Mittel* (bis zwei Rege
 index.html                      Rätsellabor: Kopfleiste mit Menü, Startseite, Platz für den Generator
 gemeinsam/labor.css             gemeinsames Aussehen (Farben, Schriften, Kopfleiste, Menü, Karten, Knöpfe)
 gemeinsam/labor.js              Menü, Startseite und Wechsel zwischen den Generatoren
-gemeinsam/wortwahl.js           Baustein «Thema und Wörter»: Themenlisten, Wortarten, KI-Vorschläge, Wort-Chips
+gemeinsam/wortwahl.js           Baustein «Thema und Wörter»: Wortarten, KI-Vorschläge, eingebaute Listen, Wort-Chips
 gemeinsam/gitter.js             Baustein «Buchstabengitter»: Zeichnen, Markieren, Füllbuchstaben
-api/woerter.php                 Server-Teil (PHP): fragt die KI für Wortvorschläge; Schlüssel in api/geheim.php (entsteht beim Hochladen)
+api/woerter.php                 Server-Teil (PHP): fragt Mistral für Wortvorschläge; Schlüssel in api/geheim.php (entsteht beim Hochladen)
 raetsel/zahlen-suchsel/         der Generator «Zahlen-Suchsel»
   zahlen-suchsel.js             Kern (Ziffern bauen, Wörter verteilen), Oberfläche, Bedienung
   zahlen-suchsel.css            Aussehen dieses Generators (nur aktiv, solange er offen ist)
@@ -78,7 +77,7 @@ raetsel/rebus/                  der Generator «Rebus»
   rebus.css                     Aussehen dieses Generators
 ```
 
-Kein Build-Schritt, keine Abhängigkeiten ausser den Schriften Fredoka und Inter von Google Fonts. Für Wortvorschläge fragt die Seite eine KI: über den eigenen Server (`api/woerter.php`) oder, ohne Server, über Pollinations.ai (`gen.pollinations.ai`) direkt aus dem Browser. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel` oder `…/#rebus` öffnet direkt einen Generator, `…/#start` die Startseite.
+Kein Build-Schritt, keine Abhängigkeiten ausser den Schriften Fredoka und Inter von Google Fonts. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel` oder `…/#rebus` öffnet direkt einen Generator, `…/#start` die Startseite.
 
 ## Einen neuen Generator hinzufügen
 
@@ -116,7 +115,7 @@ Das Rätsellabor läuft unter **`https://raetsellabor.fabulousteaching.ch`**, al
 2. **Infomaniak-Manager → Webhosting → FTP / SSH:** ein FTP-Konto erstellen; **Server** (Form `xyzb.ftp.infomaniak.com`), **Benutzername** und **Passwort** notieren.
 3. **GitHub → Repository → Settings → Secrets and variables → Actions → New repository secret:** vier Secrets anlegen:
    `FTP_SERVER`, `FTP_BENUTZER`, `FTP_PASSWORT` und `FTP_ORDNER` (Ordner der Website mit `/` am Ende: `/sites/raetsellabor.fabulousteaching.ch/`).
-4. **Für KI-Wortvorschläge über den Server:** ein weiteres Secret `KI_SCHLUESSEL` mit dem Schlüssel der KI anlegen – von [Google AI Studio](https://aistudio.google.com/apikey) (beginnt mit `AIza`), von [Mistral](https://console.mistral.ai) oder von [Pollinations.ai](https://enter.pollinations.ai) (beginnt mit `sk_`). Optional `KI_ANBIETER` mit `google`, `mistral` oder `pollinations`. Beim Hochladen schreibt GitHub den Schlüssel in `api/geheim.php` auf dem Server; im Repository steht er nie.
+4. **KI für die Wortvorschläge:** auf [console.mistral.ai](https://console.mistral.ai) ein Konto erstellen, den kostenlosen Tarif «Experiment» wählen, unter «API Keys» einen Schlüssel erstellen und als weiteres Secret `KI_SCHLUESSEL` anlegen. Beim Hochladen schreibt GitHub den Schlüssel in `api/geheim.php` auf dem Server; im Repository steht er nie.
 5. **GitHub → Actions → «Auf Infomaniak hochladen» → Run workflow.** Nach ein bis zwei Minuten ist die Seite online. Danach geht es bei jeder Änderung von selbst. Nach einer Änderung an einem Secret den Workflow einmal von Hand starten.
 
 ### GitHub Pages

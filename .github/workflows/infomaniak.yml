@@ -6,9 +6,7 @@
 #   FTP_PASSWORT   Passwort dieses FTP-Kontos
 #   FTP_ORDNER     Ordner der Website auf dem Server, mit «/» am Ende: /sites/raetsellabor.fabulousteaching.ch/
 #                  (steht im Manager auf der Übersicht der Website)
-#   KI_SCHLUESSEL  Schlüssel für die KI-Wortvorschläge über den Server (Google Gemini «AIza…», Pollinations.ai «sk_…» oder Mistral);
-#                  ohne ihn kommen die Vorschläge wie bisher aus Klexikon und Wikipedia
-#   KI_ANBIETER    optional: «google», «mistral» oder «pollinations» (sonst am Schlüssel erkannt)
+#   KI_SCHLUESSEL  API-Schlüssel von Mistral (console.mistral.ai) für die KI-Wortvorschläge
 # Hochgeladen werden nur geänderte Dateien. Von Hand starten: Reiter «Actions» → «Auf Infomaniak hochladen» → «Run workflow».
 name: Auf Infomaniak hochladen
 
@@ -31,11 +29,9 @@ jobs:
       - name: KI-Schlüssel für den Server bereitlegen (api/geheim.php, nicht im Repository)
         env:
           KI_SCHLUESSEL: ${{ secrets.KI_SCHLUESSEL }}
-          KI_ANBIETER: ${{ secrets.KI_ANBIETER }}
         run: |
           s=$(printf '%s' "$KI_SCHLUESSEL" | base64 -w0)
-          a=$(printf '%s' "$KI_ANBIETER" | base64 -w0)
-          printf "<?php\n// Beim Hochladen aus den GitHub-Secrets erzeugt. Nicht ins Repository!\nreturn ['schluessel' => base64_decode('%s'), 'anbieter' => base64_decode('%s')];\n" "$s" "$a" > api/geheim.php
+          printf "<?php\n// Beim Hochladen aus dem GitHub-Secret erzeugt. Nicht ins Repository!\nreturn ['schluessel' => base64_decode('%s')];\n" "$s" > api/geheim.php
           php -l api/geheim.php
 
       - name: Per FTPS zu Infomaniak übertragen

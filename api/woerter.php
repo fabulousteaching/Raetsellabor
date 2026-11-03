@@ -1,8 +1,8 @@
 <?php
 /* Rätsellabor – Wortvorschläge über eine KI, vom eigenen Server aus
-   Der Browser fragt diese Datei, sie fragt die KI (Google Gemini, Mistral oder Pollinations.ai). Der Schlüssel steht in geheim.php;
-   diese Datei entsteht beim Hochladen aus den GitHub-Secrets KI_SCHLUESSEL (und optional KI_ANBIETER) und steht nie
-   im Repository. Welche KI gefragt wird, erkennt der Server am Schlüssel (Google: «AIza…», Pollinations: «sk_…», sonst Mistral).
+   Der Browser fragt diese Datei, sie fragt die KI: Mistral (Mistral AI, Paris; kostenloser Tarif «Experiment»).
+   Der Schlüssel steht in geheim.php; diese Datei entsteht beim Hochladen aus dem GitHub-Secret KI_SCHLUESSEL und steht
+   nie im Repository.
 
    GET  woerter.php           → { bereit, anbieter }            ist die KI eingerichtet?
    POST woerter.php           ← { thema, arten:['nomen','verb','adjektiv'], schon:[…] }   schon gezeigte Wörter werden ausgeschlossen
@@ -34,20 +34,11 @@ function laenge(string $s): int { return (int)preg_match_all('/./us', $s); }
 $geheim = is_file(__DIR__ . '/geheim.php') ? (include __DIR__ . '/geheim.php') : [];
 if (!is_array($geheim)) $geheim = [];
 $schluessel = trim((string)($geheim['schluessel'] ?? ''));
-$wahl = strtolower(trim((string)($geheim['anbieter'] ?? '')));
-if ($wahl === 'gemini') $wahl = 'google';
-if ($wahl !== 'mistral' && $wahl !== 'pollinations' && $wahl !== 'google') {
-  $wahl = strncmp($schluessel, 'AIza', 4) === 0 ? 'google' : (strncmp($schluessel, 'sk_', 3) === 0 ? 'pollinations' : 'mistral');
-}
-$ANBIETER = [
-  'mistral'      => ['name' => 'Mistral', 'url' => 'https://api.mistral.ai/v1/chat/completions', 'modell' => 'mistral-small-latest', 'json' => true],
-  'pollinations' => ['name' => 'Pollinations.ai', 'url' => 'https://gen.pollinations.ai/v1/chat/completions', 'modell' => '', 'json' => false],
-  // Google: OpenAI-kompatible Schnittstelle; «gemini-flash-latest» zeigt immer auf das aktuelle Flash-Modell
-  'google'       => ['name' => 'Google Gemini', 'url' => 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', 'modell' => 'gemini-flash-latest', 'json' => false],
+$ki = [
+  'name'   => 'Mistral',
+  'url'    => !empty($geheim['url']) ? (string)$geheim['url'] : 'https://api.mistral.ai/v1/chat/completions',   // «url» nur für Tests
+  'modell' => !empty($geheim['modell']) ? (string)$geheim['modell'] : 'mistral-small-latest',
 ];
-$ki = $ANBIETER[$wahl];
-if (!empty($geheim['modell'])) $ki['modell'] = (string)$geheim['modell'];
-if (!empty($geheim['url'])) $ki['url'] = (string)$geheim['url'];   // nur für Tests
 
 $methode = (string)($_SERVER['REQUEST_METHOD'] ?? '');
 if ($methode === 'GET') antwort(200, ['bereit' => $schluessel !== '', 'anbieter' => $schluessel !== '' ? $ki['name'] : null]);
@@ -93,7 +84,7 @@ if (mt_rand(1, 50) === 1) {   // ab und zu aufräumen
     if ($alter > (substr((string)$d, -5) === '.json' ? SPEICHER_TAGE * 86400 : 2 * 86400)) @unlink((string)$d);
   }
 }
-$speicher = $ordner . '/vorschlag-' . sha1($wahl . '|' . implode(',', $arten) . '|' . mb_strtolower($thema, 'UTF-8')) . '.json';
+$speicher = $ordner . '/vorschlag-' . sha1('mistral|' . implode(',', $arten) . '|' . mb_strtolower($thema, 'UTF-8')) . '.json';
 if (!$schon && is_file($speicher) && time() - (int)filemtime($speicher) < SPEICHER_TAGE * 86400) {
   $alt = json_decode((string)file_get_contents($speicher), true);
   if (is_array($alt) && !empty($alt['woerter']) && is_array($alt['woerter'][0] ?? null)) antwort(200, ['woerter' => $alt['woerter'], 'anbieter' => $ki['name'], 'gespeichert' => true]);
@@ -132,10 +123,9 @@ $body = ['messages' => [
   ['role' => 'system', 'content' => 'Du hilfst Lehrpersonen in der Schweiz, Worträtsel für Kinder zu erstellen. Du antwortest nur mit JSON.'],
   ['role' => 'user', 'content' => $prompt],
 ]];
-if ($ki['modell'] !== '') $body['model'] = $ki['modell'];
-if ($ki['json']) $body['response_format'] = ['type' => 'json_object'];
-if ($wahl === 'pollinations') $body['seed'] = random_int(1, 999999);   // sonst kommt bei gleicher Frage dieselbe Antwort
-else $body['temperature'] = 0.7;
+$body['model'] = $ki['modell'];
+$body['response_format'] = ['type' => 'json_object'];
+$body['temperature'] = 0.7;
 
 function senden(string $url, array $body, string $schluessel): array {
   $json = (string)json_encode($body, JSON_UNESCAPED_UNICODE);
@@ -156,9 +146,7 @@ function senden(string $url, array $body, string $schluessel): array {
   return [$status, $text === false ? '' : (string)$text];
 }
 [$status, $text] = senden($ki['url'], $body, $schluessel);
-// Google meldet manche Probleme als 400: falscher Schlüssel, oder Gratis-Nutzung in der Schweiz/EU nicht erlaubt
-if ($status === 400 && stripos($text, 'location is not supported') !== false) antwort(502, ['fehler' => 'region']);
-if ($status === 400 && preg_match('/api[ _]?key/i', $text)) antwort(502, ['fehler' => 'serverSchluessel']);
+if ($status === 429) { sleep(2); [$status, $text] = senden($ki['url'], $body, $schluessel); }   // Gratis-Tarif: etwa 1 Anfrage pro Sekunde
 if ($status === 401 || $status === 403) antwort(502, ['fehler' => 'serverSchluessel']);
 if ($status === 402) antwort(502, ['fehler' => 'guthaben']);
 if ($status === 429) antwort(429, ['fehler' => 'zuViele']);
