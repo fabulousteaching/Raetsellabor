@@ -281,7 +281,6 @@ var VORLAGE = `<div class="rb">
           <label class="feld-label" for="rbTitel">Titel auf dem Blatt</label>
           <input type="text" id="rbTitel" maxlength="60" autocomplete="off">
           <label class="opt"><input type="checkbox" id="rbKaestchen"><span>Für jeden Buchstaben der Lösung ein Kästchen</span></label>
-          <label class="opt"><input type="checkbox" id="rbLegende"><span>Zeichenerklärung auf dem Blatt</span></label>
           <label class="opt"><input type="checkbox" id="rbNamen"><span>Bildnamen als Hilfe klein unter die Bilder schreiben</span></label>
         </details>
       </div>
@@ -325,7 +324,7 @@ function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); };
   var esc = Labor.esc, aus = false;
   var TAB = 'rebus-eingaben', OPT = 'rebus-einstellungen', MAX = 12;
-  var STANDARD = { stufe:'mittel', kaestchen:true, legende:true, namen:false, mitLoesung:true, titelAn:true, anleitungAn:true };
+  var STANDARD = { stufe:'mittel', kaestchen:true, namen:false, mitLoesung:true, titelAn:true, anleitungAn:true };
 
   /* ---------- Zustand: Einträge nur für diesen Tab, Einstellungen bleiben ---------- */
   var st = { titel:'', eintraege:[], opt:Object.assign({}, STANDARD) };
@@ -396,7 +395,7 @@ function starte(bereich){
   titelFeld.value = st.titel;
   titelFeld.addEventListener('input', function(){ st.titel = titelFeld.value; speichern(); zeige(); });
   Labor.blattSchalter(bereich, st.opt, function(){ speichern(); zeige(); });
-  [['rbKaestchen', 'kaestchen'], ['rbLegende', 'legende'], ['rbNamen', 'namen'], ['rbMitLoesung', 'mitLoesung']].forEach(function(p){
+  [['rbKaestchen', 'kaestchen'], ['rbNamen', 'namen'], ['rbMitLoesung', 'mitLoesung']].forEach(function(p){
     var el = $('#' + p[0]); el.checked = !!st.opt[p[1]];
     el.addEventListener('change', function(){ st.opt[p[1]] = el.checked; speichern(); if (p[1] !== 'mitLoesung') zeige(); });
   });
@@ -420,28 +419,11 @@ function starte(bereich){
       return '<span class="rb-kwort">' + Array.from(w.wort).map(function(ch){ return '<span class="rb-k">' + (fuellen ? esc(ch) : '') + '</span>'; }).join('') + '</span>';
     }).join('') + '</div>';
   }
-  var LEGENDE = [
-    ['tausch', '<span class="rb-regel">ko=i</span>', 'Tauschen: im Bildwort «ko» durch «i» ersetzen. 👨‍🍳 KOCH wird zu ICH.'],
-    ['weg', '<span class="rb-regel">−m</span>', 'Minus: diesen Buchstaben weglassen. 🐭 MAUS wird zu AUS.'],
-    ['dazu', '<span class="rb-regel">+e</span>', 'Plus: diesen Buchstaben am Ende anhängen. 🐟 FISCH wird zu FISCHE.'],
-    ['buchstabe', '<span class="rb-buchstabe">R</span>', 'Einzelne Buchstaben gehören einfach dazu.']
-  ];
-  function benutzteZeichen(liste){
-    var z = {};
-    liste.forEach(function(r){ r.forEach(function(w){ w.teile.forEach(function(c){
-      if (c.buchstabe) z.buchstabe = 1; else c.regeln.forEach(function(g){ z[g.art] = 1; });
-    }); }); });
-    return z;
-  }
   function blattHtml(liste, loesung, beispiel){
-    var titel = st.titel.trim() || 'Bilderrätsel', z = benutzteZeichen(liste.map(function(x){ return x.r; }));
+    var titel = st.titel.trim() || 'Bilderrätsel';
     var html = loesung ? '<h2 class="rb-titel">' + esc(st.opt.titelAn ? 'Lösung – ' + titel : 'Lösung') + '</h2>' : st.opt.titelAn || beispiel ? '<h2 class="rb-titel">' + esc(titel) + '</h2>' : '';
     if (!loesung && (st.opt.anleitungAn || beispiel)) html += '<p class="rb-anleitung">' + (beispiel ? 'So sieht ein Rebus aus: ' : '') +
       'Welche Wörter verstecken sich in den Bildern? Die Bilder stehen für Wörter in der Einzahl, ohne Artikel. Die Regeln unter einem Bild wendet man der Reihe nach an.</p>';
-    if (st.opt.legende && !loesung){
-      var items = LEGENDE.filter(function(l){ return z[l[0]]; });
-      if (items.length) html += '<div class="rb-legende">' + items.map(function(l){ return '<div class="rb-leg"><span class="rb-leg-zeichen" aria-hidden="true">' + l[1] + '</span><span>' + l[2] + '</span></div>'; }).join('') + '</div>';
-    }
     html += '<ol class="rb-raetsel">';
     liste.forEach(function(x, i){
       html += '<li class="rb-eintrag" data-i="' + i + '"><span class="rb-nr">' + (liste.length > 1 ? (i + 1) + '.' : '') + '</span><div class="rb-inhalt">' +
