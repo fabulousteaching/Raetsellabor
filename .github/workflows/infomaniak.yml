@@ -1,9 +1,10 @@
-# Rätsellabor: bei jeder Änderung auf «main» automatisch auf das Infomaniak-Webhosting hochladen.
+# Rätsellabor: bei jeder Änderung auf «main» automatisch auf das Infomaniak-Webhosting hochladen
+# (https://raetsellabor.fabulousteaching.ch).
 # Die Zugangsdaten stehen als «Secrets» im Repository (Settings → Secrets and variables → Actions):
 #   FTP_SERVER     z. B. xyzb.ftp.infomaniak.com   (Infomaniak-Manager → Webhosting → FTP / SSH)
 #   FTP_BENUTZER   z. B. xyzb_raetsel
 #   FTP_PASSWORT   Passwort dieses FTP-Kontos
-#   FTP_ORDNER     Ordner der Website auf dem Server, mit «/» am Ende, z. B. /sites/raetsellabor.ch/
+#   FTP_ORDNER     Ordner der Website auf dem Server, mit «/» am Ende: /sites/raetsellabor.fabulousteaching.ch/
 #                  (steht im Manager auf der Übersicht der Website)
 # Hochgeladen werden nur geänderte Dateien. Von Hand starten: Reiter «Actions» → «Auf Infomaniak hochladen» → «Run workflow».
 name: Auf Infomaniak hochladen
