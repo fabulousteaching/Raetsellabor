@@ -24,8 +24,10 @@ var Kern = (function(){
   /* QR-Code berechnen → { n, version, dunkel[r][c] }; zu langer Text → null */
   function code(text, stufe){
     qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];   // Umlaute richtig
-    var q;
-    try { q = qrcode(0, stufe || 'M'); q.addData(String(text), 'Byte'); q.make(); } catch(e){ return null; }
+    // Nur Ziffern, Grossbuchstaben und wenige Zeichen (z. B. «HTTPS://SEITE.CH/B/K3X9») passen in den sparsamen
+    // Alphanumerik-Modus – das ergibt ein deutlich kleineres Raster
+    var q, t = String(text), modus = /^[0-9A-Z $%*+\-.\/:]+$/.test(t) ? 'Alphanumeric' : 'Byte';
+    try { q = qrcode(0, stufe || 'M'); q.addData(t, modus); q.make(); } catch(e){ return null; }
     var n = q.getModuleCount(), d = [];
     for (var r = 0; r < n; r++){ var z = []; for (var c = 0; c < n; c++) z.push(q.isDark(r, c)); d.push(z); }
     return { n:n, version:(n - 17) / 4, dunkel:d };
@@ -111,6 +113,7 @@ var Kern = (function(){
 /* KERN-ENDE */
 
 /* ===== Vorlage: Oberfläche des Generators ===== */
+var SYMBOLE = ['🎉', '⭐', '🏆', '💡', '🔑', '🗺️', '🎁', '❤️'];   // wie in api/botschaft.php
 var VORLAGE = '<div class="qr">' +
   '<header class="qr-kopf"><p class="augenbraue">Rätselgenerator</p><h1>QR-Code</h1>' +
     '<p>Aus einem Text oder Link wird ein QR-Code: zum Ausmalen mit eingebauter Selbstkontrolle oder fertig zum Ausdrucken.</p></header>' +
@@ -120,9 +123,21 @@ var VORLAGE = '<div class="qr">' +
   '<div class="qr-layout"><section class="qr-eingabe" aria-label="Eingaben">' +
     /* ---- Zum Ausmalen ---- */
     '<div class="qr-teil" data-teil="malen">' +
-      '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Botschaft</h2><p>Was zeigt das Handy, wenn der fertig ausgemalte Code gescannt wird?</p></div></div>' +
-        '<label class="vh" for="qrText">Text oder Link</label>' +
-        '<textarea id="qrText" rows="3" maxlength="300" placeholder="z. B. Super gemacht! Das Lösungswort ist SONNE." spellcheck="true"></textarea>' +
+      '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Was erscheint beim Scannen?</h2><p>Ist alles richtig ausgemalt, zeigt das Handy einen Text oder öffnet einen Link.</p></div></div>' +
+        '<div class="qr-ziel" role="radiogroup" aria-label="Was erscheint beim Scannen?">' +
+          '<label><input type="radio" name="qrZiel" value="text"><span>Text</span></label>' +
+          '<label><input type="radio" name="qrZiel" value="link"><span>Link</span></label>' +
+          '<label id="qrZielBotschaft" hidden><input type="radio" name="qrZiel" value="botschaft"><span>Botschaft</span></label></div>' +
+        '<div data-ziel="text"><label class="vh" for="qrText">Text</label>' +
+          '<textarea id="qrText" rows="3" maxlength="300" placeholder="z. B. Super gemacht! Das Lösungswort ist SONNE." spellcheck="true"></textarea></div>' +
+        '<div data-ziel="link"><label class="vh" for="qrLink">Ziellink</label>' +
+          '<input type="url" id="qrLink" maxlength="300" placeholder="z. B. www.fabulousteaching.ch/geschafft" autocomplete="url" spellcheck="false" inputmode="url"></div>' +
+        '<div data-ziel="botschaft" class="qr-botschaft-eingabe"><label class="vh" for="qrBTitel">Titel der Botschaft</label>' +
+          '<input type="text" id="qrBTitel" maxlength="80" placeholder="Titel, z. B. Bravo, Klasse 4a!" autocomplete="off">' +
+          '<label class="vh" for="qrBText">Botschaft</label>' +
+          '<textarea id="qrBText" rows="5" maxlength="1500" placeholder="Deine Botschaft – gerne auch mehrere Sätze oder Absätze."></textarea>' +
+          '<div class="qr-symbole" role="radiogroup" aria-label="Symbol auf der Botschaftsseite">' +
+            SYMBOLE.map(function(x){ return '<label><input type="radio" name="qrSymbol" value="' + x + '"><span>' + x + '</span></label>'; }).join('') + '</div></div>' +
         '<p class="hinweis" id="qrTextInfo" aria-live="polite"></p></div>' +
       '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Welche Felder ausmalen?</h2><p>Woran die Kinder erkennen, welche Felder sie ausmalen.</p></div></div>' +
         '<div class="qr-arten" role="radiogroup" aria-label="Ausmal-Art">' +
@@ -198,21 +213,21 @@ Labor.registriere({
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, esc = Labor.esc, aus = false;
   var TAB = 'qr-code-eingaben', OPT = 'qr-code-einstellungen', NS = 'http://www.w3.org/2000/svg';
-  var STANDARD = { modus:'malen', art:'punkte', regel:'gerade', zahlenraum:20, rechenart:'plus20', stufe:'Q', ecken:true, nummern:true, mitLoesung:true,
+  var STANDARD = { modus:'malen', ziel:'text', symbol:'🎉', art:'punkte', regel:'gerade', zahlenraum:20, rechenart:'plus20', stufe:'Q', ecken:true, nummern:true, mitLoesung:true,
     proBlatt:4, stufeFertig:'M', titelZeigen:true, inhaltZeigen:false, schnitt:true };
 
   /* ---------- Zustand: Inhalte nur für diesen Tab, Einstellungen bleiben ---------- */
-  var st = { text:'', titel:'', liste:[{ titel:'', inhalt:'' }], seed:1, opt:Object.assign({}, STANDARD) };
+  var st = { text:'', link:'', bTitel:'', bText:'', titel:'', liste:[{ titel:'', inhalt:'' }], seed:1, opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
   try {
     var e = JSON.parse(sessionStorage.getItem(TAB));
-    if (e){ st.text = String(e.text || ''); st.titel = String(e.titel || ''); st.seed = +e.seed || 1;
+    if (e){ st.text = String(e.text || ''); st.link = String(e.link || ''); st.bTitel = String(e.bTitel || ''); st.bText = String(e.bText || ''); st.titel = String(e.titel || ''); st.seed = +e.seed || 1;
       if (Array.isArray(e.liste) && e.liste.length) st.liste = e.liste.map(function(x){ return { titel:String(x.titel || ''), inhalt:String(x.inhalt || '') }; }); }
   } catch(x){}
   var timer = 0;
   function speichernJetzt(){
     clearTimeout(timer); timer = 0;
-    try { sessionStorage.setItem(TAB, JSON.stringify({ text:st.text, titel:st.titel, liste:st.liste, seed:st.seed })); } catch(x){}
+    try { sessionStorage.setItem(TAB, JSON.stringify({ text:st.text, link:st.link, bTitel:st.bTitel, bText:st.bText, titel:st.titel, liste:st.liste, seed:st.seed })); } catch(x){}
     try { localStorage.setItem(OPT, JSON.stringify(st.opt)); } catch(x){}
   }
   function speichern(){ clearTimeout(timer); timer = setTimeout(speichernJetzt, 200); }
@@ -221,6 +236,36 @@ function starte(bereich){
   function leer(){ $('#qrLeer').hidden = !!$('#qrBlaetter').innerHTML || !!$('#qrMeldung').innerHTML || st.opt.modus !== 'malen'; }
   // www.… ohne https:// öffnet nicht jedes Handy als Link
   function inhalt(t){ t = String(t || '').trim(); return /^www\./i.test(t) ? 'https://' + t : t; }
+  // Ziellink: ohne «https://» wird es ergänzt; gültig ist ein Web-Link mit Punkt in der Adresse
+  function linkNorm(t){ t = String(t || '').trim().replace(/\s+/g, ''); if (!t) return ''; return /^[a-z][a-z0-9+.-]*:/i.test(t) ? t : 'https://' + t.replace(/^\/+/, ''); }
+  function linkGueltig(u){ try { var x = new URL(u); return /^https?:$/.test(x.protocol) && /\.[a-z]{2,}$/i.test(x.hostname); } catch(e){ return false; } }
+  function malInhalt(){
+    if (st.opt.ziel === 'link') return linkNorm(st.link);
+    if (st.opt.ziel === 'botschaft') return st.bText.trim() ? botschaftUrl('XXXX') : '';   // Platzhalter: so gross wird der Code
+    return inhalt(st.text);
+  }
+
+  /* ---------- Botschaft: auf dem eigenen Server gespeichert (api/botschaft.php), der Code enthält nur den kurzen Link ---------- */
+  var BSERVER = 'api/botschaft.php', bStatus = null, bIds = {}, bLauf = 0;
+  function botschaftBereit(){
+    if (bStatus) return bStatus;
+    if (Labor.imArtefakt() || !/^https?:$/.test(location.protocol)) return (bStatus = Promise.resolve(false));
+    bStatus = fetch(BSERVER + '?status=1', { cache:'no-store' }).then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(j){ return !!(j && j.bereit); }, function(){ return false; });
+    return bStatus;
+  }
+  // Adresse in Grossbuchstaben: passt in den sparsamen Alphanumerik-Modus (kleineres Raster); Schema und Host sind gross/klein egal
+  function botschaftUrl(id){ return location.origin.toUpperCase() + location.pathname.replace(/[^\/]*$/, '') + 'B/' + id; }
+  function botschaftSpeichern(){
+    var daten = { titel:st.bTitel.trim(), text:st.bText.trim(), symbol:st.opt.symbol }, key = JSON.stringify(daten);
+    if (bIds[key]) return Promise.resolve(bIds[key]);
+    return fetch(BSERVER, { method:'POST', headers:{ 'Content-Type':'application/json' }, body:key }).then(function(r){
+      return r.json().catch(function(){ return {}; }).then(function(j){
+        if (r.ok && j && j.id){ bIds[key] = j.id; return j.id; }
+        var e = new Error('botschaft'); e.code = (j && j.fehler) || (r.status === 429 ? 'zuViele' : 'speichern'); throw e;
+      });
+    }, function(){ var e = new Error('netz'); e.code = 'netz'; throw e; });
+  }
 
   /* ---------- Modus: Zum Ausmalen / Fertige QR-Codes ---------- */
   function modusZeigen(){
@@ -241,19 +286,52 @@ function starte(bereich){
   });
 
   /* ================= Zum Ausmalen ================= */
-  var textFeld = $('#qrText'), aktuell = null, gemalt = {}, erstellt = false;
-  textFeld.value = st.text; $('#qrTitel').value = st.titel;
+  var textFeld = $('#qrText'), linkFeld = $('#qrLink'), aktuell = null, gemalt = {}, erstellt = false;
+  textFeld.value = st.text; linkFeld.value = st.link; $('#qrTitel').value = st.titel;
   function textInfo(){
-    var t = inhalt(st.text), box = $('#qrTextInfo');
-    if (!t){ box.textContent = 'Tipp: Ein kurzer Text ergibt ein kleines Raster, das schneller ausgemalt ist.'; return; }
+    var link = st.opt.ziel === 'link', t = malInhalt(), box = $('#qrTextInfo');
+    if (st.opt.ziel === 'botschaft'){
+      if (!t){ box.textContent = 'Die Botschaft wird auf deinem Server gespeichert, der QR-Code enthält nur einen kurzen Link darauf. Darum bleibt das Raster klein – egal wie lang die Botschaft ist.'; return; }
+      var qb = Kern.code(t, st.opt.stufe), vb = qb && Kern.verzeiht(qb.n, st.opt.stufe);
+      box.innerHTML = 'Raster: <b>' + qb.n + ' × ' + qb.n + ' Felder</b>' + (qb.n > Kern.GRENZE[st.opt.art] ? ' – für «' + artName() + '» zu gross, wähle «Kreise» oder eine kleinere Fehlertoleranz.' : vb ? ' · verzeiht etwa ' + vb + ' falsch ausgemalte Felder' : '') +
+        '<br>Beim Scannen öffnet sich eine eigene Seite mit ' + (st.bTitel.trim() ? 'Titel und ' : '') + 'Botschaft.';
+      return;
+    }
+    if (!t){ box.textContent = link ? 'Der Link öffnet sich, wenn der fertig ausgemalte Code gescannt wird. Tipp: Kurze Links ergeben kleinere Raster.'
+      : 'Tipp: Ein kurzer Text ergibt ein kleines Raster, das schneller ausgemalt ist.'; return; }
+    if (link && !linkGueltig(t)){ box.textContent = 'Das sieht noch nicht wie ein Link aus – z. B. www.beispiel.ch oder https://www.beispiel.ch/seite'; return; }
     var q = Kern.code(t, st.opt.stufe);
     if (!q){ box.textContent = 'Der Text ist zu lang für einen QR-Code.'; return; }
     var grenze = Kern.GRENZE[st.opt.art];
     var v = Kern.verzeiht(q.n, st.opt.stufe);
     box.innerHTML = 'Raster: <b>' + q.n + ' × ' + q.n + ' Felder</b>' + (q.n > grenze ? ' – für «' + artName() + '» sind höchstens ' + grenze + ' × ' + grenze + ' möglich.' :
       v ? ' · verzeiht etwa ' + v + ' falsch ausgemalte Felder' : '') +
-      (/^www\./i.test(st.text.trim()) ? '<br>Der Link bekommt automatisch «https://» davor, damit das Handy ihn direkt öffnet.' : '');
+      (link ? '<br>Öffnet: <b>' + esc(t) + '</b>' + (t !== st.link.trim() ? ' («https://» ergänzt, damit das Handy den Link direkt öffnet)' : '') :
+        /^www\./i.test(st.text.trim()) ? '<br>Der Link bekommt automatisch «https://» davor, damit das Handy ihn direkt öffnet.' : '');
   }
+  function zielZeigen(){
+    if (st.opt.ziel === 'botschaft' && $('#qrZielBotschaft').hidden) st.opt.ziel = 'text';   // ohne Server keine Botschaften
+    [].forEach.call(bereich.querySelectorAll('input[name="qrZiel"]'), function(r){ r.checked = r.value === st.opt.ziel; });
+    [].forEach.call(bereich.querySelectorAll('[data-ziel]'), function(d){ d.hidden = d.dataset.ziel !== st.opt.ziel; });
+  }
+  [].forEach.call(bereich.querySelectorAll('input[name="qrZiel"]'), function(r){
+    r.addEventListener('change', function(){ if (!r.checked) return; st.opt.ziel = r.value; speichern(); zielZeigen(); textInfo(); veraltet(); (st.opt.ziel === 'link' ? linkFeld : textFeld).focus(); });
+  });
+  linkFeld.addEventListener('input', function(){ st.link = linkFeld.value; speichern(); textInfo(); veraltet(); });
+  var gewuenscht = st.opt.ziel;
+  botschaftBereit().then(function(ok){
+    if (aus || !ok) return;
+    $('#qrZielBotschaft').hidden = false;
+    if (gewuenscht === 'botschaft'){ st.opt.ziel = 'botschaft'; zielZeigen(); textInfo(); if (erstellt || malInhalt()) erstellen(); }
+  });
+  $('#qrBTitel').value = st.bTitel; $('#qrBText').value = st.bText;
+  $('#qrBTitel').addEventListener('input', function(){ st.bTitel = this.value; speichern(); textInfo(); veraltet(); });
+  $('#qrBText').addEventListener('input', function(){ st.bText = this.value; speichern(); textInfo(); veraltet(); });
+  [].forEach.call(bereich.querySelectorAll('input[name="qrSymbol"]'), function(r){
+    r.checked = r.value === st.opt.symbol;
+    r.addEventListener('change', function(){ if (r.checked){ st.opt.symbol = r.value; speichern(); veraltet(); } });
+  });
+  linkFeld.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); erstellen(); } });
   function artName(){ return { punkte:'Kreise', zahlen:'Zahlen', rechnungen:'Rechnungen' }[st.opt.art]; }
   textFeld.addEventListener('input', function(){ st.text = textFeld.value; speichern(); textInfo(); veraltet(); });
   $('#qrTitel').addEventListener('input', function(){ st.titel = this.value; speichern(); if (aktuell) zeichnen(); });
@@ -278,25 +356,42 @@ function starte(bereich){
     el.addEventListener('change', function(){ st.opt[p[1]] = el.checked; speichern(); if (p[1] !== 'mitLoesung' && erstellt) erstellen(); });
   });
 
+  function nichts(h){ aktuell = null; $('#qrBlaetter').innerHTML = ''; $('#qrWerkzeug').hidden = true; meldung('fehler', h); }
   function erstellen(){
     erstellt = true;
-    var t = inhalt(st.text);
-    if (!t){ aktuell = null; $('#qrBlaetter').innerHTML = ''; $('#qrWerkzeug').hidden = true; meldung('fehler', '<h3>Noch keine Botschaft</h3><p>Gib zuerst einen Text oder Link ein.</p>'); return; }
+    var token = ++bLauf;
+    if (st.opt.ziel === 'botschaft'){
+      if (!st.bText.trim()){ nichts('<h3>Noch keine Botschaft</h3><p>Schreib zuerst die Botschaft, die sich beim Scannen öffnen soll.</p>'); return; }
+      meldung('info', '<p><span class="lade" aria-hidden="true"></span>Die Botschaft wird gespeichert …</p>');
+      botschaftSpeichern().then(function(id){ if (token === bLauf && !aus) bauen(botschaftUrl(id), 'botschaft', id); }, function(e){
+        if (token !== bLauf || aus) return;
+        var c = e && e.code;
+        nichts('<h3>Die Botschaft konnte nicht gespeichert werden</h3><p>' + (c === 'zuViele' ? 'Gerade wurden sehr viele Botschaften erstellt. Versuch es in einer Stunde nochmals.'
+          : c === 'netz' ? 'Der Server war nicht erreichbar. Prüfe die Internetverbindung und versuch es nochmals.' : 'Auf dem Server ist etwas schiefgegangen. Versuch es nochmals.') + '</p>');
+      });
+      return;
+    }
+    bauen(malInhalt(), st.opt.ziel);
+  }
+  function bauen(t, ziel, id){
+    var link = ziel === 'link';
+    if (!t){ nichts(link ? '<h3>Noch kein Link</h3><p>Gib zuerst den Ziellink ein, z. B. www.fabulousteaching.ch.</p>' : '<h3>Noch keine Botschaft</h3><p>Gib zuerst einen Text ein.</p>'); return; }
+    if (link && !linkGueltig(t)){ nichts('<h3>Kein gültiger Link</h3><p>«' + esc(st.link.trim()) + '» sieht nicht wie ein Link aus. Gib eine Adresse wie www.beispiel.ch oder https://www.beispiel.ch/seite ein.</p>'); return; }
     var o = { art:st.opt.art, regel:st.opt.regel, reihe:st.opt.reihe || 3, zahlenraum:st.opt.zahlenraum, rechenart:st.opt.rechenart, stufe:st.opt.stufe, ecken:st.opt.ecken, seed:st.seed };
     var r = Kern.raster(t, o);
     if (r.fehler){
       aktuell = null; $('#qrBlaetter').innerHTML = ''; $('#qrWerkzeug').hidden = true;
-      if (r.fehler === 'zuLang') meldung('fehler', '<h3>Der Text ist zu lang</h3><p>So viel Text passt in keinen QR-Code. Kürze ihn bitte.</p>');
+      if (r.fehler === 'zuLang') meldung('fehler', '<h3>' + (link ? 'Der Link ist zu lang' : 'Der Text ist zu lang') + '</h3><p>So viel passt in keinen QR-Code. Kürze ihn bitte.</p>');
       else {
         var besser = Kern.passendeStufe(t, r.grenze), stufenText = { L:'«gering»', M:'«mittel»', Q:'«hoch»', H:'«sehr hoch»' };
         meldung('fehler', '<h3>Das Raster wird zu gross</h3><p>Mit diesem Text hätte das Raster ' + r.n + ' × ' + r.n + ' Felder. Für «' + artName() + '» sind höchstens ' +
-          r.grenze + ' × ' + r.grenze + ' möglich, damit alles gut lesbar bleibt.</p><ul><li>Kürze den Text' +
+          r.grenze + ' × ' + r.grenze + ' möglich, damit alles gut lesbar bleibt.</p><ul><li>' + (link ? 'Nimm einen kürzeren Link' : 'Kürze den Text') +
           (besser ? ',</li><li>oder stelle in den Einstellungen die Fehlertoleranz auf ' + stufenText[besser] + ' – dann passt er' : '') +
           (st.opt.art !== 'punkte' ? ',</li><li>oder wähle «Kreise» – damit sind bis 41 × 41 Felder möglich' : '') + '.</li></ul>');
       }
       return;
     }
-    aktuell = { r:r, text:t, o:o }; gemalt = {};
+    aktuell = { r:r, text:t, o:o, ziel:ziel, oeffnet:ziel !== 'text', id:id, botschaft:ziel === 'botschaft' ? { titel:st.bTitel.trim(), text:st.bText.trim() } : null }; gemalt = {};
     $('#qrZeigeLoesung').setAttribute('aria-pressed', 'false');
     zeichnen();
     erfolgsMeldung();
@@ -360,7 +455,7 @@ function starte(bereich){
     var blatt = document.createElement('article');
     blatt.className = 'qr-blatt';
     blatt.innerHTML = '<h2>' + esc(titel) + '</h2><p class="qr-anleitung">' + esc(anleitung()) + '</p><div class="qr-gitter"></div>' +
-      '<p class="qr-fuss">Fertig? Scanne den Code mit einem Tablet oder Handy – er verrät dir eine Botschaft.</p>' +
+      '<p class="qr-fuss">Fertig? Scanne den Code mit einem Tablet oder Handy – ' + (aktuell.ziel === 'link' ? 'er führt dich zu einer Überraschung.' : aktuell.ziel === 'botschaft' ? 'er öffnet eine Botschaft für dich.' : 'er verrät dir eine Botschaft.') + '</p>' +
       '<p class="qr-fortschritt nur-bildschirm" id="qrFortschritt" aria-live="polite"></p>';
     var svg = rasterSvg('spiel');
     blatt.querySelector('.qr-gitter').appendChild(svg);
@@ -368,8 +463,12 @@ function starte(bereich){
     var loes = document.createElement('article');
     loes.className = 'qr-blatt qr-loesungsblatt';
     loes.setAttribute('aria-hidden', 'true');
-    loes.innerHTML = '<h2>Lösung – ' + esc(titel) + '</h2><p class="qr-anleitung">So sieht der fertig ausgemalte Code aus. Er enthält:</p>' +
-      '<p class="qr-botschaft">' + esc(aktuell.text) + '</p><div class="qr-gitter"></div>';
+    var b = aktuell.botschaft;
+    loes.innerHTML = '<h2>Lösung – ' + esc(titel) + '</h2><p class="qr-anleitung">So sieht der fertig ausgemalte Code aus. ' +
+      (aktuell.ziel === 'link' ? 'Er öffnet diesen Link:' : aktuell.ziel === 'botschaft' ? 'Er öffnet diese Botschaftsseite:' : 'Er enthält:') + '</p>' +
+      '<p class="qr-botschaft">' + (aktuell.oeffnet ? '<a href="' + esc(aktuell.text) + '" target="_blank" rel="noopener">' + esc(aktuell.text) + '</a>' : esc(aktuell.text)) + '</p>' +
+      (b ? '<div class="qr-botschaft qr-botschaft-voll">' + (b.titel ? '<b>' + esc(b.titel) + '</b>' : '') + '<span>' + esc(b.text) + '</span></div>' : '') +
+      '<div class="qr-gitter"></div>';
     loes.querySelector('.qr-gitter').appendChild(rasterSvg('loesung'));
     box.appendChild(loes);
     $('#qrWerkzeug').hidden = false; leer();
@@ -402,8 +501,14 @@ function starte(bereich){
     Object.keys(gemalt).forEach(function(f){ f = +f; if (r.dunkel[Math.floor(f / n)][f % n]) richtig++; else falsch++; });
     var fertig = richtig === r.anzahl && !falsch;
     p.className = 'qr-fortschritt nur-bildschirm' + (fertig ? ' fertig' : '');
-    p.textContent = fertig ? '🎉 Geschafft! Der Code ist komplett – scanne ihn jetzt mit dem Handy oder Tablet.'
-      : (Object.keys(gemalt).length ? Object.keys(gemalt).length + ' Felder ausgemalt.' : 'Tippe auf ein Feld oder fahre mit gedrückter Maus über mehrere Felder, um sie auszumalen.');
+    if (fertig){
+      // Wer am Tablet ausmalt, kann den eigenen Bildschirm nicht scannen – darum gibt es das Ziel auch als Knopf
+      p.innerHTML = '🎉 Geschafft! Der Code ist komplett – scanne ihn jetzt mit dem Handy oder Tablet. ' +
+        (aktuell.oeffnet ? '<a class="btn klein primary" href="' + esc(aktuell.text) + '" target="_blank" rel="noopener">' + (aktuell.ziel === 'botschaft' ? 'Botschaft öffnen' : 'Link öffnen') + '</a>'
+          : '<button type="button" class="btn klein" id="qrBotschaftZeigen">Botschaft zeigen</button>');
+      var bz = $('#qrBotschaftZeigen');
+      if (bz) bz.addEventListener('click', function(){ var x = document.createElement('span'); x.className = 'qr-botschaft-gezeigt'; x.textContent = aktuell.text; bz.replaceWith(x); });
+    } else p.textContent = Object.keys(gemalt).length ? Object.keys(gemalt).length + ' Felder ausgemalt.' : 'Tippe auf ein Feld oder fahre mit gedrückter Maus über mehrere Felder, um sie auszumalen.';
     var blatt = bereich.querySelector('.qr-blatt:not(.qr-loesungsblatt)');
     if (blatt) blatt.classList.toggle('geschafft', fertig);
   }
@@ -537,9 +642,9 @@ function starte(bereich){
   });
 
   /* ---------- Start ---------- */
-  unteroptionen(); modusZeigen(); listeZeichnen(); textInfo();
+  unteroptionen(); zielZeigen(); modusZeigen(); listeZeichnen(); textInfo();
   if (st.opt.modus === 'fertig') fertigZeigen();
-  else { leer(); try { if (st.text.trim() && sessionStorage.getItem(TAB)) erstellen(); } catch(x){} }
+  else { leer(); try { if (malInhalt() && sessionStorage.getItem(TAB)) erstellen(); } catch(x){} }
 
   return function stopp(){
     aus = true; clearTimeout(fertigTimer);

@@ -21,6 +21,29 @@
 /* ---------- Eingaben ---------- */
 .qr textarea{display:block;width:100%;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;resize:vertical;min-height:4.5em;line-height:1.45;transition:border-color .15s,box-shadow .15s}
 .qr textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.qr input[type=url]{display:block;width:100%;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:8px 11px;transition:border-color .15s,box-shadow .15s}
+.qr input[type=url]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+[data-ziel][hidden]{display:none}
+.qr-ziel{display:inline-flex;gap:3px;padding:3px;margin:0 0 10px;background:var(--bg);border:1px solid var(--line);border-radius:10px}
+.qr-ziel label{position:relative;cursor:pointer}
+.qr-ziel input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.qr-ziel span{display:block;padding:5px 16px;border-radius:7px;font-weight:600;font-size:.88rem;color:var(--muted);transition:background .15s,color .15s}
+.qr-ziel label:hover span{color:var(--text)}
+.qr-ziel input:checked + span{background:var(--card);color:var(--text);box-shadow:0 1px 2px rgba(45,28,12,.14)}
+.qr-ziel input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:1px}
+.qr-fortschritt .btn{margin-left:6px;vertical-align:middle}
+.qr-botschaft-gezeigt{display:inline-block;margin-left:6px;padding:3px 10px;border-radius:8px;background:var(--accent-soft);color:var(--text);font-weight:600}
+.qr-botschaft a{color:var(--accent-2);overflow-wrap:anywhere}
+.qr-botschaft-eingabe{display:grid;gap:8px}
+.qr-botschaft-eingabe[hidden]{display:none}
+.qr-symbole{display:flex;flex-wrap:wrap;gap:6px}
+.qr-symbole label{position:relative;cursor:pointer}
+.qr-symbole input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.qr-symbole span{display:grid;place-items:center;width:40px;height:40px;border:1px solid var(--line-2);border-radius:10px;font-size:1.3rem;background:#fff;transition:border-color .15s,background .15s}
+.qr-symbole input:checked + span{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 2px var(--accent-line)}
+.qr-symbole input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+.qr-botschaft-voll{display:grid;gap:4px;font-weight:400}
+.qr-botschaft-voll span{white-space:pre-wrap}
 .qr-arten{display:grid;gap:8px}
 .qr-art{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;transition:border-color .15s,background .15s}
 .qr-art:hover{border-color:var(--accent-line)}
