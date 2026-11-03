@@ -5,8 +5,9 @@
    im Repository. Welche KI gefragt wird, erkennt der Server am Schlüssel (Pollinations-Schlüssel beginnen mit «sk_»).
 
    GET  woerter.php           → { bereit, anbieter }            ist die KI eingerichtet?
-   POST woerter.php           ← { thema, schon:[…] }            schon gezeigte Wörter werden ausgeschlossen
-                              → { woerter:[…], anbieter }  oder  { fehler } mit passendem HTTP-Status
+   POST woerter.php           ← { thema, arten:['nomen','verb','adjektiv'], schon:[…] }   schon gezeigte Wörter werden ausgeschlossen
+                              → { woerter:[{ wort, art }, …], anbieter }  oder  { fehler } mit passendem HTTP-Status
+   Wichtig im Auftrag an die KI: Wörter, die Kinder von 8 bis 14 Jahren kennen und verstehen.
 
    Schutz: nur Anfragen von dieser Website; höchstens PRO_STUNDE Anfragen pro Stunde und Netz (eine Schule teilt sich
    oft eine Adresse) und PRO_TAG insgesamt; gleiche Fragen kommen aus dem Zwischenspeicher und zählen nicht.
@@ -67,6 +68,13 @@ foreach ((array)($e['schon'] ?? []) as $w) {
   if ($w !== '' && laenge($w) <= 30 && preg_match('/^\p{L}+$/u', $w)) $schon[$w] = true;
 }
 $schon = array_slice(array_keys($schon), -80);
+$ARTEN = [
+  'nomen'    => ['schluessel' => 'nomen',     'regel' => 'Nomen in der Einzahl, mit grossem Anfangsbuchstaben, ohne Artikel (z. B. «Kamera»)'],
+  'verb'     => ['schluessel' => 'verben',    'regel' => 'Verben in der Grundform (Infinitiv), klein geschrieben (z. B. «rennen»)'],
+  'adjektiv' => ['schluessel' => 'adjektive', 'regel' => 'Adjektive in der Grundform, klein geschrieben (z. B. «schnell»)'],
+];
+$arten = array_values(array_intersect(array_keys($ARTEN), array_map('strval', (array)($e['arten'] ?? ['nomen']))));
+if (!$arten) $arten = ['nomen'];
 
 /* ---------- Ablage für Zähler und Zwischenspeicher ---------- */
 $ordner = __DIR__ . '/daten';
@@ -80,10 +88,10 @@ if (mt_rand(1, 50) === 1) {   // ab und zu aufräumen
     if ($alter > (substr((string)$d, -5) === '.json' ? SPEICHER_TAGE * 86400 : 2 * 86400)) @unlink((string)$d);
   }
 }
-$speicher = $ordner . '/vorschlag-' . sha1($wahl . '|' . mb_strtolower($thema, 'UTF-8')) . '.json';
+$speicher = $ordner . '/vorschlag-' . sha1($wahl . '|' . implode(',', $arten) . '|' . mb_strtolower($thema, 'UTF-8')) . '.json';
 if (!$schon && is_file($speicher) && time() - (int)filemtime($speicher) < SPEICHER_TAGE * 86400) {
   $alt = json_decode((string)file_get_contents($speicher), true);
-  if (is_array($alt) && !empty($alt['woerter'])) antwort(200, ['woerter' => $alt['woerter'], 'anbieter' => $ki['name'], 'gespeichert' => true]);
+  if (is_array($alt) && !empty($alt['woerter']) && is_array($alt['woerter'][0] ?? null)) antwort(200, ['woerter' => $alt['woerter'], 'anbieter' => $ki['name'], 'gespeichert' => true]);
 }
 
 /* ---------- Anzahl begrenzen ---------- */
@@ -103,14 +111,18 @@ if (!zaehlen($ordner . '/netz-' . sha1(hash('sha256', $schluessel) . '|' . $ip .
     || !zaehlen($ordner . '/tag-' . date('Ymd') . '.txt', PRO_TAG)) antwort(429, ['fehler' => 'zuViele']);
 
 /* ---------- KI fragen ---------- */
+$je = (int)round(30 / count($arten));
 $prompt = 'Thema: «' . $thema . "»\n" .
-  "Nenne 30 deutsche Nomen, die eng zu diesem Thema gehören und die Kinder von 8 bis 14 Jahren kennen und verstehen.\n" .
-  "Regeln:\n- Je ein einzelnes Wort in der Grundform (Einzahl), ohne Artikel, ohne Leerzeichen, Bindestriche oder Ziffern.\n" .
-  "- 3 bis 12 Buchstaben, gemischte Längen.\n" .
+  "Gesucht sind Wörter, die eng zu diesem Thema gehören:\n" .
+  implode("\n", array_map(function($a) use ($ARTEN, $je){ return '- ' . $je . ' ' . $ARTEN[$a]['regel']; }, $arten)) . "\n" .
+  'Ganz wichtig: Kinder von 8 bis 14 Jahren müssen jedes Wort sicher kennen und verstehen. Nimm einfache, alltagsnahe Wörter ' .
+  'aus dem Grundwortschatz – keine Fachbegriffe, keine Fremdwörter, keine seltenen oder altmodischen Wörter. ' .
+  "Lieber ein einfaches, bekanntes Wort als ein genaues, schwieriges.\n" .
+  "Regeln:\n- Je ein einzelnes Wort ohne Leerzeichen, Bindestriche, Ziffern oder Abkürzungen, 3 bis 12 Buchstaben, gemischte Längen.\n" .
   '- Kein Wort darf «' . $thema . "» enthalten (keine Zusammensetzungen mit dem Thema selbst).\n" .
   "- Keine Namen von Personen, Marken oder Orten.\n- Schweizer Rechtschreibung: ss statt ß.\n" .
   ($schon ? '- Nicht diese Wörter (schon vorgeschlagen): ' . implode(', ', $schon) . "\n" : '') .
-  'Antworte nur so: {"woerter": ["Wort", "Wort", …]}';
+  'Antworte nur mit JSON in dieser Form: {' . implode(', ', array_map(function($a) use ($ARTEN){ return '"' . $ARTEN[$a]['schluessel'] . '": ["…"]'; }, $arten)) . '}';
 $body = ['messages' => [
   ['role' => 'system', 'content' => 'Du hilfst Lehrpersonen in der Schweiz, Worträtsel für Kinder zu erstellen. Du antwortest nur mit JSON.'],
   ['role' => 'user', 'content' => $prompt],
@@ -144,7 +156,7 @@ if ($status === 402) antwort(502, ['fehler' => 'guthaben']);
 if ($status === 429) antwort(429, ['fehler' => 'zuViele']);
 if ($status < 200 || $status >= 300) antwort(502, ['fehler' => 'ki']);
 
-/* ---------- Antwort auslesen: JSON oder Text mit einer Liste darin ---------- */
+/* ---------- Antwort auslesen: Listen je Wortart (oder eine einfache Liste) ---------- */
 $j = json_decode($text, true);
 $inhalt = is_array($j) ? ($j['choices'][0]['message']['content'] ?? '') : $text;
 if (is_array($inhalt)) {   // manche Modelle liefern den Text in Stücken
@@ -152,19 +164,23 @@ if (is_array($inhalt)) {   // manche Modelle liefern den Text in Stücken
 }
 $inhalt = (string)$inhalt;
 $daten = json_decode($inhalt, true);
+if (!is_array($daten) && preg_match('/\{[\s\S]*\}/u', $inhalt, $m)) $daten = json_decode($m[0], true);
 if (!is_array($daten) && preg_match('/\[[^\[\]]*\]/u', $inhalt, $m)) $daten = json_decode($m[0], true);
-if (is_array($daten) && !isset($daten[0])) {
-  $liste = $daten['woerter'] ?? ($daten['wörter'] ?? ($daten['words'] ?? null));
-  if (!is_array($liste)) foreach ($daten as $v) if (is_array($v)) { $liste = $v; break; }
-  $daten = $liste;
+$gruppen = [];
+if (is_array($daten) && isset($daten[0])) $gruppen[$arten[0]] = $daten;          // einfache Liste
+elseif (is_array($daten)) foreach ($arten as $a) {
+  $l = $daten[$ARTEN[$a]['schluessel']] ?? ($daten[$a] ?? ($a === 'nomen' ? ($daten['woerter'] ?? null) : null));
+  if (is_array($l)) $gruppen[$a] = $l;
 }
-$woerter = [];
-foreach ((array)$daten as $w) {
+$woerter = []; $gesehen = [];
+foreach ($gruppen as $a => $liste) foreach ($liste as $w) {
   if (!is_string($w)) continue;
   $w = str_replace('ß', 'ss', trim($w));
-  if (preg_match('/^\p{L}{2,20}$/u', $w)) $woerter[$w] = true;
+  if (!preg_match('/^\p{L}{2,20}$/u', $w) || isset($gesehen[mb_strtolower($w, 'UTF-8')])) continue;
+  $gesehen[mb_strtolower($w, 'UTF-8')] = true;
+  $woerter[] = ['wort' => $w, 'art' => $a];
 }
-$woerter = array_slice(array_keys($woerter), 0, 40);
+$woerter = array_slice($woerter, 0, 60);
 if (count($woerter) < 3) antwort(502, ['fehler' => 'antwort']);
 
 if (!$schon) @file_put_contents($speicher, json_encode(['thema' => $thema, 'woerter' => $woerter], JSON_UNESCAPED_UNICODE));

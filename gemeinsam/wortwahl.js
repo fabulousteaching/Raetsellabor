@@ -1,8 +1,10 @@
 /* Rätsellabor – gemeinsamer Baustein «Thema und Wörter»
-   Thema eingeben, Wortvorschläge holen, Vorschläge anklicken, eigene Wörter ergänzen.
-   Woher die Vorschläge kommen: zuerst die eingebauten Themen; sonst aus dem Internet (kindgerechte Nomen aus den passenden
-   Artikeln im Klexikon und in Wikipedia, ohne Claude). Im Claude-Artefakt ist das Internet gesperrt – dort hilft Claude aus.
-   Braucht gemeinsam/wortschatz.js (vorher einbinden).
+   Thema eingeben, Wortarten wählen (Nomen, Verben, Adjektive), Wortvorschläge holen, anklicken, eigene Wörter ergänzen.
+   Woher die Vorschläge kommen:
+     – eingebaute Themenlisten (nur Nomen; sofort und ohne Internet),
+     – sonst eine KI: über den eigenen Server (api/woerter.php, Schlüssel dort), ohne Server über Pollinations.ai direkt
+       aus dem Browser (eigener Schlüssel), im Claude-Artefakt über Claude.
+   Wichtig ist immer: Wörter, die Kinder von 8 bis 14 Jahren kennen und verstehen, und kein Wort, das das Thema enthält.
    Ein Generator bindet den Baustein so ein:
      html:  Wortwahl.html(1)                                   → Karte «Thema und Wörter» (Schritt 1)
      start: var ww = Wortwahl.verbinde(bereich, {
@@ -38,12 +40,6 @@ var Wortwahl = (function(){
     { name:'Römer', alias:['römerzeit', 'rom', 'antike', 'römisches reich'], w:'Kolosseum Aquädukt Legionär Toga Therme Forum Tempel Senat Kaiser Gladiator Amphore Mosaik Villa Strasse Münze Latrine Tunika Wagen Schild Arena Zenturio Sklave Konsul Triumphbogen Kastell Helm Sandalen Galeere Lorbeerkranz Hypokaustum Abakus Wölfin' },
     { name:'Mittelalter', alias:['ritter', 'burg', 'ritterzeit'], w:'Burg Ritter König Königin Knappe Page Turnier Lanze Schwert Rüstung Wappen Zugbrücke Burggraben Bergfried Kloster Mönch Nonne Markt Händler Bauer Zunft Handwerker Pest Kathedrale Gaukler Minnesänger Pranger Stadtmauer Schmied Kogge Burgfräulein Urkunde' }
   ];
-  // Die Wörter der eingebauten Themen sind kindgerecht ausgewählt: auch sie gehören zum Grundwortschatz
-  // (ohne Länder und Farben – die kommen in Texten oft als Namen oder Adjektive vor).
-  if (typeof Wortschatz !== 'undefined') THEMEN.forEach(function(th){
-    if (th.name === 'Länder' || th.name === 'Farben und Formen') return;
-    th.w.split(' ').forEach(function(w){ if (w !== 'Deutsch') Wortschatz.aufnehmen(w); });
-  });
   function schluessel(t){ return String(t || '').toLocaleLowerCase('de-CH').replace(/ß/g, 'ss').replace(/[^\p{L} ]/gu, '').replace(/\s+/g, ' ').trim(); }
   function findeThema(t){
     var k = schluessel(t);
@@ -57,95 +53,39 @@ var Wortwahl = (function(){
   function esc(t){ return String(t).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); }
   function mischen(a){ a = a.slice(); for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
   function teileListe(t){ return String(t).split(/[\n,;\t]+/).map(function(s){ return s.trim(); }).filter(Boolean); }
-  function schreibweise(w){ w = String(w).trim(); return w && w === w.toLocaleLowerCase('de-CH') ? w.charAt(0).toLocaleUpperCase('de-CH') + w.slice(1) : w; }
 
-  /* ---------- Vorschläge aus dem Internet ----------
-     Quellen: das Klexikon (Kinderlexikon, klexikon.zum.de) und die deutsche Wikipedia. Beide erlauben Abfragen direkt
-     aus dem Browser (origin=*), ohne Anmeldung und ohne Claude.
-     Ausgewählt werden Nomen, die
-       – im Artikel vorkommen (häufig und in der Einleitung zählt mehr; Literatur, Weblinks usw. werden abgeschnitten),
-       – Kinder von 8 bis 14 kennen: Sie stehen im Grundwortschatz (gemeinsam/wortschatz.js) oder sind aus zwei
-         Wörtern daraus zusammengesetzt; im Klexikon geschriebene Wörter gelten auch so als kindgerecht,
-       – das Suchwort nicht enthalten (bei «Film» also kein «Spielfilm»). */
-  var WIKI = 'https://de.wikipedia.org/w/api.php?format=json&formatversion=2&origin=*&';
-  var KLEX = 'https://klexikon.zum.de/api.php?format=json&formatversion=2&origin=*&';
-  var STOPP = {};
-  ('jahr jahre jahren jahres jahrhundert jahrhunderts jahrhunderte jahrzehnt jahrzehnte zeit zeiten zeitpunkt teil teile teilen beispiel beispiele art arten ' +
-   'weise ende anfang beginn begriff begriffe bezeichnung bezeichnungen name namen form formen fall fälle grund gründe bereich bereiche rahmen folge ' +
-   'folgen seite seiten hälfte mitte stelle stellen zahl zahlen anzahl menge prozent million millionen milliarde milliarden mal verlauf entwicklung ' +
-   'geschichte gegensatz unterschied unterschiede bedeutung möglichkeit möglichkeiten literatur weblinks einzelnachweise siehe sie ihr ihre ihnen ' +
-   'januar februar märz april mai juni juli august september oktober november dezember montag dienstag mittwoch donnerstag freitag samstag sonntag ' +
-   'herr frau mann deutschland schweiz österreich usa land länder welt person personen mensch menschen leute thema themen wort wörter liste listen version ' +
-   'gebiet gebiete ort orte gruppe gruppen typ typen sinne sinn verwendung zusammenhang ebene stand anteil höhe länge grösse gewicht ' +
-   'regel regeln quelle quellen angaben angabe ergebnis ergebnisse aspekt aspekte rolle beispielsweise wikipedia artikel kapitel abschnitt ' +
-   'hinweis hinweise information informationen faktor faktoren prinzip methode problem probleme sekunde sekunden minute minuten stunde stunden ' +
-   'tag tage tagen woche wochen monat monate monaten staat staaten hause').split(' ').forEach(function(w){ STOPP[w] = 1; });
-  // Abschnitte am Ende eines Artikels, die nur Bücher, Links und Belege aufzählen
-  var META = /^(literatur|weblinks|einzelnachweise|anmerkungen|siehe auch|quellen|belege|fussnoten|fußnoten|filmografie|diskografie|bibliografie|bibliographie|werke|schriften|publikationen|veröffentlichungen|auszeichnungen|ehrungen|rezeption|trivia|verfilmungen|weiterführende)/i;
-  var ARTIKEL = {};
-  'der die das den dem des ein eine einen einem einer eines kein keine keinen keinem keiner sein seine seinen seinem ihr ihre ihren ihrem unser unsere jede jeder jedes jedem jeden diese dieser dieses diesem diesen alle viele mehrere einige beide zwei drei vier zum zur im am vom beim ins'
-    .split(' ').forEach(function(w){ ARTIKEL[w] = 1; });
+  /* ---------- Wortarten ---------- */
+  var ARTEN = {
+    nomen:    { name:'Nomen',     schluessel:'nomen',     regel:'Nomen in der Einzahl, mit grossem Anfangsbuchstaben, ohne Artikel (z. B. «Kamera»)' },
+    verb:     { name:'Verben',    schluessel:'verben',    regel:'Verben in der Grundform (Infinitiv), klein geschrieben (z. B. «rennen»)' },
+    adjektiv: { name:'Adjektive', schluessel:'adjektive', regel:'Adjektive in der Grundform, klein geschrieben (z. B. «schnell»)' }
+  };
+  var REIHE = ['nomen', 'verb', 'adjektiv'], ARTEN_SPEICHER = 'raetsellabor-wortarten';
+  function wortarten(neu){
+    try {
+      if (neu) localStorage.setItem(ARTEN_SPEICHER, JSON.stringify(neu));
+      var a = neu || JSON.parse(localStorage.getItem(ARTEN_SPEICHER) || 'null');
+      a = Array.isArray(a) ? REIHE.filter(function(x){ return a.indexOf(x) >= 0; }) : [];
+      return a.length ? a : ['nomen'];
+    } catch(e){ return neu && neu.length ? neu : ['nomen']; }
+  }
+  function artenText(arten){   // «Nomen», «Nomen und Verben», «Nomen, Verben und Adjektive»
+    var n = arten.map(function(a){ return ARTEN[a].name; });
+    return n.length < 2 ? n.join('') : n.slice(0, -1).join(', ') + ' und ' + n[n.length - 1];
+  }
+  // Nomen gross, Verben und Adjektive klein
+  function schreibweise(w, art){
+    w = String(w || '').replace(/ß/g, 'ss').trim();
+    return art === 'nomen' ? w.charAt(0).toLocaleUpperCase('de-CH') + w.slice(1) : w.toLocaleLowerCase('de-CH');
+  }
+
+  /* ---------- Kein Wort, das das Suchwort enthält (Film → kein «Spielfilm»; Vulkane → kein «Vulkanausbruch») ---------- */
   var FUELL = {}; 'und oder im in der die das den dem des von vom mit am für zum zur ein eine auf bei aus the'.split(' ').forEach(function(w){ FUELL[w] = 1; });
-
-  function holeJson(url, ms){
-    var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, uhr = setTimeout(function(){ if (ctl) ctl.abort(); }, ms || 9000);
-    return fetch(url, ctl ? { signal:ctl.signal } : {}).then(function(r){ clearTimeout(uhr); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); },
-      function(e){ clearTimeout(uhr); throw e; });
-  }
-  function adresse(basis, titel){ return basis + encodeURIComponent(titel.replace(/ /g, '_')); }
-
-  /* Wikipedia: Artikel als reiner Text, Überschriften als «== … ==» */
-  function wikiSeite(j){
-    var p = j && j.query && j.query.pages && j.query.pages[0];
-    if (!p || p.missing || p.invalid) return null;
-    if (p.pageprops && 'disambiguation' in p.pageprops) return null;   // Begriffsklärung
-    if (!p.extract || p.extract.length < 400) return null;
-    return { titel:p.title, text:p.extract, url:adresse('https://de.wikipedia.org/wiki/', p.title) };
-  }
-  function wikiArtikel(titel){
-    return holeJson(WIKI + 'action=query&redirects=1&prop=extracts|pageprops&ppprop=disambiguation&explaintext=1&exsectionformat=wiki&titles=' + encodeURIComponent(titel)).then(wikiSeite);
-  }
-  function wikipedia(thema){
-    return wikiArtikel(thema).then(function(s){
-      if (s) return s;
-      // sonst die ersten Suchtreffer der Reihe nach, bis einer ein richtiger Artikel ist
-      return holeJson(WIKI + 'action=query&list=search&srlimit=4&srsearch=' + encodeURIComponent(thema)).then(function(j){
-        var treffer = ((j.query && j.query.search) || []).map(function(x){ return x.title; });
-        function naechster(i){ return i >= treffer.length ? null : wikiArtikel(treffer[i]).then(function(s2){ return s2 || naechster(i + 1); }); }
-        return naechster(0);
-      });
-    });
-  }
-  /* Klexikon: Seite als HTML holen und den Fliesstext herauslösen. Antwortet es nicht, geht es ohne. */
-  function klexikon(titel){
-    if (typeof DOMParser === 'undefined') return Promise.resolve(null);
-    return holeJson(KLEX + 'action=parse&prop=text&redirects=1&disabletoc=1&page=' + encodeURIComponent(titel), 6000).then(function(j){
-      var t = j && !j.error && j.parse && j.parse.text;
-      if (t && typeof t === 'object') t = t['*'];
-      if (!t || typeof t !== 'string') return null;
-      var doc = new DOMParser().parseFromString(t, 'text/html');
-      [].forEach.call(doc.querySelectorAll('table, sup, style, script, .reference, .mw-editsection, .toc, .navbox, .noprint'), function(n){ n.remove(); });
-      var text = [].map.call(doc.querySelectorAll('p, li, h2'), function(n){ return n.tagName === 'H2' ? '\n== ' + n.textContent.trim() + ' ==\n' : n.textContent; }).join('\n');
-      if (text.replace(/\s+/g, '').length < 200) return null;
-      return { titel:j.parse.title, text:text, url:adresse('https://klexikon.zum.de/wiki/', j.parse.title) };
-    }).catch(function(){ return null; });
-  }
-
-  /* Einleitung und Hauptteil eines Artikels; Literatur, Weblinks, Einzelnachweise usw. fallen weg */
-  function abschnitte(text){
-    var t = String(text || '').split(/^==[ \t]*([^=\n][^\n]*?)[ \t]*==[ \t]*$/m), rest = [];
-    for (var i = 1; i < t.length; i += 2) if (!META.test(t[i].trim())) rest.push(t[i + 1] || '');
-    function ohneTitel(x){ return x.replace(/^=+[^\n]*=+[ \t]*$/gm, ''); }
-    return { einleitung:ohneTitel(t[0]), rest:ohneTitel(rest.join('\n')) };
-  }
-  /* Woran man Wörter erkennt, die das Suchwort enthalten (Film → Filme, Spielfilm; Vulkane → Vulkanologe) */
   function ohneUmlaut(w){ return w.replace(/ä/g, 'a').replace(/ö/g, 'o').replace(/ü/g, 'u'); }
   function themaStaemme(thema){
     return schluessel(thema).split(' ').filter(function(w){ return w.length >= 3 && !FUELL[w]; }).map(function(w){
-      var g = typeof Wortschatz !== 'undefined' && Wortschatz.grundform(w);
-      var s = g && g.teile === 1 ? schluessel(g.form) : w;
-      if (!g){ var k = s.replace(/(en|er|e|n|s)$/, ''); if (k.length >= 4) s = k; }
-      return ohneUmlaut(s);
+      var k = w.replace(/(en|er|e|n|s)$/, '');
+      return ohneUmlaut(k.length >= 4 ? k : w);
     });
   }
   function enthaeltThema(wort, staemme){
@@ -155,95 +95,69 @@ var Wortwahl = (function(){
       return w === s || w.indexOf(s) === 0 || w.slice(-s.length) === s;   // kurze Stämme nur am Anfang oder Ende
     });
   }
-  /* Kandidaten aus mehreren Texten: [{ text, gewicht, kinder }] → Wörter nach Wichtigkeit */
-  function kandidaten(quellen, thema){
-    var roh = {}, staemme = themaStaemme(thema);
-    quellen.forEach(function(q){
-      var saetze = String(q.text || '').replace(/([.!?:;])\s+/g, '$1\n').split(/\n+/);
-      saetze.forEach(function(satz){
-        var vorher = '';
-        (satz.match(/[A-Za-zÄÖÜäöüß]+/g) || []).forEach(function(w, i){
-          var gross = /^[A-ZÄÖÜ][a-zäöüß]+$/.test(w);
-          if (gross){
-            var n = w.replace(/ß/g, 'ss'), r = roh[n] || (roh[n] = { mitte:0, anfang:0, kinder:0, andere:0, artikel:0 });
-            if (i === 0) r.anfang += q.gewicht; else { r.mitte += q.gewicht; if (q.kinder) r.kinder++; else r.andere++; }
-            if (ARTIKEL[vorher]) r.artikel++;
-          }
-          vorher = w.toLocaleLowerCase('de-CH');
-        });
-      });
-    });
-    var z = {}, inKlex = {}, inWiki = {};
-    Object.keys(roh).forEach(function(n){
-      var r = roh[n];
-      if (!r.mitte || n.length < 3 || n.length > 16 || STOPP[n.toLocaleLowerCase('de-CH')]) return;   // Satzanfänge allein sind keine Nomen
-      var g = typeof Wortschatz !== 'undefined' ? Wortschatz.grundform(n) : null;
-      if (!g && r.kinder >= 2 && r.artikel >= 1 && n.length <= 13 && !/(ung|heit|keit|ismus|tät|nis|ion)$/.test(n)) g = { form:n, teile:1 };   // im Klexikon: kindgerecht
-      if (!g || STOPP[schluessel(g.form)] || enthaeltThema(g.form, staemme)) return;
-      if (g.teile > 1 && g.form.length > 14) return;   // lange Zusammensetzungen sind schwer
-      z[g.form] = (z[g.form] || 0) + (r.mitte + r.anfang) * (g.teile > 1 ? 0.7 : 1);
-      if (r.kinder) inKlex[g.form] = true;
-      if (r.andere) inWiki[g.form] = true;
-    });
-    // In beiden Lexika erwähnt: sicher wichtig. Nur einmal nebenbei erwähnt: weglassen.
-    Object.keys(z).forEach(function(f){ if (inKlex[f] && inWiki[f]) z[f] *= 1.5; });
-    var top = Object.keys(z).reduce(function(m, f){ return Math.max(m, z[f]); }, 0), mindestens = Math.max(2, top * 0.05);
-    var sortiert = Object.keys(z).sort(function(a, b){ return z[b] - z[a] || a.localeCompare(b, 'de'); });
-    var gut = sortiert.filter(function(f){ return z[f] >= mindestens; });
-    return sortiert.slice(0, Math.min(60, Math.max(gut.length, 10)));   // bei kurzen Artikeln auf 10 auffüllen
-  }
-  /* zum Testen und für andere Bausteine: Nomen aus einem einzelnen Text */
-  function nomen(text, thema){ var a = abschnitte(text); return kandidaten([{ text:a.einleitung, gewicht:3 }, { text:a.rest, gewicht:1 }], thema); }
 
-  var netzCache = {};
-  function ausDemInternet(thema){
-    var k = schluessel(thema);
-    if (netzCache[k]) return netzCache[k];
-    var klex = klexikon(thema), wikiFehler = null;
-    netzCache[k] = Promise.all([klex, wikipedia(thema).catch(function(e){ wikiFehler = e; return null; })]).then(function(r){
-      var kl = r[0], wi = r[1];
-      // Klexikon kennt das Stichwort nicht so? Dann mit dem Titel aus Wikipedia nochmals (Vulkane → Vulkan)
-      var klex2 = !kl && wi && schluessel(wi.titel) !== k ? klexikon(wi.titel) : Promise.resolve(kl);
-      return klex2.then(function(kl2){
-        if (!kl2 && !wi){ if (wikiFehler) throw wikiFehler; return { woerter:[] }; }
-        var quellen = [];
-        if (kl2){ var a = abschnitte(kl2.text); quellen.push({ text:a.einleitung, gewicht:5, kinder:true }, { text:a.rest, gewicht:3, kinder:true }); }
-        if (wi){ var b = abschnitte(wi.text); quellen.push({ text:b.einleitung, gewicht:3 }, { text:b.rest, gewicht:1 }); }
-        return { woerter:kandidaten(quellen, thema), klexikon:kl2 && { titel:kl2.titel, url:kl2.url }, wikipedia:wi && { titel:wi.titel, url:wi.url } };
-      });
-    }).catch(function(e){ delete netzCache[k]; throw e; });
-    return netzCache[k];
+  /* ---------- Auftrag an die KI (gleich für Server, Pollinations und Claude) ---------- */
+  function kiAuftrag(thema, arten, schon){
+    var t = String(thema).slice(0, 80), je = Math.round(30 / arten.length);
+    return {
+      system:'Du hilfst Lehrpersonen in der Schweiz, Worträtsel für Kinder zu erstellen. Du antwortest nur mit JSON.',
+      text:'Thema: «' + t + '»\n' +
+        'Gesucht sind Wörter, die eng zu diesem Thema gehören:\n' +
+        arten.map(function(a){ return '- ' + je + ' ' + ARTEN[a].regel; }).join('\n') + '\n' +
+        'Ganz wichtig: Kinder von 8 bis 14 Jahren müssen jedes Wort sicher kennen und verstehen. Nimm einfache, alltagsnahe Wörter ' +
+        'aus dem Grundwortschatz – keine Fachbegriffe, keine Fremdwörter, keine seltenen oder altmodischen Wörter. ' +
+        'Lieber ein einfaches, bekanntes Wort als ein genaues, schwieriges.\n' +
+        'Regeln:\n- Je ein einzelnes Wort ohne Leerzeichen, Bindestriche, Ziffern oder Abkürzungen, 3 bis 12 Buchstaben, gemischte Längen.\n' +
+        '- Kein Wort darf «' + t + '» enthalten (keine Zusammensetzungen mit dem Thema selbst).\n' +
+        '- Keine Namen von Personen, Marken oder Orten.\n- Schweizer Rechtschreibung: ss statt ß.\n' +
+        (schon.length ? '- Nicht diese Wörter (schon vorgeschlagen): ' + schon.slice(-80).join(', ') + '\n' : '') +
+        'Antworte nur mit JSON in dieser Form: {' + arten.map(function(a){ return '"' + ARTEN[a].schluessel + '": ["…"]'; }).join(', ') + '}'
+    };
+  }
+  // Antwort der KI (Objekt mit Listen je Wortart, oder eine einfache Liste) → [{ wort, art }]
+  function kiListe(daten, arten){
+    var aus = [];
+    if (Array.isArray(daten)){ daten.forEach(function(x){ aus.push({ wort:String(x == null ? '' : x), art:arten[0] }); }); return aus; }
+    if (!daten || typeof daten !== 'object') return aus;
+    arten.forEach(function(a){
+      var l = daten[ARTEN[a].schluessel] || daten[a] || daten[ARTEN[a].name.toLowerCase()] || (a === 'nomen' && (daten.woerter || daten.words));
+      if (Array.isArray(l)) l.forEach(function(x){ aus.push({ wort:String(x == null ? '' : x), art:a }); });
+    });
+    return aus;
   }
 
-  /* ---------- KI-Vorschläge über den eigenen Server (api/woerter.php) ----------
-     Auf dem Infomaniak-Hosting fragt der Server die KI mit seinem eigenen Schlüssel (siehe api/woerter.php).
-     Niemand muss dann einen Schlüssel eintragen. Gibt es den Server nicht (GitHub Pages) oder ist dort kein
-     Schlüssel eingerichtet, gilt der Weg weiter unten: Pollinations direkt aus dem Browser. */
+  /* ---------- KI über den eigenen Server (api/woerter.php) ----------
+     Auf dem Infomaniak-Hosting fragt der Server die KI mit seinem eigenen Schlüssel. Niemand muss einen Schlüssel eintragen. */
   var SERVER = 'api/woerter.php', serverStatus = null;
+  function holeJson(url, ms){
+    var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, uhr = setTimeout(function(){ if (ctl) ctl.abort(); }, ms || 9000);
+    return fetch(url, ctl ? { signal:ctl.signal } : {}).then(function(r){ clearTimeout(uhr); if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); },
+      function(e){ clearTimeout(uhr); throw e; });
+  }
   function serverBereit(){
     if (serverStatus) return serverStatus;
     if ((typeof Labor !== 'undefined' && Labor.imArtefakt()) || !/^https?:$/.test(location.protocol)) return (serverStatus = Promise.resolve(false));
     serverStatus = holeJson(SERVER + '?status=1', 6000).then(function(j){ return !!(j && j.bereit); }, function(){ return false; });
     return serverStatus;
   }
-  function serverKi(thema, schon){
+  function kiFehler(code){ var e = new Error(code); e.code = code; return e; }
+  function serverKi(thema, arten, schon){
     var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, uhr = setTimeout(function(){ if (ctl) ctl.abort(); }, 40000);
-    return fetch(SERVER, { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ thema:thema, schon:schon.slice(-80) }),
+    return fetch(SERVER, { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ thema:thema, arten:arten, schon:schon.slice(-80) }),
       signal:ctl ? ctl.signal : undefined }).then(function(r){
       clearTimeout(uhr);
       return r.json().catch(function(){ return {}; }).then(function(j){
-        if (r.ok && j && Array.isArray(j.woerter)) return { woerter:j.woerter.map(String), anbieter:j.anbieter || 'KI' };
+        if (r.ok && j && Array.isArray(j.woerter)){
+          return { woerter:j.woerter.map(function(x){ return x && typeof x === 'object' ? { wort:String(x.wort || ''), art:String(x.art || arten[0]) } : { wort:String(x), art:arten[0] }; }),
+            anbieter:j.anbieter || 'KI' };
+        }
         throw kiFehler((j && j.fehler) || (r.status === 429 ? 'zuViele' : 'ki'));
       });
     }, function(){ clearTimeout(uhr); throw kiFehler('netz'); });
   }
 
-  /* ---------- KI-Vorschläge über Pollinations.ai direkt aus dem Browser (ohne Claude) ----------
-     Pollinations bietet KI-Modelle über eine offene Schnittstelle an. Für Texte verlangt sie inzwischen meist einen
-     Schlüssel: Jede Lehrperson kann sich kostenlos einen holen und ihn unter «KI für Wortvorschläge» eintragen.
-     Er wird nur im eigenen Browser gespeichert (localStorage), nie im Code der Seite.
-     Ohne Schlüssel wird einmal ein Versuch ohne Anmeldung gemacht; klappt er nicht, kommen die Vorschläge
-     aus Klexikon und Wikipedia. Die Antwort der KI wird gleich geprüft wie alle anderen Vorschläge. */
+  /* ---------- KI über Pollinations.ai direkt aus dem Browser (ohne eigenen Server, z. B. GitHub Pages) ----------
+     Pollinations verlangt meist einen Schlüssel; er wird nur im eigenen Browser gespeichert (localStorage). */
   var POLLI = 'https://gen.pollinations.ai/v1/chat/completions';
   var POLLI_FRUEHER = 'https://text.pollinations.ai/openai';   // frühere Schnittstelle ohne Anmeldung
   var POLLI_SPEICHER = 'raetsellabor-pollinations-schluessel';
@@ -255,7 +169,6 @@ var Wortwahl = (function(){
     } catch(e){}
     return neu || '';
   }
-  function kiFehler(code){ var e = new Error(code); e.code = code; return e; }
   function kiPost(url, body, schluessel){
     var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, uhr = setTimeout(function(){ if (ctl) ctl.abort(); }, 25000);
     var kopf = { 'Content-Type':'application/json' };
@@ -267,67 +180,51 @@ var Wortwahl = (function(){
       if (r.status === 429) throw kiFehler('zuViele');
       if (!r.ok) throw kiFehler('fehler');
       return r.text();
-    }, function(){ clearTimeout(uhr); throw kiFehler('netz'); }).then(kiWoerter);
+    }, function(){ clearTimeout(uhr); throw kiFehler('netz'); }).then(kiDaten);
   }
-  // Antwort der KI (OpenAI-Format, JSON oder Text mit einer Liste darin) → Liste von Wörtern
-  function kiWoerter(roh){
+  // Antwort im OpenAI-Format, als JSON oder als Text mit JSON darin → JSON-Daten
+  function kiDaten(roh){
     var inhalt = roh, daten = null;
     try { var j = JSON.parse(roh); inhalt = j && j.choices && j.choices[0] ? ((j.choices[0].message && j.choices[0].message.content) || '') : j; } catch(e){}
-    if (typeof inhalt === 'string'){
-      try { daten = JSON.parse(inhalt); }
-      catch(e){ var m = inhalt.match(/\[[^\[\]]*\]/); try { daten = m ? JSON.parse(m[0]) : null; } catch(e2){ daten = null; } }
-    } else daten = inhalt;
-    if (daten && !Array.isArray(daten) && typeof daten === 'object'){
-      daten = daten.woerter || daten['wörter'] || daten.words || Object.keys(daten).map(function(k){ return daten[k]; }).filter(Array.isArray)[0];
-    }
-    if (!Array.isArray(daten)) throw kiFehler('antwort');
-    return daten.map(function(x){ return String(x == null ? '' : x); });
+    if (typeof inhalt !== 'string') return inhalt;
+    try { return JSON.parse(inhalt); } catch(e){}
+    var m = inhalt.match(/\{[\s\S]*\}/) || inhalt.match(/\[[^\[\]]*\]/);
+    try { daten = m ? JSON.parse(m[0]) : null; } catch(e2){ daten = null; }
+    if (daten === null) throw kiFehler('antwort');
+    return daten;
   }
-  /* KI fragen: zuerst der eigene Server, sonst Pollinations aus dem Browser. Liefert { woerter, anbieter } */
-  function kiFragen(thema, schon){
+  function browserKi(thema, arten, schon){
+    var a = kiAuftrag(thema, arten, schon);
+    var body = { messages:[{ role:'system', content:a.system }, { role:'user', content:a.text }], seed:Math.floor(Math.random() * 1000000) };
+    var s = kiSchluessel(), frage;
+    if (s) frage = kiPost(POLLI, body, s);
+    else if (ohneSchluesselGeht === false) frage = Promise.reject(kiFehler('ohneSchluessel'));
+    else frage = kiPost(POLLI, body).catch(function(){
+      return kiPost(POLLI_FRUEHER, Object.assign({ model:'openai', referrer:location.hostname }, body));
+    }).then(function(d){ ohneSchluesselGeht = true; return d; }, function(){ ohneSchluesselGeht = false; throw kiFehler('ohneSchluessel'); });
+    return frage.then(function(d){ return { woerter:kiListe(d, arten), anbieter:'Pollinations.ai' }; });
+  }
+  /* KI fragen: zuerst der eigene Server, sonst Pollinations aus dem Browser. Liefert { woerter:[{ wort, art }], anbieter } */
+  function kiFragen(thema, arten, schon){
     return serverBereit().then(function(ok){
-      if (!ok) return browserKi(thema, schon);
-      return serverKi(thema, schon).catch(function(e){
-        if (e && e.code === 'nichtEingerichtet'){ serverStatus = Promise.resolve(false); return browserKi(thema, schon); }
+      if (!ok) return browserKi(thema, arten, schon);
+      return serverKi(thema, arten, schon).catch(function(e){
+        if (e && e.code === 'nichtEingerichtet'){ serverStatus = Promise.resolve(false); return browserKi(thema, arten, schon); }
         throw e;
       });
     });
-  }
-  function browserKi(thema, schon){
-    return browserKiWoerter(thema, schon).then(function(w){ return { woerter:w, anbieter:'Pollinations.ai' }; });
-  }
-  function browserKiWoerter(thema, schon){
-    var t = String(thema).slice(0, 80);
-    var body = {
-      messages:[
-        { role:'system', content:'Du hilfst Lehrpersonen in der Schweiz, Worträtsel für Kinder zu erstellen. Du antwortest nur mit JSON.' },
-        { role:'user', content:'Thema: «' + t + '»\n' +
-          'Nenne 30 deutsche Nomen, die eng zu diesem Thema gehören und die Kinder von 8 bis 14 Jahren kennen und verstehen.\n' +
-          'Regeln:\n- Je ein einzelnes Wort in der Grundform (Einzahl), ohne Artikel, ohne Leerzeichen, Bindestriche oder Ziffern.\n' +
-          '- 3 bis 12 Buchstaben, gemischte Längen.\n' +
-          '- Kein Wort darf «' + t + '» enthalten (keine Zusammensetzungen mit dem Thema selbst).\n' +
-          '- Keine Namen von Personen, Marken oder Orten.\n- Schweizer Rechtschreibung: ss statt ß.\n' +
-          (schon.length ? '- Nicht diese Wörter (schon vorgeschlagen): ' + schon.slice(-80).join(', ') + '\n' : '') +
-          'Antworte nur so: {"woerter": ["Wort", "Wort", …]}' }
-      ],
-      seed:Math.floor(Math.random() * 1000000)   // sonst kommt bei gleicher Frage dieselbe Antwort aus dem Zwischenspeicher
-    };
-    var s = kiSchluessel();
-    if (s) return kiPost(POLLI, body, s);
-    if (ohneSchluesselGeht === false) return Promise.reject(kiFehler('ohneSchluessel'));
-    return kiPost(POLLI, body).catch(function(){
-      return kiPost(POLLI_FRUEHER, Object.assign({ model:'openai', referrer:location.hostname }, body));
-    }).then(function(w){ ohneSchluesselGeht = true; return w; }, function(){ ohneSchluesselGeht = false; throw kiFehler('ohneSchluessel'); });
   }
 
   /* Karte «Thema und Wörter» */
   function html(nr){
     return '<div class="karte">' +
       '<div class="karte-kopf"><span class="stufe" aria-hidden="true">' + (nr || 1) + '</span>' +
-        '<div><h2>Thema und Wörter</h2><p>Thema eingeben und Wörter vorschlagen lassen. Vorschläge anklicken – eigene Wörter gehen immer.</p></div></div>' +
+        '<div><h2>Thema und Wörter</h2><p>Thema eingeben, Wortarten wählen und Wörter vorschlagen lassen. Vorschläge anklicken – eigene Wörter gehen immer.</p></div></div>' +
       '<label class="feld-label" for="titel">Thema</label>' +
       '<div class="zeile"><input type="text" id="titel" maxlength="60" placeholder="z. B. Fussball, Weltraum, Römer …" autocomplete="off">' +
         '<button type="button" class="btn soft" id="vorschlagen">Wörter vorschlagen</button></div>' +
+      '<div class="wortarten" role="group" aria-label="Wortarten für die Vorschläge"><span class="wortarten-titel">Vorschlagen:</span>' +
+        REIHE.map(function(a){ return '<label class="wortart"><input type="checkbox" value="' + a + '"><span>' + ARTEN[a].name + '</span></label>'; }).join('') + '</div>' +
       '<div class="vorschlaege" id="vorschlaege" hidden>' +
         '<div class="vorschlaege-kopf"><strong id="vorschlagTitel"></strong><span>' +
           '<button type="button" class="btn ghost klein" id="alleUebernehmen">Alle übernehmen</button>' +
@@ -343,7 +240,7 @@ var Wortwahl = (function(){
       '<p class="hinweis" id="wortInfo" aria-live="polite"></p>' +
       '<details class="ki-einstellung" id="kiEinstellung"><summary>KI für Wortvorschläge (Pollinations.ai)</summary>' +
         '<p class="hinweis">Mit einem kostenlosen Schlüssel von <a href="https://enter.pollinations.ai" target="_blank" rel="noopener">Pollinations.ai</a> ' +
-          'schlägt eine KI zu jedem Thema Wörter vor. Ohne Schlüssel kommen die Vorschläge aus Klexikon und Wikipedia. ' +
+          'schlägt eine KI zu jedem Thema Wörter vor. Ohne Schlüssel gibt es Vorschläge nur zu den eingebauten Themen. ' +
           'Der Schlüssel bleibt nur in diesem Browser gespeichert.</p>' +
         '<p class="hinweis">So gehts: bei Pollinations.ai anmelden, einen Schlüssel erstellen (er beginnt mit «sk_») und hier einfügen. ' +
           'Tipp: Den Schlüssel auf das Gratis-Guthaben beschränken, dann kann nichts kosten.</p>' +
@@ -365,181 +262,158 @@ var Wortwahl = (function(){
     titel.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); vorschlagen(false); } });
     $('#vorschlagen').addEventListener('click', function(){ vorschlagen(false); });
 
+    /* Wortarten: mindestens eine bleibt gewählt; eine Änderung holt gleich neue Vorschläge */
+    var kaestchen = [].slice.call(bereich.querySelectorAll('.wortart input'));
+    function artenZeigen(){ var a = wortarten(); kaestchen.forEach(function(k){ k.checked = a.indexOf(k.value) >= 0; }); }
+    kaestchen.forEach(function(k){
+      k.addEventListener('change', function(){
+        var a = kaestchen.filter(function(x){ return x.checked; }).map(function(x){ return x.value; });
+        if (!a.length){ k.checked = true; return; }
+        wortarten(a);
+        if (titel.value.trim() && !$('#vorschlaege').hidden) vorschlagen(false);
+      });
+    });
+    artenZeigen();
+
     function vorschlagen(mehr){
-      var t = titel.value.trim(), token = ++lauf;
+      var t = titel.value.trim(), token = ++lauf, arten = wortarten(), key = t + '|' + arten.join(',');
       if (!t){ titel.focus(); info('Gib zuerst ein Thema ein.'); return; }
-      if (!mehr || !vorschlag || vorschlag.thema !== t) vorschlag = { thema:t, woerter:[], gezeigt:{}, pool:null };
+      if (!mehr || !vorschlag || vorschlag.key !== key) vorschlag = { thema:t, arten:arten, key:key, woerter:[], gezeigt:{}, pool:null, alle:[] };
       var th = findeThema(t), staemme = themaStaemme(t);
-      // eingebaute Liste, aber ohne Wörter, die das Suchwort enthalten (Fussball → kein «Fussballschuh»)
-      var liste = th ? th.w.split(' ').filter(function(w){ return !enthaeltThema(w, staemme); }) : [];
-      if (th && !vorschlag.pool){
-        var rest = liste.filter(function(w){ return !vorschlag.gezeigt[norm(w)]; });
+      // eingebaute Liste (nur Nomen), ohne Wörter, die das Suchwort enthalten (Fussball → kein «Fussballschuh»)
+      var liste = th && arten.length === 1 && arten[0] === 'nomen'
+        ? th.w.split(' ').filter(function(w){ return !enthaeltThema(w, staemme); }).map(function(w){ return { w:w, art:'nomen' }; }) : [];
+      vorschlag.ctx = { liste:liste, staemme:staemme };
+      if (liste.length && !vorschlag.pool){
+        var rest = liste.filter(function(x){ return !vorschlag.gezeigt[norm(x.w)]; });
         if (rest.length >= 8 || !mehr){
-          if (rest.length < 20) rest = rest.concat(liste.filter(function(w){ return rest.indexOf(w) < 0; }));
+          if (rest.length < 20) rest = rest.concat(liste.filter(function(x){ return rest.indexOf(x) < 0; }));
           zeige(mischen(rest).slice(0, 20), 'Themenliste'); return;
         }
       }
-      vorschlag.ctx = { th:th, liste:liste, staemme:staemme };
       if (vorschlag.pool){ ausPool(); return; }
-      if (Labor.imArtefakt()){ claudeFragen(t, mehr, th && liste, staemme, token); return; }   // im Artefakt ist das Internet gesperrt
       kiVersuch(token);
     }
-    /* KI über Pollinations fragen; klappt das nicht, Klexikon und Wikipedia */
+    /* KI-Antwort prüfen: einzelne Wörter, passende Schreibweise, nichts doppelt, kein Suchwort im Wort */
+    function aufbereiten(liste){
+      var gut = [], seen = {};
+      liste.forEach(function(x){
+        var art = ARTEN[x.art] ? x.art : vorschlag.arten[0], w = schreibweise(x.wort, art), n = norm(w);
+        if (vorschlag.arten.indexOf(art) < 0 || !/^[\p{L}]+$/u.test(w) || n.length < 3 || n.length > 14 || seen[n] || vorschlag.gezeigt[n] || enthaeltThema(w, vorschlag.ctx.staemme)) return;
+        seen[n] = true; gut.push({ w:w, art:art });
+      });
+      return gut;
+    }
     function kiVersuch(token){
-      var t = vorschlag.thema, c = vorschlag.ctx;
-      laedt(true, 'Die KI sucht passende Wörter …');
-      kiFragen(t, vorschlag.alle || []).then(function(r){
+      if (Labor.imArtefakt()){ claudeFragen(token); return; }   // im Artefakt ist das Internet gesperrt
+      laedt(true, 'Die KI sucht passende ' + artenText(vorschlag.arten) + ' …');
+      kiFragen(vorschlag.thema, vorschlag.arten, vorschlag.alle).then(function(r){
         if (token !== lauf || aus) return;
-        var gut = [], seen = {};
-        vorschlag.kiName = r.anbieter;
-        r.woerter.forEach(function(x){
-          var w = schreibweise(x.replace(/ß/g, 'ss').trim()), n = norm(w);
-          if (!/^[\p{L}]+$/u.test(w) || n.length < 3 || n.length > 14 || seen[n] || vorschlag.gezeigt[n] || enthaeltThema(w, c.staemme)) return;
-          seen[n] = true; gut.push(w);
-        });
+        var gut = aufbereiten(r.woerter);
         if (gut.length < 6) throw kiFehler(vorschlag.woerter.length ? 'keineNeuen' : 'antwort');
         laedt(false);
-        vorschlag.pool = gut; vorschlag.art = 'ki';
+        vorschlag.kiName = r.anbieter; vorschlag.pool = gut; vorschlag.quelle = 'KI';
         ausPool();
       }).catch(function(e){
         if (token !== lauf || aus) return;
-        netzVersuch(token, kiNotiz(e && e.code));
+        ohneKi(kiNotiz(e && e.code));
       });
     }
     function kiNotiz(code){
       return code === 'ohneSchluessel' ? 'Für KI-Vorschläge braucht Pollinations.ai einen kostenlosen Schlüssel (unten bei «KI für Wortvorschläge»).' :
         code === 'schluessel' ? 'Pollinations.ai hat den Schlüssel abgelehnt – bitte unten bei «KI für Wortvorschläge» prüfen.' :
-        code === 'guthaben' ? 'Das Guthaben bei Pollinations.ai ist aufgebraucht.' :
-        code === 'zuViele' ? 'Die KI hat gerade zu viele Anfragen.' :
+        code === 'guthaben' ? 'Das Guthaben der KI ist aufgebraucht.' :
+        code === 'zuViele' ? 'Die KI hat gerade zu viele Anfragen – bitte in einem Moment nochmals versuchen.' :
         code === 'serverSchluessel' ? 'Der KI-Schlüssel auf dem Server wurde abgelehnt.' :
         code === 'keineNeuen' ? 'Die KI hatte keine weiteren Vorschläge.' :
-        code === 'netz' ? 'Die KI war nicht erreichbar.' : 'Die KI hat nicht brauchbar geantwortet.';
+        code === 'netz' ? 'Die KI war nicht erreichbar – bitte nochmals versuchen.' : 'Die KI hat nicht brauchbar geantwortet – bitte nochmals versuchen.';
     }
-    function netzVersuch(token, notiz){
-      var t = vorschlag.thema, th = vorschlag.ctx.th, liste = vorschlag.ctx.liste;
-      vorschlag.notiz = notiz || '';
-      laedt(true, 'Passende Wörter werden im Klexikon und in Wikipedia gesucht …');
-      ausDemInternet(t).then(function(r){
-        if (token !== lauf || aus) return;
-        laedt(false);
-        if (r.woerter.length < 6 && th){ zeige(mischen(liste).slice(0, 20), 'Themenliste'); return; }
-        var neu = r.woerter.filter(function(w){ return !vorschlag.gezeigt[norm(w)]; });
-        if (!neu.length){
-          var n = notizHtml();
-          if (vorschlag.woerter.length) info('Keine weiteren Vorschläge. Versuch ein verwandtes Stichwort oder gib eigene Wörter ein.' + n);
-          else if (r.wikipedia || r.klexikon) info('In ' + artikelLinks(r) + ' stehen kaum Wörter, die Kinder gut kennen. Versuch ein einfacheres oder allgemeineres Stichwort oder gib eigene Wörter ein.' + n);
-          else info('Zu «' + esc(t) + '» gibt es keinen passenden Artikel. Versuch ein anderes Stichwort oder gib eigene Wörter ein.' + n);
-          return;
-        }
-        vorschlag.pool = r.woerter; vorschlag.netz = r; vorschlag.art = 'netz';
-        ausPool();
-      }).catch(function(){
-        if (token !== lauf || aus) return;
-        laedt(false);
-        if (th){ zeige(mischen(liste).slice(0, 20), 'Themenliste'); return; }
-        info('Die Vorschläge aus dem Internet konnten nicht geladen werden. Prüfe die Internetverbindung und versuch es nochmals. ' + eingebaute() + notizHtml());
-      });
+    // Ohne KI: eingebaute Liste, falls es eine gibt, sonst eine Erklärung
+    function ohneKi(notiz){
+      laedt(false);
+      vorschlag.notiz = notiz;
+      var liste = vorschlag.ctx.liste.filter(function(x){ return !vorschlag.gezeigt[norm(x.w)]; });
+      if (liste.length >= 6){ zeige(mischen(liste).slice(0, 20), 'Themenliste'); return; }
+      info(esc(notiz) + (vorschlag.woerter.length ? '' : ' ' + eingebaute()));
     }
-    function notizHtml(){ return vorschlag.notiz ? '<br><span class="ki-notiz">' + esc(vorschlag.notiz) + '</span>' : ''; }
-    function artikelLinks(r){   // «aus dem Artikel …» bzw. «aus den Artikeln … und …»
-      function a(x, wo){ return '<a href="' + esc(x.url) + '" target="_blank" rel="noopener">«' + esc(x.titel) + '»</a> (' + wo + ')'; }
-      var l = [r.klexikon && a(r.klexikon, 'Klexikon'), r.wikipedia && a(r.wikipedia, 'Wikipedia')].filter(Boolean);
-      return (l.length > 1 ? 'den Artikeln ' : 'dem Artikel ') + l.join(' und ');
-    }
-    // Aus dem Fundus der Artikel: beim ersten Mal die 14 wichtigsten Wörter und 6 weitere, gemischt; danach die nächsten
+    // Aus dem Vorrat der KI: bis 20 Wörter, die Wortarten abwechselnd; ist er fast leer, die KI nochmals fragen
     function ausPool(){
-      var neu = vorschlag.pool.filter(function(w){ return !vorschlag.gezeigt[norm(w)]; });
-      if (vorschlag.art === 'ki'){
-        if (neu.length < 6){ vorschlag.pool = null; kiVersuch(++lauf); return; }   // KI nochmals fragen, ohne die gezeigten Wörter
-        zeige(vorschlag.woerter.length ? neu.slice(0, 20) : mischen(neu.slice(0, 20)), 'KI'); return;
-      }
-      if (!neu.length){ info('Aus diesen Artikeln gibt es keine weiteren Vorschläge. Versuch ein verwandtes Stichwort oder gib eigene Wörter ein.' + notizHtml()); return; }
-      zeige(vorschlag.woerter.length ? neu.slice(0, 20) : mischen(neu.slice(0, 14).concat(mischen(neu.slice(14, 30)).slice(0, 6))), 'Internet');
+      var schlangen = vorschlag.arten.map(function(a){ return vorschlag.pool.filter(function(x){ return x.art === a && !vorschlag.gezeigt[norm(x.w)]; }); });
+      var frei = schlangen.reduce(function(s, q){ return s + q.length; }, 0);
+      if (frei < 6){ vorschlag.pool = null; kiVersuch(++lauf); return; }
+      if (!vorschlag.woerter.length) schlangen = schlangen.map(mischen);
+      var neu = [];
+      while (neu.length < 20 && schlangen.some(function(q){ return q.length; })) schlangen.forEach(function(q){ if (q.length && neu.length < 20) neu.push(q.shift()); });
+      zeige(neu, vorschlag.quelle || 'KI');
     }
-    function claudeFragen(t, mehr, liste, staemme, token){
-      laedt(true, 'Claude sucht passende Wörter …');
+    function claudeFragen(token){
+      laedt(true, 'Claude sucht passende ' + artenText(vorschlag.arten) + ' …');
       Labor.claude('sample').then(function(ki){
         if (token !== lauf || aus) return;
-        if (!ki || kiAus){
-          laedt(false);
-          if (liste) zeige(mischen(liste).slice(0, 20), 'Themenliste');
-          else info('Für «' + esc(t) + '» gibt es hier keine Vorschläge. ' + eingebaute());
-          return;
-        }
-        var schon = Object.keys(vorschlag.gezeigt).slice(-80);
-        var prompt = 'Du hilfst einer Lehrperson, ein Worträtsel zu erstellen.\nThema: «' + t.slice(0, 80) + '»\n' +
-          'Schlage genau 20 passende deutsche Wörter zu diesem Thema vor.\n' +
-          'Regeln:\n- Je ein einzelnes Wort, meist Nomen, ohne Leerzeichen, Bindestriche, Ziffern oder Abkürzungen.\n' +
-          '- 3 bis 12 Buchstaben, gemischte Längen.\n- Schweizer Rechtschreibung (ss statt ß), normale Gross- und Kleinschreibung.\n' +
-          '- Für Kinder von 8 bis 14 Jahren verständlich, eindeutig zum Thema, keine Wiederholungen.\n' +
-          '- Kein Wort darf «' + t.slice(0, 80) + '» enthalten (keine Zusammensetzungen mit dem Thema selbst).\n' +
-          (schon.length ? '- Nicht diese Wörter (schon vorgeschlagen): ' + schon.join(', ') + '\n' : '') +
-          'Antworte nur mit einem JSON-Array aus 20 Strings, z. B. ["Apfel", "Birne"].';
-        ki.json(prompt, mehr ? { modelTier:'quick', cache:false } : { modelTier:'quick' }).then(function(liste){
+        if (!ki || kiAus){ ohneKi('Vorschläge von Claude sind hier nicht verfügbar.'); return; }
+        var a = kiAuftrag(vorschlag.thema, vorschlag.arten, vorschlag.alle);
+        ki.json(a.system + '\n\n' + a.text, vorschlag.woerter.length ? { modelTier:'quick', cache:false } : { modelTier:'quick' }).then(function(d){
           if (token !== lauf || aus) return;
+          var gut = aufbereiten(kiListe(d, vorschlag.arten));
+          if (gut.length < 3){ ohneKi('Es kamen keine brauchbaren Vorschläge. Versuch es nochmals oder formuliere das Thema etwas anders.'); return; }
           laedt(false);
-          var gut = [], seen = {};
-          (Array.isArray(liste) ? liste : []).forEach(function(x){
-            var w = schreibweise(String(x == null ? '' : x).replace(/ß/g, 'ss')), n = norm(w);
-            if (!/^[\p{L}]+$/u.test(w) || n.length < 2 || n.length > 16 || seen[n] || enthaeltThema(w, staemme)) return;
-            seen[n] = true; gut.push(w);
-          });
-          if (!gut.length){ info('Es kamen keine brauchbaren Vorschläge. Versuch es nochmals oder formuliere das Thema etwas anders.'); return; }
-          zeige(gut.slice(0, 20), 'Claude');
+          vorschlag.kiName = 'Claude'; vorschlag.pool = gut; vorschlag.quelle = 'Claude';
+          ausPool();
         }).catch(function(e){
           if (token !== lauf || aus) return;
-          laedt(false);
           var c = e && e.code;
-          if (c === 'cancelled') return;
-          if (['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'].indexOf(c) >= 0){
-            kiAus = true;
-            if (liste){ zeige(mischen(liste).slice(0, 20), 'Themenliste'); return; }
-            info('Vorschläge von Claude sind hier nicht verfügbar. ' + eingebaute());
-          } else if (c === 'rate_limited') info('Gerade zu viele Anfragen – bitte in einem Moment nochmals versuchen.');
-          else if (c === 'session_expired') info('Bitte melde dich bei Claude neu an und versuche es dann nochmals.');
-          else info('Die Vorschläge konnten nicht geladen werden. Versuch es nochmals oder formuliere das Thema etwas anders.');
+          if (c === 'cancelled'){ laedt(false); return; }
+          if (['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'].indexOf(c) >= 0){ kiAus = true; ohneKi('Vorschläge von Claude sind hier nicht verfügbar.'); }
+          else if (c === 'rate_limited') ohneKi('Gerade zu viele Anfragen – bitte in einem Moment nochmals versuchen.');
+          else if (c === 'session_expired') ohneKi('Bitte melde dich bei Claude neu an und versuche es dann nochmals.');
+          else ohneKi('Die Vorschläge konnten nicht geladen werden. Versuch es nochmals oder formuliere das Thema etwas anders.');
         });
       });
     }
-    function eingebaute(){ return 'Eingebaute Themen mit Vorschlägen: ' + THEMEN.map(function(th){ return th.name; }).join(', ') + '. Oder gib eigene Wörter ein.'; }
+    function eingebaute(){ return 'Eingebaute Themen mit Nomen: ' + THEMEN.map(function(th){ return th.name; }).join(', ') + '. Eigene Wörter gehen immer.'; }
+    function kopf(){ return artenText(vorschlag.arten) + ' zu «' + esc(vorschlag.thema) + '»'; }
     function laedt(ja, text){
       $('#vorschlagen').disabled = ja; $('#mehrVorschlaege').disabled = ja;
       if (ja){
         $('#vorschlaege').hidden = false;
-        $('#vorschlagTitel').innerHTML = 'Vorschläge zu «' + esc(vorschlag.thema) + '»';
+        $('#vorschlagTitel').innerHTML = kopf();
         $('#vorschlagInfo').innerHTML = '<span class="lade" aria-hidden="true"></span>' + esc(text);
       }
     }
     function info(h){
       $('#vorschlaege').hidden = false;
-      if (!vorschlag || !vorschlag.woerter.length){ $('#vorschlagChips').innerHTML = ''; $('#vorschlagTitel').textContent = 'Wortvorschläge'; }
+      if (!vorschlag || !vorschlag.woerter.length){ $('#vorschlagChips').innerHTML = ''; $('#vorschlagTitel').innerHTML = vorschlag ? kopf() : 'Wortvorschläge'; }
       $('#vorschlagInfo').innerHTML = h;
       $('#alleUebernehmen').hidden = $('#mehrVorschlaege').hidden = !vorschlag || !vorschlag.woerter.length;
     }
-    function zeige(woerter, quelle){
-      vorschlag.woerter = woerter;
-      vorschlag.alle = (vorschlag.alle || []).concat(woerter);
-      woerter.forEach(function(w){ vorschlag.gezeigt[norm(w)] = true; });
+    /* Vorschläge anzeigen; bei mehreren Wortarten nach Wortart gruppiert */
+    function zeige(eintraege, quelle){
+      vorschlag.woerter = eintraege.map(function(x){ return x.w; });
+      vorschlag.alle = vorschlag.alle.concat(vorschlag.woerter);
+      eintraege.forEach(function(x){ vorschlag.gezeigt[norm(x.w)] = true; });
       $('#vorschlaege').hidden = false;
-      var netz = quelle === 'Internet' && vorschlag.netz;
-      $('#vorschlagTitel').innerHTML = 'Vorschläge zu «' + esc(vorschlag.thema) + '»<span class="quelle">' +
-        (quelle === 'Claude' ? 'von Claude' : quelle === 'KI' ? 'von der KI' : netz ? 'aus ' + [netz.klexikon && 'Klexikon', netz.wikipedia && 'Wikipedia'].filter(Boolean).join(' und ') : 'eingebaute Liste') + '</span>';
+      $('#vorschlagTitel').innerHTML = kopf() + '<span class="quelle">' +
+        (quelle === 'KI' || quelle === 'Claude' ? 'von ' + (quelle === 'Claude' ? 'Claude' : 'der KI') : 'eingebaute Liste') + '</span>';
       $('#vorschlagInfo').innerHTML = 'Anklicken, um ein Wort zu übernehmen oder wieder zu entfernen.' +
         (quelle === 'KI' ? ' Vorgeschlagen von einer KI (' + esc(vorschlag.kiName || 'KI') + ') – kurz prüfen, ob alles passt.' : '') +
-        (netz ? ' Nomen, die Kinder kennen, aus ' + artikelLinks(netz) + '.' + notizHtml() : '');
+        (quelle === 'Themenliste' && vorschlag.notiz ? '<br><span class="ki-notiz">' + esc(vorschlag.notiz) + '</span>' : '');
       $('#alleUebernehmen').hidden = $('#mehrVorschlaege').hidden = false;
       var box = $('#vorschlagChips'); box.innerHTML = '';
-      woerter.forEach(function(w){
-        var b = document.createElement('button');
-        b.type = 'button'; b.className = 'chip-vorschlag'; b.textContent = w;
-        b.addEventListener('click', function(){ if (b.getAttribute('aria-pressed') === 'true') entferne(norm(w)); else hinzu([w]); });
-        box.appendChild(b);
+      var gruppen = REIHE.filter(function(a){ return eintraege.some(function(x){ return x.art === a; }); });
+      gruppen.forEach(function(a){
+        if (gruppen.length > 1){ var g = document.createElement('span'); g.className = 'chip-gruppe'; g.textContent = ARTEN[a].name; box.appendChild(g); }
+        eintraege.filter(function(x){ return x.art === a; }).forEach(function(x){
+          var b = document.createElement('button');
+          b.type = 'button'; b.className = 'chip-vorschlag'; b.textContent = x.w;
+          b.addEventListener('click', function(){ if (b.getAttribute('aria-pressed') === 'true') entferne(norm(x.w)); else hinzu([x.w]); });
+          box.appendChild(b);
+        });
       });
       status();
     }
     $('#alleUebernehmen').addEventListener('click', function(){ if (vorschlag) hinzu(vorschlag.woerter); });
 
-    /* Schlüssel für die KI (nur auf der Webseite; im Artefakt fragt die Seite Claude) */
+    /* Schlüssel für Pollinations (nur ohne eigenen Server; im Artefakt fragt die Seite Claude) */
     var kiFeld = $('#kiSchluessel');
     function kiStatus(text){
       var s = kiSchluessel();
@@ -547,25 +421,25 @@ var Wortwahl = (function(){
       $('#kiEntfernen').hidden = !s;
     }
     if (Labor.imArtefakt()) $('#kiEinstellung').hidden = true;
-    // Fragt der eigene Server die KI, braucht es hier keinen Schlüssel
-    serverBereit().then(function(ok){ if (ok && !aus) $('#kiEinstellung').hidden = true; });
+    serverBereit().then(function(ok){ if (ok && !aus) $('#kiEinstellung').hidden = true; });   // der Server hat einen eigenen Schlüssel
     $('#kiSpeichern').addEventListener('click', function(){
       var s = kiFeld.value.trim();
       if (!s){ kiFeld.focus(); return; }
       if (/^pk_/.test(s)){ kiStatus('Das ist ein App-Schlüssel (pk_…). Für die Wortvorschläge braucht es einen geheimen Schlüssel, der mit «sk_» beginnt.'); return; }
       kiSchluessel(s); kiFeld.value = ''; kiStatus();
-      if (vorschlag && vorschlag.art !== 'ki') vorschlag = null;   // nächstes «Wörter vorschlagen» fragt die KI
+      ohneSchluesselGeht = null; vorschlag = null;   // nächstes «Wörter vorschlagen» fragt die KI
     });
     kiFeld.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); $('#kiSpeichern').click(); } });
     $('#kiEntfernen').addEventListener('click', function(){ kiSchluessel(''); kiStatus(); });
     kiStatus();
     $('#mehrVorschlaege').addEventListener('click', function(){ vorschlagen(true); });
 
+    /* ---------- Deine Wörter (so geschrieben, wie sie eingegeben werden) ---------- */
     function hinzu(liste){
       var drin = {}, kurz = [], schon = [];
       st.woerter.forEach(function(w){ drin[norm(w)] = true; });
       liste.forEach(function(w){
-        w = schreibweise(w); var n = norm(w);
+        w = String(w).trim(); var n = norm(w);
         if (n.length < 2){ if (w) kurz.push(w); return; }
         if (drin[n]){ schon.push(w); return; }
         drin[n] = true; st.woerter.push(w);
@@ -620,5 +494,6 @@ var Wortwahl = (function(){
     return { zeichne:zeichne, stopp:function(){ aus = true; lauf++; clearTimeout(loeschTimer); } };
   }
 
-  return { THEMEN:THEMEN, findeThema:findeThema, schluessel:schluessel, html:html, verbinde:verbinde, nomen:nomen, kandidaten:kandidaten, abschnitte:abschnitte, enthaeltThema:enthaeltThema, themaStaemme:themaStaemme };
+  return { THEMEN:THEMEN, ARTEN:ARTEN, findeThema:findeThema, schluessel:schluessel, html:html, verbinde:verbinde,
+    enthaeltThema:enthaeltThema, themaStaemme:themaStaemme, kiAuftrag:kiAuftrag, kiListe:kiListe, kiDaten:kiDaten };
 })();

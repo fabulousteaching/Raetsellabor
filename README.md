@@ -24,18 +24,16 @@ Einstellungen: Wörter dürfen sich überlappen, Ziffern unterschiedlich gross o
 
 Wortvorschläge (gleich bei allen Generatoren mit Wörtern, `gemeinsam/wortwahl.js`):
 
-- **Eingebaute Themen:** 22 Themen (Tiere, Fussball, Berufe, Weltraum, Römer …) funktionieren sofort, auch ohne Internet.
-- **Jedes andere Thema – KI über den eigenen Server (Infomaniak):** Die Seite fragt `api/woerter.php` auf dem eigenen Webhosting; der Server fragt die KI (Mistral oder Pollinations.ai) mit seinem eigenen Schlüssel. Niemand muss einen Schlüssel eintragen. Den Schlüssel legt man als GitHub-Secret `KI_SCHLUESSEL` ab (siehe «Veröffentlichen»); welche KI gefragt wird, erkennt der Server am Schlüssel (Pollinations-Schlüssel beginnen mit `sk_`, sonst Mistral mit dem Modell `mistral-small-latest`). Schutz: nur Anfragen von der eigenen Seite, höchstens 60 pro Stunde und Netz und 1000 pro Tag; gleiche Themen kommen 30 Tage aus dem Zwischenspeicher. Gespeichert werden nur Zähler (IP-Adresse verschlüsselt) und Wortlisten (`api/daten/`).
-- **Ohne eigenen Server (z. B. GitHub Pages) – KI über Pollinations.ai direkt aus dem Browser:** Die Seite fragt eine KI über die offene Schnittstelle von [Pollinations.ai](https://pollinations.ai) nach 30 kindgerechten Nomen zum Thema. Pollinations verlangt dafür inzwischen meist einen kostenlosen Schlüssel: bei Pollinations.ai anmelden, einen Schlüssel erstellen (beginnt mit `sk_`, am besten auf das Gratis-Guthaben beschränkt) und im Labor unter «KI für Wortvorschläge» einfügen. Der Schlüssel wird nur im eigenen Browser gespeichert (localStorage), nie im Code. Ohne Schlüssel versucht die Seite es einmal ohne Anmeldung. Die Antwort der KI wird gleich geprüft wie alle Vorschläge (einzelne Wörter, ß → ss, kein Suchwort im Wort). «Andere Vorschläge» zeigt zuerst die restlichen Wörter und fragt dann nochmals nach, ohne die schon gezeigten.
-- **Wenn die KI nicht antwortet (kein Schlüssel, Guthaben aufgebraucht, keine Verbindung) – Klexikon und Wikipedia:** Die Seite liest den passenden Artikel im [Klexikon](https://klexikon.zum.de) (Kinderlexikon) und in der deutschen Wikipedia und schlägt Nomen daraus vor:
-  - nur Wörter, die Kinder von 8 bis 14 kennen: Sie stehen im Grundwortschatz (`gemeinsam/wortschatz.js`, rund 2400 Nomen nach Sachgebieten) oder sind aus zwei Wörtern daraus zusammengesetzt (Kinosaal, Tonspur). Im Klexikon geschriebene Wörter gelten ebenfalls als kindgerecht.
-  - keine Wörter, die das Suchwort enthalten (bei «Film» also kein «Spielfilm», keine «Filmindustrie»). Das gilt auch für die eingebauten Listen.
-  - wichtig ist, was oft und in der Einleitung vorkommt; nur einmal nebenbei Erwähntes fällt weg. Die Abschnitte Literatur, Weblinks, Einzelnachweise usw. werden nicht gelesen (dort stehen Verlagsorte wie «Frankfurt» oder «Taschenbuch»).
-  - Mehrzahl- und gebeugte Formen werden zur Grundform (Kameras → Kamera, Häusern → Haus), ß wird ss. Die Artikel werden verlinkt; «Andere Vorschläge» zeigt die nächsten Wörter.
-  - Antwortet das Klexikon nicht oder hat keinen Artikel, genügt Wikipedia allein.
-- **Im Claude-Artefakt** ist das Internet gesperrt; dort schlägt Claude die Wörter vor (mit denselben Regeln: kindgerecht, ohne das Suchwort).
+- **Wortarten wählen:** Unter dem Thema lässt sich ankreuzen, was vorgeschlagen wird: *Nomen*, *Verben*, *Adjektive* – einzeln oder kombiniert (mindestens eine). Bei mehreren Wortarten sind die Vorschläge nach Wortart gruppiert. Nomen werden gross geschrieben, Verben (Grundform) und Adjektive klein. Die Wahl bleibt im Browser gespeichert und gilt für alle Generatoren; wer sie ändert, bekommt gleich neue Vorschläge.
+- **Eingebaute Themen:** 22 Themen (Tiere, Fussball, Berufe, Weltraum, Römer …) mit Nomen; sie kommen sofort, auch ohne Internet, wenn nur «Nomen» gewählt ist.
+- **Alles andere schlägt eine KI vor** – mit dem klaren Auftrag: nur Wörter, die Kinder von 8 bis 14 Jahren sicher kennen und verstehen (einfache, alltagsnahe Wörter aus dem Grundwortschatz, keine Fachbegriffe, Fremdwörter oder seltenen Wörter), eng zum Thema, ohne Namen.
+  - **Über den eigenen Server (Infomaniak):** Die Seite fragt `api/woerter.php`; der Server fragt die KI (Mistral oder Pollinations.ai) mit seinem eigenen Schlüssel. Niemand muss einen Schlüssel eintragen. Den Schlüssel legt man als GitHub-Secret `KI_SCHLUESSEL` ab (siehe «Veröffentlichen»); welche KI gefragt wird, erkennt der Server am Schlüssel (Pollinations-Schlüssel beginnen mit `sk_`, sonst Mistral mit dem Modell `mistral-small-latest`). Schutz: nur Anfragen von der eigenen Seite, höchstens 60 pro Stunde und Netz und 1000 pro Tag; gleiche Themen und Wortarten kommen 30 Tage aus dem Zwischenspeicher. Gespeichert werden nur Zähler (IP-Adresse verschlüsselt) und Wortlisten (`api/daten/`).
+  - **Ohne eigenen Server (z. B. GitHub Pages):** über [Pollinations.ai](https://pollinations.ai) direkt aus dem Browser. Dafür braucht es einen kostenlosen Schlüssel (beginnt mit `sk_`), den man im Labor unter «KI für Wortvorschläge» einträgt; er bleibt nur im eigenen Browser gespeichert.
+  - **Im Claude-Artefakt** schlägt Claude vor.
+- Jede Antwort der KI wird geprüft: einzelne Wörter, ß → ss, nichts doppelt und kein Wort, das das Suchwort enthält (bei «Film» also kein «Spielfilm», kein «filmen»). Das gilt auch für die eingebauten Listen. «Andere Vorschläge» zeigt zuerst die restlichen Wörter und fragt dann nochmals nach, ohne die schon gezeigten.
+- Antwortet die KI nicht, steht unter den Vorschlägen der Grund; bei einem eingebauten Thema kommt dessen Liste.
 
-Eigene Wörter gehen immer. Fehlt im Grundwortschatz ein Wort, das Kinder kennen, kann man es in `gemeinsam/wortschatz.js` beim passenden Sachgebiet ergänzen.
+Eigene Wörter gehen immer; sie bleiben so geschrieben, wie man sie eingibt.
 
 Thema, Wörter und Lösungszahl gelten nur für den geöffneten Tab: Neu laden behält sie, ein neuer Tab beginnt leer. Die Einstellungen bleiben im Browser gespeichert.
 
@@ -68,8 +66,7 @@ Drei Stufen: *Einfach* (höchstens eine Regel pro Bild), *Mittel* (bis zwei Rege
 index.html                      Rätsellabor: Kopfleiste mit Menü, Startseite, Platz für den Generator
 gemeinsam/labor.css             gemeinsames Aussehen (Farben, Schriften, Kopfleiste, Menü, Karten, Knöpfe)
 gemeinsam/labor.js              Menü, Startseite und Wechsel zwischen den Generatoren
-gemeinsam/wortschatz.js         Grundwortschatz: Nomen, die Kinder von 8 bis 14 kennen (für Vorschläge aus dem Internet)
-gemeinsam/wortwahl.js           Baustein «Thema und Wörter»: Themenliste, Vorschläge (KI, Klexikon, Wikipedia), Wort-Chips
+gemeinsam/wortwahl.js           Baustein «Thema und Wörter»: Themenlisten, Wortarten, KI-Vorschläge, Wort-Chips
 gemeinsam/gitter.js             Baustein «Buchstabengitter»: Zeichnen, Markieren, Füllbuchstaben
 api/woerter.php                 Server-Teil (PHP): fragt die KI für Wortvorschläge; Schlüssel in api/geheim.php (entsteht beim Hochladen)
 raetsel/zahlen-suchsel/         der Generator «Zahlen-Suchsel»
@@ -81,7 +78,7 @@ raetsel/rebus/                  der Generator «Rebus»
   rebus.css                     Aussehen dieses Generators
 ```
 
-Kein Build-Schritt, keine Abhängigkeiten ausser den Schriften Fredoka und Inter von Google Fonts. Für Wortvorschläge zu Themen ausserhalb der eingebauten Liste fragt die Seite die Schnittstellen von Pollinations.ai (`gen.pollinations.ai`), Klexikon (`klexikon.zum.de/api.php`) und Wikipedia (`de.wikipedia.org/w/api.php`) an, direkt aus dem Browser, ohne Anmeldung. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel` oder `…/#rebus` öffnet direkt einen Generator, `…/#start` die Startseite.
+Kein Build-Schritt, keine Abhängigkeiten ausser den Schriften Fredoka und Inter von Google Fonts. Für Wortvorschläge fragt die Seite eine KI: über den eigenen Server (`api/woerter.php`) oder, ohne Server, über Pollinations.ai (`gen.pollinations.ai`) direkt aus dem Browser. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel` oder `…/#rebus` öffnet direkt einen Generator, `…/#start` die Startseite.
 
 ## Einen neuen Generator hinzufügen
 
