@@ -1,7 +1,7 @@
 /* Rätsellabor – Generator «Satz-Labyrinth»
-   Ein Lösungssatz versteckt im Labyrinth: Jedes Feld trägt einen Buchstaben. Auf dem einzigen Weg vom Eingang (links)
-   zum Ausgang (rechts) steht der Satz, Buchstabe für Buchstabe; Leerzeichen bleiben leere Felder. In allen Irrwegen
-   stehen Zufallsbuchstaben aus dem Satz selbst (und ab und zu ein leeres Feld), damit der richtige Weg nicht auffällt.
+   Ein Lösungssatz versteckt im Labyrinth: Jedes Feld trägt einen Buchstaben, ohne Lücken. Auf dem einzigen Weg vom
+   Eingang (links) zum Ausgang (rechts) steht der Satz, Buchstabe für Buchstabe und ohne Leerzeichen. In allen Irrwegen
+   stehen Zufallsbuchstaben aus dem Satz selbst, damit der richtige Weg nicht auffällt.
    Ablauf: zuerst einen Weg mit genau so vielen Feldern wie der Satz Zeichen hat, dann das übrige Labyrinth darum
    herum wachsen lassen («perfektes» Labyrinth: zwischen zwei Feldern genau ein Weg). */
 (function(){
@@ -11,15 +11,21 @@
 var Kern = (function(){
   var O = 1, R = 2, U = 4, L = 8;   // offene Seiten eines Felds: oben, rechts, unten, links
   var RICHTUNG = [[O, -1, 0], [R, 0, 1], [U, 1, 0], [L, 0, -1]], GEGEN = { 1:4, 2:8, 4:1, 8:2 };
-  function zufall(seed){ var s = seed >>> 0 || 1; return function(){ s ^= s << 13; s ^= s >>> 17; s ^= s << 5; return (s >>> 0) / 4294967296; }; }
+  function zufall(seed){
+    var s = (Math.imul(seed >>> 0 || 1, 2654435761) ^ 0x5bd1e995) >>> 0 || 1;   // kleine Startwerte gut durchmischen
+    function n(){ s ^= s << 13; s ^= s >>> 17; s ^= s << 5; return (s >>> 0) / 4294967296; }
+    for (var i = 0; i < 8; i++) n();
+    return n;
+  }
   function mischen(a, rnd){ for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(rnd() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
 
-  /* Satz in Zeichen zerlegen: Buchstaben, Ziffern und einfache Satzzeichen bleiben, Leerzeichen werden zu einem leeren Feld */
-  function zeichen(text, gross){
-    var t = String(text || '').normalize('NFC').replace(/[^\p{L}\p{N}\s.,!?:;'"«»()\-–]/gu, '').replace(/\s+/g, ' ').trim();
-    if (gross) t = t.toLocaleUpperCase('de-CH');
-    return Array.from(t);
+  /* Der Satz, wie er angezeigt wird (Leerraum vereinfacht) – und seine Buchstaben für die Felder:
+     nur Buchstaben und Ziffern, ohne Leer- und Satzzeichen, damit jedes Feld einen Buchstaben trägt */
+  function anzeige(text, gross){
+    var t = String(text || '').normalize('NFC').replace(/\s+/g, ' ').trim();
+    return gross ? t.toLocaleUpperCase('de-CH') : t;
   }
+  function zeichen(text, gross){ return Array.from(anzeige(text, gross).replace(/[^\p{L}\p{N}]/gu, '')); }
   /* Grösse des Gitters: etwa faktor × so viele Felder wie der Satz, leicht breiter als hoch; deutlich schmaler, als der Satz lang ist */
   function groesse(n, faktor){
     var ziel = Math.max(9, n * faktor), w = Math.round(Math.sqrt(ziel * 1.15));
@@ -34,11 +40,13 @@ var Kern = (function(){
     frei.fill(1);
     // Reihenfolge der Nachbarn (der letzte wird zuerst versucht): zufällig, aber der Weg rückt gleichmässig nach rechts vor
     // und biegt oft ab – sonst muss er am Schluss gerade zum Ausgang eilen und das Ende des Satzes steht in einer Reihe
+    // Dazu schwingt der Weg in der Höhe ein- bis zweimal über das ganze Feld (sonst bleibt er nahe der Startzeile).
     function nachbarn(p, vorher, schritt){
-      var r = Math.floor(p / w), c = p % w, a = [], ziel = (schritt + 1) / Math.max(1, n - 1) * (w - 1);
+      var r = Math.floor(p / w), c = p % w, a = [], t = (schritt + 1) / Math.max(1, n - 1);
+      var zielC = t * (w - 1), zielR = (h - 1) * (0.5 - 0.5 * Math.cos(phase + richtung * Math.PI * schwuenge * t));
       if (r > 0) a.push(p - w); if (r < h - 1) a.push(p + w); if (c > 0) a.push(p - 1); if (c < w - 1) a.push(p + 1);
       var wert = {};
-      a.forEach(function(q){ wert[q] = Math.abs(q % w - ziel) * 0.8 + rnd() * 2.2 + (vorher !== undefined && q === p + (p - vorher) ? 1 : 0); });
+      a.forEach(function(q){ wert[q] = Math.abs(q % w - zielC) * 0.8 + Math.abs(Math.floor(q / w) - zielR) * 0.6 + rnd() * 2.2 + (vorher !== undefined && q === p + (p - vorher) ? 1 : 0); });
       return a.sort(function(x, y){ return wert[y] - wert[x]; });
     }
     // Geht es vom Kopf aus mit genau «rest» weiteren Feldern noch bis zur rechten Spalte?
@@ -58,7 +66,8 @@ var Kern = (function(){
       }
       return ziel && anzahl >= rest;
     }
-    var start = Math.floor(rnd() * h) * w, pfad = [start], wahl = [], schritte = 0;
+    var startR = Math.floor(rnd() * h), start = startR * w, pfad = [start], wahl = [], schritte = 0;
+    var phase = Math.acos(Math.max(-1, Math.min(1, 1 - 2 * startR / Math.max(1, h - 1)))), schwuenge = 1 + rnd(), richtung = rnd() < 0.5 ? 1 : -1;
     frei[start] = 0;
     if (!moeglich(start, n - 1)) return null;
     wahl.push(nachbarn(start, undefined, 0));
@@ -105,14 +114,12 @@ var Kern = (function(){
       var q = frei[Math.floor(rnd() * frei.length)];
       verbinde(p, q); besucht[q] = 1; aktiv.push(q);
     }
-    // Buchstaben: der Satz auf dem Weg, sonst zufällig aus den Zeichen des Satzes (ohne Satzzeichen, Leerzeichen = leeres Feld)
-    var vorrat = z.filter(function(ch){ return /[\p{L}\p{N} ]/u.test(ch); });
-    if (!vorrat.some(function(ch){ return ch !== ' '; })) vorrat = Array.from(o.gross ? 'EINSRATDHU' : 'einsratdhu');
+    // Buchstaben: der Satz auf dem Weg, in allen anderen Feldern Zufallsbuchstaben aus dem Satz (gleich häufig wie dort)
     var feld = [];
-    for (r = 0; r < h; r++){ var fz = []; for (c = 0; c < w; c++){ var ch = vorrat[Math.floor(rnd() * vorrat.length)]; fz.push(ch === ' ' ? '' : ch); } feld.push(fz); }
+    for (r = 0; r < h; r++){ var fz = []; for (c = 0; c < w; c++) fz.push(z[Math.floor(rnd() * n)]); feld.push(fz); }
     var wegZellen = pfad.map(zelle);
-    wegZellen.forEach(function(q, j){ feld[q[0]][q[1]] = z[j] === ' ' ? '' : z[j]; });
-    return { h:h, w:w, offen:offen, feld:feld, weg:wegZellen, start:wegZellen[0], ziel:wegZellen[n - 1], satz:z.join(''), n:n };
+    wegZellen.forEach(function(q, j){ feld[q[0]][q[1]] = z[j]; });
+    return { h:h, w:w, offen:offen, feld:feld, weg:wegZellen, start:wegZellen[0], ziel:wegZellen[n - 1], satz:anzeige(text, o.gross), buchstaben:z.join(''), n:n };
   }
 
   /* Der (einzige) Weg vom Eingang zum Ausgang – zur Kontrolle */
@@ -165,9 +172,9 @@ var Kern = (function(){
 var STUFEN = { leicht:{ faktor:3, neu:0.5, name:'Leicht' }, mittel:{ faktor:5, neu:0.6, name:'Mittel' }, schwer:{ faktor:8, neu:0.7, name:'Schwer' } };
 var VORLAGE = '<div class="sl">' +
   '<header class="sl-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Satz-Labyrinth</h1>' +
-    '<p>Ein Lösungssatz versteckt im Labyrinth: Auf dem richtigen Weg ergeben die Buchstaben deinen Satz, in den Irrwegen stehen Zufallsbuchstaben.</p></header>' +
+    '<p>Ein Lösungssatz versteckt im Labyrinth: Jedes Feld trägt einen Buchstaben. Auf dem richtigen Weg ergeben sie deinen Satz, in den Irrwegen stehen Zufallsbuchstaben.</p></header>' +
   '<div class="sl-layout"><section class="sl-eingabe" aria-label="Eingaben">' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Lösungssatz</h2><p>Dieser Satz steht Buchstabe für Buchstabe auf dem Weg vom Eingang zum Ausgang.</p></div></div>' +
+    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Lösungssatz</h2><p>Dieser Satz steht Buchstabe für Buchstabe auf dem Weg vom Eingang zum Ausgang – ohne Leerzeichen.</p></div></div>' +
       '<label class="vh" for="slSatz">Lösungssatz</label>' +
       '<textarea id="slSatz" rows="3" maxlength="150" placeholder="z. B. Die nächste Lösung findest du im Kühlschrank"></textarea>' +
       '<p class="hinweis" id="slInfo"></p>' +
@@ -240,9 +247,9 @@ function starte(bereich){
   var satzFeld = $('#slSatz'); satzFeld.value = st.satz;
   function info(){
     var n = Kern.zeichen(st.satz, st.opt.schrift === 'gross').length;
-    $('#slInfo').textContent = !n ? 'Leerzeichen werden zu leeren Feldern, Satzzeichen dürfen mit.'
-      : n < 3 ? 'Mindestens 3 Zeichen.'
-      : n + ' Zeichen – der richtige Weg wird genau ' + n + ' Felder lang (ein leeres Feld pro Leerzeichen).';
+    $('#slInfo').textContent = !n ? 'Im Labyrinth stehen die Wörter ohne Lücke hintereinander, Satzzeichen fallen weg.'
+      : n < 3 ? 'Mindestens 3 Buchstaben.'
+      : n + ' Buchstaben – der richtige Weg wird genau ' + n + ' Felder lang. Die Wörter stehen ohne Lücke hintereinander.';
   }
   satzFeld.addEventListener('input', function(){ st.satz = satzFeld.value; speichern(); info(); if (aktuell) $('#slBlatt').classList.add('veraltet'); });
   satzFeld.addEventListener('keydown', function(ev){ if (ev.key === 'Enter' && !ev.shiftKey){ ev.preventDefault(); erstellen(); } });
@@ -266,7 +273,7 @@ function starte(bereich){
     $('#slZeigeLoesung').setAttribute('aria-pressed', 'false');
     zeichnen();
     var mm = Math.min(186 / (lab.w + 2.4), 190 / (lab.h + 2.4));
-    meldung('erfolg', '<p><b>Fertig!</b> Labyrinth mit ' + lab.w + ' × ' + lab.h + ' Feldern. Der richtige Weg ist ' + lab.n + ' Felder lang – genau so lang wie dein Satz. ' +
+    meldung('erfolg', '<p><b>Fertig!</b> Labyrinth mit ' + lab.w + ' × ' + lab.h + ' Feldern. Der richtige Weg ist ' + lab.n + ' Felder lang – ein Feld für jeden Buchstaben deines Satzes. ' +
       'Du kannst ihn hier am Bildschirm suchen: beim Pfeil links hineinziehen.</p>' +
       (mm < 6 ? '<p>Achtung: Gedruckt werden die Felder nur etwa ' + mm.toFixed(1).replace('.', ',') + ' mm gross. Für gut lesbare Buchstaben eine leichtere Stufe oder einen kürzeren Satz wählen.</p>' : ''));
   }
@@ -285,7 +292,7 @@ function starte(bereich){
     t.push('<path class="sl-loesung" d="' + ganz + '"/>');
     if (!loesungsblatt) t.push('<path class="sl-weg" d=""/>');
     t.push('<path class="sl-waende" d="' + Kern.waende(lab) + '" style="stroke-width:' + lw + '"/>');
-    lab.feld.forEach(function(zeile, r){ zeile.forEach(function(ch, c){ if (ch) b.push('<text x="' + (c * S + S / 2) + '" y="' + z2(r * S + S / 2 + 0.3) + '">' + esc(ch) + '</text>'); }); });
+    lab.feld.forEach(function(zeile, r){ zeile.forEach(function(ch, c){ b.push('<text x="' + (c * S + S / 2) + '" y="' + z2(r * S + S / 2 + 0.3) + '">' + esc(ch) + '</text>'); }); });
     t.push('<g class="sl-buchstaben">' + b.join('') + '</g>');
     var ya = lab.start[0] * S + S / 2, yz = lab.ziel[0] * S + S / 2, xz = lab.w * S;
     t.push('<path class="sl-pfeil" d="M' + (-rand + 1) + ' ' + ya + 'H-2.5M-5.5 ' + (ya - 2.6) + 'L-2.5 ' + ya + 'L-5.5 ' + (ya + 2.6) +
@@ -299,7 +306,7 @@ function starte(bereich){
     for (var i = 1; i < linien; i++) l += '<span class="sl-linie voll"></span>';
     blatt.classList.remove('veraltet', 'zeige-loesung', 'geschafft');
     blatt.innerHTML = '<h2>' + esc(titel) + '</h2>' +
-      '<p class="sl-anleitung">Finde den Weg vom Eingang zum Ausgang (bei den Pfeilen), ohne eine Wand zu überqueren. Die Buchstaben auf dem richtigen Weg ergeben einen Satz. Schreibe ihn auf die Linie' + (linien > 1 ? 'n' : '') + '.</p>' +
+      '<p class="sl-anleitung">Finde den Weg vom Eingang zum Ausgang (bei den Pfeilen), ohne eine Wand zu überqueren. Die Buchstaben auf dem richtigen Weg ergeben einen Satz – die Wörter stehen ohne Lücke hintereinander. Schreibe ihn auf die Linie' + (linien > 1 ? 'n' : '') + '.</p>' +
       '<div class="sl-feld"></div><p class="sl-fortschritt nur-bildschirm" id="slFortschritt" aria-live="polite"></p>' +
       '<div class="sl-antwort"><span>Lösungssatz:</span><span class="sl-linie"></span>' + l + '</div>';
     var svg = labSvg(false);
@@ -343,7 +350,7 @@ function starte(bereich){
     var lab = aktuell.lab, z = lab.ziel, letzte = weg[weg.length - 1], fertig = letzte[0] === z[0] && letzte[1] === z[1];
     pfad.setAttribute('d', 'M-10 ' + (lab.start[0] * 10 + 5) + linie(weg).replace(/^M/, 'L') + (fertig ? 'L' + (lab.w * 10 + 10) + ' ' + (z[0] * 10 + 5) : ''));
     $('#slBlatt').classList.toggle('geschafft', fertig);
-    var gelesen = weg.map(function(q){ return lab.feld[q[0]][q[1]] || ' '; }).join(''), p = $('#slFortschritt');
+    var gelesen = weg.map(function(q){ return lab.feld[q[0]][q[1]]; }).join(''), p = $('#slFortschritt');
     if (!p) return;
     p.className = 'sl-fortschritt nur-bildschirm' + (fertig ? ' fertig' : '');
     p.textContent = fertig ? '🎉 Geschafft! Der Satz lautet: «' + lab.satz + '»'

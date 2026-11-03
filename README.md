@@ -89,11 +89,11 @@ Ein Labyrinth in der Form eines eigenen Wortes (eine oder zwei Zeilen) – oder 
 
 ### Satz-Labyrinth
 
-Ein Lösungssatz versteckt im Labyrinth: In jedem Feld steht ein Buchstabe. Nur auf dem einzigen Weg vom Eingang (Pfeil links) zum Ausgang (Pfeil rechts) ergeben die Buchstaben den Satz, z. B. «Die nächste Lösung findest du im Kühlschrank».
+Ein Lösungssatz versteckt im Labyrinth: In jedem Feld steht ein Buchstabe, ohne Lücken. Nur auf dem einzigen Weg vom Eingang (Pfeil links) zum Ausgang (Pfeil rechts) ergeben die Buchstaben den Satz, z. B. «Die nächste Lösung findest du im Kühlschrank».
 
-- Ein Feld pro Zeichen: Leerzeichen bleiben leere Felder, Satzzeichen dürfen mit; Gross- und Kleinschreibung bleibt wie eingegeben (oder auf Wunsch nur Grossbuchstaben).
-- Zuerst entsteht ein Weg mit genau so vielen Feldern, wie der Satz Zeichen hat (Tiefensuche, die bei jedem Schritt prüft, ob der Rest bis zur rechten Spalte noch aufgeht; der Weg rückt gleichmässig nach rechts vor und biegt oft ab). Danach wachsen die Irrwege darum herum («perfektes» Labyrinth, Algorithmus «wachsender Baum») – so gibt es genau einen richtigen Weg.
-- In den Irrwegen stehen Zufallsbuchstaben aus dem Satz selbst (gleich häufig wie im Satz, dazu leere Felder), damit der richtige Weg nicht auffällt.
+- Ein Feld pro Buchstabe: Die Wörter stehen ohne Lücke hintereinander, Leer- und Satzzeichen fallen weg; Gross- und Kleinschreibung bleibt wie eingegeben (oder auf Wunsch nur Grossbuchstaben). Lösungsblatt und Bildschirm zeigen den Satz, wie er eingegeben wurde.
+- Zuerst entsteht ein Weg mit genau so vielen Feldern, wie der Satz Zeichen hat (Tiefensuche, die bei jedem Schritt prüft, ob der Rest bis zur rechten Spalte noch aufgeht; der Weg rückt gleichmässig nach rechts vor, schwingt dabei über die ganze Höhe und biegt oft ab). Danach wachsen die Irrwege darum herum («perfektes» Labyrinth, Algorithmus «wachsender Baum») – so gibt es genau einen richtigen Weg.
+- In den Irrwegen stehen Zufallsbuchstaben aus dem Satz selbst (gleich häufig wie im Satz), damit der richtige Weg nicht auffällt.
 - **Schwierigkeit:** *Leicht*, *Mittel*, *Schwer* – etwa drei, fünf oder acht Mal so viele Felder wie der Satz lang ist.
 - Am Bildschirm lösbar (vom Pfeil aus ziehen; unterwegs erscheinen die gelesenen Buchstaben), Lösung zeigen, «Neu mischen», Drucken mit Linien zum Aufschreiben und Lösungsblatt. Schrift Andika (gut unterscheidbare Buchstaben).
 
