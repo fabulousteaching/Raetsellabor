@@ -215,7 +215,30 @@ var Wortwahl = (function(){
     return netzCache[k];
   }
 
-  /* ---------- KI-Vorschläge über Pollinations.ai (ohne Claude) ----------
+  /* ---------- KI-Vorschläge über den eigenen Server (api/woerter.php) ----------
+     Auf dem Infomaniak-Hosting fragt der Server die KI mit seinem eigenen Schlüssel (siehe api/woerter.php).
+     Niemand muss dann einen Schlüssel eintragen. Gibt es den Server nicht (GitHub Pages) oder ist dort kein
+     Schlüssel eingerichtet, gilt der Weg weiter unten: Pollinations direkt aus dem Browser. */
+  var SERVER = 'api/woerter.php', serverStatus = null;
+  function serverBereit(){
+    if (serverStatus) return serverStatus;
+    if ((typeof Labor !== 'undefined' && Labor.imArtefakt()) || !/^https?:$/.test(location.protocol)) return (serverStatus = Promise.resolve(false));
+    serverStatus = holeJson(SERVER + '?status=1', 6000).then(function(j){ return !!(j && j.bereit); }, function(){ return false; });
+    return serverStatus;
+  }
+  function serverKi(thema, schon){
+    var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, uhr = setTimeout(function(){ if (ctl) ctl.abort(); }, 40000);
+    return fetch(SERVER, { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ thema:thema, schon:schon.slice(-80) }),
+      signal:ctl ? ctl.signal : undefined }).then(function(r){
+      clearTimeout(uhr);
+      return r.json().catch(function(){ return {}; }).then(function(j){
+        if (r.ok && j && Array.isArray(j.woerter)) return { woerter:j.woerter.map(String), anbieter:j.anbieter || 'KI' };
+        throw kiFehler((j && j.fehler) || (r.status === 429 ? 'zuViele' : 'ki'));
+      });
+    }, function(){ clearTimeout(uhr); throw kiFehler('netz'); });
+  }
+
+  /* ---------- KI-Vorschläge über Pollinations.ai direkt aus dem Browser (ohne Claude) ----------
      Pollinations bietet KI-Modelle über eine offene Schnittstelle an. Für Texte verlangt sie inzwischen meist einen
      Schlüssel: Jede Lehrperson kann sich kostenlos einen holen und ihn unter «KI für Wortvorschläge» eintragen.
      Er wird nur im eigenen Browser gespeichert (localStorage), nie im Code der Seite.
@@ -260,7 +283,20 @@ var Wortwahl = (function(){
     if (!Array.isArray(daten)) throw kiFehler('antwort');
     return daten.map(function(x){ return String(x == null ? '' : x); });
   }
+  /* KI fragen: zuerst der eigene Server, sonst Pollinations aus dem Browser. Liefert { woerter, anbieter } */
   function kiFragen(thema, schon){
+    return serverBereit().then(function(ok){
+      if (!ok) return browserKi(thema, schon);
+      return serverKi(thema, schon).catch(function(e){
+        if (e && e.code === 'nichtEingerichtet'){ serverStatus = Promise.resolve(false); return browserKi(thema, schon); }
+        throw e;
+      });
+    });
+  }
+  function browserKi(thema, schon){
+    return browserKiWoerter(thema, schon).then(function(w){ return { woerter:w, anbieter:'Pollinations.ai' }; });
+  }
+  function browserKiWoerter(thema, schon){
     var t = String(thema).slice(0, 80);
     var body = {
       messages:[
@@ -352,10 +388,11 @@ var Wortwahl = (function(){
     function kiVersuch(token){
       var t = vorschlag.thema, c = vorschlag.ctx;
       laedt(true, 'Die KI sucht passende Wörter …');
-      kiFragen(t, vorschlag.alle || []).then(function(roh){
+      kiFragen(t, vorschlag.alle || []).then(function(r){
         if (token !== lauf || aus) return;
         var gut = [], seen = {};
-        roh.forEach(function(x){
+        vorschlag.kiName = r.anbieter;
+        r.woerter.forEach(function(x){
           var w = schreibweise(x.replace(/ß/g, 'ss').trim()), n = norm(w);
           if (!/^[\p{L}]+$/u.test(w) || n.length < 3 || n.length > 14 || seen[n] || vorschlag.gezeigt[n] || enthaeltThema(w, c.staemme)) return;
           seen[n] = true; gut.push(w);
@@ -374,7 +411,9 @@ var Wortwahl = (function(){
         code === 'schluessel' ? 'Pollinations.ai hat den Schlüssel abgelehnt – bitte unten bei «KI für Wortvorschläge» prüfen.' :
         code === 'guthaben' ? 'Das Guthaben bei Pollinations.ai ist aufgebraucht.' :
         code === 'zuViele' ? 'Die KI hat gerade zu viele Anfragen.' :
-        code === 'keineNeuen' ? 'Die KI hatte keine weiteren Vorschläge.' : 'Die KI hat nicht brauchbar geantwortet.';
+        code === 'serverSchluessel' ? 'Der KI-Schlüssel auf dem Server wurde abgelehnt.' :
+        code === 'keineNeuen' ? 'Die KI hatte keine weiteren Vorschläge.' :
+        code === 'netz' ? 'Die KI war nicht erreichbar.' : 'Die KI hat nicht brauchbar geantwortet.';
     }
     function netzVersuch(token, notiz){
       var t = vorschlag.thema, th = vorschlag.ctx.th, liste = vorschlag.ctx.liste;
@@ -486,7 +525,7 @@ var Wortwahl = (function(){
       $('#vorschlagTitel').innerHTML = 'Vorschläge zu «' + esc(vorschlag.thema) + '»<span class="quelle">' +
         (quelle === 'Claude' ? 'von Claude' : quelle === 'KI' ? 'von der KI' : netz ? 'aus ' + [netz.klexikon && 'Klexikon', netz.wikipedia && 'Wikipedia'].filter(Boolean).join(' und ') : 'eingebaute Liste') + '</span>';
       $('#vorschlagInfo').innerHTML = 'Anklicken, um ein Wort zu übernehmen oder wieder zu entfernen.' +
-        (quelle === 'KI' ? ' Vorgeschlagen von einer KI über Pollinations.ai – kurz prüfen, ob alles passt.' : '') +
+        (quelle === 'KI' ? ' Vorgeschlagen von einer KI (' + esc(vorschlag.kiName || 'KI') + ') – kurz prüfen, ob alles passt.' : '') +
         (netz ? ' Nomen, die Kinder kennen, aus ' + artikelLinks(netz) + '.' + notizHtml() : '');
       $('#alleUebernehmen').hidden = $('#mehrVorschlaege').hidden = false;
       var box = $('#vorschlagChips'); box.innerHTML = '';
@@ -508,6 +547,8 @@ var Wortwahl = (function(){
       $('#kiEntfernen').hidden = !s;
     }
     if (Labor.imArtefakt()) $('#kiEinstellung').hidden = true;
+    // Fragt der eigene Server die KI, braucht es hier keinen Schlüssel
+    serverBereit().then(function(ok){ if (ok && !aus) $('#kiEinstellung').hidden = true; });
     $('#kiSpeichern').addEventListener('click', function(){
       var s = kiFeld.value.trim();
       if (!s){ kiFeld.focus(); return; }
