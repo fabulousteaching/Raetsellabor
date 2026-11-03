@@ -12,30 +12,23 @@
 @media (max-width:640px){ .pz{padding-block:18px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))} }
 
 /* ---------- Eingaben ---------- */
-.pz-quelle,.pz-stufen{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
-.pz-quelle label,.pz-stufen label{position:relative;cursor:pointer}
-.pz-quelle input,.pz-stufen input,.pz-szenen input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
-.pz-quelle span{display:inline-block;padding:6px 14px;border:1px solid var(--line-2);border-radius:999px;background:#fff;font-size:.88rem;font-weight:600;color:var(--muted);transition:border-color .15s,background .15s,color .15s}
-.pz-quelle label:hover span{border-color:var(--accent-line)}
-.pz-quelle input:checked + span{background:var(--accent);border-color:var(--accent);color:var(--auf-akzent)}
-.pz-stufen{margin-bottom:4px}
+.pz-stufen{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+.pz-stufen label{position:relative;cursor:pointer}
+.pz-stufen input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
 .pz-stufen span{display:grid;gap:0;min-width:5.6em;padding:6px 12px;border:1px solid var(--line-2);border-radius:10px;background:#fff;text-align:center;transition:border-color .15s,background .15s}
 .pz-stufen b{font-size:.9rem;font-weight:650;color:var(--text)}
 .pz-stufen small{font-size:.76rem;color:var(--muted)}
 .pz-stufen label:hover span{border-color:var(--accent-line)}
 .pz-stufen input:checked + span{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
-.pz-quelle input:focus-visible + span,.pz-stufen input:focus-visible + span,.pz-szenen input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
-.pz-szenen{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
-.pz-szenen label{position:relative;cursor:pointer;display:flex}
-.pz-szenen span{display:grid;gap:4px;width:100%;padding:5px 5px 4px;border:1px solid var(--line);border-radius:10px;background:#fff;transition:border-color .15s,background .15s}
-.pz-szenen canvas{display:block;width:100%;height:auto;aspect-ratio:4/3;border-radius:6px}
-.pz-szenen small{font-size:.78rem;font-weight:600;color:var(--muted);text-align:center;line-height:1.25}
-.pz-szenen label:hover span{border-color:var(--accent-line)}
-.pz-szenen input:checked + span{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
-.pz-szenen input:checked + span small{color:var(--text)}
-.pz-datei{cursor:pointer}
-.pz-vorschau{margin-top:10px}
-.pz-vorschau img{display:block;max-width:100%;max-height:200px;border-radius:8px;border:1px solid var(--line)}
+.pz-stufen input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+/* Bild wählen: Fläche zum Klicken oder Hineinziehen */
+.pz-ablage{display:grid;justify-items:center;gap:10px;padding:18px 14px;border:2px dashed var(--accent-line);border-radius:12px;background:var(--accent-soft);cursor:pointer;text-align:center;transition:border-color .15s,background .15s}
+.pz-ablage:hover,.pz-ablage.ziehen{border-color:var(--accent);background:#FFE7D2}
+.pz-ablage:focus-within{outline:2px solid var(--accent-2);outline-offset:2px}
+.pz-ablage img{display:block;max-width:100%;max-height:190px;border-radius:8px;border:1px solid var(--line);background:#fff}
+.pz-ablage-text{display:grid;gap:1px}
+.pz-ablage-text b{color:var(--accent-2);font-size:.98rem}
+.pz-ablage-text small{color:var(--muted);font-size:.82rem}
 .pz .opt{display:flex;align-items:flex-start;gap:10px;margin:12px 0 0;font-size:.9rem}
 .pz .opt input[type=checkbox]{width:16px;height:16px;margin:3px 0 0;accent-color:var(--accent);flex:none}
 
@@ -63,9 +56,13 @@
   background:#fff;border-radius:14px;padding:10px 16px;box-shadow:0 10px 30px rgba(45,28,12,.22);font-size:1.05rem;z-index:2;max-width:calc(100% - 24px)}
 .pz-fertig p{margin:0}
 .pz-fertig[hidden]{display:none}
-.pz-bild-gross{position:absolute;right:10px;top:10px;z-index:2;max-width:min(40%,320px);max-height:40%;border-radius:8px;border:3px solid #fff;
-  box-shadow:0 8px 24px rgba(45,28,12,.25);cursor:pointer;background:#fff}
-.pz-bild-gross[hidden]{display:none}
+.pz-leer{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:8px;padding:20px;text-align:center;color:var(--muted)}
+.pz-leer[hidden]{display:none}
+.pz-leer p{margin:0;font-size:1.02rem}
+.pz-leer b{color:var(--text)}
+.pz-leer small{font-size:.84rem}
+.pz-leer-symbol{font-size:3rem;line-height:1}
+.pz-spiel.ziehen{outline:3px dashed var(--accent);outline-offset:-6px}
 .pz-tipp{margin:10px 2px 0;font-size:.86rem;color:var(--muted)}
 @media (max-width:640px){ .pz-spiel{height:min(78vh,640px)} }
 
@@ -74,8 +71,7 @@
 .pz-blatt h2{font-size:1.9rem;font-weight:700;margin:0 0 8px;letter-spacing:-.015em;color:#1C1714}
 .pz-anleitung{margin:0 0 26px;color:#554C45;font-size:1.05rem;max-width:62ch}
 .pz-blatt-inhalt{display:grid;justify-items:center;gap:26px;padding-top:6px}
-.pz-blatt-qr svg{display:block;width:300px;height:300px}
-.pz-blatt-vorschau{display:block;max-width:360px;max-height:270px;border-radius:10px;border:1px solid #D8CEC4}
+.pz-blatt-qr svg{display:block;width:340px;height:340px}
 .pz-blatt-link{margin:0;font-size:1rem;font-weight:600;color:#554C45;letter-spacing:.02em}
 
 /* ---------- Drucken (gilt auch für das PDF) ---------- */

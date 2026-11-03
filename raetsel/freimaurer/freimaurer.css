@@ -1,0 +1,87 @@
+/* Rätsellabor · Freimaurer-Code – nur aktiv, solange dieser Generator offen ist.
+   Gemeinsame Bausteine (Karten, Knöpfe, Eingabefelder, Meldungen) stehen in gemeinsam/labor.css. */
+.fm{max-width:1440px;margin:0 auto;padding-block:22px 48px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.fm-kopf{display:grid;gap:4px;margin:0 0 20px}
+.fm-kopf h1{font-family:var(--display);font-weight:600;font-size:clamp(1.7rem,3vw,2.2rem);letter-spacing:-.01em;line-height:1.1;margin:0;color:var(--ink)}
+.fm-kopf h1:focus{outline:none}
+.fm-kopf p:last-child{margin:2px 0 0;color:var(--muted);max-width:70ch}
+.fm-layout{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:24px;align-items:start}
+.fm-eingabe{display:grid;gap:16px;min-width:0}
+@media (min-width:961px){ .fm-eingabe{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--kopf-h) + 16px);max-height:calc(100vh - var(--kopf-h) - 32px);overflow:auto;padding:2px 4px 2px 2px;scrollbar-width:thin} }
+@media (max-width:960px){ .fm-layout{grid-template-columns:minmax(0,1fr);gap:18px} }
+@media (max-width:640px){ .fm{padding-block:18px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))} }
+
+/* ---------- Eingaben ---------- */
+.fm textarea{display:block;width:100%;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;resize:vertical;min-height:5em;line-height:1.45;font-size:1.05rem;font-weight:600;transition:border-color .15s,box-shadow .15s}
+.fm textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.fm-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.fm-chips label{position:relative;cursor:pointer}
+.fm-chips input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.fm-chips span{display:inline-block;padding:6px 14px;border:1px solid var(--line-2);border-radius:999px;background:#fff;font-size:.88rem;font-weight:600;color:var(--muted);transition:border-color .15s,background .15s,color .15s}
+.fm-chips label:hover span{border-color:var(--accent-line)}
+.fm-chips input:checked + span{background:var(--accent);border-color:var(--accent);color:var(--auf-akzent)}
+.fm-chips input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+.fm .opt{display:flex;align-items:flex-start;gap:10px;margin:10px 0;font-size:.9rem}
+.fm .opt input[type=checkbox]{width:16px;height:16px;margin:3px 0 0;accent-color:var(--accent);flex:none}
+.fm .opt-raster{display:grid;grid-template-columns:1fr;gap:6px;font-size:.9rem;margin-top:12px}
+
+/* ---------- Ausgabe ---------- */
+.fm-ausgabe{min-width:0;display:grid;gap:30px}
+.fm-teil{min-width:0}
+.fm-teil-titel{font-family:var(--display);font-weight:600;font-size:1.25rem;margin:0 0 8px;color:var(--ink)}
+.fm-werkzeug{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.fm-werkzeug .abstand{flex:1}
+.fm-werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
+.fm-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+.fm-werkzeug-text{font-size:.88rem;color:var(--muted)}
+.fm-blatt{background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:30px clamp(16px,3.2vw,40px)}
+.fm-blatt[hidden]{display:none}
+.fm-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
+.fm-anleitung{margin:0 0 20px;color:#554C45;max-width:80ch}
+.fm-loesungsblatt{display:none;margin-top:16px}
+
+/* Geheimtext: Zeilen aus Wörtern, Wörter aus Zeichen; --fm = Grösse eines Zeichens */
+.fm-code{display:grid;gap:calc(var(--fm) * .42);--fm:42px}
+.fm-zeile{display:flex;flex-wrap:wrap;gap:calc(var(--fm) * .42) calc(var(--fm) * .75);min-height:var(--fm)}
+.fm-wort{display:flex;flex-wrap:wrap;gap:calc(var(--fm) * .42) calc(var(--fm) * .2)}
+.fm-z{display:grid;justify-items:center;width:var(--fm)}
+.fm-s{display:block;width:var(--fm);height:var(--fm)}
+.fm-z.fm-andere{width:calc(var(--fm) * .6)}
+.fm-t{display:grid;place-items:center;width:100%;height:var(--fm);font-family:Andika,var(--font);font-weight:700;font-size:calc(var(--fm) * .66);line-height:1}
+.fm-linie{display:grid;place-items:end center;width:100%;height:calc(var(--fm) * .72);border-bottom:2px solid #1C1714;font-family:Andika,var(--font);font-size:calc(var(--fm) * .56);line-height:1.1}
+.fm-linie.fm-leer{border-bottom-color:transparent}
+.fm-loes{visibility:hidden;color:var(--accent-2);font-weight:700}
+.zeige-loesung .fm-loes,.fm-loesungsblatt .fm-loes{visibility:visible}
+/* ohne Schreiblinien: Platz für die Lösung nur, wenn sie gezeigt wird */
+.fm-code.ohne-linien .fm-linie{display:none}
+.zeige-loesung .fm-code.ohne-linien .fm-linie,.fm-loesungsblatt .fm-code.ohne-linien .fm-linie{display:grid;border-bottom-color:transparent;height:calc(var(--fm) * .62)}
+
+/* Alphabet: Schlüssel und Tabelle */
+.fm-schluessel-reihe{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(10px,2.4vw,26px);margin:4px 0 28px}
+.fm-schluessel{display:block;width:100%;height:auto;aspect-ratio:1}
+.fm-tabelle{display:grid;gap:10px}
+.fm-tab-zeile{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:8px}
+.fm-tab-zelle{display:grid;justify-items:center;gap:4px;padding:8px 2px 10px;border:1.5px solid #D8CEC4;border-radius:10px}
+.fm-tab-zelle b{font-family:Andika,var(--font);font-size:1.3rem;line-height:1}
+.fm-tab-zelle .fm-s{width:min(44px,80%);height:auto;aspect-ratio:1}
+@media (max-width:640px){
+  .fm-schluessel-reihe{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .fm-tab-zeile{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .fm-tab-zelle b{font-size:1.1rem}
+}
+
+/* ---------- Drucken (gilt auch für das PDF) ---------- */
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#fff!important}
+  .fm-kopf,.fm-eingabe,.fm-werkzeug,.fm-teil-titel,#fmMeldung,.nur-bildschirm{display:none!important}
+  .fm{padding:0;max-width:none}
+  .fm-layout,.fm-ausgabe{display:block}
+  .fm-blatt{box-shadow:none;border:0;border-radius:0;padding:0}
+  .fm-teil + .fm-teil .fm-blatt,.fm-alphabet{break-before:page}
+  #fmBlatt .fm-loes{visibility:hidden!important}
+  #fmBlatt .fm-code.ohne-linien .fm-linie{display:none!important}
+  .fm-schluessel-reihe{grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;margin-bottom:34px}
+  .fm-tab-zeile{grid-template-columns:repeat(9,minmax(0,1fr))}
+  body.mit-loesung .fm-loesungsblatt{display:block;break-before:page;margin-top:0}
+}

@@ -13,11 +13,9 @@ if (preg_match('/^[A-Z0-9]{4}$/', $id)) {
 $basis = rtrim(str_replace('\\', '/', dirname((string)($_SERVER['SCRIPT_NAME'] ?? '/P/X/index.php'), 3)), '/') . '/';
 $spiel = __DIR__ . '/../raetsel/puzzle/puzzle-spiel.js';
 $daten = null;
-if (is_array($p)) {
-  $daten = ['teile' => (int)($p['teile'] ?? 24), 'vorlage' => !empty($p['vorlage'])];
-  if (isset($p['bild'])) $daten['bild'] = $basis . 'P/' . $id . '/bild.jpg?v=' . substr((string)$p['bild'], 0, 8);
-  else $daten['szene'] = (string)($p['szene'] ?? 'bauernhof');
-}
+if (is_array($p) && isset($p['bild']) && is_file(dirname(__DIR__) . '/P/' . $id . '/bild.jpg'))
+  $daten = ['teile' => (int)($p['teile'] ?? 24), 'vorlage' => !empty($p['vorlage']), 'bild' => $basis . 'P/' . $id . '/bild.jpg?v=' . substr((string)$p['bild'], 0, 8)];
+else $p = null;
 header('Content-Type: text/html; charset=utf-8');
 header('X-Robots-Tag: noindex, nofollow');
 header('X-Content-Type-Options: nosniff');
@@ -49,7 +47,6 @@ function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
   button.haupt:hover{background:var(--orange-dunkel)}
   button:focus-visible{outline:2px solid var(--orange-text);outline-offset:2px}
   .spiel{position:relative;flex:1;min-height:0;overflow:hidden;background:radial-gradient(circle at 30% 20%,#F4ECE3,#E6D9CB)}
-  .bild-gross{position:absolute;right:10px;top:10px;z-index:2;max-width:min(42%,340px);max-height:42%;border-radius:8px;border:3px solid #fff;box-shadow:0 8px 24px rgba(45,28,12,.25);cursor:pointer;background:#fff}
   .geschafft{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:3;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;
     max-width:calc(100% - 24px);background:#fff;border-radius:16px;padding:12px 18px;box-shadow:0 10px 30px rgba(45,28,12,.25);font-size:1.1rem}
   .geschafft p{margin:0}
@@ -74,13 +71,11 @@ function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
   <header>
     <h1>Puzzle</h1>
     <span class="status" id="status" aria-live="polite"></span>
-    <button type="button" id="bildKnopf" aria-pressed="false">Bild ansehen</button>
     <button type="button" id="mischen">Neu mischen</button>
     <button type="button" id="voll">Vollbild</button>
   </header>
   <div class="spiel" id="spiel">
     <p class="laden" id="laden">Das Puzzle wird geladen …</p>
-    <img class="bild-gross" id="bildGross" alt="Das ganze Bild" title="Zum Schliessen antippen" hidden>
     <div class="geschafft" id="geschafft" hidden></div>
   </div>
 </div>
@@ -97,12 +92,8 @@ function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
     for (var i = 0; i < 34; i++){ var e = document.createElement('i'); e.style.cssText = 'left:' + (i * 37 % 100) + '%;background:' + f[i % 6] + ';animation-delay:' + (i * 0.13 % 1.6).toFixed(2) + 's;animation-duration:' + (2.6 + i % 5 * 0.3).toFixed(1) + 's'; k.appendChild(e); }
     document.body.appendChild(k); setTimeout(function(){ k.remove(); }, 5200);
   }
-  function bildZeigen(an){ $('bildGross').hidden = !an; $('bildKnopf').setAttribute('aria-pressed', an ? 'true' : 'false'); }
   function los(bild){
     $('laden').remove();
-    var k = document.createElement('canvas'), w = bild.naturalWidth || bild.width, h = bild.naturalHeight || bild.height, f = Math.min(1, 640 / Math.max(w, h));
-    k.width = Math.round(w * f); k.height = Math.round(h * f); k.getContext('2d').drawImage(bild, 0, 0, k.width, k.height);
-    $('bildGross').src = k.toDataURL('image/jpeg', 0.85);
     spiel = PuzzleSpiel.starte($('spiel'), { bild:bild, teile:P.teile, vorlage:P.vorlage,
       status:function(s){ $('status').textContent = s.fest + ' von ' + s.alle + ' Teilen · ' + zeit(s.sekunden); },
       fertig:function(sek){
@@ -112,9 +103,7 @@ function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
         g.querySelector('button').addEventListener('click', function(){ g.hidden = true; spiel.neu(); });
       } });
   }
-  $('bildKnopf').addEventListener('click', function(){ if (spiel) bildZeigen($('bildGross').hidden); });
-  $('bildGross').addEventListener('click', function(){ bildZeigen(false); });
-  $('mischen').addEventListener('click', function(){ if (spiel){ $('geschafft').hidden = true; bildZeigen(false); spiel.neu(); } });
+  $('mischen').addEventListener('click', function(){ if (spiel){ $('geschafft').hidden = true; spiel.neu(); } });
   var voll = $('voll'), wurzel = document.documentElement;
   if (!(document.fullscreenEnabled || document.webkitFullscreenEnabled)) voll.hidden = true;
   voll.addEventListener('click', function(){
@@ -122,12 +111,10 @@ function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
     else if (wurzel.requestFullscreen) wurzel.requestFullscreen().catch(function(){});
     else if (wurzel.webkitRequestFullscreen) wurzel.webkitRequestFullscreen();
   });
-  if (P.bild){
-    var img = new Image();
-    img.onload = function(){ los(img); };
-    img.onerror = function(){ $('laden').textContent = 'Das Bild konnte nicht geladen werden. Lade die Seite neu.'; };
-    img.src = P.bild;
-  } else los(PuzzleSpiel.szene(P.szene, 1200, 900));
+  var img = new Image();
+  img.onload = function(){ los(img); };
+  img.onerror = function(){ $('laden').textContent = 'Das Bild konnte nicht geladen werden. Lade die Seite neu.'; };
+  img.src = P.bild;
 })();
 </script>
 <?php else: ?>

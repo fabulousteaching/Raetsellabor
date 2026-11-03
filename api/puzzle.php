@@ -1,13 +1,13 @@
 <?php
 /* Rätsellabor – Puzzles für QR-Codes
-   Der Generator «Puzzle» speichert hier ein Puzzle (fertiges Bild oder eigenes Foto, Anzahl Teile), damit ein QR-Code
-   direkt dazu führt: …/P/<ID>/
+   Der Generator «Puzzle» speichert hier ein Puzzle (eigenes Bild, Anzahl Teile), damit ein QR-Code direkt dazu führt:
+   …/P/<ID>/
 
    GET  puzzle.php?status=1   → { bereit }
-   POST puzzle.php            ← { teile, vorlage, szene }  oder  { teile, vorlage, bild: 'data:image/jpeg;base64,…' }
+   POST puzzle.php            ← { teile, vorlage, bild: 'data:image/jpeg;base64,…' }
                               → { id }
 
-   Gespeichert in daten/puzzles/<ID>.json, ein eigenes Bild als P/<ID>/bild.jpg; die Seite P/<ID>/index.php zeigt das
+   Gespeichert in daten/puzzles/<ID>.json, das Bild als P/<ID>/bild.jpg; die Seite P/<ID>/index.php zeigt das
    Puzzle mit puzzle-seite.php. Gleicher Inhalt ergibt die gleiche ID (nichts wird doppelt gespeichert). Schutz: nur
    Anfragen von dieser Website, nur echte JPEG-Bilder (mit GD neu gespeichert, damit nichts anderes mitkommt), höchstens
    PRO_STUNDE neue Puzzles pro Stunde und Netz und PRO_TAG insgesamt. */
@@ -15,7 +15,6 @@ declare(strict_types=1);
 ini_set('display_errors', '0');   // PHP-Hinweise nie auf der Seite zeigen (stehen weiter im Fehlerprotokoll des Servers)
 
 const TEILE = [12, 24, 48, 96, 150];
-const SZENEN = ['bauernhof', 'meer', 'weltall', 'dschungel', 'winter', 'stadt', 'savanne', 'strand', 'markt', 'suesses'];
 const MAX_EINGABE = 4000000;   // Bytes der ganzen Anfrage (Bild als Base64)
 const MAX_BILD = 2800000;      // Bytes des JPEG-Bildes
 const MAX_SEITE = 2400;        // Pixel (der Generator verkleinert auf 1600)
@@ -60,24 +59,18 @@ $teile = (int)($e['teile'] ?? 0);
 if (!in_array($teile, TEILE, true)) antwort(400, ['fehler' => 'teile']);
 $vorlage = !empty($e['vorlage']);
 $inhalt = ['teile' => $teile, 'vorlage' => $vorlage];
-$jpg = null;
 
-if (isset($e['bild'])) {
-  if (!is_string($e['bild']) || !preg_match('#^data:image/jpeg;base64,([A-Za-z0-9+/]+={0,2})$#', $e['bild'], $m)) antwort(400, ['fehler' => 'bild']);
-  $jpg = base64_decode($m[1], true);
-  unset($e, $m);
-  if ($jpg === false || $jpg === '') antwort(400, ['fehler' => 'bild']);
-  if (strlen($jpg) > MAX_BILD) antwort(413, ['fehler' => 'zuGross']);
-  $info = @getimagesizefromstring($jpg);
-  if (!$info || ($info[2] ?? 0) !== IMAGETYPE_JPEG) antwort(400, ['fehler' => 'bild']);
-  $b = (int)$info[0]; $h = (int)$info[1];
-  if ($b < 40 || $h < 40 || $b > MAX_SEITE || $h > MAX_SEITE) antwort(400, ['fehler' => 'bild']);
-  $inhalt += ['bild' => sha1($jpg), 'breite' => $b, 'hoehe' => $h];
-} else {
-  $szene = (string)($e['szene'] ?? '');
-  if (!in_array($szene, SZENEN, true)) antwort(400, ['fehler' => 'szene']);
-  $inhalt['szene'] = $szene;
-}
+// das Bild: nur ein echtes JPEG in vernünftiger Grösse
+if (!is_string($e['bild'] ?? null) || !preg_match('#^data:image/jpeg;base64,([A-Za-z0-9+/]+={0,2})$#', $e['bild'], $m)) antwort(400, ['fehler' => 'bild']);
+$jpg = base64_decode($m[1], true);
+unset($e, $m);
+if ($jpg === false || $jpg === '') antwort(400, ['fehler' => 'bild']);
+if (strlen($jpg) > MAX_BILD) antwort(413, ['fehler' => 'zuGross']);
+$info = @getimagesizefromstring($jpg);
+if (!$info || ($info[2] ?? 0) !== IMAGETYPE_JPEG) antwort(400, ['fehler' => 'bild']);
+$b = (int)$info[0]; $h = (int)$info[1];
+if ($b < 40 || $h < 40 || $b > MAX_SEITE || $h > MAX_SEITE) antwort(400, ['fehler' => 'bild']);
+$inhalt += ['bild' => sha1($jpg), 'breite' => $b, 'hoehe' => $h];
 if (!ordner($ablage) || !ordner($seiten)) antwort(500, ['fehler' => 'speichern']);
 
 $hash = sha1((string)json_encode($inhalt), true);
@@ -90,7 +83,7 @@ for ($k = 0; $k <= 16; $k++) {
   if (is_file($datei)) {
     $alt = json_decode((string)file_get_contents($datei), true);
     if (is_array($alt) && gleich($alt, $inhalt)) {
-      if (seite($seiten, $id) && (!isset($inhalt['bild']) || is_file($seiten . '/' . $id . '/bild.jpg') || bildSpeichern($seiten, $id, (string)$jpg)))
+      if (seite($seiten, $id) && (is_file($seiten . '/' . $id . '/bild.jpg') || bildSpeichern($seiten, $id, $jpg)))
         antwort(200, ['id' => $id]);
       antwort(500, ['fehler' => 'speichern']);
     }
@@ -104,13 +97,13 @@ for ($k = 0; $k <= 16; $k++) {
   if (!$f) continue;
   fwrite($f, (string)json_encode($inhalt + ['erstellt' => date('c')], JSON_UNESCAPED_UNICODE));
   fclose($f);
-  if (!seite($seiten, $id) || ($jpg !== null && !bildSpeichern($seiten, $id, $jpg))) { @unlink($datei); antwort(500, ['fehler' => 'speichern']); }
+  if (!seite($seiten, $id) || !bildSpeichern($seiten, $id, $jpg)) { @unlink($datei); antwort(500, ['fehler' => 'speichern']); }
   antwort(200, ['id' => $id]);
 }
 antwort(500, ['fehler' => 'speichern']);
 
 function gleich(array $a, array $b): bool {
-  foreach (['teile', 'vorlage', 'szene', 'bild'] as $k) if (($a[$k] ?? null) !== ($b[$k] ?? null)) return false;
+  foreach (['teile', 'vorlage', 'bild'] as $k) if (($a[$k] ?? null) !== ($b[$k] ?? null)) return false;
   return true;
 }
 /* Kleine Seite P/<ID>/index.php, die die gemeinsame Anzeige lädt (so gelten Änderungen für alle Puzzles) */

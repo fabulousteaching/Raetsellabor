@@ -1,127 +1,14 @@
 /* Rätsellabor – Puzzle-Spiel (gemeinsam für den Generator «Puzzle» und die Puzzle-Seite P/<ID>/, die der QR-Code öffnet)
 
-   PuzzleSpiel.SZENEN                       fertige Bilder: bunte Szenen aus Emojis (keine fremden Bildrechte)
-   PuzzleSpiel.szene(kuerzel, breite, hoehe) → Canvas mit der Szene
    PuzzleSpiel.starte(behaelter, o)          o: { bild (Bild oder Canvas), teile, vorlage, status(info), fertig(sekunden) }
                                              → { neu(), vorlage(an), stopp(), raster(), lage() }
    PuzzleSpiel.raster(n, breite, hoehe)      → { spalten, zeilen }: möglichst genau n Teile mit fast quadratischen Zellen
 
-   Die Teile haben klassische Puzzle-Nasen (Bézier-Kurven). Man zieht sie mit Maus oder Finger aufs Brett; liegt ein
-   Teil nahe genug an seinem Platz, rastet es ein. Alles wird in ein Canvas gezeichnet (auch 150 Teile bleiben flüssig). */
+   Die Teile haben klassische Puzzle-Nasen (Bézier-Kurven). Gemischt liegen alle Teile neben dem Brett, nie darauf.
+   Man zieht sie mit Maus oder Finger aufs Brett; liegt ein Teil nahe genug an seinem Platz, rastet es ein.
+   Alles wird in ein Canvas gezeichnet (auch 150 Teile bleiben flüssig). */
 (function(){
 'use strict';
-
-function zufall(seed){
-  var s = (Math.imul(seed >>> 0 || 1, 2654435761) ^ 0x5bd1e995) >>> 0 || 1;
-  function n(){ s ^= s << 13; s ^= s >>> 17; s ^= s << 5; return (s >>> 0) / 4294967296; }
-  for (var i = 0; i < 8; i++) n();
-  return n;
-}
-function streuwert(t){ var h = 2166136261; for (var i = 0; i < t.length; i++){ h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
-var EMOJI = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
-
-/* ---------- Fertige Bilder ----------
-   art: land (Himmel, Hügel, Boden) · wasser · nacht · strand · flach (Tischdecke voller Dinge)
-   oben/unten/alle: Emojis für Himmel, Boden oder überall; gross: grosse Dinge am Horizont */
-var SZENEN = [
-  { k:'bauernhof', name:'Bauernhof', art:'land', himmel:['#74c3ef', '#d6f0ff'], boden:['#8fd572', '#4f9b43'], horizont:0.5, sonne:'#ffd54a', wolken:3,
-    gross:['🏡', '🌳', '🌳'], unten:['🐄', '🐖', '🐑', '🐓', '🐴', '🚜', '🌻', '🐐', '🦆', '🐇', '🌷', '🐈', '🐕'], oben:['🐦', '🦋'] },
-  { k:'meer', name:'Unter Wasser', art:'wasser', wasser:['#4fc3f7', '#014f8a'], sand:'#f1d39a',
-    alle:['🐠', '🐟', '🐡', '🐙', '🐢', '🐬', '🦑', '🐳', '🦈', '🦐'], unten:['🦀', '🐚', '🦞', '🐌'] },
-  { k:'weltall', name:'Weltall', art:'nacht', himmel:['#0a0f30', '#311b63'],
-    alle:['🚀', '🪐', '🌙', '👽', '🛸', '🌍', '☄️', '🛰️', '⭐', '🌟', '🌞', '🔭'] },
-  { k:'dschungel', name:'Dschungel', art:'land', himmel:['#a5e8a0', '#effce0'], boden:['#4fae55', '#1f6a2b'], horizont:0.42,
-    gross:['🌴', '🌴', '🌳'], unten:['🐒', '🐍', '🐯', '🦎', '🐸', '🌿', '🍌', '🐘', '🦍', '🐊', '🍄'], oben:['🦜', '🦋', '🦜'] },
-  { k:'winter', name:'Winter', art:'land', himmel:['#a3d4ef', '#f0f9ff'], boden:['#ffffff', '#d6e4f0'], horizont:0.52, schnee:true, wolken:2,
-    gross:['🏔️', '🎄', '🎄'], unten:['⛄', '🦌', '🐧', '🛷', '⛸️', '🎿', '🧤', '🏠', '🦊', '🐿️'], oben:['❄️', '🌨️'] },
-  { k:'stadt', name:'Stadt', art:'land', himmel:['#86cdf8', '#e3f5ff'], boden:['#a7a7a7', '#6b6b6b'], horizont:0.56, strasse:true, wolken:2,
-    gross:['🏢', '🏫', '🏠', '🏥', '🏪', '🏦'], unten:['🚗', '🚌', '🚲', '🚒', '🚓', '🚕', '🛴', '🚦', '🚑', '🚚'], oben:['🎈', '✈️', '🐦'] },
-  { k:'savanne', name:'Savanne', art:'land', himmel:['#ffcf7f', '#fff4e1'], boden:['#e6b75e', '#b9822b'], horizont:0.52, sonne:'#ff9a3c',
-    gross:['🌳', '⛰️'], unten:['🦁', '🦒', '🐘', '🦓', '🦏', '🐆', '🦛', '🐃', '🐪', '🦩'], oben:['🦅'] },
-  { k:'strand', name:'Strand', art:'strand', himmel:['#7fd2fa', '#e3f6ff'], meer:['#22b0ef', '#0274b5'], sand:['#ffe39a', '#f8c64c'], horizont:0.36, sonne:'#ffd54a', wolken:2,
-    imMeer:['⛵', '🐬', '🚤', '🐳'], unten:['⛱️', '🦀', '🐚', '🏐', '🍦', '🏰', '🩱', '🕶️', '🍉', '🪣'], oben:['🐦', '☁️'] },
-  { k:'markt', name:'Obst und Gemüse', art:'flach', grund:['#fff6dc', '#ffdca0'],
-    alle:['🍎', '🍌', '🍇', '🍓', '🍐', '🍉', '🍋', '🍍', '🥕', '🥦', '🌽', '🍅', '🥒', '🍆', '🥝', '🍒', '🍑', '🥔'] },
-  { k:'suesses', name:'Süssigkeiten', art:'flach', grund:['#fde6ef', '#f7b6cf'],
-    alle:['🍭', '🍬', '🍫', '🍩', '🍪', '🧁', '🍰', '🍦', '🎂', '🍮', '🍯', '🍡', '🥨', '🍿'] }
-];
-function farbverlauf(g, x0, y0, x1, y1, a, b){ var v = g.createLinearGradient(x0, y0, x1, y1); v.addColorStop(0, a); v.addColorStop(1, b); return v; }
-function mische(a, b, t){   // zwei Farben (#rrggbb) mischen
-  var x = parseInt(a.slice(1), 16), y = parseInt(b.slice(1), 16), r = function(s){ return Math.round(((x >> s) & 255) * (1 - t) + ((y >> s) & 255) * t); };
-  return 'rgb(' + r(16) + ',' + r(8) + ',' + r(0) + ')';
-}
-function szene(k, B, H){
-  var s = SZENEN.filter(function(x){ return x.k === k; })[0] || SZENEN[0];
-  var cv = document.createElement('canvas'); cv.width = B; cv.height = H;
-  var g = cv.getContext('2d'), rnd = zufall(streuwert(s.k)), u = Math.min(B / 1200, H / 900), hor = H * (s.horizont || 0.5);
-  function wolke(x, y, f){ g.fillStyle = 'rgba(255,255,255,.92)'; [[0, 0, 1], [-0.9, 0.25, 0.75], [0.9, 0.25, 0.8], [0.35, -0.35, 0.8], [-0.4, -0.25, 0.7]].forEach(function(c){ g.beginPath(); g.arc(x + c[0] * 46 * f, y + c[1] * 46 * f, 44 * c[2] * f, 0, 7); g.fill(); }); }
-  function huegel(y0, amp, farbe, phase, wellen){
-    g.fillStyle = farbe; g.beginPath(); g.moveTo(0, H);
-    for (var x = 0; x <= B; x += 8) g.lineTo(x, y0 + Math.sin(x / B * Math.PI * wellen + phase) * amp + Math.sin(x / B * Math.PI * wellen * 2.3 + phase * 2) * amp * 0.35);
-    g.lineTo(B, H); g.closePath(); g.fill();
-  }
-  // Hintergrund
-  if (s.art === 'land' || s.art === 'strand'){
-    g.fillStyle = farbverlauf(g, 0, 0, 0, hor, s.himmel[0], s.himmel[1]); g.fillRect(0, 0, B, hor + 4);
-    if (s.sonne){ var sx = B * (0.12 + rnd() * 0.15), sy = hor * 0.3, sr = 70 * u, glanz = g.createRadialGradient(sx, sy, sr * 0.6, sx, sy, sr * 2.4);
-      glanz.addColorStop(0, s.sonne); glanz.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = glanz; g.fillRect(0, 0, B, hor);
-      g.fillStyle = s.sonne; g.beginPath(); g.arc(sx, sy, sr, 0, 7); g.fill(); }
-    for (var w = 0; w < (s.wolken || 0); w++) wolke(B * (0.35 + w * 0.22 + rnd() * 0.1), hor * (0.18 + rnd() * 0.25), u * (0.8 + rnd() * 0.5));
-    if (s.art === 'strand'){
-      g.fillStyle = farbverlauf(g, 0, hor, 0, hor + H * 0.2, s.meer[0], s.meer[1]); g.fillRect(0, hor, B, H * 0.2 + 2);
-      g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 3 * u;
-      for (var wl = 0; wl < 7; wl++){ var wy = hor + H * 0.03 + wl * H * 0.025; g.beginPath(); for (var wx = 0; wx <= B; wx += 10) g.lineTo(wx, wy + Math.sin(wx / 40 + wl) * 3 * u); g.stroke(); }
-      huegel(hor + H * 0.2, 12 * u, farbverlauf(g, 0, hor + H * 0.2, 0, H, s.sand[0], s.sand[1]), 1, 2);
-    } else {
-      huegel(hor - 30 * u, 26 * u, mische(s.boden[0], s.himmel[1], 0.35), rnd() * 6, 3);
-      huegel(hor, 18 * u, farbverlauf(g, 0, hor, 0, H, s.boden[0], s.boden[1]), rnd() * 6, 2);
-      if (s.strasse){ var sy0 = H * 0.78; g.fillStyle = '#4a4a4a'; g.fillRect(0, sy0, B, H * 0.12); g.fillStyle = '#fff'; for (var sx2 = 20 * u; sx2 < B; sx2 += 90 * u) g.fillRect(sx2, sy0 + H * 0.058, 46 * u, 6 * u); }
-      if (s.schnee){ g.fillStyle = 'rgba(255,255,255,.9)'; for (var f = 0; f < 140; f++){ g.beginPath(); g.arc(rnd() * B, rnd() * hor, (1.5 + rnd() * 3) * u, 0, 7); g.fill(); } }
-    }
-  } else if (s.art === 'wasser'){
-    g.fillStyle = farbverlauf(g, 0, 0, 0, H, s.wasser[0], s.wasser[1]); g.fillRect(0, 0, B, H);
-    g.fillStyle = 'rgba(255,255,255,.08)';
-    for (var l = 0; l < 6; l++){ var lx = rnd() * B; g.beginPath(); g.moveTo(lx, 0); g.lineTo(lx + 80 * u, 0); g.lineTo(lx + 260 * u, H); g.lineTo(lx + 120 * u, H); g.closePath(); g.fill(); }
-    huegel(H * 0.86, 14 * u, s.sand, rnd() * 6, 3);
-    g.strokeStyle = 'rgba(255,255,255,.5)'; g.lineWidth = 2 * u;
-    for (var bl = 0; bl < 40; bl++){ g.beginPath(); g.arc(rnd() * B, rnd() * H * 0.85, (3 + rnd() * 9) * u, 0, 7); g.stroke(); }
-  } else if (s.art === 'nacht'){
-    g.fillStyle = farbverlauf(g, 0, 0, B, H, s.himmel[0], s.himmel[1]); g.fillRect(0, 0, B, H);
-    for (var st = 0; st < 220; st++){ g.fillStyle = 'rgba(255,255,255,' + (0.3 + rnd() * 0.7) + ')'; g.beginPath(); g.arc(rnd() * B, rnd() * H, (0.6 + rnd() * 1.8) * u, 0, 7); g.fill(); }
-  } else {
-    var rg = g.createRadialGradient(B / 2, H / 2, 0, B / 2, H / 2, Math.max(B, H) * 0.7); rg.addColorStop(0, s.grund[0]); rg.addColorStop(1, s.grund[1]); g.fillStyle = rg; g.fillRect(0, 0, B, H);
-    g.fillStyle = 'rgba(255,255,255,.35)';
-    for (var py = 0; py < H; py += 60 * u) for (var px = (py / (60 * u)) % 2 ? 30 * u : 0; px < B; px += 60 * u){ g.beginPath(); g.arc(px, py, 6 * u, 0, 7); g.fill(); }
-  }
-  // Emojis verteilen: jedes mindestens einmal, wenig Überlappung, hinten (oben) zuerst gezeichnet
-  var dinge = [];
-  function bereich(zone, gr){
-    if (zone === 'gross') return [gr * 0.5, B - gr * 0.5, hor - gr * 0.42, hor - gr * 0.3];
-    if (zone === 'oben') return [gr * 0.6, B - gr * 0.6, gr * 0.7, hor - gr * 0.9];
-    if (zone === 'imMeer') return [gr * 0.6, B - gr * 0.6, hor + gr * 0.2, hor + H * 0.17 - gr * 0.3];
-    if (zone === 'unten') return s.art === 'wasser' ? [gr * 0.6, B - gr * 0.6, H * 0.86, H - gr * 0.55] : [gr * 0.55, B - gr * 0.55, (s.art === 'strand' ? hor + H * 0.24 : hor + gr * 0.25), H - gr * 0.55];
-    return [gr * 0.55, B - gr * 0.55, gr * 0.55, H - gr * 0.55];
-  }
-  function platziere(e, zone, gr){
-    var b = bereich(zone, gr);
-    if (b[3] < b[2]) b[3] = b[2];
-    for (var t = 0; t < 160; t++){
-      var x = b[0] + rnd() * (b[1] - b[0]), y = b[2] + rnd() * (b[3] - b[2]), frei = true;
-      for (var i = 0; i < dinge.length && frei; i++){ var d = dinge[i]; if (Math.hypot(d.x - x, d.y - y) < (d.gr + gr) * (t < 100 ? 0.5 : 0.36)) frei = false; }
-      if (frei){ dinge.push({ e:e, x:x, y:y, gr:gr }); return; }
-    }
-  }
-  (s.gross || []).forEach(function(e){ platziere(e, 'gross', (190 + rnd() * 60) * u); });
-  (s.imMeer || []).forEach(function(e){ platziere(e, 'imMeer', (70 + rnd() * 30) * u); });
-  (s.oben || []).forEach(function(e){ platziere(e, 'oben', (70 + rnd() * 40) * u); });
-  var unten = s.unten || [], alle = s.alle || [], liste = alle.concat(unten), ziel = s.art === 'flach' ? 34 : 24;
-  liste.forEach(function(e){ platziere(e, unten.indexOf(e) >= 0 ? 'unten' : 'alle', (s.art === 'flach' ? 120 : 100) * u + rnd() * 70 * u); });
-  for (var z = 0; dinge.length < ziel && z < 60; z++){ var e2 = liste[Math.floor(rnd() * liste.length)]; platziere(e2, unten.indexOf(e2) >= 0 ? 'unten' : 'alle', (s.art === 'flach' ? 110 : 85) * u + rnd() * 60 * u); }
-  dinge.sort(function(a, b){ return a.y - b.y; });
-  g.textAlign = 'center'; g.textBaseline = 'middle';
-  dinge.forEach(function(d){ g.font = Math.round(d.gr) + 'px ' + EMOJI; g.fillText(d.e, d.x, d.y); });
-  return cv;
-}
 
 /* ---------- Puzzle-Teile ----------
    Kante von A nach B mit Nase: Punkte (u längs, v quer) einer klassischen Nase, gemessen in k (kürzere Seite der Zelle);
@@ -182,7 +69,7 @@ function starte(behaelter, o){
     t.bmp = k;
   }
   function brettPx(){ return { x:BX, y:BY, w:spalten * ZW, h:zeilen * ZH }; }
-  // Brett so gross wie möglich, aber mit genug Platz daneben für die losen Teile
+  // Brett so gross wie möglich, aber mit genug Platz daneben für alle losen Teile
   function masse(anteil){
     var quer = CW >= CH * 1.05, maxB = quer ? CW * anteil : CW * 0.94, maxH = quer ? CH * 0.86 : CH * (anteil - 0.05);
     var f = Math.min(maxB / IW, maxH / IH);
@@ -193,44 +80,64 @@ function starte(behaelter, o){
     var rect = behaelter.getBoundingClientRect(), altW = ZW, altH = ZH;
     dpr = Math.min(2, window.devicePixelRatio || 1);
     CW = Math.max(200, rect.width); CH = Math.max(200, rect.height); cv.width = Math.round(CW * dpr); cv.height = Math.round(CH * dpr);
-    for (var a = 0.62; a > 0.43; a -= 0.03){ masse(a); if (plaetze(0.9).length >= teile.length) break; }
-    if (a <= 0.43) masse(0.6);
+    for (var a = 0.62; a >= 0.36; a -= 0.02){ masse(a); if (plaetze(0.85, streifen()).length >= teile.length) break; }
     if (Math.abs(altW - ZW) > 0.01 || Math.abs(altH - ZH) > 0.01 || !teile[0].bmp) teile.forEach(teilbild);
     if (!gemischt){ mischen(); gemischt = true; }
-    teile.forEach(halten);
+    else {   // nach einer Grössenänderung: lose Teile im Bild halten; was dabei aufs Brett gerückt würde, wieder daneben legen
+      var s = streifen();
+      teile.forEach(function(t){ if (halten(t) && aufBrett(t)) wegLegen(t, s); });
+    }
     zeichne();
   }
-  // Plätze neben dem Brett in einem Gitter (Abstand f Zellen), damit sich die losen Teile möglichst nicht überdecken
-  function plaetze(f){
-    var b = brettPx(), sw = (ZW + M * 0.9) * f, sh = (ZH + M * 0.9) * f, rand = M * 0.35, liste = [];
-    var nx = Math.floor((CW - 2 * rand - ZW - M) / sw) + 1, ny = Math.floor((CH - 2 * rand - ZH - M) / sh) + 1;
+  /* Freie Streifen rund ums Brett: Bereiche für die linke obere Ecke eines Teils, in denen es samt Nasen ganz neben dem
+     Brett liegt ([x von, x bis, y von, y bis]) */
+  function streifen(){
+    var b = brettPx(), r = M * 0.4, abst = M * 1.3, x0 = r, x1 = CW - ZW - r, y0 = r, y1 = CH - ZH - r, s = [];
+    function dazu(ax, bx, ay, by){ if (bx >= ax && by >= ay) s.push([ax, bx, ay, by]); }
+    dazu(x0, b.x - abst - ZW, y0, y1);           // links
+    dazu(b.x + b.w + abst, x1, y0, y1);          // rechts
+    dazu(x0, x1, y0, b.y - abst - ZH);           // oben
+    dazu(x0, x1, b.y + b.h + abst, y1);          // unten
+    return s;
+  }
+  function imStreifen(s, px, py){ return s.some(function(q){ return px >= q[0] - 0.5 && px <= q[1] + 0.5 && py >= q[2] - 0.5 && py <= q[3] + 0.5; }); }
+  // Plätze in den Streifen in einem Gitter (Abstand f Teile), damit sich die losen Teile möglichst nicht überdecken
+  function plaetze(f, s){
+    var sw = (ZW + M * 0.9) * f, sh = (ZH + M * 0.9) * f, r = M * 0.4, liste = [];
+    var nx = Math.floor((CW - 2 * r - ZW) / sw) + 1, ny = Math.floor((CH - 2 * r - ZH) / sh) + 1;
     var ox = (CW - ((nx - 1) * sw + ZW)) / 2, oy = (CH - ((ny - 1) * sh + ZH)) / 2;
-    for (var j = 0; j < ny; j++) for (var i = 0; i < nx; i++){
-      var px = ox + i * sw, py = oy + j * sh;
-      if (px + ZW + M * 0.5 > b.x && px - M * 0.5 < b.x + b.w && py + ZH + M * 0.5 > b.y && py - M * 0.5 < b.y + b.h) continue;   // auf dem Brett
-      liste.push([px, py]);
-    }
+    for (var j = 0; j < ny; j++) for (var i = 0; i < nx; i++){ var px = ox + i * sw, py = oy + j * sh; if (imStreifen(s, px, py)) liste.push([px, py]); }
     return liste;
   }
-  // Teil im sichtbaren Bereich halten
-  function halten(t){
-    if (t.fest) return;
-    var px = BX + t.x * ZW, py = BY + t.y * ZH;
-    px = Math.min(Math.max(px, M * 0.3), CW - ZW - M * 0.3); py = Math.min(Math.max(py, M * 0.3), CH - ZH - M * 0.3);
-    t.x = (px - BX) / ZW; t.y = (py - BY) / ZH;
+  function irgendwo(s){   // zufällige Stelle in den Streifen (nach Fläche gewichtet)
+    if (!s.length) return [M * 0.4 + Math.random() * Math.max(1, CW - ZW - M), M * 0.4 + Math.random() * Math.max(1, CH - ZH - M)];
+    var fl = s.map(function(q){ return (q[1] - q[0] + 1) * (q[3] - q[2] + 1); }), z = Math.random() * fl.reduce(function(a, b){ return a + b; }, 0), k = 0;
+    while (k < s.length - 1 && z > fl[k]){ z -= fl[k]; k++; }
+    return [s[k][0] + Math.random() * (s[k][1] - s[k][0]), s[k][2] + Math.random() * (s[k][3] - s[k][2])];
   }
+  function setze(t, px, py){ t.x = (px - BX) / ZW; t.y = (py - BY) / ZH; }
+  function wegLegen(t, s){ var p = irgendwo(s); setze(t, p[0], p[1]); }
+  function aufBrett(t){
+    var b = brettPx(), px = BX + t.x * ZW, py = BY + t.y * ZH;
+    return px + ZW + M > b.x && px - M < b.x + b.w && py + ZH + M > b.y && py - M < b.y + b.h;
+  }
+  // Teil im sichtbaren Bereich halten; true, wenn es dafür verschoben wurde
+  function halten(t){
+    if (t.fest) return false;
+    var px = BX + t.x * ZW, py = BY + t.y * ZH, qx = Math.min(Math.max(px, M * 0.3), CW - ZW - M * 0.3), qy = Math.min(Math.max(py, M * 0.3), CH - ZH - M * 0.3);
+    if (qx === px && qy === py) return false;
+    setze(t, qx, qy); return true;
+  }
+  // alle Teile neben das Brett legen: zuerst auf freie Plätze, wenn sie nicht reichen, übereinander – aber nie aufs Brett
   function mischen(){
-    var liste = [];
-    for (var f = 1.12; f >= 0.7; f -= 0.06){ liste = plaetze(f); if (liste.length >= teile.length) break; }
+    var s = streifen(), liste = [];
+    for (var f = 1.12; f >= 0.7; f -= 0.06){ liste = plaetze(f, s); if (liste.length >= teile.length) break; }
     for (var i = liste.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)), tt = liste[i]; liste[i] = liste[j]; liste[j] = tt; }
     for (var k = teile.length - 1; k > 0; k--){ var m = Math.floor(Math.random() * (k + 1)), t2 = teile[k]; teile[k] = teile[m]; teile[m] = t2; }
     teile.forEach(function(t, n){
       t.fest = false;
-      var pl = liste.length ? liste[n % liste.length] : [M + Math.random() * (CW - ZW - 2 * M), M + Math.random() * (CH - ZH - 2 * M)];
-      var px = pl[0] + (Math.random() - 0.5) * M * 0.5 + (n >= liste.length ? (Math.random() - 0.5) * ZW * 0.6 : 0);
-      var py = pl[1] + (Math.random() - 0.5) * M * 0.5 + (n >= liste.length ? (Math.random() - 0.5) * ZH * 0.6 : 0);
-      t.x = (px - BX) / ZW; t.y = (py - BY) / ZH;
-      halten(t);
+      var p = n < liste.length ? liste[n] : irgendwo(s), w = M * 0.18;
+      setze(t, p[0] + (Math.random() - 0.5) * w, p[1] + (Math.random() - 0.5) * w);
     });
     start = 0; ende = 0; meldeStatus();
   }
@@ -305,9 +212,9 @@ function starte(behaelter, o){
     stopp:function(){ aus = true; clearInterval(uhr); if (beobachter) beobachter.disconnect(); else window.removeEventListener('resize', anordnen); cv.remove(); },
     raster:function(){ return { spalten:spalten, zeilen:zeilen }; },
     // Lage aller Teile in Pixeln (in Zeichenreihenfolge, das oberste zuletzt) – für Tests und Fehlersuche
-    lage:function(){ return teile.map(function(t){ return { r:t.r, c:t.c, fest:t.fest, x:BX + t.x * ZW, y:BY + t.y * ZH, zx:BX + t.c * ZW, zy:BY + t.r * ZH, zw:ZW, zh:ZH }; }); }
+    lage:function(){ return teile.map(function(t){ return { r:t.r, c:t.c, fest:t.fest, x:BX + t.x * ZW, y:BY + t.y * ZH, zx:BX + t.c * ZW, zy:BY + t.r * ZH, zw:ZW, zh:ZH, m:M }; }); }
   };
 }
 
-window.PuzzleSpiel = { SZENEN:SZENEN, szene:szene, starte:starte, raster:raster };
+window.PuzzleSpiel = { starte:starte, raster:raster };
 })();

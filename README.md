@@ -128,11 +128,20 @@ Ein eigener Text (auch mehrere Zeilen) in fünf Fassungen: **horizontal gespiege
 
 ### Puzzle
 
-Ein Bild wird zum Online-Puzzle mit klassischen Puzzle-Teilen (Nasen und Mulden). Gepuzzelt wird mit Maus oder Finger: Teile aufs Brett ziehen, am richtigen Platz rasten sie ein; oben stehen die gelegten Teile und die Zeit, am Schluss «Geschafft!».
+Ein eigenes Bild wird zum Online-Puzzle mit klassischen Puzzle-Teilen (Nasen und Mulden). Gepuzzelt wird mit Maus oder Finger: Teile aufs Brett ziehen, am richtigen Platz rasten sie ein; oben stehen die gelegten Teile und die Zeit, am Schluss «Geschafft!».
 
-- **Bild:** *Fertige Puzzles* – zehn bunte Szenen aus Emojis (Bauernhof, Unter Wasser, Weltall, Dschungel, Winter, Stadt, Savanne, Strand, Obst und Gemüse, Süssigkeiten), im Browser gezeichnet, also ohne fremde Bildrechte – oder *Eigenes Bild* hochladen (wird auf höchstens 1600 Pixel verkleinert; es bleibt auf dem Gerät, bis man einen QR-Code erstellt).
-- **Schwierigkeit:** 12, 24, 48, 96 oder 150 Teile. Die Teile dürfen leicht rechteckig sein, damit die Anzahl genau stimmt (nur bei sehr quadratischen oder sehr schmalen Bildern weicht sie um ein paar Teile ab; oben steht immer die echte Zahl). Auf Wunsch zeigt das Brett das Bild blass als Vorlage (leichter). «Bild ansehen» zeigt das ganze Bild, «Neu mischen» verteilt die Teile neu (möglichst ohne Überdecken rund ums Brett), «Vollbild» für Tablets.
-- **QR-Code zum Puzzle:** Das Puzzle wird auf dem eigenen Server gespeichert (`api/puzzle.php`; Angaben in `api/daten/puzzles/`, ein eigenes Bild als `/P/<ID>/bild.jpg`, mit GD neu gespeichert), der Code führt zur Puzzle-Seite `/P/<ID>/` (Link in Grossbuchstaben → kleiner Code). Gleiches Puzzle → gleiche ID; höchstens 20 neue pro Stunde und Netz, 200 pro Tag. Dazu Link kopieren, QR als Bild (PNG) und ein PDF-Blatt mit QR-Code und kleinem Vorschaubild (Titel und Anleitung wählbar). Nur mit eigenem Server (Infomaniak), nicht auf GitHub Pages.
+- **Bild:** eigenes Bild auswählen oder hineinziehen (wird auf höchstens 1600 Pixel verkleinert; es bleibt auf dem Gerät, bis man einen QR-Code erstellt). Fertige Bilder gibt es bewusst nicht, und das ganze Bild lässt sich während des Puzzelns nicht ansehen.
+- **Schwierigkeit:** 12, 24, 48, 96 oder 150 Teile. Die Teile dürfen leicht rechteckig sein, damit die Anzahl genau stimmt (nur bei sehr quadratischen oder sehr schmalen Bildern weicht sie um ein paar Teile ab; oben steht immer die echte Zahl). Auf Wunsch zeigt das Brett das Bild blass als Vorlage (leichter). «Neu mischen» verteilt die Teile neu, «Vollbild» für Tablets.
+- **Teile neben dem Brett:** Gemischt liegen alle Teile samt Nasen neben dem Brett, nie darauf – zuerst auf freie Plätze, wenn sie nicht reichen, teilweise übereinander. Das Brett wird so gross gewählt, dass rundherum genug Platz bleibt; auch nach einer Grössenänderung (Vollbild, Drehen des Tablets) rückt kein Teil aufs Brett.
+- **QR-Code zum Puzzle:** Das Puzzle wird auf dem eigenen Server gespeichert (`api/puzzle.php`; Angaben in `api/daten/puzzles/`, das Bild als `/P/<ID>/bild.jpg`, mit GD neu gespeichert), der Code führt zur Puzzle-Seite `/P/<ID>/` (Link in Grossbuchstaben → kleiner Code). Gleiches Puzzle → gleiche ID; höchstens 20 neue pro Stunde und Netz, 200 pro Tag. Dazu Link kopieren, QR als Bild (PNG) und ein PDF-Blatt mit QR-Code und Link (ohne das Bild; Titel und Anleitung wählbar). Nur mit eigenem Server (Infomaniak), nicht auf GitHub Pages.
+
+### Freimaurer-Code
+
+Eine Geheimschrift (Freimaurer-Alphabet, engl. Pigpen Cipher): Jeder Buchstabe wird als das Stück Gitter geschrieben, das ihn im Schlüssel umgibt – A–I im Gitter #, J–R im Gitter # mit Punkt, S–V im X (oben, links, rechts, unten), W–Z im X mit Punkt.
+
+- **Text:** auch mehrere Zeilen; Umlaute werden als AE, OE, UE geschrieben, ß als SS, Akzente fallen weg; Ziffern und Satzzeichen bleiben stehen.
+- **Blatt:** Zeichen klein, mittel oder gross, auf Wunsch mit Schreiblinien; Titel frei wählbar (sonst «Geheimbotschaft»). «Lösung zeigen» schreibt die Buchstaben am Bildschirm darunter. Ist der Text für eine A4-Seite zu lang, kommt ein Hinweis.
+- **Herunterladen:** Geheimtext als PDF – wahlweise mit Alphabet und Lösungsblatt (je eine Seite) – oder als Bild (PNG). Das **Freimaurer-Alphabet** (die vier Schlüssel-Figuren und eine Tabelle A–Z mit allen Zeichen) gibt es einzeln als PDF oder Bild. Im Claude-Artefakt als HTML-Datei bzw. SVG-Bild.
 
 ## Aufbau
 
@@ -157,8 +166,9 @@ raetsel/labyrinth/              der Generator «Labyrinth»
 raetsel/emoji-rechnen/          der Generator «Emoji-Rechnen» (Kern: Rätsel bauen und prüfen; Oberfläche)
 raetsel/text-spiegeln/          der Generator «Text spiegeln» (Kern: Unicode-Spiegelung; Oberfläche zum Kopieren)
 raetsel/puzzle/                 der Generator «Puzzle»
-  puzzle-spiel.js               fertige Bilder (Emoji-Szenen) und das Spiel selbst; auch für die Puzzle-Seite /P/<ID>/
+  puzzle-spiel.js               das Spiel selbst (Teile, Mischen, Ziehen, Einrasten); auch für die Puzzle-Seite /P/<ID>/
   puzzle.js                     Oberfläche: Bild, Schwierigkeit, QR-Code
+raetsel/freimaurer/             der Generator «Freimaurer-Code» (Kern: Zeichen der Buchstaben; Blätter, Alphabet, Bilder)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)
 gemeinsam/extern/html2canvas.min.js, jspdf.umd.min.js   für den PDF-Download (html2canvas 1.4.1, jsPDF 2.5.2, MIT, unverändert; Lizenzen daneben)
@@ -176,7 +186,7 @@ api/puzzle.php                  Server-Teil (PHP): speichert Puzzles für QR-Cod
 - Beim Hochladen hängt der GitHub-Workflow eine Versionsnummer an alle Skripte und Stile (`…/labor.js?v=1a2b3c4d`, auch für die Stile der Generatoren). Nach jeder Änderung lädt der Browser so sicher die neuen Dateien.
 - Ist die Seite schon offen, wenn eine neue Version hochgeladen wird (das Labor wechselt zwischen den Generatoren ohne Neuladen), merkt sie das: Der Workflow schreibt die Versionsnummer in `version.txt`, die Seite fragt sie ab, wenn man zu ihr zurückkehrt und alle 10 Minuten. Bei einer neuen Version erscheint ein Hinweis «Neu laden», und der nächste Wechsel zu einem Generator lädt die Seite von selbst neu.
 
-Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und den mitgelieferten Bibliotheken in `gemeinsam/extern/` keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code`, `…/#labyrinth`, `…/#emoji-rechnen`, `…/#text-spiegeln` oder `…/#puzzle` öffnet direkt einen Generator, `…/#start` die Startseite.
+Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und den mitgelieferten Bibliotheken in `gemeinsam/extern/` keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code`, `…/#labyrinth`, `…/#emoji-rechnen`, `…/#text-spiegeln`, `…/#puzzle` oder `…/#freimaurer` öffnet direkt einen Generator, `…/#start` die Startseite.
 
 ## Einen neuen Generator hinzufügen
 
