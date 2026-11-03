@@ -152,6 +152,16 @@ Ein Wort, das man auch auf dem Kopf lesen kann (um 180° gedreht) – dasselbe W
 - **Farben:** sieben Schriftfarben oder eine eigene; Hintergrund weiss, durchsichtig oder farbig.
 - **Ansehen und herunterladen:** «Auf den Kopf drehen» dreht das Ambigramm am Bildschirm. Herunterladen als Bild (PNG, auf Wunsch mit durchsichtigem Hintergrund) oder als PDF-Blatt (Titel und Anweisung «Drehe das Blatt auf den Kopf …» wählbar). Im Claude-Artefakt als SVG-Bild bzw. HTML-Datei.
 
+### Trimino
+
+Dreieckige Spielsteine, die so aneinandergelegt werden, dass aufeinandertreffende Seiten zusammenpassen (Aufgabe und Ergebnis, Wort und Übersetzung). Alles entsteht direkt im Browser.
+
+- **Formen:** Dreieck klein (9 Teile, 9 Paare), Stern (12 Teile, 12 Paare), Dreieck gross (16 Teile, 18 Paare), Sechseck (24 Teile, 30 Paare) – im Dreiecksgitter berechnet; Innenkanten tragen die Paare.
+- **Mathe (fertig erzeugt):** *Rechnen* mit Plus, Minus, Mal, Geteilt (frei kombinierbar) bis 10, 20, 100 oder 1000 · *Dezimalbrüche* (Zehntel, bis Hundertstel, bis Tausendstel: 7/100 ↔ 0.07) · *Stellenwerte* (Zahl mit farbiger Ziffer ↔ «4 Hundertstel»; Dezimalzahlen, ganze Zahlen oder gemischt) · *Brüche in Worten* («drei Fünftel» ↔ 3/5; bis Sechstel, Zehntel oder Zwölftel, bei Bedarf auch unechte Brüche). Dezimaltrennzeichen Punkt oder Komma. Kein Ergebnis kommt doppelt vor; wo das nicht möglich ist (z. B. Plus bis 10 hat nur 9 Ergebnisse), weist ein Hinweis darauf hin.
+- **Englisch, Französisch, eigene Paare:** eigene Wortliste, ein Paar pro Zeile («Hund = dog»; auch «;», Tabulator oder « - », Tabellen aus Excel/Word). Ein Zähler zeigt, wie viele Paare eingegeben sind und wie viele jede Form braucht. Doppelte Wörter werden nicht verwendet; zusätzliche Paare dienen auf Wunsch als Ablenker.
+- **Aussenkanten:** leer (leichter, Randteile erkennbar) oder mit Ablenkern (Aufgaben/Lösungen, die nirgends passen).
+- **Blatt:** Schnittbogen – die Teile liegen in der Form, aber vertauscht und gedreht: Man schneidet entlang gemeinsamer Linien, und der Bogen verrät die Lösung nicht. Dazu das Lösungsblatt (fertige Figur). Ecken farbig (Farbe wählbar), Titel und Anleitung wählbar, PDF. Die Schrift passt sich pro Teil an: alle drei Texte gleich gross, so gross wie möglich, ohne sich in den Ecken zu berühren; lange Begriffe auch zweizeilig. «Verwendete Paare» listet alle Paare zum Kontrollieren.
+
 ## Aufbau
 
 ```
@@ -179,6 +189,7 @@ raetsel/puzzle/                 der Generator «Puzzle»
   puzzle.js                     Oberfläche: Bild, Schwierigkeit, QR-Code
 raetsel/freimaurer/             der Generator «Freimaurer-Code» (Kern: Zeichen der Buchstaben; Blätter, Alphabet, Bilder)
 raetsel/ambigramm/              der Generator «Ambigramm» (Zeichnen im Canvas, Schriften, Farben, Herunterladen)
+raetsel/trimino/                der Generator «Trimino» (Kern: Formen, Kanten, Aufgaben, Belegung; Zeichnen mit Schriftanpassung)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)
 gemeinsam/extern/html2canvas.min.js, jspdf.umd.min.js   für den PDF-Download (html2canvas 1.4.1, jsPDF 2.5.2, MIT, unverändert; Lizenzen daneben)
@@ -196,7 +207,7 @@ api/puzzle.php                  Server-Teil (PHP): speichert Puzzles für QR-Cod
 - Beim Hochladen hängt der GitHub-Workflow eine Versionsnummer an alle Skripte und Stile (`…/labor.js?v=1a2b3c4d`, auch für die Stile der Generatoren). Nach jeder Änderung lädt der Browser so sicher die neuen Dateien.
 - Ist die Seite schon offen, wenn eine neue Version hochgeladen wird (das Labor wechselt zwischen den Generatoren ohne Neuladen), merkt sie das: Der Workflow schreibt die Versionsnummer in `version.txt`, die Seite fragt sie ab, wenn man zu ihr zurückkehrt und alle 10 Minuten. Bei einer neuen Version erscheint ein Hinweis «Neu laden», und der nächste Wechsel zu einem Generator lädt die Seite von selbst neu.
 
-Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und den mitgelieferten Bibliotheken in `gemeinsam/extern/` keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code`, `…/#labyrinth`, `…/#emoji-rechnen`, `…/#text-spiegeln`, `…/#puzzle`, `…/#freimaurer` oder `…/#ambigramm` öffnet direkt einen Generator, `…/#start` die Startseite.
+Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und den mitgelieferten Bibliotheken in `gemeinsam/extern/` keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code`, `…/#labyrinth`, `…/#emoji-rechnen`, `…/#text-spiegeln`, `…/#puzzle`, `…/#freimaurer`, `…/#ambigramm` oder `…/#trimino` öffnet direkt einen Generator, `…/#start` die Startseite.
 
 ## Einen neuen Generator hinzufügen
 
