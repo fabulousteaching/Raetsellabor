@@ -143,6 +143,15 @@ Eine Geheimschrift (Freimaurer-Alphabet, engl. Pigpen Cipher): Jeder Buchstabe w
 - **Blatt:** Zeichen klein, mittel oder gross, auf Wunsch mit Schreiblinien; Titel frei wählbar (sonst «Geheimbotschaft»). «Lösung zeigen» schreibt die Buchstaben am Bildschirm darunter. Ist der Text für eine A4-Seite zu lang, kommt ein Hinweis.
 - **Herunterladen:** Geheimtext als PDF – wahlweise mit Alphabet und Lösungsblatt (je eine Seite) – oder als Bild (PNG). Das **Freimaurer-Alphabet** (die vier Schlüssel-Figuren und eine Tabelle A–Z mit allen Zeichen) gibt es einzeln als PDF oder Bild. Im Claude-Artefakt als HTML-Datei bzw. SVG-Bild.
 
+### Ambigramm
+
+Ein Wort, das man auch auf dem Kopf lesen kann (um 180° gedreht) – dasselbe Wort oder ein zweites («Auf dem Kopf gelesen»).
+
+- **So entsteht es:** Der i-te Buchstabe des ersten Worts und – um 180° gedreht – der i-te Buchstabe von hinten des zweiten Worts liegen übereinander im selben Feld; aufrecht liest man das erste, gedreht das zweite Wort. Paare, die gedreht ohnehin gleich aussehen (n/u, d/p, b/q, m/w, s, o, x, z, l, M/W …), werden nur einmal gezeichnet. Gedreht wird um die Mitte der Kleinbuchstaben (bei lauter Grossbuchstaben um deren Mitte), damit beide Lesarten auf einer Grundlinie stehen. Ungleich lange Wörter werden beidseitig aufgefüllt.
+- **Schriften:** Elegant, Fraktur, Gotisch, Schwung, Klar, Rund, Antik und Handschrift (Google Fonts, freie Lizenz; nur in diesem Generator geladen). Ausgewählt, weil übereinandergelegte Buchstaben darin lesbar bleiben – fette Schriften und verbundene Schreibschriften verschmieren. Schreibweise klein, GROSS oder wie geschrieben; Buchstabenabstand einstellbar.
+- **Farben:** sieben Schriftfarben oder eine eigene; Hintergrund weiss, durchsichtig oder farbig.
+- **Ansehen und herunterladen:** «Auf den Kopf drehen» dreht das Ambigramm am Bildschirm. Herunterladen als Bild (PNG, auf Wunsch mit durchsichtigem Hintergrund) oder als PDF-Blatt (Titel und Anweisung «Drehe das Blatt auf den Kopf …» wählbar). Im Claude-Artefakt als SVG-Bild bzw. HTML-Datei.
+
 ## Aufbau
 
 ```
@@ -169,6 +178,7 @@ raetsel/puzzle/                 der Generator «Puzzle»
   puzzle-spiel.js               das Spiel selbst (Teile, Mischen, Ziehen, Einrasten); auch für die Puzzle-Seite /P/<ID>/
   puzzle.js                     Oberfläche: Bild, Schwierigkeit, QR-Code
 raetsel/freimaurer/             der Generator «Freimaurer-Code» (Kern: Zeichen der Buchstaben; Blätter, Alphabet, Bilder)
+raetsel/ambigramm/              der Generator «Ambigramm» (Zeichnen im Canvas, Schriften, Farben, Herunterladen)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)
 gemeinsam/extern/html2canvas.min.js, jspdf.umd.min.js   für den PDF-Download (html2canvas 1.4.1, jsPDF 2.5.2, MIT, unverändert; Lizenzen daneben)
@@ -186,7 +196,7 @@ api/puzzle.php                  Server-Teil (PHP): speichert Puzzles für QR-Cod
 - Beim Hochladen hängt der GitHub-Workflow eine Versionsnummer an alle Skripte und Stile (`…/labor.js?v=1a2b3c4d`, auch für die Stile der Generatoren). Nach jeder Änderung lädt der Browser so sicher die neuen Dateien.
 - Ist die Seite schon offen, wenn eine neue Version hochgeladen wird (das Labor wechselt zwischen den Generatoren ohne Neuladen), merkt sie das: Der Workflow schreibt die Versionsnummer in `version.txt`, die Seite fragt sie ab, wenn man zu ihr zurückkehrt und alle 10 Minuten. Bei einer neuen Version erscheint ein Hinweis «Neu laden», und der nächste Wechsel zu einem Generator lädt die Seite von selbst neu.
 
-Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und den mitgelieferten Bibliotheken in `gemeinsam/extern/` keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code`, `…/#labyrinth`, `…/#emoji-rechnen`, `…/#text-spiegeln`, `…/#puzzle` oder `…/#freimaurer` öffnet direkt einen Generator, `…/#start` die Startseite.
+Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und den mitgelieferten Bibliotheken in `gemeinsam/extern/` keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code`, `…/#labyrinth`, `…/#emoji-rechnen`, `…/#text-spiegeln`, `…/#puzzle`, `…/#freimaurer` oder `…/#ambigramm` öffnet direkt einen Generator, `…/#start` die Startseite.
 
 ## Einen neuen Generator hinzufügen
 
