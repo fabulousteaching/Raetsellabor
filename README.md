@@ -63,6 +63,7 @@ Aus Wörtern und ganzen Sätzen werden Bilderrätsel. Jedes Bild steht für ein 
 
 Beispiel «Ich arbeite gerne»: 👨‍🍳 `ko=i` · 🐜 `m=rb` `s=t` · 🍐 `bi=ge`.
 
+- **Alle Kärtchen gleich gross:** Auf einem Blatt haben alle Bildkärtchen dieselbe Breite und Höhe – so breit wie die längste Regel, so hoch wie das Bild mit den meisten Regeln (berechnet aus den Regeln, nicht aus der Bildschirmbreite, darum auch im PDF gleich).
 - **Ein Kasten = ein Wort:** Besteht ein Wort aus mehreren Bildern (oder Bild und Buchstaben), steht ein gemeinsamer Kasten um alle Teile – so ist klar, was zusammengehört. Wörter aus einem Bild behalten ihr eigenes Kärtchen.
 - **Bild austauschen:** Am Bildschirm lässt sich jedes Bild anklicken (oder mit Enter wählen); dann kommt für dasselbe Wortstück ein anderes Bild mit passenden Regeln, der Rest bleibt. Weggeklickte Bilder kommen im selben Wort nicht wieder (sind alle durch, beginnt es von vorn); gibt es für das Stück kein anderes Bild, wird ein Nachbarteil einbezogen. «Anders» würfelt das ganze Rätsel neu.
 

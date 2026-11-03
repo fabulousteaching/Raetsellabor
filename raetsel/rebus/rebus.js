@@ -409,7 +409,7 @@ function starte(bereich){
       '<span class="rb-ergebnis">' + esc(c.buchstabe) + '</span></div>';
     var tausch = ort ? ' rb-tauschbar" data-i="' + ort.i + '" data-w="' + ort.w + '" data-k="' + ort.k + '" role="button" tabindex="0" title="Anderes Bild" aria-label="Anderes Bild statt ' + esc(c.bild.wort.toLocaleLowerCase('de-CH')) : '';
     return '<div class="rb-teil' + tausch + '"><div class="rb-karte"><span class="rb-bild">' + c.bild.emoji + '</span>' +
-      (c.regeln.length ? '<span class="rb-regeln">' + c.regeln.map(function(r){ return '<span class="rb-regel">' + esc(regelText(r)) + '</span>'; }).join('') + '</span>' : '') +
+      '<span class="rb-regeln">' + c.regeln.map(function(r){ return '<span class="rb-regel">' + esc(regelText(r)) + '</span>'; }).join('') + '</span>' +   // auch leer: hält den Platz frei
       '</div><span class="rb-name' + (st.opt.namen ? ' rb-hilfe' : '') + '">' + esc(c.bild.wort) + '</span>' +
       '<span class="rb-ergebnis">' + esc(Kern.ergebnis(c)) + '</span></div>';
   }
@@ -418,7 +418,14 @@ function starte(bereich){
     var html = loesung ? '<h2 class="rb-titel">' + esc(st.opt.titelAn ? 'Lösung – ' + titel : 'Lösung') + '</h2>' : st.opt.titelAn || beispiel ? '<h2 class="rb-titel">' + esc(titel) + '</h2>' : '';
     if (!loesung && (st.opt.anleitungAn || beispiel)) html += '<p class="rb-anleitung">' + (beispiel ? 'So sieht ein Rebus aus: ' : '') +
       'Welche Wörter verstecken sich in den Bildern? Die Bilder stehen für Wörter in der Einzahl, ohne Artikel. Die Regeln unter einem Bild wendet man der Reihe nach an.</p>';
-    html += '<ol class="rb-raetsel">';
+    // Alle Kärtchen auf dem Blatt gleich gross: so breit wie die längste Regel, so hoch wie das Bild mit den meisten Regeln
+    var zeichen = 4, regeln = 0;
+    liste.forEach(function(x){ x.r.forEach(function(w){ w.teile.forEach(function(c){
+      if (!c.bild) return;
+      regeln = Math.max(regeln, c.regeln.length);
+      c.regeln.forEach(function(g){ zeichen = Math.max(zeichen, Array.from(regelText(g)).length); });
+    }); }); });
+    html += '<ol class="rb-raetsel" style="--z:' + zeichen + ';--n:' + regeln + '">';
     liste.forEach(function(x, i){
       html += '<li class="rb-eintrag" data-i="' + i + '"><span class="rb-nr">' + (liste.length > 1 ? (i + 1) + '.' : '') + '</span><div class="rb-inhalt">' +
         '<div class="rb-zeile">' + x.r.map(function(w, wi){ return '<div class="rb-wort' + (w.teile.length > 1 ? ' rb-mehrteilig' : '') + '">' + w.teile.map(function(c, k){ return teilHtml(c, !loesung && !beispiel ? { i:i, w:wi, k:k } : null); }).join('') + '</div>'; }).join('<span class="rb-wortgrenze" aria-hidden="true"></span>') + '</div>';

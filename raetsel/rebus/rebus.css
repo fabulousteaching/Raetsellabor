@@ -64,9 +64,10 @@ details.optionen[open] summary{margin-bottom:12px}
 
 /* Ein Teil: Bildkärtchen mit Regeln darunter (wie «ko=i», «−m», «+e») */
 .rb-teil{display:grid;justify-items:center;align-content:start;gap:4px}
-.rb-karte{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:7.4em;padding:14px 12px 12px;border:2px solid var(--line-2);border-radius:18px;background:#fff}
+/* Alle Kärtchen gleich gross (--z: längste Regel in Zeichen, --n: meiste Regeln unter einem Bild – gesetzt in blattHtml) */
+.rb-karte{display:flex;flex-direction:column;align-items:center;gap:10px;width:max(7.4em, calc(var(--z, 4) * .64em + 3.8em));padding:14px 12px 12px;border:2px solid var(--line-2);border-radius:18px;background:#fff}
 .rb-bild{font-size:3.4rem;line-height:1.05;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif}
-.rb-regeln{display:flex;flex-direction:column;align-items:center;gap:6px}
+.rb-regeln{display:flex;flex-direction:column;align-items:center;gap:6px;min-height:max(0px, calc(var(--n, 0) * (1.05rem * 1.35 + 10px) + (var(--n, 0) - 1) * 6px))}
 .rb-regel{display:inline-block;padding:3px 12px;border-radius:999px;border:1px solid var(--accent-line);background:var(--accent-soft);color:var(--accent-2);
   font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace;font-weight:700;font-size:1.05rem;line-height:1.35;white-space:nowrap}
 .rb-buchstabe{display:grid;place-items:center;min-width:1.4em;height:1.4em;padding:0 .15em;font-family:var(--display);font-weight:600;font-size:2.6rem;line-height:1;color:var(--ink);border:2px solid var(--ink);border-radius:12px}
@@ -78,7 +79,7 @@ details.optionen[open] summary{margin-bottom:12px}
 .rb-tauschbar:hover .rb-karte::after,.rb-tauschbar:focus-visible .rb-karte::after{content:'↻';position:absolute;top:-11px;right:-11px;width:26px;height:26px;border-radius:50%;
   background:var(--accent);color:var(--auf-akzent);font-size:.95rem;font-weight:700;display:grid;place-items:center;box-shadow:0 2px 6px rgba(45,28,12,.2)}
 .rb-tipp{flex-basis:100%;margin:2px 0 0;font-size:.84rem;color:var(--muted)}
-.rb-nur-buchstabe .rb-karte{min-width:0;border:0;padding:14px 4px 0;background:transparent}
+.rb-nur-buchstabe .rb-karte{width:auto;min-width:0;border:0;padding:14px 4px 0;background:transparent}
 .rb-name,.rb-ergebnis{display:none;font-size:.74rem;font-weight:600;letter-spacing:.05em;color:var(--muted)}
 .rb-name.rb-hilfe{display:block}
 .rb-ergebnis{color:var(--accent-2)}
@@ -98,7 +99,7 @@ details.optionen[open] summary{margin-bottom:12px}
 
 @media (max-width:640px){
   .rb-bild{font-size:2.6rem}
-  .rb-karte{min-width:6em;padding:10px 8px 8px;border-radius:14px}
+  .rb-karte{width:max(6em, calc(var(--z, 4) * .62em + 2.9em));padding:10px 8px 8px;border-radius:14px}
   .rb-regel{font-size:.95rem;padding:2px 9px}
 }
 @media print{
