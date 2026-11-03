@@ -1,0 +1,89 @@
+/* Rätsellabor · Text spiegeln – nur aktiv, solange dieser Generator offen ist.
+   Gemeinsame Bausteine (Karten, Knöpfe, Eingabefelder, Meldungen) stehen in gemeinsam/labor.css. */
+.ts{max-width:1440px;margin:0 auto;padding-block:22px 48px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.ts-kopf{display:grid;gap:4px;margin:0 0 20px}
+.ts-kopf h1{font-family:var(--display);font-weight:600;font-size:clamp(1.7rem,3vw,2.2rem);letter-spacing:-.01em;line-height:1.1;margin:0;color:var(--ink)}
+.ts-kopf h1:focus{outline:none}
+.ts-kopf p:last-child{margin:2px 0 0;color:var(--muted);max-width:70ch}
+.ts-layout{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:24px;align-items:start}
+.ts-eingabe{display:grid;gap:16px;min-width:0}
+@media (min-width:961px){ .ts-eingabe{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--kopf-h) + 16px);max-height:calc(100vh - var(--kopf-h) - 32px);overflow:auto;padding:2px 4px 2px 2px;scrollbar-width:thin} }
+@media (max-width:960px){ .ts-layout{grid-template-columns:minmax(0,1fr);gap:18px} }
+@media (max-width:640px){ .ts{padding-block:18px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))} }
+
+/* ---------- Eingaben ---------- */
+.ts textarea{display:block;width:100%;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;resize:vertical;min-height:6em;line-height:1.45;font-size:1.05rem;transition:border-color .15s,box-shadow .15s}
+.ts textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.ts-arten{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.ts-arten label{position:relative;cursor:pointer}
+.ts-arten input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.ts-arten span{display:inline-block;padding:6px 12px;border:1px solid var(--line-2);border-radius:999px;background:#fff;font-size:.86rem;font-weight:600;color:var(--muted);transition:border-color .15s,background .15s,color .15s}
+.ts-arten label:hover span{border-color:var(--accent-line)}
+.ts-arten input:checked + span{background:var(--accent);border-color:var(--accent);color:var(--auf-akzent)}
+.ts-arten input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+.opt{display:flex;align-items:flex-start;gap:10px;margin:10px 0;font-size:.9rem}
+.opt input[type=checkbox]{width:16px;height:16px;margin:3px 0 0;accent-color:var(--accent);flex:none}
+.ts .opt-raster{display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center;font-size:.9rem}
+.ts .opt-raster select{width:auto;min-width:8em}
+.ts .opt-raster input[type=text]{width:auto;min-width:12em}
+.ts details.optionen summary{cursor:pointer;font-weight:650;font-size:1rem;list-style:none;display:flex;align-items:center;justify-content:space-between}
+.ts details.optionen summary::-webkit-details-marker{display:none}
+.ts details.optionen summary::after{content:'';width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .2s;margin:0 6px 4px 0}
+.ts details.optionen[open] summary::after{transform:rotate(-135deg);margin-bottom:0}
+.ts details.optionen[open] summary{margin-bottom:10px}
+@media (max-width:480px){ .ts .opt-raster{grid-template-columns:1fr} .ts .opt-raster input[type=text]{width:100%} }
+
+/* ---------- Ausgabe ---------- */
+.ts-ausgabe{min-width:0}
+.ts .leer-zustand{background:#fff;border:1px dashed var(--line-2);border-radius:14px;padding:48px 24px;text-align:center;color:var(--muted)}
+.ts .leer-zustand h2{color:var(--text);font-size:1.15rem;font-weight:650;margin:0 0 4px}
+.ts-abschnitt{font-family:var(--display);font-weight:600;font-size:1.3rem;margin:0 0 4px;color:var(--ink)}
+.ts-abschnitt:not(:first-child){margin-top:28px}
+.ts-tipp{margin:0 0 12px;color:var(--muted);font-size:.9rem;max-width:80ch}
+
+/* Fassungen zum Kopieren: ganze Karte ist ein Knopf */
+.ts-karten{display:grid;gap:10px}
+.ts-karte{display:grid;gap:8px;width:100%;text-align:left;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);box-shadow:var(--schatten);
+  color:var(--text);font:inherit;cursor:copy;transition:border-color .15s,background .15s}
+.ts-karte:hover{border-color:var(--accent)}
+.ts-karte.kopiert{border-color:var(--ok);background:var(--ok-soft)}
+.ts-karte-kopf{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.ts-karte-kopf b{display:block;font-weight:650;font-size:.95rem}
+.ts-karte-kopf small{display:block;color:var(--muted);font-size:.8rem}
+.ts-kopiert{flex:none;font-size:.78rem;font-weight:650;color:var(--accent-2);background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:999px;padding:2px 10px;white-space:nowrap}
+.ts-karte.kopiert .ts-kopiert{color:var(--ok);background:#fff;border-color:var(--ok-line)}
+.ts-text{font-size:1.3rem;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;user-select:text;-webkit-user-select:text}
+
+.ts-werkzeug{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:10px 0 12px}
+.ts-werkzeug .abstand{flex:1}
+.ts-werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
+.ts-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+
+/* Arbeitsblatt: die echte Schrift wird gespiegelt (exakt) */
+.ts-blatt{background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:30px clamp(16px,3.2vw,40px)}
+.ts-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
+.ts-anleitung{margin:0 0 20px;color:#554C45;max-width:80ch}
+.ts-feld{padding:18px 20px;border:1.5px solid #D8CEC4;border-radius:14px;margin:0 0 8px}
+.ts-spiegel{font-family:'Andika','Inter',system-ui,sans-serif;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55;color:#1C1714}
+.groesse-m .ts-spiegel{font-size:1.4rem}
+.groesse-l .ts-spiegel{font-size:1.9rem}
+.groesse-xl .ts-spiegel{font-size:2.5rem}
+.ts-spiegel.art-horizontal{transform:scaleX(-1)}
+.ts-spiegel.art-vertikal{transform:scaleY(-1)}
+.ts-spiegel.art-gedreht{transform:rotate(180deg)}
+.ts-linien{display:grid;gap:0;margin-top:14px}
+.ts-linie{height:2.6em;border-bottom:1.5px solid #1C1714}
+.ts-loesungsblatt{display:none;margin-top:16px}
+.ts-original{color:var(--accent-2)}
+
+/* ---------- Drucken (gilt auch für das PDF) ---------- */
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#fff!important}
+  .ts-kopf,.ts-eingabe,.ts-werkzeug,#tsMeldung,#tsLeer,.ts-abschnitt,.ts-tipp,.ts-karten,.nur-bildschirm{display:none!important}
+  .ts{padding:0;max-width:none}
+  .ts-layout{display:block}
+  #tsKopien{display:block!important}
+  .ts-blatt{box-shadow:none;border:0;border-radius:0;padding:0}
+  body.mit-loesung .ts-loesungsblatt{display:block;break-before:page;margin-top:0}
+}
