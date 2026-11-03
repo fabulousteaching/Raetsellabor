@@ -159,3 +159,30 @@ svg.qr-raster .ebene-gemalt path{fill:#1C1714;pointer-events:none}
   .qr-karten.pro-6 .qr-karte svg{max-width:56mm}
   .qr-karten.pro-12 .qr-karte svg{max-width:44mm}
 }
+
+/* ---------- Gestaltung der fertigen Codes ---------- */
+.qr-gest-titel{margin:16px 0 8px;font-size:.76rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.qr-vorlagen{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.qr-vorlage{display:grid;justify-items:center;gap:4px;padding:8px 6px 6px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer;font-size:.8rem;font-weight:600;color:var(--muted);transition:border-color .15s,background .15s}
+.qr-vorlage svg{width:100%;max-width:64px;height:auto;display:block}
+.qr-vorlage:hover{border-color:var(--accent-line)}
+.qr-vorlage[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--text)}
+.qr-formen{display:flex;flex-wrap:wrap;gap:6px}
+.qr-form{display:grid;justify-items:center;gap:3px;min-width:66px;padding:7px 8px 5px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer;font-size:.72rem;font-weight:600;color:var(--muted);transition:border-color .15s,background .15s}
+.qr-form svg{width:30px;height:30px;display:block}
+.qr-form svg .haupt{fill:#1C1714}
+.qr-form svg .neben{fill:#C2B8AE}
+.qr-form:hover:not(:disabled){border-color:var(--accent-line)}
+.qr-form[aria-checked="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--text)}
+.qr-form:disabled{opacity:.35;cursor:not-allowed}
+.qr-farben{display:flex;flex-wrap:wrap;gap:10px 14px}
+.qr-farbe{display:inline-flex;align-items:center;gap:7px;font-size:.88rem;cursor:pointer}
+.qr-farbe input[type=color]{width:34px;height:34px;padding:2px;border:1px solid var(--line-2);border-radius:9px;background:#fff;cursor:pointer}
+.qr-gestaltung input[type=range]{width:100%;min-width:10em;accent-color:var(--accent)}
+.qr-gestaltung input[type=file]{font-size:.86rem;max-width:100%}
+.qr-gestaltung .qr-ziel{margin-bottom:8px}
+.qr-lesbar{margin:2px 0 0;font-size:.8rem;color:var(--muted);min-height:1.3em}
+.qr-lesbar.gut{color:var(--ok);font-weight:600}
+.qr-lesbar.schlecht{color:#8a2a1a;font-weight:600;background:var(--err-soft);border-radius:6px;padding:3px 8px}
+.qr-downloads{display:inline-flex;gap:4px}
+@media (max-width:480px){ .qr-form{min-width:58px;padding:6px 5px 4px;font-size:.68rem} }

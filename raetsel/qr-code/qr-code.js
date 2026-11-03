@@ -108,7 +108,101 @@ var Kern = (function(){
     var p = (SCHUTZ[stufe] || [])[v - 1] || 0, b = BLOECKE[stufe][v - 1];
     return Math.max(1, Math.floor((k - p) / 2 * (b === 1 ? 0.8 : b === 2 ? 0.7 : 0.6)));
   }
-  return { STUFEN:STUFEN, GRENZE:GRENZE, code:code, muster:muster, raster:raster, rechnung:rechnung, zufall:zufall, passendeStufe:passendeStufe, verzeiht:verzeiht };
+  /* ---------- Gestaltete Codes (Teil «Fertige QR-Codes») ----------
+     d: { form, rahmen, mitte, farbe, farbe2, verlauf ('' | 'linear' | 'radial'), hintergrund ('' = durchsichtig),
+          augen ('' = wie die Punkte), logo (Bildadresse oder ''), logoGroesse (Anteil der Breite), logoFrei } → SVG-Text */
+  var RAND = 4;   // heller Rand rundherum, den Scanner brauchen (Felder)
+  function z(x){ return String(Math.round(x * 1000) / 1000); }
+  // Rechteck mit eigenem Radius je Ecke (oben links, oben rechts, unten rechts, unten links), im Uhrzeigersinn
+  function rr(x, y, w, h, a, b, c, e){
+    return 'M' + z(x + a) + ' ' + z(y) + 'H' + z(x + w - b) + (b ? 'A' + z(b) + ' ' + z(b) + ' 0 0 1 ' + z(x + w) + ' ' + z(y + b) : '') +
+      'V' + z(y + h - c) + (c ? 'A' + z(c) + ' ' + z(c) + ' 0 0 1 ' + z(x + w - c) + ' ' + z(y + h) : '') +
+      'H' + z(x + e) + (e ? 'A' + z(e) + ' ' + z(e) + ' 0 0 1 ' + z(x) + ' ' + z(y + h - e) : '') +
+      'V' + z(y + a) + (a ? 'A' + z(a) + ' ' + z(a) + ' 0 0 1 ' + z(x + a) + ' ' + z(y) : '') + 'Z';
+  }
+  function kreis(cx, cy, r){ return 'M' + z(cx - r) + ' ' + z(cy) + 'A' + z(r) + ' ' + z(r) + ' 0 1 1 ' + z(cx + r) + ' ' + z(cy) + 'A' + z(r) + ' ' + z(r) + ' 0 1 1 ' + z(cx - r) + ' ' + z(cy) + 'Z'; }
+  function raute(x, y, w){ var m = w / 2; return 'M' + z(x + m) + ' ' + z(y) + 'L' + z(x + w) + ' ' + z(y + m) + 'L' + z(x + m) + ' ' + z(y + w) + 'L' + z(x) + ' ' + z(y + m) + 'Z'; }
+  /* Ein Feld des Codes; nb: Nachbarn oben/unten/links/rechts dunkel? (für «fliessend») */
+  function modulPfad(form, x, y, nb){
+    if (form === 'punkte') return kreis(x + 0.5, y + 0.5, 0.46);
+    if (form === 'abgerundet') return rr(x + 0.04, y + 0.04, 0.92, 0.92, 0.3, 0.3, 0.3, 0.3);
+    if (form === 'raute') return raute(x - 0.06, y - 0.06, 1.12);
+    if (form === 'fliessend'){ var r = 0.5; nb = nb || {}; return rr(x, y, 1, 1, !nb.o && !nb.l ? r : 0, !nb.o && !nb.r ? r : 0, !nb.u && !nb.r ? r : 0, !nb.u && !nb.l ? r : 0); }
+    return 'M' + z(x) + ' ' + z(y) + 'h1v1h-1Z';
+  }
+  /* Äussere Ecke (Ring aus 7×7 Feldern) und innere Ecke (3×3) */
+  function rahmenPfad(form, x, y){
+    if (form === 'kreis') return kreis(x + 3.5, y + 3.5, 3.5) + kreis(x + 3.5, y + 3.5, 2.5);
+    if (form === 'abgerundet') return rr(x, y, 7, 7, 2.2, 2.2, 2.2, 2.2) + rr(x + 1, y + 1, 5, 5, 1.4, 1.4, 1.4, 1.4);
+    if (form === 'blatt') return rr(x, y, 7, 7, 3, 0, 3, 0) + rr(x + 1, y + 1, 5, 5, 2, 0, 2, 0);
+    return rr(x, y, 7, 7, 0, 0, 0, 0) + rr(x + 1, y + 1, 5, 5, 0, 0, 0, 0);
+  }
+  function mittePfad(form, x, y){
+    if (form === 'kreis') return kreis(x + 1.5, y + 1.5, 1.5);
+    if (form === 'abgerundet') return rr(x, y, 3, 3, 0.9, 0.9, 0.9, 0.9);
+    if (form === 'raute') return raute(x - 0.25, y - 0.25, 3.5);
+    if (form === 'blatt') return rr(x, y, 3, 3, 1.4, 0, 1.4, 0);
+    return rr(x, y, 3, 3, 0, 0, 0, 0);
+  }
+  /* Kleines Ausrichtungsquadrat (5×5) im Stil der Ecken: Scanner suchen dort Ring und Mittelpunkt */
+  function ausrichtungPfad(form, x, y){
+    if (form === 'kreis') return kreis(x + 2.5, y + 2.5, 2.5) + kreis(x + 2.5, y + 2.5, 1.5) + kreis(x + 2.5, y + 2.5, 0.5);
+    var r = form === 'abgerundet' || form === 'blatt' ? 1 : 0, ri = r ? 0.5 : 0;
+    return rr(x, y, 5, 5, r, form === 'blatt' ? 0 : r, r, form === 'blatt' ? 0 : r) + rr(x + 1, y + 1, 3, 3, ri, form === 'blatt' ? 0 : ri, ri, form === 'blatt' ? 0 : ri) + rr(x + 2, y + 2, 1, 1, 0, 0, 0, 0);
+  }
+  var AUSRICHTUNG_K = AUSRICHTUNG;
+  function ausrichtungen(n){   // linke obere Ecken der 5×5-Ausrichtungsquadrate
+    var v = (n - 17) / 4, p = AUSRICHTUNG_K[v] || [], a = [];
+    p.forEach(function(r){ p.forEach(function(c){ if ((r < 9 && c < 9) || (r < 9 && c > n - 10) || (r > n - 10 && c < 9)) return; a.push([r - 2, c - 2]); }); });
+    return a;
+  }
+  function istAuge(n, r, c){ return (r < 7 && c < 7) || (r < 7 && c >= n - 7) || (r >= n - 7 && c < 7); }
+  /* Welche innere Ecke zu welcher äusseren passt: Scanner prüfen die Proportionen auch diagonal, darum keine
+     runde Mitte im eckigen Rahmen und umgekehrt (mit dem QR-Leser jsQR für alle Kombinationen nachgeprüft) */
+  var MITTE_ZU = { quadrat:['quadrat', 'abgerundet'], abgerundet:['quadrat', 'abgerundet', 'kreis', 'blatt'], kreis:['abgerundet', 'kreis', 'blatt'], blatt:['abgerundet', 'kreis', 'blatt'] };
+  function passendeMitte(rahmen, mitte){ var e = MITTE_ZU[rahmen] || MITTE_ZU.quadrat; return e.indexOf(mitte) >= 0 ? mitte : e[e.length > 2 ? 1 : 0]; }
+  function farbe(f, sonst){ return /^#[0-9a-f]{6}$/i.test(f || '') ? f : sonst; }
+  function gestaltet(q, d, id){
+    var n = q.n, w = n + 2 * RAND, logo = null;
+    if (d.logo){
+      var s = Math.round(n * Math.min(0.3, Math.max(0.1, d.logoGroesse || 0.22)));
+      if ((n - s) % 2) s++;
+      logo = { o:(n - s) / 2, s:s };
+    }
+    function dunkel(r, c){ return r >= 0 && c >= 0 && r < n && c < n && q.dunkel[r][c]; }
+    function frei(r, c){ return logo && d.logoFrei && c >= logo.o - 0.5 && c < logo.o + logo.s + 0.5 && r >= logo.o - 0.5 && r < logo.o + logo.s + 0.5; }
+    var koerper = [], aus = ausrichtungen(n), inAusrichtung = {};
+    aus.forEach(function(a){ for (var i = 0; i < 5; i++) for (var j = 0; j < 5; j++) inAusrichtung[(a[0] + i) * n + a[1] + j] = true; });
+    for (var r = 0; r < n; r++) for (var c = 0; c < n; c++){
+      if (!q.dunkel[r][c] || istAuge(n, r, c) || inAusrichtung[r * n + c] || frei(r, c)) continue;
+      koerper.push(modulPfad(d.form, c + RAND, r + RAND, { o:dunkel(r - 1, c), u:dunkel(r + 1, c), l:dunkel(r, c - 1), r:dunkel(r, c + 1) }));
+    }
+    var ringe = '', mitten = '', mitte = passendeMitte(d.rahmen, d.mitte);
+    [[0, 0], [n - 7, 0], [0, n - 7]].forEach(function(p){ ringe += rahmenPfad(d.rahmen, p[0] + RAND, p[1] + RAND); mitten += mittePfad(mitte, p[0] + 2 + RAND, p[1] + 2 + RAND); });
+    var kleine = aus.map(function(a){ return ausrichtungPfad(d.rahmen, a[1] + RAND, a[0] + RAND); }).join('');
+    var f1 = farbe(d.farbe, '#000000'), f2 = farbe(d.farbe2, f1), fuell = f1, defs = '';
+    if (d.verlauf === 'linear' || d.verlauf === 'radial'){
+      var gid = 'qrv' + String(id).replace(/\W/g, '');
+      defs = d.verlauf === 'radial'
+        ? '<radialGradient id="' + gid + '" gradientUnits="userSpaceOnUse" cx="' + z(w / 2) + '" cy="' + z(w / 2) + '" r="' + z(n * 0.72) + '"><stop offset="0" stop-color="' + f1 + '"/><stop offset="1" stop-color="' + f2 + '"/></radialGradient>'
+        : '<linearGradient id="' + gid + '" gradientUnits="userSpaceOnUse" x1="' + RAND + '" y1="' + RAND + '" x2="' + (RAND + n) + '" y2="' + (RAND + n) + '"><stop offset="0" stop-color="' + f1 + '"/><stop offset="1" stop-color="' + f2 + '"/></linearGradient>';
+      fuell = 'url(#' + gid + ')';
+    }
+    var augen = d.augen ? farbe(d.augen, f1) : fuell, grund = d.hintergrund ? farbe(d.hintergrund, '#ffffff') : '';
+    var h = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + w + ' ' + w + '"' + (d.form === 'quadrat' ? ' shape-rendering="crispEdges"' : '') + '>' +
+      (defs ? '<defs>' + defs + '</defs>' : '') + (grund ? '<rect width="' + w + '" height="' + w + '" fill="' + grund + '"/>' : '') +
+      '<path fill="' + fuell + '" d="' + koerper.join('') + '"/>' +
+      '<path fill="' + augen + '" fill-rule="evenodd" d="' + ringe + '"/><path fill="' + augen + '" d="' + mitten + '"/>' +
+      (kleine ? '<path fill="' + fuell + '" fill-rule="evenodd" d="' + kleine + '"/>' : '');
+    if (logo){
+      var lx = logo.o + RAND, ls = logo.s;
+      if (d.logoFrei) h += '<rect x="' + z(lx - 0.25) + '" y="' + z(lx - 0.25) + '" width="' + z(ls + 0.5) + '" height="' + z(ls + 0.5) + '" rx="' + z(ls * 0.12) + '" fill="' + (grund || '#ffffff') + '"/>';
+      h += '<image href="' + String(d.logo).replace(/"/g, '%22') + '" x="' + z(lx + ls * 0.06) + '" y="' + z(lx + ls * 0.06) + '" width="' + z(ls * 0.88) + '" height="' + z(ls * 0.88) + '" preserveAspectRatio="xMidYMid meet"/>';
+    }
+    return h + '</svg>';
+  }
+  return { STUFEN:STUFEN, GRENZE:GRENZE, code:code, muster:muster, raster:raster, rechnung:rechnung, zufall:zufall, passendeStufe:passendeStufe, verzeiht:verzeiht,
+    gestaltet:gestaltet, modulPfad:modulPfad, rahmenPfad:rahmenPfad, mittePfad:mittePfad, MITTE_ZU:MITTE_ZU, passendeMitte:passendeMitte };
 })();
 /* KERN-ENDE */
 
@@ -174,6 +268,29 @@ var VORLAGE = '<div class="qr">' +
         '<label class="opt"><input type="checkbox" id="qrTitelZeigen"><span>Titel unter dem Code zeigen</span></label>' +
         '<label class="opt"><input type="checkbox" id="qrInhaltZeigen"><span>Inhalt klein als Text darunter</span></label>' +
         '<label class="opt"><input type="checkbox" id="qrSchnitt"><span>Schnittlinien zum Ausschneiden</span></label>' +
+      '</div>' +
+      '<div class="karte qr-gestaltung"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Gestaltung</h2><p>Vorlage wählen oder selbst gestalten. Jeder Code wird geprüft, ob er sich noch scannen lässt.</p></div></div>' +
+        '<div class="qr-vorlagen" id="qrVorlagen" role="group" aria-label="Vorlagen"></div>' +
+        '<h3 class="qr-gest-titel">Punkte</h3><div class="qr-formen" data-wahl="form" role="radiogroup" aria-label="Form der Punkte"></div>' +
+        '<h3 class="qr-gest-titel">Ecken aussen</h3><div class="qr-formen" data-wahl="rahmen" role="radiogroup" aria-label="Form der Ecken aussen"></div>' +
+        '<h3 class="qr-gest-titel">Ecken innen</h3><div class="qr-formen" data-wahl="mitte" role="radiogroup" aria-label="Form der Ecken innen"></div>' +
+        '<h3 class="qr-gest-titel">Farben</h3><div class="qr-farben">' +
+          '<label class="qr-farbe"><input type="color" id="qrFarbe"><span>Punkte</span></label>' +
+          '<label class="qr-farbe" data-verlauf><input type="color" id="qrFarbe2"><span>Verlauf bis</span></label>' +
+          '<label class="qr-farbe" data-augen><input type="color" id="qrAugen"><span>Ecken</span></label>' +
+          '<label class="qr-farbe" data-grund><input type="color" id="qrHintergrund"><span>Hintergrund</span></label></div>' +
+        '<div class="opt-raster"><label for="qrVerlauf">Farbverlauf</label><select id="qrVerlauf"><option value="">keiner</option><option value="linear">schräg</option><option value="radial">von innen nach aussen</option></select></div>' +
+        '<label class="opt"><input type="checkbox" id="qrAugenEigen"><span>Ecken in eigener Farbe</span></label>' +
+        '<label class="opt"><input type="checkbox" id="qrDurchsichtig"><span>Hintergrund durchsichtig (z. B. für farbiges Papier)</span></label>' +
+        '<h3 class="qr-gest-titel">Logo in der Mitte</h3>' +
+        '<div class="qr-ziel" role="radiogroup" aria-label="Logo in der Mitte">' +
+          '<label><input type="radio" name="qrLogo" value="kein"><span>Keines</span></label>' +
+          '<label><input type="radio" name="qrLogo" value="labor"><span>Rätsellabor</span></label>' +
+          '<label><input type="radio" name="qrLogo" value="eigen"><span>Eigenes Bild</span></label></div>' +
+        '<div data-logo-eigen><label class="vh" for="qrLogoDatei">Bild für das Logo</label><input type="file" id="qrLogoDatei" accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif"></div>' +
+        '<div data-logo><div class="opt-raster"><label for="qrLogoGroesse">Grösse</label><input type="range" id="qrLogoGroesse" min="12" max="30" step="1"></div>' +
+          '<label class="opt"><input type="checkbox" id="qrLogoFrei"><span>Punkte hinter dem Logo weglassen</span></label></div>' +
+        '<p class="hinweis" id="qrDesignInfo" aria-live="polite"></p>' +
       '</div>' +
     '</div>' +
   '</section>' +
@@ -555,21 +672,16 @@ function starte(bereich){
   });
   var fertigTimer = 0;
   function fertigSpaeter(){ clearTimeout(fertigTimer); fertigTimer = setTimeout(fertigZeigen, 250); }
-  // Fertiger Code als SVG-Text (mit weissem Rand, den Scanner brauchen)
-  function codeSvg(q, titel){
-    var rand = 4, w = q.n + 2 * rand, d = [];
-    for (var y = 0; y < q.n; y++) for (var x = 0; x < q.n; x++) if (q.dunkel[y][x]) d.push('M' + (x + rand) + ' ' + (y + rand) + 'h1v1h-1z');
-    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + w + ' ' + w + '" shape-rendering="crispEdges" role="img" aria-label="QR-Code' + (titel ? ': ' + esc(titel) : '') + '">' +
-      '<rect width="' + w + '" height="' + w + '" fill="#fff"/><path fill="#000" d="' + d.join('') + '"/></svg>';
-  }
   function fertigZeigen(){
     if (st.opt.modus !== 'fertig') return;
     var box = $('#qrBlaetter'), codes = [], zuLang = [];
     st.liste.forEach(function(x, i){
       var t = inhalt(x.inhalt); if (!t) return;
-      var q = Kern.code(t, st.opt.stufeFertig);
+      var q = Kern.code(t, logoUrl() ? 'H' : st.opt.stufeFertig);   // mit Logo immer höchste Fehlertoleranz
       if (!q){ zuLang.push(i + 1); return; }
-      codes.push({ titel:x.titel.trim(), text:t, q:q });
+      var c = { titel:x.titel.trim(), text:t, q:q };
+      c.svg = Kern.gestaltet(q, designKern(), 'c' + i).replace('<svg ', '<svg role="img" aria-label="QR-Code' + (c.titel ? ': ' + esc(c.titel) : '') + '" ');
+      codes.push(c);
     });
     if (!codes.length){
       box.innerHTML = ''; $('#qrWerkzeug').hidden = true;
@@ -581,35 +693,207 @@ function starte(bereich){
     for (var s = 0; s < codes.length; s += pro){
       html += '<article class="qr-blatt qr-karten pro-' + pro + (st.opt.schnitt ? ' schnitt' : '') + (s ? ' neue-seite' : '') + '">';
       codes.slice(s, s + pro).forEach(function(c, k){
-        html += '<figure class="qr-karte">' + codeSvg(c.q, c.titel) +
+        html += '<figure class="qr-karte">' + c.svg +
           (st.opt.titelZeigen && c.titel ? '<figcaption class="qr-karte-titel">' + esc(c.titel) + '</figcaption>' : '') +
           (st.opt.inhaltZeigen ? '<p class="qr-karte-text">' + esc(c.text) + '</p>' : '') +
-          '<button type="button" class="btn ghost klein nur-bildschirm qr-bild" data-i="' + (s + k) + '">Als Bild speichern</button></figure>';
+          '<p class="qr-lesbar nur-bildschirm" data-i="' + (s + k) + '"><span class="lade" aria-hidden="true"></span>wird geprüft …</p>' +
+          '<span class="qr-downloads nur-bildschirm"><button type="button" class="btn ghost klein qr-png" data-i="' + (s + k) + '">PNG</button>' +
+          '<button type="button" class="btn ghost klein qr-svg" data-i="' + (s + k) + '">SVG</button></span></figure>';
       });
       html += '</article>';
     }
     box.innerHTML = html;
     $('#qrWerkzeug').hidden = false; leer();
-    [].forEach.call(box.querySelectorAll('.qr-bild'), function(b){
-      if (Labor.imArtefakt()){ b.hidden = true; return; }
-      b.addEventListener('click', function(){ bildSpeichern(codes[+b.dataset.i]); });
+    [].forEach.call(box.querySelectorAll('.qr-png'), function(b){
+      if (Labor.imArtefakt()){ b.hidden = true; return; }   // im Artefakt nur als SVG
+      b.addEventListener('click', function(){ pngSpeichern(codes[+b.dataset.i]); });
+    });
+    [].forEach.call(box.querySelectorAll('.qr-svg'), function(b){ b.addEventListener('click', function(){ svgSpeichern(codes[+b.dataset.i]); }); });
+    pruefen(codes, ++fertigLauf);
+  }
+  /* ---------- Gestaltung ---------- */
+  var VORLAGEN = [
+    { k:'klassisch', name:'Klassisch', d:{ form:'quadrat', rahmen:'quadrat', mitte:'quadrat', farbe:'#000000', farbe2:'#555555', verlauf:'', augenEigen:false, augen:'#000000', hintergrund:'#ffffff' } },
+    { k:'fabulous', name:'Fabulous', d:{ form:'fliessend', rahmen:'abgerundet', mitte:'abgerundet', farbe:'#B4530F', farbe2:'#1A1411', verlauf:'linear', augenEigen:true, augen:'#1A1411', hintergrund:'#ffffff' } },
+    { k:'punkte', name:'Punkte', d:{ form:'punkte', rahmen:'kreis', mitte:'kreis', farbe:'#1A1411', farbe2:'#555555', verlauf:'', augenEigen:false, augen:'#1A1411', hintergrund:'#ffffff' } },
+    { k:'weich', name:'Weich', d:{ form:'abgerundet', rahmen:'abgerundet', mitte:'kreis', farbe:'#3D3530', farbe2:'#555555', verlauf:'', augenEigen:true, augen:'#A9490B', hintergrund:'#ffffff' } },
+    { k:'blatt', name:'Blatt', d:{ form:'fliessend', rahmen:'blatt', mitte:'blatt', farbe:'#2E6B3A', farbe2:'#173D20', verlauf:'radial', augenEigen:true, augen:'#173D20', hintergrund:'#ffffff' } },
+    { k:'nacht', name:'Nacht', d:{ form:'raute', rahmen:'abgerundet', mitte:'abgerundet', farbe:'#3B2A7A', farbe2:'#7A1F4D', verlauf:'linear', augenEigen:true, augen:'#1A1411', hintergrund:'#ffffff' } }
+  ];
+  var FORMEN = {
+    form:[['quadrat', 'Quadrate'], ['abgerundet', 'Abgerundet'], ['punkte', 'Punkte'], ['fliessend', 'Fliessend'], ['raute', 'Rauten']],
+    rahmen:[['quadrat', 'Eckig'], ['abgerundet', 'Abgerundet'], ['kreis', 'Rund'], ['blatt', 'Blatt']],
+    mitte:[['quadrat', 'Eckig'], ['abgerundet', 'Abgerundet'], ['kreis', 'Rund'], ['blatt', 'Blatt']]
+  };
+  var D = st.opt.design = Object.assign({ logoArt:'kein', logoGroesse:22, logoFrei:true, durchsichtig:false, vorlage:'klassisch' }, VORLAGEN[0].d, st.opt.design || {});
+  // Logo «Rätsellabor»: der Kolben aus dem Kopf der Seite, auf weissem Grund
+  var LABOR_LOGO = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="-30 4 160 160">' +
+    '<circle cx="34" cy="21" r="6" fill="#F28C38"/><circle cx="44" cy="12" r="6.5" fill="#F28C38"/><circle cx="57" cy="13" r="6.5" fill="#F28C38"/><circle cx="66" cy="25" r="6" fill="#F28C38"/>' +
+    '<circle cx="60" cy="39" r="5.5" fill="#F28C38"/><circle cx="51" cy="51" r="5" fill="#F28C38"/><circle cx="50" cy="70" r="5" fill="#F28C38"/>' +
+    '<path d="M27.4 132 H42 C44 129 40 124 44.5 121 C47 119.3 53 119.3 55.5 121 C60 124 56 129 58 132 H72.6 L84 152 Q88 160 79 160 H21 Q12 160 16 152 Z" fill="#F28C38"/>' +
+    '<path d="M40 82 V110 L16 152 Q12 160 21 160 H79 Q88 160 84 152 L60 110 V82" fill="none" stroke="#000" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '<path d="M33 82 H67" fill="none" stroke="#000" stroke-width="7" stroke-linecap="round"/></svg>');
+  function logoUrl(){ return D.logoArt === 'labor' ? LABOR_LOGO : D.logoArt === 'eigen' ? (st.logoDaten || '') : ''; }
+  function designKern(){
+    return { form:D.form, rahmen:D.rahmen, mitte:Kern.passendeMitte(D.rahmen, D.mitte), farbe:D.farbe, farbe2:D.farbe2, verlauf:D.verlauf,
+      hintergrund:D.durchsichtig ? '' : D.hintergrund, augen:D.augenEigen ? D.augen : '', logo:logoUrl(), logoGroesse:D.logoGroesse / 100, logoFrei:D.logoFrei };
+  }
+  // kleine Vorschaubilder für die Formen
+  function formBild(art, wert){
+    var p = '', p2 = '', vb = '-0.5 -0.5 8 8';
+    if (art === 'form'){
+      var m = [[1, 1, 0, 1], [1, 0, 1, 1], [0, 1, 1, 0], [1, 1, 0, 1]], h = function(r, c){ return !!(m[r] && m[r][c]); };
+      vb = '-0.4 -0.4 4.8 4.8';
+      for (var r = 0; r < 4; r++) for (var c = 0; c < 4; c++) if (m[r][c]) p += Kern.modulPfad(wert, c, r, { o:h(r - 1, c), u:h(r + 1, c), l:h(r, c - 1), r:h(r, c + 1) });
+    } else if (art === 'rahmen'){ p = Kern.rahmenPfad(wert, 0, 0); p2 = Kern.mittePfad(Kern.passendeMitte(wert, D.mitte), 2, 2); }
+    else { p2 = Kern.rahmenPfad(D.rahmen, 0, 0); p = Kern.mittePfad(wert, 2, 2); }
+    return '<svg viewBox="' + vb + '" aria-hidden="true"><path class="haupt" fill-rule="evenodd" d="' + p + '"/>' + (p2 ? '<path class="neben" fill-rule="evenodd" d="' + p2 + '"/>' : '') + '</svg>';
+  }
+  function formenZeichnen(){
+    Object.keys(FORMEN).forEach(function(art){
+      var box = bereich.querySelector('.qr-formen[data-wahl="' + art + '"]'), erlaubt = art === 'mitte' ? Kern.MITTE_ZU[D.rahmen] : null;
+      box.innerHTML = FORMEN[art].map(function(f){
+        var aus = erlaubt && erlaubt.indexOf(f[0]) < 0, an = (art === 'mitte' ? Kern.passendeMitte(D.rahmen, D.mitte) : D[art]) === f[0];
+        return '<button type="button" role="radio" class="qr-form" data-wert="' + f[0] + '" aria-checked="' + an + '"' + (aus ? ' disabled title="Passt nicht zu dieser äusseren Ecke – so liessen sich die Codes schlecht scannen"' : '') + '>' +
+          formBild(art, f[0]) + '<span>' + f[1] + '</span></button>';
+      }).join('');
+      [].forEach.call(box.querySelectorAll('.qr-form'), function(b){
+        b.addEventListener('click', function(){ D[art] = b.dataset.wert; if (art === 'rahmen') D.mitte = Kern.passendeMitte(D.rahmen, D.mitte); geaendertDesign(); });
+      });
     });
   }
-  // PNG mit 12 Bildpunkten pro Feld
-  function bildSpeichern(c){
-    var rand = 4, px = 12, w = (c.q.n + 2 * rand) * px, cv = document.createElement('canvas');
-    cv.width = cv.height = w;
-    var g = cv.getContext('2d');
-    g.fillStyle = '#fff'; g.fillRect(0, 0, w, w); g.fillStyle = '#000';
-    for (var y = 0; y < c.q.n; y++) for (var x = 0; x < c.q.n; x++) if (c.q.dunkel[y][x]) g.fillRect((x + rand) * px, (y + rand) * px, px, px);
-    cv.toBlob(function(blob){
-      if (!blob) return;
-      var a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'QR-Code' + (c.titel ? '-' + Labor.dateiname(c.titel) : '') + '.png';
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
-    }, 'image/png');
+  function vorlagenZeichnen(){
+    var q = Kern.code('Rätsellabor', 'M');
+    $('#qrVorlagen').innerHTML = VORLAGEN.map(function(v){
+      return '<button type="button" class="qr-vorlage" data-k="' + v.k + '" aria-pressed="' + (D.vorlage === v.k) + '">' +
+        Kern.gestaltet(q, Object.assign({}, v.d, { mitte:Kern.passendeMitte(v.d.rahmen, v.d.mitte), augen:v.d.augenEigen ? v.d.augen : '' }), 'v' + v.k) + '<span>' + v.name + '</span></button>';
+    }).join('');
+    [].forEach.call(bereich.querySelectorAll('.qr-vorlage'), function(b){
+      b.addEventListener('click', function(){ var v = VORLAGEN.filter(function(x){ return x.k === b.dataset.k; })[0]; Object.assign(D, v.d, { vorlage:v.k, durchsichtig:false }); designFelder(); geaendertDesign(true); });
+    });
+  }
+  function designFelder(){
+    $('#qrFarbe').value = D.farbe; $('#qrFarbe2').value = D.farbe2; $('#qrAugen').value = D.augen; $('#qrHintergrund').value = D.hintergrund;
+    $('#qrVerlauf').value = D.verlauf; $('#qrAugenEigen').checked = D.augenEigen; $('#qrDurchsichtig').checked = D.durchsichtig;
+    $('#qrLogoGroesse').value = D.logoGroesse; $('#qrLogoFrei').checked = D.logoFrei;
+    [].forEach.call(bereich.querySelectorAll('input[name="qrLogo"]'), function(r){ r.checked = r.value === D.logoArt; });
+    bereich.querySelector('[data-verlauf]').hidden = !D.verlauf; bereich.querySelector('[data-augen]').hidden = !D.augenEigen; bereich.querySelector('[data-grund]').hidden = D.durchsichtig;
+    bereich.querySelector('[data-logo]').hidden = D.logoArt === 'kein'; bereich.querySelector('[data-logo-eigen]').hidden = D.logoArt !== 'eigen';
+    var sf = $('#qrStufeFertig'); sf.disabled = !!logoUrl(); sf.title = logoUrl() ? 'Mit Logo wird automatisch die höchste Fehlertoleranz (30 %) verwendet.' : '';
+    formenZeichnen(); designInfo();
+  }
+  function geaendertDesign(vorlage){
+    if (!vorlage) D.vorlage = '';
+    [].forEach.call(bereich.querySelectorAll('.qr-vorlage'), function(b){ b.setAttribute('aria-pressed', String(D.vorlage === b.dataset.k)); });
+    speichern(); designFelder(); fertigSpaeter();
+  }
+  [['qrFarbe', 'farbe'], ['qrFarbe2', 'farbe2'], ['qrAugen', 'augen'], ['qrHintergrund', 'hintergrund']].forEach(function(p){
+    $('#' + p[0]).addEventListener('input', function(){ D[p[1]] = this.value; geaendertDesign(); });
+  });
+  $('#qrVerlauf').addEventListener('change', function(){ D.verlauf = this.value; geaendertDesign(); });
+  [['qrAugenEigen', 'augenEigen'], ['qrDurchsichtig', 'durchsichtig'], ['qrLogoFrei', 'logoFrei']].forEach(function(p){
+    $('#' + p[0]).addEventListener('change', function(){ D[p[1]] = this.checked; geaendertDesign(); });
+  });
+  $('#qrLogoGroesse').addEventListener('input', function(){ D.logoGroesse = +this.value; geaendertDesign(); });
+  [].forEach.call(bereich.querySelectorAll('input[name="qrLogo"]'), function(r){
+    r.addEventListener('change', function(){ if (!r.checked) return; D.logoArt = r.value; geaendertDesign(); if (r.value === 'eigen' && !st.logoDaten) $('#qrLogoDatei').click(); });
+  });
+  // eigenes Logo: verkleinert als PNG speichern (nur in diesem Tab)
+  $('#qrLogoDatei').addEventListener('change', function(){
+    var f = this.files && this.files[0]; if (!f) return;
+    var leser = new FileReader();
+    leser.onload = function(){
+      var img = new Image();
+      img.onload = function(){
+        var m = Math.min(1, 320 / Math.max(img.naturalWidth || 320, img.naturalHeight || 320)), cv = document.createElement('canvas');
+        cv.width = Math.max(1, Math.round((img.naturalWidth || 320) * m)); cv.height = Math.max(1, Math.round((img.naturalHeight || 320) * m));
+        cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+        try { st.logoDaten = cv.toDataURL('image/png'); } catch(e){ st.logoDaten = String(leser.result); }
+        try { sessionStorage.setItem(TAB + '-logo', st.logoDaten); } catch(e){}
+        D.logoArt = 'eigen'; geaendertDesign();
+      };
+      img.onerror = function(){ $('#qrDesignInfo').textContent = 'Dieses Bild lässt sich nicht verwenden. Nimm ein PNG-, JPG- oder SVG-Bild.'; };
+      img.src = String(leser.result);
+    };
+    leser.readAsDataURL(f);
+  });
+  try { st.logoDaten = sessionStorage.getItem(TAB + '-logo') || ''; } catch(e){}
+  // Kontrast prüfen (WCAG-Formel); helle Punkte auf dunklem Grund lesen viele Handys nicht
+  function hell(h){ var c = [1, 3, 5].map(function(i){ var v = parseInt(h.substr(i, 2), 16) / 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; }
+  function designInfo(){
+    var grund = D.durchsichtig ? '#ffffff' : D.hintergrund, vorne = [D.farbe].concat(D.verlauf ? [D.farbe2] : [], D.augenEigen ? [D.augen] : []), h = [];
+    var kontrast = Math.min.apply(null, vorne.map(function(f){ var a = hell(f), b = hell(grund); return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05); }));
+    if (vorne.some(function(f){ return hell(f) > hell(grund); })) h.push('⚠ Helle Punkte auf dunklem Hintergrund können viele Handys nicht lesen.');
+    else if (kontrast < 4) h.push('⚠ Wenig Kontrast zwischen Punkten und Hintergrund – nimm dunklere Punkte oder einen helleren Hintergrund.');
+    if (logoUrl()) h.push('Mit Logo wird automatisch die höchste Fehlertoleranz (30 %) verwendet.');
+    if (D.logoArt === 'eigen' && !st.logoDaten) h.push('Wähle ein Bild für das Logo.');
+    if (D.durchsichtig) h.push('Durchsichtig: Auf farbigem Papier muss der Hintergrund hell genug bleiben.');
+    $('#qrDesignInfo').innerHTML = h.join('<br>');
+  }
+
+  /* ---------- Lesbarkeit prüfen: jeden Code als Bild zeichnen und mit einem QR-Leser (jsQR) lesen ---------- */
+  var jsqrPromise = null, fertigLauf = 0;
+  function leser(){
+    if (window.jsQR) return Promise.resolve(window.jsQR);
+    if (!jsqrPromise) jsqrPromise = new Promise(function(ok, nein){
+      var sk = document.createElement('script'); sk.src = 'gemeinsam/extern/jsQR.js';
+      sk.onload = function(){ ok(window.jsQR); }; sk.onerror = function(){ jsqrPromise = null; nein(new Error('jsQR')); };
+      document.head.appendChild(sk);
+    });
+    return jsqrPromise;
+  }
+  function svgBild(svgText, px, weiss){
+    return new Promise(function(ok, nein){
+      var w = +svgText.match(/viewBox="0 0 (\d+)/)[1], img = new Image();
+      img.onload = function(){
+        var cv = document.createElement('canvas'); cv.width = cv.height = w * px;
+        var g = cv.getContext('2d');
+        if (weiss){ g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height); }
+        g.drawImage(img, 0, 0, cv.width, cv.height); ok(cv);
+      };
+      img.onerror = nein;
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgText);
+    });
+  }
+  function pruefen(codes, lauf){
+    leser().then(function(jsQR){
+      codes.forEach(function(c, i){
+        var feld = bereich.querySelector('.qr-lesbar[data-i="' + i + '"]');
+        [8, 6, 10].reduce(function(p, px){
+          return p.then(function(ok){ return ok || svgBild(c.svg, px, true).then(function(cv){
+            var d = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height), e = jsQR(d.data, cv.width, cv.height, { inversionAttempts:'dontInvert' });
+            return !!e && e.data === c.text;
+          }, function(){ return false; }); });
+        }, Promise.resolve(false)).then(function(ok){
+          if (lauf !== fertigLauf || aus || !feld) return;
+          feld.className = 'qr-lesbar nur-bildschirm ' + (ok ? 'gut' : 'schlecht');
+          feld.textContent = ok ? '✓ Lässt sich scannen' : '⚠ Schwer lesbar – mehr Kontrast, einfachere Formen oder ein kleineres Logo wählen.';
+        });
+      });
+    }, function(){
+      [].forEach.call(bereich.querySelectorAll('.qr-lesbar'), function(f){ f.textContent = ''; });
+    });
+  }
+  /* ---------- Herunterladen: PNG (Webseite) und SVG (auch im Artefakt) ---------- */
+  function dateiName(c, endung){ return 'QR-Code' + (c.titel ? '-' + Labor.dateiname(c.titel) : '') + '.' + endung; }
+  function herunterladen(blob, name){
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+  }
+  function pngSpeichern(c){
+    var w = +c.svg.match(/viewBox="0 0 (\d+)/)[1];
+    svgBild(c.svg, Math.max(8, Math.round(1200 / w)), false).then(function(cv){
+      try { cv.toBlob(function(b){ if (b) herunterladen(b, dateiName(c, 'png')); }, 'image/png'); }
+      catch(e){ meldung('warnung', '<p>Als PNG klappt es mit diesem Logo nicht – speichere den Code als SVG.</p>'); }
+    }, function(){ meldung('warnung', '<p>Das Bild konnte nicht erstellt werden – speichere den Code als SVG.</p>'); });
+  }
+  function svgSpeichern(c){
+    var text = '<?xml version="1.0" encoding="UTF-8"?>\n' + c.svg.replace(/ role="img" aria-label="[^"]*"/, '');
+    if (Labor.imArtefakt()){
+      Labor.claude('downloads').then(function(d){ if (d) d.save({ filename:dateiName(c, 'svg'), data:text }).catch(function(){}); });
+      return;
+    }
+    herunterladen(new Blob([text], { type:'image/svg+xml' }), dateiName(c, 'svg'));
   }
 
   /* ---------- Drucken und Herunterladen ---------- */
@@ -642,7 +926,7 @@ function starte(bereich){
   });
 
   /* ---------- Start ---------- */
-  unteroptionen(); zielZeigen(); modusZeigen(); listeZeichnen(); textInfo();
+  unteroptionen(); zielZeigen(); modusZeigen(); listeZeichnen(); textInfo(); vorlagenZeichnen(); designFelder();
   if (st.opt.modus === 'fertig') fertigZeigen();
   else { leer(); try { if (malInhalt() && sessionStorage.getItem(TAB)) erstellen(); } catch(x){} }
 
