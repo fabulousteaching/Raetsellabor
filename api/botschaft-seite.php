@@ -56,7 +56,6 @@ $symbol = is_array($b) ? (string)($b['symbol'] ?? '🎉') : '🔍';
   <p class="symbol" aria-hidden="true"><?= h($symbol) ?></p>
   <?php if ($titel !== ''): ?><h1><?= h($titel) ?></h1><?php endif; ?>
   <p class="text<?= mb_strlen($text) < 90 && strpos($text, "\n") === false ? ' kurz' : '' ?>"><?= h($text) ?></p>
-  <footer>Erstellt mit dem <a href="../../">Rätsellabor</a></footer>
 </main>
 <?php else: ?>
 <main>
