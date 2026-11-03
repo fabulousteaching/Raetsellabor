@@ -109,4 +109,16 @@ Der neue Generator erscheint dann automatisch im Menü und auf der Startseite. G
 
 ## Veröffentlichen
 
-GitHub Pages für den Branch `main` einschalten (Settings → Pages). Die Seite ist dann unter `https://fabulousteaching.github.io/Raetsellabor/` erreichbar (das Repository hiess früher «Zahlensuchsel»; die alte Adresse funktioniert nach dem Umbenennen nicht mehr).
+### Infomaniak (Webhosting)
+
+Jede Änderung auf dem Branch `main` wird automatisch auf das Infomaniak-Webhosting hochgeladen (GitHub Action `.github/workflows/infomaniak.yml`, per FTPS, nur geänderte Dateien). Einmalig einrichten:
+
+1. **Infomaniak-Manager:** Website mit Adresse anlegen (z. B. `raetsellabor.ch` oder `raetsellabor.deinname.ch`), dort den **Ordner** der Website ablesen und das kostenlose **SSL-Zertifikat** (Let's Encrypt) aktivieren.
+2. **Infomaniak-Manager → Webhosting → FTP / SSH:** ein FTP-Konto erstellen; **Server** (Form `xyzb.ftp.infomaniak.com`), **Benutzername** und **Passwort** notieren.
+3. **GitHub → Repository → Settings → Secrets and variables → Actions → New repository secret:** vier Secrets anlegen:
+   `FTP_SERVER`, `FTP_BENUTZER`, `FTP_PASSWORT` und `FTP_ORDNER` (Ordner der Website mit `/` am Ende, z. B. `/sites/raetsellabor.ch/`).
+4. **GitHub → Actions → «Auf Infomaniak hochladen» → Run workflow.** Nach ein bis zwei Minuten ist die Seite online. Danach geht es bei jeder Änderung von selbst.
+
+### GitHub Pages
+
+GitHub Pages für den Branch `main` einschalten (Settings → Pages). Die Seite ist dann unter `https://fabulousteaching.github.io/Raetsellabor/` erreichbar (das Repository hiess früher «Zahlensuchsel»; die alte Adresse funktioniert nach dem Umbenennen nicht mehr). Beide Wege können parallel laufen.
