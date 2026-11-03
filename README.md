@@ -25,10 +25,15 @@ Einstellungen: Wörter dürfen sich überlappen, Ziffern unterschiedlich gross o
 Wortvorschläge (gleich bei allen Generatoren mit Wörtern, `gemeinsam/wortwahl.js`):
 
 - **Eingebaute Themen:** 22 Themen (Tiere, Fussball, Berufe, Weltraum, Römer …) funktionieren sofort, auch ohne Internet.
-- **Jedes andere Thema – aus dem Internet, ohne Claude:** Die Seite sucht den passenden Artikel in der deutschen Wikipedia und schlägt die Nomen vor, die darin am häufigsten vorkommen. Allgemeine Wörter (Jahr, Teil, Beispiel …) werden ausgefiltert, Mehrzahlformen zusammengefasst, ß wird ss. Der Artikel wird verlinkt. «Andere Vorschläge» zeigt die nächsten Wörter aus demselben Artikel.
-- **Im Claude-Artefakt** ist das Internet gesperrt; dort schlägt Claude die Wörter vor.
+- **Jedes andere Thema – aus dem Internet, ohne Claude:** Die Seite liest den passenden Artikel im [Klexikon](https://klexikon.zum.de) (Kinderlexikon) und in der deutschen Wikipedia und schlägt Nomen daraus vor:
+  - nur Wörter, die Kinder von 8 bis 14 kennen: Sie stehen im Grundwortschatz (`gemeinsam/wortschatz.js`, rund 2400 Nomen nach Sachgebieten) oder sind aus zwei Wörtern daraus zusammengesetzt (Kinosaal, Tonspur). Im Klexikon geschriebene Wörter gelten ebenfalls als kindgerecht.
+  - keine Wörter, die das Suchwort enthalten (bei «Film» also kein «Spielfilm», keine «Filmindustrie»). Das gilt auch für die eingebauten Listen.
+  - wichtig ist, was oft und in der Einleitung vorkommt; nur einmal nebenbei Erwähntes fällt weg. Die Abschnitte Literatur, Weblinks, Einzelnachweise usw. werden nicht gelesen (dort stehen Verlagsorte wie «Frankfurt» oder «Taschenbuch»).
+  - Mehrzahl- und gebeugte Formen werden zur Grundform (Kameras → Kamera, Häusern → Haus), ß wird ss. Die Artikel werden verlinkt; «Andere Vorschläge» zeigt die nächsten Wörter.
+  - Antwortet das Klexikon nicht oder hat keinen Artikel, genügt Wikipedia allein.
+- **Im Claude-Artefakt** ist das Internet gesperrt; dort schlägt Claude die Wörter vor (mit denselben Regeln: kindgerecht, ohne das Suchwort).
 
-Eigene Wörter gehen immer.
+Eigene Wörter gehen immer. Fehlt im Grundwortschatz ein Wort, das Kinder kennen, kann man es in `gemeinsam/wortschatz.js` beim passenden Sachgebiet ergänzen.
 
 Thema, Wörter und Lösungszahl gelten nur für den geöffneten Tab: Neu laden behält sie, ein neuer Tab beginnt leer. Die Einstellungen bleiben im Browser gespeichert.
 
@@ -61,7 +66,8 @@ Drei Stufen: *Einfach* (höchstens eine Regel pro Bild), *Mittel* (bis zwei Rege
 index.html                      Rätsellabor: Kopfleiste mit Menü, Startseite, Platz für den Generator
 gemeinsam/labor.css             gemeinsames Aussehen (Farben, Schriften, Kopfleiste, Menü, Karten, Knöpfe)
 gemeinsam/labor.js              Menü, Startseite und Wechsel zwischen den Generatoren
-gemeinsam/wortwahl.js           Baustein «Thema und Wörter»: Themenliste, Vorschläge (Wikipedia), Wort-Chips
+gemeinsam/wortschatz.js         Grundwortschatz: Nomen, die Kinder von 8 bis 14 kennen (für Vorschläge aus dem Internet)
+gemeinsam/wortwahl.js           Baustein «Thema und Wörter»: Themenliste, Vorschläge (Klexikon, Wikipedia), Wort-Chips
 gemeinsam/gitter.js             Baustein «Buchstabengitter»: Zeichnen, Markieren, Füllbuchstaben
 raetsel/zahlen-suchsel/         der Generator «Zahlen-Suchsel»
   zahlen-suchsel.js             Kern (Ziffern bauen, Wörter verteilen), Oberfläche, Bedienung
@@ -72,7 +78,7 @@ raetsel/rebus/                  der Generator «Rebus»
   rebus.css                     Aussehen dieses Generators
 ```
 
-Kein Build-Schritt, keine Abhängigkeiten ausser den Schriften Fredoka und Inter von Google Fonts. Für Wortvorschläge zu Themen ausserhalb der eingebauten Liste fragt die Seite die Wikipedia-Schnittstelle (`de.wikipedia.org/w/api.php`) an, direkt aus dem Browser, ohne Anmeldung. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel` oder `…/#rebus` öffnet direkt einen Generator, `…/#start` die Startseite.
+Kein Build-Schritt, keine Abhängigkeiten ausser den Schriften Fredoka und Inter von Google Fonts. Für Wortvorschläge zu Themen ausserhalb der eingebauten Liste fragt die Seite die Schnittstellen von Klexikon (`klexikon.zum.de/api.php`) und Wikipedia (`de.wikipedia.org/w/api.php`) an, direkt aus dem Browser, ohne Anmeldung. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel` oder `…/#rebus` öffnet direkt einen Generator, `…/#start` die Startseite.
 
 ## Einen neuen Generator hinzufügen
 
