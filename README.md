@@ -87,6 +87,16 @@ Ein Labyrinth in der Form eines eigenen Wortes (eine oder zwei Zeilen) – oder 
 - **Start und Ziel:** 🐭 → 🧀, 🐰 → 🥕, 🐝 → 🌻, 🚀 → 🪐, 🐶 → 🦴, 🦜 → 💰 oder ▶ → 🏁, mit passendem Auftrag («Hilf der Maus zum Käse!»).
 - Am Bildschirm lösbar (Weg vom Start aus ziehen; durch Wände geht es nicht, zurückziehen löscht), Lösung zeigen, «Neu mischen», Drucken mit Lösungsblatt. Einstellungen: Titel, Liniendicke, Farbe der Wände, Form leicht einfärben.
 
+### Satz-Labyrinth
+
+Ein Lösungssatz versteckt im Labyrinth: In jedem Feld steht ein Buchstabe. Nur auf dem einzigen Weg vom Eingang (Pfeil links) zum Ausgang (Pfeil rechts) ergeben die Buchstaben den Satz, z. B. «Die nächste Lösung findest du im Kühlschrank».
+
+- Ein Feld pro Zeichen: Leerzeichen bleiben leere Felder, Satzzeichen dürfen mit; Gross- und Kleinschreibung bleibt wie eingegeben (oder auf Wunsch nur Grossbuchstaben).
+- Zuerst entsteht ein Weg mit genau so vielen Feldern, wie der Satz Zeichen hat (Tiefensuche, die bei jedem Schritt prüft, ob der Rest bis zur rechten Spalte noch aufgeht; der Weg rückt gleichmässig nach rechts vor und biegt oft ab). Danach wachsen die Irrwege darum herum («perfektes» Labyrinth, Algorithmus «wachsender Baum») – so gibt es genau einen richtigen Weg.
+- In den Irrwegen stehen Zufallsbuchstaben aus dem Satz selbst (gleich häufig wie im Satz, dazu leere Felder), damit der richtige Weg nicht auffällt.
+- **Schwierigkeit:** *Leicht*, *Mittel*, *Schwer* – etwa drei, fünf oder acht Mal so viele Felder wie der Satz lang ist.
+- Am Bildschirm lösbar (vom Pfeil aus ziehen; unterwegs erscheinen die gelesenen Buchstaben), Lösung zeigen, «Neu mischen», Drucken mit Linien zum Aufschreiben und Lösungsblatt. Schrift Andika (gut unterscheidbare Buchstaben).
+
 ## Aufbau
 
 ```
@@ -105,13 +115,14 @@ raetsel/rebus/                  der Generator «Rebus»
   rebus.css                     Aussehen dieses Generators
 raetsel/qr-code/                der Generator «QR-Code» (zum Ausmalen und fertige Codes)
 raetsel/labyrinth/              der Generator «Labyrinth» (Wörter und Figuren als Labyrinth)
+raetsel/satz-labyrinth/         der Generator «Satz-Labyrinth» (Lösungssatz auf dem richtigen Weg)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)
 B/                              Botschaftsseiten /B/<ID>/ (werden auf dem Server angelegt)
 api/botschaft.php               Server-Teil (PHP): speichert Botschaften für QR-Codes; Anzeige: api/botschaft-seite.php
 ```
 
-Kein Build-Schritt; ausser den Schriften Fredoka und Inter von Google Fonts und der mitgelieferten QR-Code-Bibliothek keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code` oder `…/#labyrinth` öffnet direkt einen Generator, `…/#start` die Startseite.
+Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und der mitgelieferten QR-Code-Bibliothek keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code`, `…/#labyrinth` oder `…/#satz-labyrinth` öffnet direkt einen Generator, `…/#start` die Startseite.
 
 ## Einen neuen Generator hinzufügen
 

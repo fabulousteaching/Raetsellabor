@@ -169,7 +169,7 @@ var Labor = (function(){
       '@media print{.leiste{display:none}.seite{max-width:none;padding:0;display:block}.neue-seite{break-before:page}}';
     return '<!DOCTYPE html>\n<html lang="de">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
       '<title>' + esc(titel) + '</title>\n' +
-      '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Inter:wght@400;500;600;700&display=swap">\n' +
+      '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@500;600&family=Inter:wght@400;500;600;700&display=swap">\n' +
       '<style>' + css + '</style>\n</head>\n<body>\n<div class="seite">\n' +
       '<div class="leiste"><button class="btn primary" onclick="window.print()">Drucken</button><span>Tipp: Im Druckdialog «Hintergrundgrafiken» einschalten, damit Farben mitgedruckt werden.</span></div>\n' +
       inhalt + '\n</div>\n</body>\n</html>\n';
