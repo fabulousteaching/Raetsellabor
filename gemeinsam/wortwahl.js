@@ -325,6 +325,7 @@ var Wortwahl = (function(){
         code === 'guthaben' ? 'Das Guthaben der KI ist aufgebraucht.' :
         code === 'zuViele' ? 'Die KI hat gerade zu viele Anfragen – bitte in einem Moment nochmals versuchen.' :
         code === 'serverSchluessel' ? 'Der KI-Schlüssel auf dem Server wurde abgelehnt.' :
+        code === 'region' ? 'Google erlaubt die Gratis-Nutzung für Seiten in der Schweiz nicht – im Google-Konto die Abrechnung einschalten.' :
         code === 'keineNeuen' ? 'Die KI hatte keine weiteren Vorschläge.' :
         code === 'netz' ? 'Die KI war nicht erreichbar – bitte nochmals versuchen.' : 'Die KI hat nicht brauchbar geantwortet – bitte nochmals versuchen.';
     }

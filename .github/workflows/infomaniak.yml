@@ -6,9 +6,9 @@
 #   FTP_PASSWORT   Passwort dieses FTP-Kontos
 #   FTP_ORDNER     Ordner der Website auf dem Server, mit «/» am Ende: /sites/raetsellabor.fabulousteaching.ch/
 #                  (steht im Manager auf der Übersicht der Website)
-#   KI_SCHLUESSEL  Schlüssel für die KI-Wortvorschläge über den Server (Mistral oder Pollinations.ai, «sk_…»);
+#   KI_SCHLUESSEL  Schlüssel für die KI-Wortvorschläge über den Server (Google Gemini «AIza…», Pollinations.ai «sk_…» oder Mistral);
 #                  ohne ihn kommen die Vorschläge wie bisher aus Klexikon und Wikipedia
-#   KI_ANBIETER    optional: «mistral» oder «pollinations» (sonst am Schlüssel erkannt)
+#   KI_ANBIETER    optional: «google», «mistral» oder «pollinations» (sonst am Schlüssel erkannt)
 # Hochgeladen werden nur geänderte Dateien. Von Hand starten: Reiter «Actions» → «Auf Infomaniak hochladen» → «Run workflow».
 name: Auf Infomaniak hochladen
 
