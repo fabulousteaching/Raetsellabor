@@ -86,7 +86,6 @@ Ein Labyrinth in der Form eines eigenen Wortes (eine oder zwei Zeilen) – oder 
 - **Schwierigkeit:** *Leicht* bis *Sehr schwer* – schmalere Gänge und längere, verschlungenere Wege.
 - **Start und Ziel:** 🐭 → 🧀, 🐰 → 🥕, 🐝 → 🌻, 🚀 → 🪐, 🐶 → 🦴, 🦜 → 💰 oder ▶ → 🏁, mit passendem Auftrag («Hilf der Maus zum Käse!»).
 - Am Bildschirm lösbar (Weg vom Start aus ziehen; durch Wände geht es nicht, zurückziehen löscht), Lösung zeigen, «Neu mischen», Drucken mit Lösungsblatt. Einstellungen: Titel, Liniendicke, Farbe der Wände, Form leicht einfärben.
-- **Lösungssatz (freiwillig):** Ein Satz wie «Die nächste Lösung findest du im Kühlschrank» wird Buchstabe für Buchstabe auf den richtigen Weg geschrieben, ein Buchstabe pro Feld vom Start bis zum Ziel. Alle anderen Felder (die Irrwege) bekommen Zufallsbuchstaben – häufige Buchstaben öfter, dazu die Buchstaben des Satzes, damit nichts auffällt. Der Weg wird genau so lang wie der Satz: Das Programm sucht ein Zielfeld am Rand, das genau so weit vom Start entfernt ist (das Ziel kann dafür auch oben, unten oder links liegen). Umlaute bleiben, ß wird zu SS, Satzzeichen fallen weg; auf Wunsch steht ein Punkt • zwischen den Wörtern. Unter dem Labyrinth sind Linien zum Aufschreiben, das Lösungsblatt nennt den Satz. Ist der Satz zu lang, schlägt das Programm eine schwierigere Stufe oder eine grössere Form vor. Für gut lesbare Buchstaben auf Papier eignen sich Rechteck, Kreis, Herz oder Stern mit *Leicht* oder *Mittel*.
 
 ## Aufbau
 
