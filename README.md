@@ -109,4 +109,4 @@ Der neue Generator erscheint dann automatisch im Menü und auf der Startseite. G
 
 ## Veröffentlichen
 
-GitHub Pages für den Branch `main` einschalten (Settings → Pages). Die Seite ist dann unter `https://fabulousteaching.github.io/Zahlensuchsel/` erreichbar. Wird das Repository umbenannt (z. B. in «Raetsellabor»), ändert sich die Adresse entsprechend.
+GitHub Pages für den Branch `main` einschalten (Settings → Pages). Die Seite ist dann unter `https://fabulousteaching.github.io/Raetsellabor/` erreichbar (das Repository hiess früher «Zahlensuchsel»; die alte Adresse funktioniert nach dem Umbenennen nicht mehr).
