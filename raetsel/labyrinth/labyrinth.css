@@ -13,7 +13,6 @@
 /* ---------- Eingaben ---------- */
 .lb textarea{display:block;width:100%;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;resize:vertical;min-height:3.4em;line-height:1.45;font-size:1.05rem;font-weight:600;transition:border-color .15s,box-shadow .15s}
 .lb textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
-[data-form][hidden]{display:none}
 .lb-wahl,.lb-stufen,.lb-paare{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
 .lb-stufen,.lb-paare{margin:0}
 .lb-wahl label,.lb-stufen label,.lb-paare label{position:relative;cursor:pointer}
@@ -35,6 +34,18 @@ details.optionen summary::after{content:'';width:8px;height:8px;border-right:2px
 details.optionen[open] summary::after{transform:rotate(-135deg);margin-bottom:0}
 details.optionen[open] summary{margin-bottom:6px}
 @media (max-width:480px){ .opt-raster{grid-template-columns:1fr} .opt-raster select,.opt-raster input[type=text]{width:100%} }
+
+/* ---------- Art des Labyrinths ---------- */
+.lb-art{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lb-art label{position:relative;cursor:pointer;display:flex}
+.lb-art input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.lb-art span{display:grid;gap:3px;width:100%;padding:10px 12px;border:1px solid var(--line-2);border-radius:10px;background:#fff;transition:border-color .15s,background .15s,box-shadow .15s}
+.lb-art b{font-size:.95rem;font-weight:650;color:var(--text)}
+.lb-art small{font-size:.8rem;line-height:1.35;color:var(--muted)}
+.lb-art label:hover span{border-color:var(--accent-line)}
+.lb-art input:checked + span{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.lb-art input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+@media (max-width:400px){ .lb-art{grid-template-columns:1fr} }
 
 /* ---------- Ausgabe ---------- */
 .lb-ausgabe{min-width:0}
@@ -81,4 +92,81 @@ svg.lb-svg .lb-figur{font-size:11px;text-anchor:middle;dominant-baseline:central
   svg.lb-svg{max-height:225mm;max-width:186mm;margin:0 auto}
   svg.lb-svg .lb-ton{fill:#FFF5EC;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body.mit-loesung .lb-loesungsblatt{display:block;break-before:page;margin-top:0}
+}
+
+/* =========================================================================
+   Art «Mit Lösungssatz» (labyrinth-satz.js)
+   ========================================================================= */
+.sl-layout{display:grid;grid-template-columns:minmax(320px,440px) minmax(0,1fr);gap:24px;align-items:start}
+.sl-eingabe{display:grid;gap:16px;min-width:0}
+@media (min-width:961px){ .sl-eingabe{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--kopf-h) + 16px);max-height:calc(100vh - var(--kopf-h) - 32px);overflow:auto;padding:2px 4px 2px 2px;scrollbar-width:thin} }
+@media (max-width:960px){ .sl-layout{grid-template-columns:minmax(0,1fr);gap:18px} }
+
+/* ---------- Eingaben ---------- */
+.sl textarea{display:block;width:100%;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;resize:vertical;min-height:4.6em;line-height:1.45;font-size:1.05rem;font-weight:600;transition:border-color .15s,box-shadow .15s}
+.sl textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.sl-stufen{display:flex;flex-wrap:wrap;gap:6px;margin:0}
+.sl-stufen label{position:relative;cursor:pointer}
+.sl-stufen input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.sl-stufen span{display:inline-block;padding:6px 14px;border:1px solid var(--line-2);border-radius:999px;background:#fff;font-size:.88rem;font-weight:600;color:var(--muted);transition:border-color .15s,background .15s,color .15s}
+.sl-stufen label:hover span{border-color:var(--accent-line)}
+.sl-stufen input:checked + span{background:var(--accent);border-color:var(--accent);color:var(--auf-akzent)}
+.sl-stufen input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+.sl .opt-raster{display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center;margin-top:12px;font-size:.9rem}
+.sl .opt-raster select{width:auto;min-width:10em}
+.sl .opt-raster input[type=text]{width:auto;min-width:12em}
+.sl details.optionen summary{cursor:pointer;font-weight:650;font-size:1rem;list-style:none;display:flex;align-items:center;justify-content:space-between}
+.sl details.optionen summary::-webkit-details-marker{display:none}
+.sl details.optionen summary::after{content:'';width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .2s;margin:0 6px 4px 0}
+.sl details.optionen[open] summary::after{transform:rotate(-135deg);margin-bottom:0}
+.sl details.optionen[open] summary{margin-bottom:6px}
+@media (max-width:480px){ .sl .opt-raster{grid-template-columns:1fr} .sl .opt-raster select,.sl .opt-raster input[type=text]{width:100%} }
+
+/* ---------- Ausgabe ---------- */
+.sl-ausgabe{min-width:0}
+.sl .leer-zustand{background:#fff;border:1px dashed var(--line-2);border-radius:14px;padding:48px 24px;text-align:center;color:var(--muted)}
+.sl .leer-zustand h2{color:var(--text);font-size:1.15rem;font-weight:650;margin:0 0 4px}
+.sl .leer-zustand ol{display:inline-grid;gap:10px;text-align:left;margin:18px 0 0;padding:0;list-style:none;counter-reset:s}
+.sl .leer-zustand li{counter-increment:s;display:flex;gap:10px;align-items:center;color:var(--text);font-size:.92rem}
+.sl .leer-zustand li::before{content:counter(s);flex:none;width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent-2);font-weight:700;font-size:.78rem;display:grid;place-items:center}
+.sl-werkzeug{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.sl-werkzeug .abstand{flex:1}
+.sl-werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
+.sl-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+
+.sl-blatt{background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:30px clamp(16px,3.2vw,40px)}
+.sl-blatt.veraltet::before{content:'Eingaben geändert – «Labyrinth erstellen» klicken, um es zu aktualisieren.';display:block;margin:-10px 0 16px;
+  background:var(--warn-soft);color:#6B4E00;border:1px solid var(--warn-line);font-size:.86rem;padding:7px 12px;border-radius:8px}
+.sl-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
+.sl-anleitung{margin:0 0 14px;color:#554C45;max-width:80ch}
+.sl-feld{display:flex;justify-content:center}
+.sl-loesungsblatt{display:none;margin-top:16px}
+.sl-fortschritt{margin:12px 0 0;font-size:.95rem;color:var(--muted);min-height:1.5em;text-align:center;overflow-wrap:anywhere}
+.sl-fortschritt.fertig{font-weight:650;font-size:1rem;color:var(--ok)}
+.sl-antwort{display:grid;grid-template-columns:auto 1fr;gap:18px 10px;align-items:end;margin:20px 0 0;font-weight:600;color:#1C1714}
+.sl-linie{border-bottom:1.5px solid #1C1714;height:1.7em}
+.sl-linie.voll{grid-column:1 / -1}
+.sl-satz-loesung{margin:16px 0 0;font-size:1.1rem;color:#1C1714}
+
+svg.sl-svg{display:block;width:100%;height:auto;max-height:74vh;touch-action:none;user-select:none;-webkit-user-select:none}
+#slBlatt svg.sl-svg{cursor:crosshair}
+svg.sl-svg .sl-waende{fill:none;stroke:#1C1714;stroke-linecap:square;stroke-linejoin:miter}
+svg.sl-svg .sl-buchstaben text{font-family:'Andika','Inter',system-ui,sans-serif;font-size:5.6px;fill:#1C1714;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+svg.sl-svg .sl-pfeil{fill:none;stroke:var(--accent-dunkel,#E0741C);stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round}
+/* Weg wie mit Leuchtstift: breit und durchscheinend, die Buchstaben bleiben lesbar */
+svg.sl-svg .sl-loesung{fill:none;stroke:#F7A25D;stroke-width:6.4;stroke-linecap:round;stroke-linejoin:round;opacity:.55;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+#slBlatt svg.sl-svg .sl-loesung{opacity:0;transition:opacity .2s}
+#slBlatt.zeige-loesung svg.sl-svg .sl-loesung{opacity:.5}
+svg.sl-svg .sl-weg{fill:none;stroke:#63C2EA;stroke-width:6.4;stroke-linecap:round;stroke-linejoin:round;opacity:.6}
+.geschafft svg.sl-svg .sl-weg{stroke:#68D77E}
+
+@media print{
+  .sl-eingabe,.sl-werkzeug,#slMeldung,#slLeer,.nur-bildschirm{display:none!important}
+  .sl-layout{display:block}
+  .sl-blatt{box-shadow:none;border:0;border-radius:0;padding:0;break-inside:avoid}
+  .sl-blatt.veraltet::before{display:none}
+  #slBlatt .sl-weg{display:none}
+  #slBlatt svg.sl-svg .sl-loesung{display:none}
+  svg.sl-svg{max-height:200mm;max-width:186mm;margin:0 auto}
+  body.mit-loesung .sl-loesungsblatt{display:block;break-before:page;margin-top:0}
 }

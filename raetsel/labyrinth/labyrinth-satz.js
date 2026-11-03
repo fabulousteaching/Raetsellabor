@@ -1,4 +1,4 @@
-/* Rätsellabor – Generator «Satz-Labyrinth»
+/* Rätsellabor – Labyrinth, Art «Mit Lösungssatz» (wird von labyrinth.js eingebunden, vor diesem laden)
    Ein Lösungssatz versteckt im Labyrinth: Jedes Feld trägt einen Buchstaben, ohne Lücken. Auf dem einzigen Weg vom
    Eingang (links) zum Ausgang (rechts) steht der Satz, Buchstabe für Buchstabe und ohne Leerzeichen. In allen Irrwegen
    stehen Zufallsbuchstaben aus dem Satz selbst, damit der richtige Weg nicht auffällt.
@@ -169,17 +169,16 @@ var Kern = (function(){
 /* KERN-ENDE */
 
 /* ===== Vorlage ===== */
-var STUFEN = { leicht:{ faktor:3, neu:0.5, name:'Leicht' }, mittel:{ faktor:5, neu:0.6, name:'Mittel' }, schwer:{ faktor:8, neu:0.7, name:'Schwer' } };
-var VORLAGE = '<div class="sl">' +
-  '<header class="sl-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Satz-Labyrinth</h1>' +
-    '<p>Ein Lösungssatz versteckt im Labyrinth: Jedes Feld trägt einen Buchstaben. Auf dem richtigen Weg ergeben sie deinen Satz, in den Irrwegen stehen Zufallsbuchstaben.</p></header>' +
-  '<div class="sl-layout"><section class="sl-eingabe" aria-label="Eingaben">' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Lösungssatz</h2><p>Dieser Satz steht Buchstabe für Buchstabe auf dem Weg vom Eingang zum Ausgang – ohne Leerzeichen.</p></div></div>' +
+var STUFEN = { leicht:{ faktor:3, neu:0.5, name:'Leicht' }, mittel:{ faktor:5, neu:0.6, name:'Mittel' }, schwer:{ faktor:8, neu:0.7, name:'Schwer' }, sehrschwer:{ faktor:12, neu:0.75, name:'Sehr schwer' } };
+// artKarte: die Karte «Art des Labyrinths» (kommt aus labyrinth.js und steht bei beiden Arten zuoberst)
+function vorlage(artKarte){
+  return '<div class="sl"><div class="sl-layout"><section class="sl-eingabe" aria-label="Eingaben">' + artKarte +
+    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Lösungssatz</h2><p>Dieser Satz steht Buchstabe für Buchstabe auf dem Weg vom Eingang zum Ausgang – ohne Leerzeichen.</p></div></div>' +
       '<label class="vh" for="slSatz">Lösungssatz</label>' +
       '<textarea id="slSatz" rows="3" maxlength="150" placeholder="z. B. Die nächste Lösung findest du im Kühlschrank"></textarea>' +
       '<p class="hinweis" id="slInfo"></p>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Schwierigkeit</h2><p>Je schwerer, desto grösser das Labyrinth und desto mehr Irrwege.</p></div></div>' +
+    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Schwierigkeit</h2><p>Je schwerer, desto grösser das Labyrinth und desto mehr Irrwege.</p></div></div>' +
       '<div class="sl-stufen" role="radiogroup" aria-label="Schwierigkeit">' +
         Object.keys(STUFEN).map(function(k){ return '<label><input type="radio" name="slStufe" value="' + k + '"><span>' + STUFEN[k].name + '</span></label>'; }).join('') + '</div>' +
     '</div>' +
@@ -206,21 +205,10 @@ var VORLAGE = '<div class="sl">' +
     '<article class="sl-blatt" id="slBlatt" hidden></article>' +
     '<article class="sl-blatt sl-loesungsblatt" id="slLoesung" aria-hidden="true"></article>' +
   '</section></div></div>';
+}
 
-var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-  '<path d="M3 8V3h18v13M21 21H3v-8M9 3v5h5M15 13v8M9 13v3"/><circle cx="6" cy="10.5" r=".6" fill="currentColor"/><circle cx="12" cy="10.5" r=".6" fill="currentColor"/><circle cx="18" cy="10.5" r=".6" fill="currentColor"/></svg>';
-
-Labor.registriere({
-  id:'satz-labyrinth',
-  titel:'Satz-Labyrinth',
-  kurz:'Ein Lösungssatz versteckt im Labyrinth',
-  beschreibung:'In jedem Feld steht ein Buchstabe. Nur auf dem richtigen Weg vom Eingang zum Ausgang ergeben sie deinen Lösungssatz – in den Irrwegen stehen Zufallsbuchstaben.',
-  merkmale:['Eigener Lösungssatz', 'Drei Schwierigkeitsstufen', 'Mit Lösungsblatt'],
-  symbol:SYMBOL,
-  css:'raetsel/satz-labyrinth/satz-labyrinth.css',
-  html:VORLAGE,
-  start:starte
-});
+// Für den Generator «Labyrinth» (raetsel/labyrinth/labyrinth.js): Art «Mit Lösungssatz»
+window.LabyrinthSatz = { vorlage:vorlage, starte:starte, Kern:Kern };
 
 /* ===== Bedienung ===== */
 function starte(bereich){
@@ -380,7 +368,7 @@ function starte(bereich){
     if (!aktuell || !speicherOrt) return;
     var inhalt = sauber($('#slBlatt')).outerHTML;
     if (st.opt.mitLoesung){ var l = sauber($('#slLoesung')); l.classList.add('neue-seite'); inhalt += l.outerHTML; }
-    speicherOrt.save({ filename:'Satz-Labyrinth.html', data:Labor.blattDatei('Satz-Labyrinth', inhalt, '.sl-loesungsblatt{display:block}') }).catch(function(e){
+    speicherOrt.save({ filename:'Labyrinth-Loesungssatz.html', data:Labor.blattDatei('Labyrinth mit Lösungssatz', inhalt, '.sl-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
       meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });

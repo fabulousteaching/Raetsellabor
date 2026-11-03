@@ -79,23 +79,23 @@ Links mit «www.» bekommen automatisch «https://» davor, damit das Handy sie 
 
 ### Labyrinth
 
-Ein Labyrinth in der Form eines eigenen Wortes (eine oder zwei Zeilen) – oder als Rechteck, Kreis, Herz oder Stern.
+Zwei Arten, oben in der ersten Karte wählbar:
 
-- Der Text wird auf eine Zeichenfläche geschrieben (Schrift Fredoka, mit Kontur verdickt) und in Felder zerlegt. Getrennte Buchstaben verbinden kurze Brücken, damit ein einziges Labyrinth entsteht; winzige Splitter fallen weg.
-- Darin entsteht ein «perfektes» Labyrinth: Jedes Feld ist erreichbar, und zwischen zwei Feldern gibt es genau einen Weg (Algorithmus «wachsender Baum»). Start links, Ziel rechts – unter mehreren Randfeldern wird das Paar mit dem längsten Weg gewählt.
+**Mit Start und Ziel** – ein Labyrinth als Rechteck, Kreis, Herz oder Stern.
+
+- Die Form wird in Felder zerlegt; darin entsteht ein «perfektes» Labyrinth: Jedes Feld ist erreichbar, und zwischen zwei Feldern gibt es genau einen Weg (Algorithmus «wachsender Baum»). Start links, Ziel rechts – unter mehreren Randfeldern wird das Paar mit dem längsten Weg gewählt.
 - **Schwierigkeit:** *Leicht* bis *Sehr schwer* – schmalere Gänge und längere, verschlungenere Wege.
 - **Start und Ziel:** 🐭 → 🧀, 🐰 → 🥕, 🐝 → 🌻, 🚀 → 🪐, 🐶 → 🦴, 🦜 → 💰 oder ▶ → 🏁, mit passendem Auftrag («Hilf der Maus zum Käse!»).
-- Am Bildschirm lösbar (Weg vom Start aus ziehen; durch Wände geht es nicht, zurückziehen löscht), Lösung zeigen, «Neu mischen», Drucken mit Lösungsblatt. Einstellungen: Titel, Liniendicke, Farbe der Wände, Form leicht einfärben.
+- Einstellungen: Titel, Liniendicke, Farbe der Wände, Form leicht einfärben.
 
-### Satz-Labyrinth
-
-Ein Lösungssatz versteckt im Labyrinth: In jedem Feld steht ein Buchstabe, ohne Lücken. Nur auf dem einzigen Weg vom Eingang (Pfeil links) zum Ausgang (Pfeil rechts) ergeben die Buchstaben den Satz, z. B. «Die nächste Lösung findest du im Kühlschrank».
+**Mit Lösungssatz** – in jedem Feld steht ein Buchstabe, ohne Lücken. Nur auf dem einzigen Weg vom Eingang (Pfeil links) zum Ausgang (Pfeil rechts) ergeben die Buchstaben den Satz, z. B. «Die nächste Lösung findest du im Kühlschrank» (`labyrinth-satz.js`).
 
 - Ein Feld pro Buchstabe: Die Wörter stehen ohne Lücke hintereinander, Leer- und Satzzeichen fallen weg; Gross- und Kleinschreibung bleibt wie eingegeben (oder auf Wunsch nur Grossbuchstaben). Lösungsblatt und Bildschirm zeigen den Satz, wie er eingegeben wurde.
-- Zuerst entsteht ein Weg mit genau so vielen Feldern, wie der Satz Zeichen hat (Tiefensuche, die bei jedem Schritt prüft, ob der Rest bis zur rechten Spalte noch aufgeht; der Weg rückt gleichmässig nach rechts vor, schwingt dabei über die ganze Höhe und biegt oft ab). Danach wachsen die Irrwege darum herum («perfektes» Labyrinth, Algorithmus «wachsender Baum») – so gibt es genau einen richtigen Weg.
+- Zuerst entsteht ein Weg mit genau so vielen Feldern, wie der Satz Buchstaben hat (Tiefensuche, die bei jedem Schritt prüft, ob der Rest bis zur rechten Spalte noch aufgeht; der Weg rückt gleichmässig nach rechts vor, schwingt dabei über die ganze Höhe und biegt oft ab). Danach wachsen die Irrwege darum herum – so gibt es genau einen richtigen Weg.
 - In den Irrwegen stehen Zufallsbuchstaben aus dem Satz selbst (gleich häufig wie im Satz), damit der richtige Weg nicht auffällt.
-- **Schwierigkeit:** *Leicht*, *Mittel*, *Schwer* – etwa drei, fünf oder acht Mal so viele Felder wie der Satz lang ist.
-- Am Bildschirm lösbar (vom Pfeil aus ziehen; unterwegs erscheinen die gelesenen Buchstaben), Lösung zeigen, «Neu mischen», Drucken mit Linien zum Aufschreiben und Lösungsblatt. Schrift Andika (gut unterscheidbare Buchstaben).
+- **Schwierigkeit:** etwa drei (*Leicht*), fünf, acht oder zwölf (*Sehr schwer*) Mal so viele Felder, wie der Satz Buchstaben hat. Schrift Andika (gut unterscheidbare Buchstaben), Linien zum Aufschreiben auf dem Blatt.
+
+Beide Arten: am Bildschirm lösbar (Weg vom Start aus ziehen; durch Wände geht es nicht, zurückziehen löscht), Lösung zeigen, «Neu mischen», Drucken mit Lösungsblatt.
 
 ## Aufbau
 
@@ -114,15 +114,16 @@ raetsel/rebus/                  der Generator «Rebus»
   rebus.js                      Bilderliste, Kern (Zerlegung), Oberfläche, Bedienung
   rebus.css                     Aussehen dieses Generators
 raetsel/qr-code/                der Generator «QR-Code» (zum Ausmalen und fertige Codes)
-raetsel/labyrinth/              der Generator «Labyrinth» (Wörter und Figuren als Labyrinth)
-raetsel/satz-labyrinth/         der Generator «Satz-Labyrinth» (Lösungssatz auf dem richtigen Weg)
+raetsel/labyrinth/              der Generator «Labyrinth»
+  labyrinth.js                  Art «Mit Start und Ziel» (Figuren) und Auswahl der Art
+  labyrinth-satz.js             Art «Mit Lösungssatz» (Buchstaben in jedem Feld)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)
 B/                              Botschaftsseiten /B/<ID>/ (werden auf dem Server angelegt)
 api/botschaft.php               Server-Teil (PHP): speichert Botschaften für QR-Codes; Anzeige: api/botschaft-seite.php
 ```
 
-Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und der mitgelieferten QR-Code-Bibliothek keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code`, `…/#labyrinth` oder `…/#satz-labyrinth` öffnet direkt einen Generator, `…/#start` die Startseite.
+Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und der mitgelieferten QR-Code-Bibliothek keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code` oder `…/#labyrinth` öffnet direkt einen Generator, `…/#start` die Startseite.
 
 ## Einen neuen Generator hinzufügen
 

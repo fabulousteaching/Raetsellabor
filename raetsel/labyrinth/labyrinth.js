@@ -1,8 +1,8 @@
-/* Rätsellabor – Generator «Labyrinth»
-   Ein Labyrinth in der Form eines eigenen Wortes (oder einer Figur: Rechteck, Kreis, Herz, Stern).
-   Der Text wird auf eine Zeichenfläche geschrieben und in Felder zerlegt; getrennte Buchstaben verbinden kurze Brücken,
-   damit ein einziges Labyrinth entsteht. Darin entsteht ein «perfektes» Labyrinth (genau ein Weg zwischen zwei Feldern).
-   Start links, Ziel rechts (mit einem Paar wie Maus → Käse). Am Bildschirm lösbar (Weg ziehen), Druck mit Lösungsblatt. */
+/* Rätsellabor – Generator «Labyrinth» mit zwei Arten:
+   – «Mit Start und Ziel»: ein Labyrinth als Rechteck, Kreis, Herz oder Stern, Start links, Ziel rechts
+     (mit einem Paar wie Maus → Käse). Darin ein «perfektes» Labyrinth (genau ein Weg zwischen zwei Feldern).
+   – «Mit Lösungssatz»: in jedem Feld ein Buchstabe, auf dem richtigen Weg steht der Satz (labyrinth-satz.js).
+   Beide am Bildschirm lösbar (Weg ziehen), Druck mit Lösungsblatt. */
 (function(){
 'use strict';
 
@@ -180,24 +180,32 @@ var PAARE = [   // Kürzel, Start, Ziel, «Hilf … », «… zum …»
   ['rakete', '🚀', '🪐', 'der Rakete', 'zum Planeten'], ['hund', '🐶', '🦴', 'dem Hund', 'zum Knochen'], ['pirat', '🦜', '💰', 'dem Papagei', 'zum Schatz'],
   ['pfeile', '▶', '🏁', '', 'zum Ziel']
 ];
-var STUFEN = { leicht:{ text:10, figur:10, neu:0.55, name:'Leicht' }, mittel:{ text:15, figur:16, neu:0.7, name:'Mittel' }, schwer:{ text:22, figur:24, neu:0.8, name:'Schwer' }, sehrschwer:{ text:30, figur:34, neu:0.85, name:'Sehr schwer' } };
-var VORLAGE = '<div class="lb">' +
+var STUFEN = { leicht:{ figur:10, neu:0.55, name:'Leicht' }, mittel:{ figur:16, neu:0.7, name:'Mittel' }, schwer:{ figur:24, neu:0.8, name:'Schwer' }, sehrschwer:{ figur:34, neu:0.85, name:'Sehr schwer' } };
+var FORMEN = { rechteck:'Rechteck', kreis:'Kreis', herz:'Herz', stern:'Stern' };
+var KOPF = '<div class="lb">' +
   '<header class="lb-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Labyrinth</h1>' +
-    '<p>Ein Labyrinth in der Form deines eigenen Wortes – oder als Herz, Stern, Kreis oder Rechteck.</p></header>' +
-  '<div class="lb-layout"><section class="lb-eingabe" aria-label="Eingaben">' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Form</h2><p>Ein Wort oder eine Figur.</p></div></div>' +
+    '<p>Ein Labyrinth als Rechteck, Kreis, Herz oder Stern – oder mit einem versteckten Lösungssatz: In jedem Feld steht ein Buchstabe, und nur auf dem richtigen Weg ergeben sie deinen Satz.</p></header>' +
+  '<div class="lb-art-ort"></div></div>';
+// Karte 1 (bei beiden Arten gleich): welche Art von Labyrinth?
+function artKarte(art){
+  function wahl(wert, titel, text){ return '<label><input type="radio" name="lbArt" value="' + wert + '"' + (art === wert ? ' checked' : '') + '><span><b>' + titel + '</b><small>' + text + '</small></span></label>'; }
+  return '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Art des Labyrinths</h2></div></div>' +
+    '<div class="lb-art" role="radiogroup" aria-label="Art des Labyrinths">' +
+      wahl('figur', 'Mit Start und Ziel', 'Rechteck, Kreis, Herz oder Stern – z. B. 🐭 → 🧀') +
+      wahl('satz', 'Mit Lösungssatz', 'In jedem Feld ein Buchstabe – der richtige Weg ergibt deinen Satz') +
+    '</div></div>';
+}
+function figurVorlage(karte){
+  return '<div class="lb-layout"><section class="lb-eingabe" aria-label="Eingaben">' + karte +
+    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Form</h2></div></div>' +
       '<div class="lb-wahl" role="radiogroup" aria-label="Form">' +
-        '<label><input type="radio" name="lbForm" value="text"><span>Wort</span></label>' +
-        ['rechteck', 'kreis', 'herz', 'stern'].map(function(f){ return '<label><input type="radio" name="lbForm" value="' + f + '"><span>' + { rechteck:'Rechteck', kreis:'Kreis', herz:'Herz', stern:'Stern' }[f] + '</span></label>'; }).join('') + '</div>' +
-      '<div data-form="text"><label class="vh" for="lbText">Wort oder kurzer Text</label>' +
-        '<textarea id="lbText" rows="2" maxlength="40" placeholder="z. B. FERIEN oder Lea&#10;(zweite Zeile möglich)"></textarea>' +
-        '<p class="hinweis">Am besten ein bis zwei kurze Wörter. Grossbuchstaben ergeben breitere Gänge.</p></div>' +
+        Object.keys(FORMEN).map(function(f){ return '<label><input type="radio" name="lbForm" value="' + f + '"><span>' + FORMEN[f] + '</span></label>'; }).join('') + '</div>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Schwierigkeit</h2><p>Je schwerer, desto schmaler die Gänge und desto mehr Abzweigungen.</p></div></div>' +
+    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Schwierigkeit</h2><p>Je schwerer, desto schmaler die Gänge und desto mehr Abzweigungen.</p></div></div>' +
       '<div class="lb-stufen" role="radiogroup" aria-label="Schwierigkeit">' +
         Object.keys(STUFEN).map(function(k){ return '<label class="lb-stufe"><input type="radio" name="lbStufe" value="' + k + '"><span>' + STUFEN[k].name + '</span></label>'; }).join('') + '</div>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Start und Ziel</h2><p>Wer sucht den Weg wohin?</p></div></div>' +
+    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">4</span><div><h2>Start und Ziel</h2><p>Wer sucht den Weg wohin?</p></div></div>' +
       '<div class="lb-paare" role="radiogroup" aria-label="Start und Ziel">' +
         PAARE.map(function(p){ return '<label><input type="radio" name="lbPaar" value="' + p[0] + '"><span>' + p[1] + ' → ' + p[2] + '</span></label>'; }).join('') + '</div>' +
     '</div>' +
@@ -205,14 +213,14 @@ var VORLAGE = '<div class="lb">' +
       '<div class="opt-raster"><label for="lbTitel">Titel auf dem Blatt</label><input type="text" id="lbTitel" maxlength="60" placeholder="Finde den Weg!">' +
         '<label for="lbLinie">Linien</label><select id="lbLinie"><option value="0.9">dünn</option><option value="1.4">mittel</option><option value="2">dick</option></select>' +
         '<label for="lbFarbe">Farbe der Wände</label><input type="color" id="lbFarbe"></div>' +
-      '<label class="opt"><input type="checkbox" id="lbToenen"><span>Form leicht einfärben (macht das Wort besser sichtbar)</span></label>' +
+      '<label class="opt"><input type="checkbox" id="lbToenen"><span>Form leicht einfärben</span></label>' +
     '</details></div>' +
     '<button type="button" class="btn primary gross" id="lbLos">Labyrinth erstellen</button>' +
   '</section>' +
   '<section class="lb-ausgabe" aria-label="Ergebnis">' +
     '<div id="lbMeldung" aria-live="polite"></div>' +
     '<div class="leer-zustand" id="lbLeer"><h2>Noch kein Labyrinth</h2><p>In drei Schritten zum Arbeitsblatt:</p><ol>' +
-      '<li>Ein Wort eingeben oder eine Figur wählen</li><li>Schwierigkeit und Start/Ziel wählen</li><li>«Labyrinth erstellen» klicken</li></ol></div>' +
+      '<li>Eine Form wählen</li><li>Schwierigkeit und Start/Ziel wählen</li><li>«Labyrinth erstellen» klicken</li></ol></div>' +
     '<div class="lb-werkzeug" id="lbWerkzeug" hidden>' +
       '<button type="button" class="btn klein" id="lbMischen" title="Gleiche Form, neues Labyrinth">Neu mischen</button>' +
       '<button type="button" class="btn klein" id="lbZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
@@ -224,7 +232,8 @@ var VORLAGE = '<div class="lb">' +
     '</div>' +
     '<article class="lb-blatt" id="lbBlatt" hidden></article>' +
     '<article class="lb-blatt lb-loesungsblatt" id="lbLoesung" aria-hidden="true"></article>' +
-  '</section></div></div>';
+  '</section></div>';
+}
 
 var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
   '<path d="M3 3h18v18H3zM7 3v10M7 17v4M11 7h6M11 7v10h4M17 11v10M3 17h4"/></svg>';
@@ -232,31 +241,51 @@ var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke
 Labor.registriere({
   id:'labyrinth',
   titel:'Labyrinth',
-  kurz:'Labyrinthe in Form von Wörtern und Figuren',
-  beschreibung:'Ein Labyrinth in der Form eines eigenen Wortes – oder als Herz, Stern, Kreis oder Rechteck. Vier Schwierigkeitsstufen, am Bildschirm lösbar und mit Lösungsblatt.',
-  merkmale:['Eigenes Wort als Form', 'Vier Schwierigkeitsstufen', 'Mit Lösungsblatt'],
+  kurz:'Labyrinthe mit Start und Ziel oder mit Lösungssatz',
+  beschreibung:'Ein Labyrinth als Rechteck, Kreis, Herz oder Stern – oder mit einem versteckten Lösungssatz: In jedem Feld steht ein Buchstabe, nur auf dem richtigen Weg ergeben sie deinen Satz.',
+  merkmale:['Rechteck, Kreis, Herz, Stern', 'Mit Lösungssatz', 'Mit Lösungsblatt'],
   symbol:SYMBOL,
   css:'raetsel/labyrinth/labyrinth.css',
-  html:VORLAGE,
+  html:KOPF,
   start:starte
 });
 
-/* ===== Bedienung ===== */
+/* ===== Art wählen: die passende Oberfläche einsetzen ===== */
 function starte(bereich){
+  var OPT = 'labyrinth-einstellungen', ort = bereich.querySelector('.lb-art-ort'), art = 'figur', stopp = null;
+  try { var o = JSON.parse(localStorage.getItem(OPT)); if (o && o.art === 'satz' && window.LabyrinthSatz) art = 'satz'; } catch(x){}
+  function zeige(neu){
+    if (stopp){ try { stopp(); } catch(e){ console.error(e); } stopp = null; }
+    art = neu;
+    try { var o = JSON.parse(localStorage.getItem(OPT)) || {}; o.art = art; localStorage.setItem(OPT, JSON.stringify(o)); } catch(x){}
+    var karte = artKarte(art);
+    ort.innerHTML = art === 'satz' ? window.LabyrinthSatz.vorlage(karte) : figurVorlage(karte);
+    [].forEach.call(ort.querySelectorAll('input[name="lbArt"]'), function(r){
+      r.addEventListener('change', function(){ if (r.checked && r.value !== art){ zeige(r.value); var f = ort.querySelector('input[name="lbArt"]:checked'); if (f) f.focus(); } });
+    });
+    try { stopp = art === 'satz' ? window.LabyrinthSatz.starte(ort) : starteFigur(ort); } catch(e){ console.error(e); }
+  }
+  zeige(art);
+  return function(){ if (stopp) stopp(); };
+}
+
+/* ===== Bedienung «Mit Start und Ziel» ===== */
+function starteFigur(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, esc = Labor.esc, aus = false, NS = 'http://www.w3.org/2000/svg';
   var TAB = 'labyrinth-eingaben', OPT = 'labyrinth-einstellungen';
-  var STANDARD = { form:'text', stufe:'mittel', paar:'maus', linie:'1.4', farbe:'#1C1714', toenen:true, mitLoesung:true };
-  var st = { text:'', titel:'', seed:1, opt:Object.assign({}, STANDARD) };
+  var STANDARD = { form:'rechteck', stufe:'mittel', paar:'maus', linie:'1.4', farbe:'#1C1714', toenen:true, mitLoesung:true };
+  var st = { titel:'', seed:1, opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
-  try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.text = String(e.text || ''); st.titel = String(e.titel || ''); st.seed = +e.seed || 1; } } catch(x){}
+  if (!FORMEN[st.opt.form]) st.opt.form = 'rechteck';   // die frühere Wortform gibt es nicht mehr
+  try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.titel = String(e.titel || ''); st.seed = +e.seed || 1; } } catch(x){}
   var timer = 0;
   function speichernJetzt(){ clearTimeout(timer); timer = 0;
-    try { sessionStorage.setItem(TAB, JSON.stringify({ text:st.text, titel:st.titel, seed:st.seed })); } catch(x){}
+    try { sessionStorage.setItem(TAB, JSON.stringify({ titel:st.titel, seed:st.seed })); } catch(x){}
     try { localStorage.setItem(OPT, JSON.stringify(st.opt)); } catch(x){} }
   function speichern(){ clearTimeout(timer); timer = setTimeout(speichernJetzt, 200); }
   function meldung(art, html){ $('#lbMeldung').innerHTML = html ? '<div class="meldung ' + art + '">' + html + '</div>' : ''; leer(); }
   function leer(){ $('#lbLeer').hidden = !!aktuell || !!$('#lbMeldung').innerHTML; }
-  var aktuell = null, weg = [], erstellt = false, lauf = 0;
+  var aktuell = null, weg = [], erstellt = false;
 
   /* ---------- Eingaben ---------- */
   function radios(name, schluessel, nachher){
@@ -265,10 +294,7 @@ function starte(bereich){
       r.addEventListener('change', function(){ if (!r.checked) return; st.opt[schluessel] = r.value; speichern(); if (nachher) nachher(); if (erstellt) erstellen(); });
     });
   }
-  function formZeigen(){ $('[data-form="text"]').hidden = st.opt.form !== 'text'; }
-  radios('lbForm', 'form', formZeigen); radios('lbStufe', 'stufe'); radios('lbPaar', 'paar');
-  var textFeld = $('#lbText'); textFeld.value = st.text;
-  textFeld.addEventListener('input', function(){ st.text = textFeld.value; speichern(); if (aktuell) $('#lbBlatt').classList.add('veraltet'); });
+  radios('lbForm', 'form'); radios('lbStufe', 'stufe'); radios('lbPaar', 'paar');
   $('#lbTitel').value = st.titel;
   $('#lbTitel').addEventListener('input', function(){ st.titel = this.value; speichern(); if (aktuell) zeichnen(); });
   $('#lbLinie').value = st.opt.linie; $('#lbLinie').addEventListener('change', function(){ st.opt.linie = this.value; speichern(); if (aktuell) zeichnen(); });
@@ -276,61 +302,23 @@ function starte(bereich){
   $('#lbToenen').checked = st.opt.toenen; $('#lbToenen').addEventListener('change', function(){ st.opt.toenen = this.checked; speichern(); if (aktuell) zeichnen(); });
   $('#lbMitLoesung').checked = st.opt.mitLoesung; $('#lbMitLoesung').addEventListener('change', function(){ st.opt.mitLoesung = this.checked; speichern(); });
 
-  /* ---------- Text in Felder zerlegen: auf eine Zeichenfläche schreiben und je Feld den Anteil Schrift messen ---------- */
-  function textMaske(text, zeilenHoehe){
-    var zeilen = text.split(/\n/).map(function(z){ return z.trim(); }).filter(Boolean).slice(0, 2);
-    var px = 120, cv = document.createElement('canvas'), g = cv.getContext('2d'), schrift = '600 ' + px + 'px Fredoka, "Arial Rounded MT Bold", Arial, sans-serif';
-    g.font = schrift;
-    var breite = Math.max.apply(null, zeilen.map(function(z){ return g.measureText(z).width; })), hoch = px * 1.02;
-    cv.width = Math.ceil(breite + px); cv.height = Math.ceil(hoch * zeilen.length + px * 0.5);
-    g.font = schrift; g.fillStyle = '#000'; g.strokeStyle = '#000'; g.lineJoin = 'round'; g.lineWidth = px * 0.09; g.textBaseline = 'middle'; g.textAlign = 'center';
-    zeilen.forEach(function(z, i){ var y = px * 0.25 + hoch * (i + 0.5); g.fillText(z, cv.width / 2, y); g.strokeText(z, cv.width / 2, y); });   // Kontur macht dünne Striche dicker
-    var d = g.getImageData(0, 0, cv.width, cv.height).data, x0 = cv.width, y0 = cv.height, x1 = 0, y1 = 0;
-    for (var y = 0; y < cv.height; y++) for (var x = 0; x < cv.width; x++) if (d[(y * cv.width + x) * 4 + 3] > 128){ if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
-    if (x1 <= x0) return null;
-    var zellen = zeilenHoehe * zeilen.length, groesse = (y1 - y0 + 1) / zellen, w = Math.ceil((x1 - x0 + 1) / groesse), m = [];
-    for (var r = 0; r < zellen; r++){
-      var reihe = [];
-      for (var c = 0; c < w; c++){
-        var treffer = 0;
-        for (var a = 0; a < 5; a++) for (var b = 0; b < 5; b++){
-          var sx = Math.floor(x0 + (c + (b + 0.5) / 5) * groesse), sy = Math.floor(y0 + (r + (a + 0.5) / 5) * groesse);
-          if (sx < cv.width && sy < cv.height && d[(sy * cv.width + sx) * 4 + 3] > 128) treffer++;
-        }
-        reihe.push(treffer >= 11);
-      }
-      m.push(reihe);
-    }
-    return m;
-  }
-
   /* ---------- Erstellen ---------- */
   function erstellen(){
     erstellt = true;
-    var token = ++lauf, stufe = STUFEN[st.opt.stufe] || STUFEN.mittel;
-    var bereit = st.opt.form === 'text' && document.fonts && document.fonts.load ? document.fonts.load('600 120px Fredoka').catch(function(){}) : Promise.resolve();
-    if (st.opt.form === 'text' && !st.text.trim()){ aktuell = null; $('#lbBlatt').hidden = true; $('#lbWerkzeug').hidden = true; meldung('fehler', '<h3>Noch kein Wort</h3><p>Gib ein Wort ein oder wähle eine Figur.</p>'); return; }
-    bereit.then(function(){
-      if (token !== lauf || aus) return;
-      var m;
-      if (st.opt.form === 'text'){
-        m = textMaske(st.text, stufe.text);
-        if (!m){ meldung('fehler', '<h3>Kein Text erkannt</h3><p>Gib ein Wort mit Buchstaben oder Zahlen ein.</p>'); return; }
-        if (m[0].length > 140){ meldung('fehler', '<h3>Das Wort ist zu lang</h3><p>Nimm ein kürzeres Wort, verteile es auf zwei Zeilen oder wähle eine leichtere Stufe.</p>'); return; }
-      } else {
-        var g = st.opt.form === 'stern' ? Math.round(stufe.figur * 1.45) : stufe.figur;   // der Stern füllt seine Fläche nur zum Teil
-        m = Kern.figur(st.opt.form, g, st.opt.form === 'rechteck' ? Math.round(g * 1.4) : st.opt.form === 'herz' ? Math.round(g * 1.1) : g);
-      }
+    var stufe = STUFEN[st.opt.stufe] || STUFEN.mittel;
+    (function(){
+      var g = st.opt.form === 'stern' ? Math.round(stufe.figur * 1.45) : stufe.figur;   // der Stern füllt seine Fläche nur zum Teil
+      var m = Kern.figur(st.opt.form, g, st.opt.form === 'rechteck' ? Math.round(g * 1.4) : st.opt.form === 'herz' ? Math.round(g * 1.1) : g);
       Kern.verbinden(m, 3);
       var lab = Kern.erzeugen(m, { seed:st.seed, neu:stufe.neu });
-      if (!lab){ meldung('fehler', '<h3>Das hat nicht geklappt</h3><p>Versuch ein anderes Wort.</p>'); return; }
+      if (!lab){ meldung('fehler', '<h3>Das hat nicht geklappt</h3><p>Klicke noch einmal auf «Neu mischen».</p>'); return; }
       aktuell = { lab:lab, loesung:Kern.loesung(lab), paar:PAARE.filter(function(p){ return p[0] === st.opt.paar; })[0] || PAARE[0] };
       weg = [lab.start];
       $('#lbZeigeLoesung').setAttribute('aria-pressed', 'false');
       zeichnen();
       var n = 0; lab.maske.forEach(function(z){ z.forEach(function(v){ if (v) n++; }); });
       meldung('erfolg', '<p><b>Fertig!</b> Labyrinth mit ' + n + ' Feldern, der Weg ist ' + aktuell.loesung.length + ' Felder lang. Du kannst ihn hier am Bildschirm suchen: vom ' + aktuell.paar[1] + ' aus ziehen.</p>');
-    });
+    })();
   }
 
   /* ---------- Zeichnen ---------- */
@@ -439,9 +427,9 @@ function starte(bereich){
     });
   });
 
-  formZeigen(); leer();
-  try { if ((st.opt.form !== 'text' || st.text.trim()) && sessionStorage.getItem(TAB)) erstellen(); } catch(x){}
+  leer();
+  try { if (sessionStorage.getItem(TAB)) erstellen(); } catch(x){}
 
-  return function stopp(){ aus = true; lauf++; if (timer) speichernJetzt(); window.removeEventListener('beforeprint', druckVorbereiten); document.body.classList.remove('mit-loesung'); };
+  return function stopp(){ aus = true; if (timer) speichernJetzt(); window.removeEventListener('beforeprint', druckVorbereiten); document.body.classList.remove('mit-loesung'); };
 }
 })();
