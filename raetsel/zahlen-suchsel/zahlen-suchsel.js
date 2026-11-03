@@ -704,8 +704,8 @@ function starte(bereich){
 
   /* ---------- Zustand ---------- */
   var st = laden();
-  /* Thema, Wörter und Lösungszahl gelten nur für diesen Tab (sessionStorage): Neu laden behält sie,
-     ein neu geöffneter Tab beginnt leer. Die Einstellungen bleiben gespeichert (localStorage). */
+  /* Thema, Wörter und Lösungszahl (sessionStorage) und Einstellungen (localStorage) bleiben erhalten, solange die Seite
+     offen ist – auch beim Wechsel zu einem anderen Generator. Beim Neuladen löscht Labor.start() alles. */
   function laden(){
     var d = { titel:'', woerter:[], zahlen:[''], opt:Object.assign({}, STANDARD) }, e = null;
     try {

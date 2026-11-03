@@ -12,10 +12,18 @@
        html: '…',                       // Oberfläche des Generators
        start: function(bereich){ …; return function stopp(){ … }; }
      });
-   Danach erscheint er automatisch im Menü und auf der Startseite. */
+   Danach erscheint er automatisch im Menü und auf der Startseite.
+
+   Grundsatz für alle Generatoren: Beim Neuladen der Seite beginnt alles frisch. Eingaben dürfen in sessionStorage
+   oder localStorage liegen (z. B. damit sie beim Wechsel zu einem anderen Generator und zurück erhalten bleiben),
+   aber start() löscht beim Laden der Seite alles. Damit nach einer neuen Version sicher die neuen Dateien kommen,
+   schickt der Server Seite, Skripte und Stile mit «Cache-Control: no-cache» (.htaccess), und beim Hochladen
+   bekommen Skripte und Stile eine Versionsnummer (?v=…, siehe .github/workflows/infomaniak.yml). */
 var Labor = (function(){
   'use strict';
   var liste = [], aktiv = null, css = {}, $ = function(s){ return document.querySelector(s); };
+  // Versionsnummer, die beim Hochladen an labor.js gehängt wird (…/labor.js?v=1a2b3c4d) – gilt auch für die Stile der Generatoren
+  var VERSION = (function(){ try { var m = /[?&]v=([\w-]+)/.exec(document.currentScript.src); return m ? m[1] : ''; } catch(e){ return ''; } })();
 
   function registriere(r){ liste.push(r); }
   function finde(id){ for (var i = 0; i < liste.length; i++) if (liste[i].id === id) return liste[i]; return null; }
@@ -92,7 +100,7 @@ var Labor = (function(){
     var l = css[r.id];
     if (l){ l.disabled = false; fertig(); return; }
     l = css[r.id] = document.createElement('link');
-    l.rel = 'stylesheet'; l.href = r.css;
+    l.rel = 'stylesheet'; l.href = r.css + (VERSION ? (r.css.indexOf('?') < 0 ? '?' : '&') + 'v=' + VERSION : '');
     var einmal = false; function los(){ if (!einmal){ einmal = true; fertig(); } }
     l.onload = los; l.onerror = los; setTimeout(los, 3000);
     document.head.appendChild(l);
@@ -131,7 +139,14 @@ var Labor = (function(){
     });
   }
 
+  // Neu laden = frisch anfangen: gespeicherte Eingaben und Einstellungen aller Generatoren löschen
+  function frischStarten(){
+    try { sessionStorage.clear(); } catch(e){}
+    try { localStorage.clear(); } catch(e){}
+  }
+
   function start(){
+    frischStarten();
     knopf = $('#menueKnopf'); menue = $('#menue');
     baueMenue(); baueStartseite();
     knopf.addEventListener('click', function(e){ e.stopPropagation(); if (menue.hidden) menueAuf(); else menueZu(true); });
