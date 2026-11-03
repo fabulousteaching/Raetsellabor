@@ -86,12 +86,6 @@ details.optionen[open] summary{margin-bottom:12px}
 .zeige-loesung .rb-ergebnis,.rb-loesungsblatt .rb-ergebnis{display:block}
 .zeige-loesung .rb-ergebnis::before,.rb-loesungsblatt .rb-ergebnis::before{content:'→ '}
 
-.rb-kaestchen{display:flex;flex-wrap:wrap;gap:6px 16px}
-.rb-kwort{display:flex}
-.rb-k{display:grid;place-items:center;width:1.9em;height:2.1em;border:1.5px solid #A39A92;border-left-width:0;font-weight:700;font-size:1rem;color:var(--ink)}
-.rb-k:first-child{border-left-width:1.5px;border-radius:5px 0 0 5px}
-.rb-k:last-child{border-radius:0 5px 5px 0}
-.rb-linie{height:1.8em;max-width:22em;border-bottom:1.5px solid var(--ink)}
 .rb-loesungswort{margin:0;font-family:var(--display);font-weight:600;font-size:1.3rem;letter-spacing:.08em;color:var(--accent-2)}
 
 .rb-pruefen{display:flex;flex-wrap:wrap;align-items:center;gap:8px}

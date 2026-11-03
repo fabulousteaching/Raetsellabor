@@ -280,7 +280,6 @@ var VORLAGE = `<div class="rb">
           <summary>Einstellungen</summary>
           <label class="feld-label" for="rbTitel">Titel auf dem Blatt</label>
           <input type="text" id="rbTitel" maxlength="60" autocomplete="off">
-          <label class="opt"><input type="checkbox" id="rbKaestchen"><span>Für jeden Buchstaben der Lösung ein Kästchen</span></label>
           <label class="opt"><input type="checkbox" id="rbNamen"><span>Bildnamen als Hilfe klein unter die Bilder schreiben</span></label>
         </details>
       </div>
@@ -324,7 +323,7 @@ function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); };
   var esc = Labor.esc, aus = false;
   var TAB = 'rebus-eingaben', OPT = 'rebus-einstellungen', MAX = 12;
-  var STANDARD = { stufe:'mittel', kaestchen:true, namen:false, mitLoesung:true, titelAn:true, anleitungAn:true };
+  var STANDARD = { stufe:'mittel', namen:false, mitLoesung:true, titelAn:true, anleitungAn:true };
 
   /* ---------- Zustand: Einträge nur für diesen Tab, Einstellungen bleiben ---------- */
   var st = { titel:'', eintraege:[], opt:Object.assign({}, STANDARD) };
@@ -395,7 +394,7 @@ function starte(bereich){
   titelFeld.value = st.titel;
   titelFeld.addEventListener('input', function(){ st.titel = titelFeld.value; speichern(); zeige(); });
   Labor.blattSchalter(bereich, st.opt, function(){ speichern(); zeige(); });
-  [['rbKaestchen', 'kaestchen'], ['rbNamen', 'namen'], ['rbMitLoesung', 'mitLoesung']].forEach(function(p){
+  [['rbNamen', 'namen'], ['rbMitLoesung', 'mitLoesung']].forEach(function(p){
     var el = $('#' + p[0]); el.checked = !!st.opt[p[1]];
     el.addEventListener('change', function(){ st.opt[p[1]] = el.checked; speichern(); if (p[1] !== 'mitLoesung') zeige(); });
   });
@@ -414,11 +413,6 @@ function starte(bereich){
       '</div><span class="rb-name' + (st.opt.namen ? ' rb-hilfe' : '') + '">' + esc(c.bild.wort) + '</span>' +
       '<span class="rb-ergebnis">' + esc(Kern.ergebnis(c)) + '</span></div>';
   }
-  function kaestchen(woerter, fuellen){
-    return '<div class="rb-kaestchen" aria-hidden="true">' + woerter.map(function(w){
-      return '<span class="rb-kwort">' + Array.from(w.wort).map(function(ch){ return '<span class="rb-k">' + (fuellen ? esc(ch) : '') + '</span>'; }).join('') + '</span>';
-    }).join('') + '</div>';
-  }
   function blattHtml(liste, loesung, beispiel){
     var titel = st.titel.trim() || 'Bilderrätsel';
     var html = loesung ? '<h2 class="rb-titel">' + esc(st.opt.titelAn ? 'Lösung – ' + titel : 'Lösung') + '</h2>' : st.opt.titelAn || beispiel ? '<h2 class="rb-titel">' + esc(titel) + '</h2>' : '';
@@ -429,8 +423,6 @@ function starte(bereich){
       html += '<li class="rb-eintrag" data-i="' + i + '"><span class="rb-nr">' + (liste.length > 1 ? (i + 1) + '.' : '') + '</span><div class="rb-inhalt">' +
         '<div class="rb-zeile">' + x.r.map(function(w, wi){ return '<div class="rb-wort' + (w.teile.length > 1 ? ' rb-mehrteilig' : '') + '">' + w.teile.map(function(c, k){ return teilHtml(c, !loesung && !beispiel ? { i:i, w:wi, k:k } : null); }).join('') + '</div>'; }).join('<span class="rb-wortgrenze" aria-hidden="true"></span>') + '</div>';
       if (loesung) html += '<p class="rb-loesungswort">' + esc(x.r.map(function(w){ return w.wort; }).join(' ')) + '</p>';
-      else if (st.opt.kaestchen) html += kaestchen(x.r, false);
-      else html += '<div class="rb-linie" aria-hidden="true"></div>';
       if (!loesung && !beispiel) html += '<div class="rb-pruefen nur-bildschirm"><span class="rb-pruefen-text">Deine Lösung:</span><input type="text" class="rb-eingabe-loesung" aria-label="Deine Lösung für Rätsel ' + (i + 1) + '" autocomplete="off" spellcheck="false">' +
         '<span class="rb-status" aria-live="polite"></span><button type="button" class="btn ghost klein rb-anders" title="Nur dieses Rätsel mit anderen Bildern">Anders</button></div>';
       html += '</div></li>';
