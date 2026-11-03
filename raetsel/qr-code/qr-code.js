@@ -21,13 +21,13 @@ var Kern = (function(){
   var AUSRICHTUNG = [[], [], [6, 18], [6, 22], [6, 26], [6, 30], [6, 34], [6, 22, 38], [6, 24, 42], [6, 26, 46], [6, 28, 50]];
   var GRENZE = { punkte:41, zahlen:33, rechnungen:25 };   // grösstes Raster je Ausmal-Art (Felder pro Seite)
 
-  /* QR-Code berechnen → { n, version, dunkel[r][c] }; zu langer Text → null */
-  function code(text, stufe){
+  /* QR-Code berechnen → { n, version, dunkel[r][c] }; zu langer Text → null. version: feste Grösse (1 = 21 × 21 Felder), 0 = so klein wie möglich */
+  function code(text, stufe, version){
     qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];   // Umlaute richtig
     // Nur Ziffern, Grossbuchstaben und wenige Zeichen (z. B. «HTTPS://SEITE.CH/B/K3X9») passen in den sparsamen
     // Alphanumerik-Modus – das ergibt ein deutlich kleineres Raster
     var q, t = String(text), modus = /^[0-9A-Z $%*+\-.\/:]+$/.test(t) ? 'Alphanumeric' : 'Byte';
-    try { q = qrcode(0, stufe || 'M'); q.addData(t, modus); q.make(); } catch(e){ return null; }
+    try { q = qrcode(version || 0, stufe || 'M'); q.addData(t, modus); q.make(); } catch(e){ return null; }
     var n = q.getModuleCount(), d = [];
     for (var r = 0; r < n; r++){ var z = []; for (var c = 0; c < n; c++) z.push(q.isDark(r, c)); d.push(z); }
     return { n:n, version:(n - 17) / 4, dunkel:d };
@@ -77,10 +77,21 @@ var Kern = (function(){
     var rc = rechnung(dunkel, o.rechenart, r);
     return rc ? rc.text : '';
   }
-  /* Ganzes Ausmal-Raster: { n, dunkel, vorgedruckt, inhalt, anzahl (auszumalende Felder) } oder { fehler, … } */
+  var GROESSEN = [21, 25, 29, 33, 37, 41];   // wählbare Raster (QR-Versionen 1–6)
+  /* Kleinstes Raster, in das der Text überhaupt passt (mit der geringsten Fehlertoleranz) – null: zu lang */
+  function kleinstesRaster(text){ var k = code(text, 'L'); return k ? k.n : null; }
+  /* QR-Code in einem gewählten Raster (n Felder pro Seite, 0 = so klein wie möglich) mit der höchsten Fehlertoleranz,
+     die darin noch Platz hat → Code mit .stufe; passt der Text nicht hinein → null */
+  function imRaster(text, n){
+    if (!n){ n = kleinstesRaster(text); if (!n) return null; }
+    var s = ['H', 'Q', 'M', 'L'];
+    for (var i = 0; i < s.length; i++){ var q = code(text, s[i], (n - 17) / 4); if (q){ q.stufe = s[i]; return q; } }
+    return null;
+  }
+  /* Ganzes Ausmal-Raster: { n, stufe, dunkel, vorgedruckt, inhalt, anzahl (auszumalende Felder) } oder { fehler, … } */
   function raster(text, o){
-    var q = code(text, o.stufe);
-    if (!q) return { fehler:'zuLang' };
+    var q = imRaster(text, o.raster || 0);
+    if (!q){ var min = kleinstesRaster(text); return min ? { fehler:'passtNicht', min:min } : { fehler:'zuLang' }; }
     var grenze = GRENZE[o.art] || 41;
     if (q.n > grenze) return { fehler:'zuGross', n:q.n, grenze:grenze };
     var m = o.ecken ? muster(q.n) : null, r = zufall(o.seed || 1), inhalt = [], anzahl = 0;
@@ -93,20 +104,14 @@ var Kern = (function(){
       }
       inhalt.push(z);
     }
-    return { n:q.n, version:q.version, dunkel:q.dunkel, vorgedruckt:m, inhalt:inhalt, anzahl:anzahl };
-  }
-  /* Kleinste Fehlertoleranz-Stufe, mit der der Text noch ins Raster passt */
-  function passendeStufe(text, grenze){
-    var s = ['H', 'Q', 'M', 'L'];
-    for (var i = 0; i < s.length; i++){ var q = code(text, s[i]); if (q && q.n <= grenze) return s[i]; }
-    return null;
+    return { n:q.n, version:q.version, stufe:q.stufe, dunkel:q.dunkel, vorgedruckt:m, inhalt:inhalt, anzahl:anzahl };
   }
   /* Etwa so viele falsch ausgemalte oder vergessene Felder verträgt der Code (vorsichtig geschätzt) */
   function verzeiht(n, stufe){
     var v = (n - 17) / 4, k = KORREKTUR[stufe] && KORREKTUR[stufe][v - 1];
     if (!k) return null;
     var p = (SCHUTZ[stufe] || [])[v - 1] || 0, b = BLOECKE[stufe][v - 1];
-    return Math.max(1, Math.floor((k - p) / 2 * (b === 1 ? 0.8 : b === 2 ? 0.7 : 0.6)));
+    return Math.max(1, Math.floor((k - p) / 2 * (b === 1 ? 0.8 : b === 2 ? 0.7 : 0.55)));
   }
   /* ---------- Gestaltete Codes (Teil «Fertige QR-Codes») ----------
      d: { form, rahmen, mitte, farbe, farbe2, verlauf ('' | 'linear' | 'radial'), hintergrund ('' = durchsichtig),
@@ -201,7 +206,7 @@ var Kern = (function(){
     }
     return h + '</svg>';
   }
-  return { STUFEN:STUFEN, GRENZE:GRENZE, code:code, muster:muster, raster:raster, rechnung:rechnung, zufall:zufall, passendeStufe:passendeStufe, verzeiht:verzeiht,
+  return { STUFEN:STUFEN, GRENZE:GRENZE, code:code, muster:muster, raster:raster, rechnung:rechnung, zufall:zufall, GROESSEN:GROESSEN, imRaster:imRaster, kleinstesRaster:kleinstesRaster, verzeiht:verzeiht,
     gestaltet:gestaltet, modulPfad:modulPfad, rahmenPfad:rahmenPfad, mittePfad:mittePfad, MITTE_ZU:MITTE_ZU, passendeMitte:passendeMitte };
 })();
 /* KERN-ENDE */
@@ -233,7 +238,10 @@ var VORLAGE = '<div class="qr">' +
           '<div class="qr-symbole" role="radiogroup" aria-label="Symbol auf der Botschaftsseite">' +
             SYMBOLE.map(function(x){ return '<label><input type="radio" name="qrSymbol" value="' + x + '"><span>' + x + '</span></label>'; }).join('') + '</div></div>' +
         '<p class="hinweis" id="qrTextInfo" aria-live="polite"></p></div>' +
-      '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Welche Felder ausmalen?</h2><p>Woran die Kinder erkennen, welche Felder sie ausmalen.</p></div></div>' +
+      '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Raster</h2><p>Kleine Raster sind schnell ausgemalt, grosse verzeihen mehr Fehler beim Ausmalen.</p></div></div>' +
+        '<div class="opt-raster"><label for="qrRaster">Grösse</label><select id="qrRaster"></select></div>' +
+        '<p class="hinweis" id="qrRasterInfo" aria-live="polite"></p></div>' +
+      '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Welche Felder ausmalen?</h2><p>Woran die Kinder erkennen, welche Felder sie ausmalen.</p></div></div>' +
         '<div class="qr-arten" role="radiogroup" aria-label="Ausmal-Art">' +
           '<label class="qr-art"><input type="radio" name="qrArt" value="punkte"><span><b>Kreise</b><small>Felder mit einem Kreis ausmalen – schon ab der 1. Klasse</small></span></label>' +
           '<label class="qr-art"><input type="radio" name="qrArt" value="zahlen"><span><b>Zahlen</b><small>gerade Zahlen oder Zahlen einer Einmaleins-Reihe ausmalen</small></span></label>' +
@@ -247,12 +255,10 @@ var VORLAGE = '<div class="qr">' +
           '<option value="mal">Einmaleins (mal)</option><option value="geteilt">Einmaleins (geteilt)</option></select></div>' +
       '</div>' +
       '<div class="karte"><details class="optionen"><summary>Einstellungen</summary>' +
-        '<div class="opt-raster"><label for="qrStufe">Fehlertoleranz</label><select id="qrStufe">' +
-          '<option value="L">gering – kleinstes Raster</option><option value="M">mittel</option><option value="Q">hoch (empfohlen)</option><option value="H">sehr hoch – grösstes Raster</option></select>' +
+        '<div class="opt-raster">' +
           '<label for="qrTitel">Titel auf dem Blatt</label><input type="text" id="qrTitel" maxlength="60"></div>' +
         '<label class="opt"><input type="checkbox" id="qrEcken"><span>Erkennungsquadrate in den Ecken schon ausgemalt</span></label>' +
         '<label class="opt"><input type="checkbox" id="qrNummern"><span>Zeilen und Spalten nummerieren</span></label>' +
-        '<p class="hinweis">Die Fehlertoleranz bestimmt, wie viele falsch ausgemalte Felder der Code verzeiht. Mehr Toleranz gibt ein grösseres Raster.</p>' +
       '</details></div>' +
       '<button type="button" class="btn primary gross" id="qrLos">QR-Code erstellen</button>' +
     '</div>' +
@@ -331,7 +337,7 @@ Labor.registriere({
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, esc = Labor.esc, aus = false;
   var TAB = 'qr-code-eingaben', OPT = 'qr-code-einstellungen', NS = 'http://www.w3.org/2000/svg';
-  var STANDARD = { modus:'malen', ziel:'text', symbol:'🎉', art:'punkte', regel:'gerade', zahlenraum:20, rechenart:'plus20', stufe:'Q', ecken:true, nummern:true, mitLoesung:true, titelAn:true, anleitungAn:true,
+  var STANDARD = { modus:'malen', ziel:'text', symbol:'🎉', art:'punkte', regel:'gerade', zahlenraum:20, rechenart:'plus20', raster:0, ecken:true, nummern:true, mitLoesung:true, titelAn:true, anleitungAn:true,
     proBlatt:4, stufeFertig:'M', titelZeigen:true, inhaltZeigen:false, schnitt:true };
 
   /* ---------- Zustand: Inhalte nur für diesen Tab, Einstellungen bleiben ---------- */
@@ -409,24 +415,53 @@ function starte(bereich){
   function textInfo(){
     var link = st.opt.ziel === 'link', t = malInhalt(), box = $('#qrTextInfo');
     if (st.opt.ziel === 'botschaft'){
-      if (!t){ box.textContent = 'Die Botschaft wird auf deinem Server gespeichert, der QR-Code enthält nur einen kurzen Link darauf. Darum bleibt das Raster klein – egal wie lang die Botschaft ist.'; return; }
-      var qb = Kern.code(t, st.opt.stufe), vb = qb && Kern.verzeiht(qb.n, st.opt.stufe);
-      box.innerHTML = 'Raster: <b>' + qb.n + ' × ' + qb.n + ' Felder</b>' + (qb.n > Kern.GRENZE[st.opt.art] ? ' – für «' + artName() + '» zu gross, wähle «Kreise» oder eine kleinere Fehlertoleranz.' : vb ? ' · verzeiht etwa ' + vb + ' falsch ausgemalte Felder' : '') +
-        '<br>Beim Scannen öffnet sich eine eigene Seite mit ' + (st.bTitel.trim() ? 'Titel und ' : '') + 'Botschaft.';
-      return;
+      box.textContent = 'Die Botschaft wird auf deinem Server gespeichert, der QR-Code enthält nur einen kurzen Link darauf. Darum bleibt das Raster klein – egal wie lang die Botschaft ist.' +
+        (t ? ' Beim Scannen öffnet sich eine eigene Seite mit ' + (st.bTitel.trim() ? 'Titel und ' : '') + 'Botschaft.' : '');
+    } else if (!t){
+      box.textContent = link ? 'Der Link öffnet sich, wenn der fertig ausgemalte Code gescannt wird. Tipp: Kurze Links ergeben kleinere Raster.'
+        : 'Tipp: Ein kurzer Text ergibt ein kleines Raster, das schneller ausgemalt ist.';
+    } else if (link && !linkGueltig(t)){
+      box.textContent = 'Das sieht noch nicht wie ein Link aus – z. B. www.beispiel.ch oder https://www.beispiel.ch/seite';
+    } else {
+      box.innerHTML = link ? 'Öffnet: <b>' + esc(t) + '</b>' + (t !== st.link.trim() ? ' («https://» ergänzt, damit das Handy den Link direkt öffnet)' : '')
+        : /^www\./i.test(st.text.trim()) ? 'Der Link bekommt automatisch «https://» davor, damit das Handy ihn direkt öffnet.' : '';
     }
-    if (!t){ box.textContent = link ? 'Der Link öffnet sich, wenn der fertig ausgemalte Code gescannt wird. Tipp: Kurze Links ergeben kleinere Raster.'
-      : 'Tipp: Ein kurzer Text ergibt ein kleines Raster, das schneller ausgemalt ist.'; return; }
-    if (link && !linkGueltig(t)){ box.textContent = 'Das sieht noch nicht wie ein Link aus – z. B. www.beispiel.ch oder https://www.beispiel.ch/seite'; return; }
-    var q = Kern.code(t, st.opt.stufe);
-    if (!q){ box.textContent = 'Der Text ist zu lang für einen QR-Code.'; return; }
-    var grenze = Kern.GRENZE[st.opt.art];
-    var v = Kern.verzeiht(q.n, st.opt.stufe);
-    box.innerHTML = 'Raster: <b>' + q.n + ' × ' + q.n + ' Felder</b>' + (q.n > grenze ? ' – für «' + artName() + '» sind höchstens ' + grenze + ' × ' + grenze + ' möglich.' :
-      v ? ' · verzeiht etwa ' + v + ' falsch ausgemalte Felder' : '') +
-      (link ? '<br>Öffnet: <b>' + esc(t) + '</b>' + (t !== st.link.trim() ? ' («https://» ergänzt, damit das Handy den Link direkt öffnet)' : '') :
-        /^www\./i.test(st.text.trim()) ? '<br>Der Link bekommt automatisch «https://» davor, damit das Handy ihn direkt öffnet.' : '');
+    rasterZeigen();
   }
+  /* ---------- Raster: «so klein wie möglich» oder eine feste Grösse; die Fehlertoleranz ergibt sich daraus ---------- */
+  var rasterWahl = $('#qrRaster');
+  function rasterZeigen(){
+    var t = malInhalt(), grenze = Kern.GRENZE[st.opt.art] || 41, gueltig = t && !(st.opt.ziel === 'link' && !linkGueltig(t));
+    var min = gueltig ? Kern.kleinstesRaster(t) : null;
+    var h = '<option value="0">So klein wie möglich' + (min ? ' (' + min + ' × ' + min + ')' : '') + '</option>';
+    Kern.GROESSEN.forEach(function(n){
+      var q = gueltig ? Kern.imRaster(t, n) : null, v = q && Kern.verzeiht(n, q.stufe), zu = '';
+      if (n > grenze) zu = ' – zu gross für «' + artName() + '»';
+      else if (gueltig && !q) zu = ' – zu klein für diesen Inhalt';
+      h += '<option value="' + n + '"' + (zu ? ' disabled' : '') + '>' + n + ' × ' + n + (zu || (v ? ' – verzeiht etwa ' + v + ' Fehler' : '')) + '</option>';
+    });
+    rasterWahl.innerHTML = h;
+    rasterWahl.value = String(st.opt.raster || 0);
+    // gewählte Grösse passt nicht mehr (Inhalt zu lang oder für die Ausmal-Art zu gross) → so klein wie möglich
+    if (rasterWahl.selectedIndex < 0 || rasterWahl.options[rasterWahl.selectedIndex].disabled){ rasterWahl.value = '0'; if (st.opt.raster){ st.opt.raster = 0; speichern(); } }
+    var info = $('#qrRasterInfo');
+    if (!gueltig){ info.textContent = 'Das Raster richtet sich nach dem Inhalt: Je kürzer, desto kleiner.'; return; }
+    var o = { art:st.opt.art, regel:st.opt.regel, reihe:st.opt.reihe || 3, zahlenraum:st.opt.zahlenraum, rechenart:st.opt.rechenart, raster:+rasterWahl.value, ecken:st.opt.ecken, seed:st.seed };
+    var r = Kern.raster(t, o);
+    if (r.fehler === 'zuLang'){ info.textContent = 'Der Inhalt ist zu lang für einen QR-Code.'; return; }
+    if (r.fehler === 'passtNicht'){ info.textContent = 'Für diesen Inhalt braucht es mindestens ' + r.min + ' × ' + r.min + ' Felder.'; return; }
+    if (r.fehler === 'zuGross'){ info.textContent = 'Dieser Inhalt braucht ' + r.n + ' × ' + r.n + ' Felder – für «' + artName() + '» sind höchstens ' + r.grenze + ' × ' + r.grenze + ' möglich. Kürze ihn oder wähle «Kreise».'; return; }
+    var v = Kern.verzeiht(r.n, r.stufe);
+    info.innerHTML = '<b>' + r.n + ' × ' + r.n + ' Felder</b>, davon <b>' + r.anzahl + ' zum Ausmalen</b>' + (v ? ' · verzeiht etwa ' + v + ' falsch ausgemalte Felder' : '') + '.' + grossTipp(t, r.n);
+  }
+  // Tipp, wenn der Text in Grossbuchstaben (ohne Umlaute und seltene Zeichen) ein kleineres Raster ergäbe
+  function grossTipp(t, n){
+    if (st.opt.ziel !== 'text') return '';
+    var gross = t.toLocaleUpperCase('de-CH').replace(/Ä/g, 'AE').replace(/Ö/g, 'OE').replace(/Ü/g, 'UE').replace(/[^0-9A-Z $%*+\-.\/:]/g, '').replace(/\s+/g, ' ').trim();
+    var k = gross && Kern.kleinstesRaster(gross);
+    return gross !== t && k && k < Kern.kleinstesRaster(t) ? '<br>Tipp: In GROSSBUCHSTABEN, ohne Umlaute, ! und ?, würde der Text in ein Raster von nur ' + k + ' × ' + k + ' Feldern passen.' : '';
+  }
+  rasterWahl.addEventListener('change', function(){ st.opt.raster = +rasterWahl.value; speichern(); rasterZeigen(); if (erstellt) erstellen(); });
   function zielZeigen(){
     if (st.opt.ziel === 'botschaft' && $('#qrZielBotschaft').hidden) st.opt.ziel = 'text';   // ohne Server keine Botschaften
     [].forEach.call(bereich.querySelectorAll('input[name="qrZiel"]'), function(r){ r.checked = r.value === st.opt.ziel; });
@@ -465,14 +500,14 @@ function starte(bereich){
   }
   var regel = $('#qrRegel'); regel.value = st.opt.regel === 'gerade' ? 'gerade' : String(st.opt.reihe || 3);
   regel.addEventListener('change', function(){ if (regel.value === 'gerade'){ st.opt.regel = 'gerade'; } else { st.opt.regel = 'reihe'; st.opt.reihe = +regel.value; } speichern(); unteroptionen(); if (erstellt) erstellen(); });
-  [['qrZahlenraum', 'zahlenraum', true], ['qrRechenart', 'rechenart', false], ['qrStufe', 'stufe', false]].forEach(function(p){
+  [['qrZahlenraum', 'zahlenraum', true], ['qrRechenart', 'rechenart', false]].forEach(function(p){
     var el = $('#' + p[0]); el.value = String(st.opt[p[1]]);
     el.addEventListener('change', function(){ st.opt[p[1]] = p[2] ? +el.value : el.value; speichern(); textInfo(); if (erstellt) erstellen(); });
   });
   Labor.blattSchalter(bereich, st.opt, function(){ speichern(); if (aktuell && st.opt.modus === 'malen') zeichnen(); });
   [['qrEcken', 'ecken'], ['qrNummern', 'nummern'], ['qrMitLoesung', 'mitLoesung']].forEach(function(p){
     var el = $('#' + p[0]); el.checked = !!st.opt[p[1]];
-    el.addEventListener('change', function(){ st.opt[p[1]] = el.checked; speichern(); if (p[1] !== 'mitLoesung' && erstellt) erstellen(); });
+    el.addEventListener('change', function(){ st.opt[p[1]] = el.checked; speichern(); if (p[1] === 'ecken') rasterZeigen(); if (p[1] !== 'mitLoesung' && erstellt) erstellen(); });
   });
 
   function nichts(h){ aktuell = null; $('#qrBlaetter').innerHTML = ''; $('#qrWerkzeug').hidden = true; meldung('fehler', h); }
@@ -496,18 +531,15 @@ function starte(bereich){
     var link = ziel === 'link';
     if (!t){ nichts(link ? '<h3>Noch kein Link</h3><p>Gib zuerst den Ziellink ein, z. B. www.fabulousteaching.ch.</p>' : '<h3>Noch keine Botschaft</h3><p>Gib zuerst einen Text ein.</p>'); return; }
     if (link && !linkGueltig(t)){ nichts('<h3>Kein gültiger Link</h3><p>«' + esc(st.link.trim()) + '» sieht nicht wie ein Link aus. Gib eine Adresse wie www.beispiel.ch oder https://www.beispiel.ch/seite ein.</p>'); return; }
-    var o = { art:st.opt.art, regel:st.opt.regel, reihe:st.opt.reihe || 3, zahlenraum:st.opt.zahlenraum, rechenart:st.opt.rechenart, stufe:st.opt.stufe, ecken:st.opt.ecken, seed:st.seed };
+    var o = { art:st.opt.art, regel:st.opt.regel, reihe:st.opt.reihe || 3, zahlenraum:st.opt.zahlenraum, rechenart:st.opt.rechenart, raster:st.opt.raster || 0, ecken:st.opt.ecken, seed:st.seed };
     var r = Kern.raster(t, o);
     if (r.fehler){
       aktuell = null; $('#qrBlaetter').innerHTML = ''; $('#qrWerkzeug').hidden = true;
       if (r.fehler === 'zuLang') meldung('fehler', '<h3>' + (link ? 'Der Link ist zu lang' : 'Der Text ist zu lang') + '</h3><p>So viel passt in keinen QR-Code. Kürze ihn bitte.</p>');
-      else {
-        var besser = Kern.passendeStufe(t, r.grenze), stufenText = { L:'«gering»', M:'«mittel»', Q:'«hoch»', H:'«sehr hoch»' };
-        meldung('fehler', '<h3>Das Raster wird zu gross</h3><p>Mit diesem Text hätte das Raster ' + r.n + ' × ' + r.n + ' Felder. Für «' + artName() + '» sind höchstens ' +
+      else if (r.fehler === 'passtNicht') meldung('fehler', '<h3>Das Raster ist zu klein</h3><p>Für diesen Inhalt braucht es mindestens ' + r.min + ' × ' + r.min + ' Felder. Wähle unter «Raster» eine grössere Grösse oder «So klein wie möglich» – oder ' + (link ? 'nimm einen kürzeren Link' : 'kürze den Text') + '.</p>');
+      else meldung('fehler', '<h3>Das Raster wird zu gross</h3><p>Dieser Inhalt braucht ' + r.n + ' × ' + r.n + ' Felder. Für «' + artName() + '» sind höchstens ' +
           r.grenze + ' × ' + r.grenze + ' möglich, damit alles gut lesbar bleibt.</p><ul><li>' + (link ? 'Nimm einen kürzeren Link' : 'Kürze den Text') +
-          (besser ? ',</li><li>oder stelle in den Einstellungen die Fehlertoleranz auf ' + stufenText[besser] + ' – dann passt er' : '') +
           (st.opt.art !== 'punkte' ? ',</li><li>oder wähle «Kreise» – damit sind bis 41 × 41 Felder möglich' : '') + '.</li></ul>');
-      }
       return;
     }
     aktuell = { r:r, text:t, o:o, ziel:ziel, oeffnet:ziel !== 'text', id:id, botschaft:ziel === 'botschaft' ? { titel:st.bTitel.trim(), text:st.bText.trim() } : null }; gemalt = {};
@@ -518,7 +550,7 @@ function starte(bereich){
   function erfolgsMeldung(){
     var r = aktuell.r;
     meldung('erfolg', '<p><b>Fertig!</b> Raster mit ' + r.n + ' × ' + r.n + ' Feldern, davon <b>' + r.anzahl + ' zum Ausmalen</b>. ' +
-      (Kern.verzeiht(r.n, aktuell.o.stufe) ? 'Der Code verzeiht etwa ' + Kern.verzeiht(r.n, aktuell.o.stufe) + ' falsch ausgemalte oder vergessene Felder. ' : '') +
+      (Kern.verzeiht(r.n, r.stufe) ? 'Der Code verzeiht etwa ' + Kern.verzeiht(r.n, r.stufe) + ' falsch ausgemalte oder vergessene Felder. ' : '') +
       'Du kannst ihn auch hier am Bildschirm ausmalen.</p>');
   }
 
