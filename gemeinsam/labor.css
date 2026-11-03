@@ -202,3 +202,7 @@ a.raetsel-karte:hover{border-color:var(--accent);box-shadow:0 10px 28px rgba(242
   body{display:block;min-height:0;background:#fff}
 }
 .eigenes-label{margin-top:12px;text-transform:none;letter-spacing:0;font-size:.8rem}
+/* Hinweis «neue Version» (gemeinsam/labor.js) */
+.labor-neu{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:12px;
+  width:max-content;max-width:calc(100vw - 32px);padding:10px 12px 10px 16px;border-radius:12px;background:#221C18;color:#fff;font-size:.9rem;box-shadow:0 12px 32px rgba(0,0,0,.25)}
+@media print{ .labor-neu{display:none!important} }

@@ -121,6 +121,27 @@ var Labor = (function(){
     try { localStorage.clear(); } catch(e){}
   }
 
+  /* ---------- Neue Version auf dem Server? ----------
+     Das Labor wechselt zwischen den Generatoren, ohne die Seite neu zu laden. Ist sie schon länger offen und gibt es
+     inzwischen eine neue Version, liefe sonst das alte Skript (mit neuen Stilen). Beim Hochladen schreibt der Workflow
+     die Versionsnummer in version.txt; das Labor fragt sie ab, wenn man zur Seite zurückkehrt und alle 10 Minuten.
+     Ist sie neu, lädt der nächste Wechsel zu einem Generator die Seite neu, und ein Hinweis bietet «Neu laden» an. */
+  var neueVersion = false;
+  function versionPruefen(){
+    if (!VERSION || neueVersion || !window.fetch || document.hidden) return;
+    fetch('version.txt?t=' + Date.now(), { cache:'no-store' }).then(function(r){ return r.ok ? r.text() : ''; }).then(function(t){
+      t = String(t || '').trim();
+      if (!/^[\w-]{4,40}$/.test(t) || t === VERSION) return;
+      neueVersion = true;
+      var h = document.createElement('div');
+      h.className = 'labor-neu'; h.setAttribute('role', 'status');
+      h.innerHTML = '<span>Es gibt eine neue Version des Rätsellabors.</span><button type="button" class="btn klein primary">Neu laden</button>';
+      h.querySelector('button').addEventListener('click', function(){ location.reload(); });
+      document.body.appendChild(h);
+    }).catch(function(){});
+  }
+  function wechsel(){ if (neueVersion) location.reload(); else route(); }
+
   function start(){
     frischStarten();
     knopf = $('#menueKnopf'); menue = $('#menue');
@@ -129,7 +150,9 @@ var Labor = (function(){
     document.addEventListener('click', function(e){ if (!menue.hidden && !menue.contains(e.target) && !knopf.contains(e.target)) menueZu(false); });
     document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !menue.hidden) menueZu(true); });
     menue.addEventListener('click', function(e){ var a = e.target.closest('a'); if (a && a.getAttribute('href') === location.hash) menueZu(true); });
-    window.addEventListener('hashchange', route);
+    window.addEventListener('hashchange', wechsel);
+    document.addEventListener('visibilitychange', versionPruefen);
+    setInterval(versionPruefen, 10 * 60 * 1000);
     route();
   }
 

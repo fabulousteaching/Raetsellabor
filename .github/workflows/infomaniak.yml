@@ -38,6 +38,7 @@ jobs:
         run: |
           v="${GITHUB_SHA::8}"
           sed -i -E "s#(src|href)=\"((gemeinsam|raetsel)/[^\"?]+\.(js|css))\"#\1=\"\2?v=$v\"#g" index.html
+          printf '%s\n' "$v" > version.txt   # für die Versionsprüfung offener Seiten (gemeinsam/labor.js)
           grep -o -E '(src|href)="(gemeinsam|raetsel)/[^"]+"' index.html
 
       - name: Per FTPS zu Infomaniak übertragen
