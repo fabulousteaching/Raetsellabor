@@ -597,38 +597,7 @@ var VORLAGE = `<div class="zs">
   </header>
   <div class="layout">
   <section class="spalte-eingabe" aria-label="Eingaben">
-    <div class="karte">
-      <div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span>
-        <div><h2>Thema und Wörter</h2><p>Thema eingeben und Wörter vorschlagen lassen. Vorschläge anklicken – eigene Wörter gehen immer.</p></div>
-      </div>
-      <label class="feld-label" for="titel">Thema</label>
-      <div class="zeile">
-        <input type="text" id="titel" maxlength="60" placeholder="z. B. Tiere, Berufe, Weltraum …" autocomplete="off">
-        <button type="button" class="btn soft" id="vorschlagen">Wörter vorschlagen</button>
-      </div>
-      <div class="vorschlaege" id="vorschlaege" hidden>
-        <div class="vorschlaege-kopf">
-          <strong id="vorschlagTitel"></strong>
-          <span>
-            <button type="button" class="btn ghost klein" id="alleUebernehmen">Alle übernehmen</button>
-            <button type="button" class="btn ghost klein" id="mehrVorschlaege">Andere Vorschläge</button>
-          </span>
-        </div>
-        <div class="chips" id="vorschlagChips" role="group" aria-label="Vorgeschlagene Wörter"></div>
-        <p class="hinweis" id="vorschlagInfo" aria-live="polite"></p>
-      </div>
-      <div class="trenner"></div>
-      <div class="woerter-kopf">
-        <span class="feld-label">Deine Wörter<span class="zaehler" id="wortZaehler"></span></span>
-        <button type="button" class="btn ghost klein" id="alleWeg">Alle entfernen</button>
-      </div>
-      <div class="chips gewaehlt" id="wortChips" aria-live="polite"></div>
-      <div class="zeile">
-        <input type="text" id="eigenesWort" maxlength="200" placeholder="Eigenes Wort (mehrere mit Komma)" autocomplete="off" spellcheck="false" aria-label="Eigenes Wort hinzufügen">
-        <button type="button" class="btn" id="wortPlus">Hinzufügen</button>
-      </div>
-      <p class="hinweis" id="wortInfo" aria-live="polite"></p>
-    </div>
+    ${Wortwahl.html(1)}
 
     <div class="karte">
       <div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span>
@@ -733,41 +702,6 @@ function starte(bereich){
   var S = 10, NS = 'http://www.w3.org/2000/svg';
   var ZAHLWORT = ['null', 'eine', 'zwei', 'drei', 'vier', 'fünf', 'sechs', 'sieben', 'acht'];
 
-  /* Eingebaute Themen: funktionieren sofort und ohne Internet. Für alle anderen Themen fragt die Seite Claude (falls verfügbar). */
-  var THEMEN = [
-    { name:'Tiere', alias:['tier', 'haustiere', 'zoo', 'bauernhof'], w:'Hund Katze Pferd Kuh Schaf Ziege Schwein Hase Maus Fuchs Wolf Bär Löwe Tiger Elefant Giraffe Zebra Affe Igel Eule Adler Frosch Delfin Krokodil Pinguin Biber Hirsch Dachs Esel Kamel Papagei Schildkröte' },
-    { name:'Obst und Gemüse', alias:['obst', 'gemüse', 'früchte', 'frucht'], w:'Apfel Birne Banane Kirsche Traube Erdbeere Himbeere Pflaume Zitrone Orange Melone Ananas Mango Kiwi Karotte Gurke Tomate Paprika Zwiebel Kartoffel Salat Spinat Kürbis Lauch Erbse Bohne Brokkoli Radieschen Sellerie Knoblauch Aprikose Feige' },
-    { name:'Berufe', alias:['beruf', 'arbeit'], w:'Bäcker Lehrerin Arzt Pilot Koch Maler Gärtner Polizist Förster Bauer Metzger Schreiner Elektriker Pflegerin Coiffeur Fischer Kellner Zahnarzt Tierarzt Richter Journalist Architekt Mechaniker Floristin Sänger Schneider Apotheker Postbote Dachdecker Informatiker Hebamme Zimmermann' },
-    { name:'Sport', alias:['sportarten'], w:'Fussball Tennis Handball Hockey Golf Rudern Segeln Skifahren Schwimmen Turnen Boxen Judo Reiten Klettern Laufen Radfahren Volleyball Basketball Badminton Curling Biathlon Fechten Tischtennis Surfen Tauchen Rugby Eishockey Snowboard Kanu Yoga Schwingen Unihockey' },
-    { name:'Musikinstrumente', alias:['musik', 'instrumente', 'instrument'], w:'Gitarre Klavier Geige Flöte Trompete Posaune Trommel Harfe Cello Orgel Tuba Oboe Fagott Klarinette Saxofon Bratsche Kontrabass Akkordeon Xylofon Banjo Ukulele Mundharmonika Alphorn Hackbrett Triangel Pauke Zither Dudelsack Blockflöte Schlagzeug Horn Tamburin' },
-    { name:'Länder', alias:['land', 'staaten', 'geografie', 'europa'], w:'Schweiz Deutschland Österreich Italien Frankreich Spanien Portugal Belgien Polen Ungarn Schweden Norwegen Finnland Dänemark Irland Island Griechenland Türkei Kroatien Rumänien Japan China Indien Brasilien Kanada Mexiko Ägypten Kenia Peru Chile Australien Marokko' },
-    { name:'Wetter', alias:['klima', 'wetterlage'], w:'Regen Sonne Wolke Wind Sturm Nebel Schnee Hagel Gewitter Blitz Donner Regenbogen Frost Tau Glatteis Hitze Orkan Tornado Föhn Bise Lawine Schauer Graupel Dunst Thermometer Hochdruck Tiefdruck Wetterbericht Nieselregen Schneeflocke Sonnenschein Kälte' },
-    { name:'Schule', alias:['schulsachen', 'schulzimmer', 'unterricht'], w:'Heft Buch Füller Bleistift Radiergummi Lineal Schere Leim Pinsel Wandtafel Kreide Pause Lehrerin Klasse Zeugnis Prüfung Hausaufgabe Stundenplan Turnhalle Pult Zirkel Atlas Etui Spitzer Mathematik Deutsch Musik Zeichnen Schulweg Ferien Pausenplatz Wörterbuch' },
-    { name:'Körper', alias:['körperteile', 'mensch', 'menschlicher körper'], w:'Kopf Auge Nase Mund Ohr Hals Schulter Arm Ellbogen Hand Finger Daumen Bauch Rücken Bein Knie Fuss Zehe Herz Lunge Magen Leber Niere Gehirn Haut Knochen Muskel Zahn Zunge Wimper Stirn Kinn' },
-    { name:'Verkehr', alias:['fahrzeuge', 'fahrzeug', 'mobilität'], w:'Auto Bus Zug Tram Velo Motorrad Lastwagen Traktor Flugzeug Schiff Fähre Helikopter Rakete Taxi Ampel Strasse Brücke Tunnel Bahnhof Flughafen Hafen Kreisel Trottoir Fahrplan Gondel Seilbahn Roller Kutsche Ballon Lokomotive Zebrastreifen Autobahn' },
-    { name:'Weltraum', alias:['all', 'universum', 'planeten', 'astronomie'], w:'Sonne Mond Erde Mars Venus Merkur Jupiter Saturn Uranus Neptun Stern Komet Planet Galaxie Rakete Astronaut Satellit Meteorit Krater Teleskop Raumstation Umlaufbahn Asteroid Sternbild Milchstrasse Schwerkraft Raumanzug Mondlandung Polarstern Sonnensystem Weltall Sternschnuppe' },
-    { name:'Pflanzen und Wald', alias:['pflanzen', 'wald', 'bäume', 'blumen'], w:'Baum Blume Tanne Fichte Buche Eiche Birke Ahorn Linde Moos Farn Pilz Rose Tulpe Nelke Lilie Sonnenblume Löwenzahn Klee Efeu Kaktus Wurzel Stamm Rinde Blatt Knospe Blüte Samen Zapfen Lichtung Waldboden Brombeere' },
-    { name:'Essen und Küche', alias:['essen', 'küche', 'lebensmittel', 'kochen'], w:'Brot Butter Käse Milch Joghurt Honig Nudeln Reis Suppe Pizza Salat Kuchen Gipfeli Rösti Fondue Raclette Müesli Wurst Schinken Pfanne Topf Löffel Gabel Messer Teller Tasse Ofen Herd Rezept Gewürz Schokolade Zopf' },
-    { name:'Kleidung', alias:['kleider', 'mode'], w:'Hose Hemd Jacke Mantel Pullover Rock Kleid Socke Schuh Stiefel Mütze Schal Handschuh Gürtel Krawatte Bluse Weste Pyjama Badehose Sandale Kappe Hut Regenjacke Strumpfhose Unterhemd Turnschuh Kapuze Knopf Reissverschluss Anzug Schürze Halstuch' },
-    { name:'Farben und Formen', alias:['farben', 'formen', 'geometrie'], w:'Rot Blau Gelb Grün Violett Rosa Braun Schwarz Weiss Grau Türkis Silber Gold Kreis Dreieck Quadrat Rechteck Kugel Würfel Kegel Zylinder Pyramide Oval Raute Stern Herz Spirale Linie Punkt Fünfeck Sechseck Prisma' },
-    { name:'Meer und Wasser', alias:['meer', 'wasser', 'see', 'ozean'], w:'Meer See Fluss Bach Welle Strand Insel Muschel Koralle Qualle Fisch Wal Robbe Krebs Seestern Anker Leuchtturm Boot Segel Hafen Ebbe Flut Ufer Quelle Wasserfall Gletscher Tropfen Algen Möwe Tintenfisch Seepferdchen Delfin' },
-    { name:'Jahreszeiten', alias:['herbst', 'winter', 'frühling', 'sommer', 'jahreszeit'], w:'Frühling Sommer Herbst Winter Kastanie Eichel Laub Drachen Ernte Kürbis Nebel Pilz Igel Eichhörnchen Vogelzug Regenschirm Gummistiefel Marroni Laterne Schneemann Schlitten Knospe Badesee Glace Gewitter Blütenduft Osterhase Maikäfer Sonnenhut Erntedank Raureif Eiszapfen' },
-    { name:'Weihnachten', alias:['advent', 'weihnacht', 'winterfest'], w:'Advent Kerze Krippe Engel Stern Geschenk Tannenbaum Christkind Lebkuchen Guetzli Schlitten Rentier Schneemann Glocke Kugel Lametta Adventskranz Samichlaus Schmutzli Grittibänz Zimtstern Mandarine Nüsse Krippenspiel Lichterkette Bescherung Hirten Ochse Esel Weihnachtsmarkt Tannzapfen Geschenkpapier' },
-    { name:'Steinzeit', alias:['urgeschichte', 'altsteinzeit', 'jungsteinzeit', 'steinzeitmenschen'], w:'Faustkeil Mammut Höhle Feuer Speer Jäger Sammler Fell Knochen Beeren Pfeil Bogen Nadel Hirsch Zelt Rentier Harpune Feuerstein Höhlenbild Wollnashorn Sippe Schaber Speerschleuder Bernstein Pfahlbau Getreide Töpfern Sichel Mahlstein Langhaus Webstuhl Steinbeil' },
-    { name:'Römer', alias:['römerzeit', 'rom', 'antike', 'römisches reich'], w:'Kolosseum Aquädukt Legionär Toga Therme Forum Tempel Senat Kaiser Gladiator Amphore Mosaik Villa Strasse Münze Latrine Tunika Wagen Schild Arena Zenturio Sklave Konsul Triumphbogen Kastell Helm Sandalen Galeere Lorbeerkranz Hypokaustum Abakus Wölfin' },
-    { name:'Mittelalter', alias:['ritter', 'burg', 'ritterzeit'], w:'Burg Ritter König Königin Knappe Page Turnier Lanze Schwert Rüstung Wappen Zugbrücke Burggraben Bergfried Kloster Mönch Nonne Markt Händler Bauer Zunft Handwerker Pest Kathedrale Gaukler Minnesänger Pranger Stadtmauer Schmied Kogge Burgfräulein Urkunde' }
-  ];
-  function themaSchluessel(t){ return String(t || '').toLocaleLowerCase('de-CH').replace(/ß/g, 'ss').replace(/[^\p{L} ]/gu, '').replace(/\s+/g, ' ').trim(); }
-  function findeThema(t){
-    var k = themaSchluessel(t);
-    if (!k) return null;
-    for (var i = 0; i < THEMEN.length; i++){
-      var th = THEMEN[i];
-      if (themaSchluessel(th.name) === k || th.alias.some(function(a){ return themaSchluessel(a) === k; })) return th;
-    }
-    return null;
-  }
-
   /* ---------- Zustand ---------- */
   var st = laden();
   /* Thema, Wörter und Lösungszahl gelten nur für diesen Tab (sessionStorage): Neu laden behält sie,
@@ -829,207 +763,14 @@ function starte(bereich){
   function zahlenListe(){ return st.zahlen.map(function(z){ return String(z || '').replace(/\D/g, ''); }).filter(Boolean); }
   function minWoerterZahl(z){ return z.split('').reduce(function(s, d){ return s + Kern.minWoerter(d); }, 0); }
   function zahlWort(n, eins, mehr){ return n === 1 ? eins : mehr; }
-  function teileListe(t){ return String(t).split(/[\n,;\t]+/).map(function(s){ return s.trim(); }).filter(Boolean); }
-  function schreibweise(w){ // «hund» → «Hund», «HUND» bleibt
-    w = String(w).trim();
-    return w && w === w.toLocaleLowerCase('de-CH') ? w.charAt(0).toLocaleUpperCase('de-CH') + w.slice(1) : w;
-  }
 
-  /* ---------- Thema ---------- */
-  var titel = $('#titel');
-  titel.value = st.titel || '';
-  titel.addEventListener('input', function(){
-    st.titel = titel.value; speichern(); if (aktuell) blattBeschriften();
-    if (!vorschlag || !vorschlag.woerter.length) $('#vorschlaege').hidden = true;   // alter Hinweis passt nicht mehr
+  /* ---------- Thema und Wörter (gemeinsamer Baustein gemeinsam/wortwahl.js) ---------- */
+  var ww = Wortwahl.verbinde(bereich, {
+    zustand:st, norm:norm,
+    geaendert:function(notiz){ geaendert(notiz); },
+    titelGeaendert:function(){ speichern(); if (aktuell) blattBeschriften(); }
   });
-  titel.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); vorschlagen(false); } });
-  $('#vorschlagen').addEventListener('click', function(){ vorschlagen(false); });
-  /* ---------- Wortvorschläge ---------- */
-  // Als Artefakt kann die Seite Claude fragen; sonst gibt es nur die eingebauten Themen.
-  var kiZusage = (window.claude && typeof window.claude.use === 'function') ? Promise.resolve(window.claude.use('sample')).catch(function(){ return null; }) : Promise.resolve(null);
-  var kiAus = false, vorschlag = null, vorschlagLauf = 0;
-
-  function vorschlagen(mehr){
-    var t = titel.value.trim(), token = ++vorschlagLauf;
-    if (!t){ titel.focus(); zeigeVorschlagInfo('Gib zuerst ein Thema ein oder wähle eines aus der Liste.'); return; }
-    if (!mehr || !vorschlag || vorschlag.thema !== t) vorschlag = { thema:t, woerter:[], gezeigt:{}, quelle:'' };
-    var th = findeThema(t);
-    if (th){
-      var pool = th.w.split(' ').filter(function(w){ return !vorschlag.gezeigt[norm(w)]; });
-      if (pool.length >= 8 || !mehr){
-        if (pool.length < 20) pool = pool.concat(th.w.split(' ').filter(function(w){ return pool.indexOf(w) < 0; }));
-        zeigeVorschlaege(mischen(pool).slice(0, 20), 'Themenliste');
-        return;
-      }
-    }
-    vorschlagLaedt(true);
-    kiZusage.then(function(ki){
-      if (token !== vorschlagLauf) return;
-      if (!ki || kiAus){
-        vorschlagLaedt(false);
-        if (th) zeigeVorschlaege(mischen(th.w.split(' ')).slice(0, 20), 'Themenliste');
-        else zeigeVorschlagInfo('Für «' + esc(t) + '» gibt es hier keine Vorschläge. ' + eingebauteThemen(), true);
-        return;
-      }
-      var schon = Object.keys(vorschlag.gezeigt).slice(-80);
-      var prompt = 'Du hilfst einer Lehrperson, ein Suchsel (Wortsuchrätsel) zu erstellen.\n' +
-        'Thema: «' + t.slice(0, 80) + '»\n' +
-        'Schlage genau 20 passende deutsche Wörter zu diesem Thema vor.\n' +
-        'Regeln:\n- Je ein einzelnes Wort, meist Nomen, ohne Leerzeichen, Bindestriche, Ziffern oder Abkürzungen.\n' +
-        '- 3 bis 12 Buchstaben, gemischte Längen.\n- Schweizer Rechtschreibung (ss statt ß), normale Gross- und Kleinschreibung.\n' +
-        '- Allgemein bekannt, eindeutig zum Thema, keine Wiederholungen.\n' +
-        (schon.length ? '- Nicht diese Wörter (schon vorgeschlagen): ' + schon.join(', ') + '\n' : '') +
-        'Antworte nur mit einem JSON-Array aus 20 Strings, z. B. ["Apfel", "Birne"].';
-      ki.json(prompt, mehr ? { modelTier:'quick', cache:false } : { modelTier:'quick' }).then(function(liste){
-        if (token !== vorschlagLauf) return;
-        vorschlagLaedt(false);
-        var gut = [], seen = {};
-        (Array.isArray(liste) ? liste : []).forEach(function(x){
-          var w = schreibweise(String(x == null ? '' : x).replace(/ß/g, 'ss'));
-          var n = norm(w);
-          if (!/^[\p{L}]+$/u.test(w) || n.length < 2 || n.length > 16 || seen[n]) return;
-          seen[n] = true; gut.push(w);
-        });
-        if (!gut.length){ zeigeVorschlagInfo('Es kamen keine brauchbaren Vorschläge. Versuch es nochmals oder formuliere das Thema etwas anders.', true); return; }
-        zeigeVorschlaege(gut.slice(0, 20), 'Claude');
-      }).catch(function(e){
-        if (token !== vorschlagLauf) return;
-        vorschlagLaedt(false);
-        var c = e && e.code;
-        if (c === 'cancelled') return;
-        if (['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'].indexOf(c) >= 0){
-          kiAus = true;
-          if (th){ zeigeVorschlaege(mischen(th.w.split(' ')).slice(0, 20), 'Themenliste'); return; }
-          zeigeVorschlagInfo('Vorschläge von Claude sind hier nicht verfügbar. ' + eingebauteThemen(), true);
-        } else if (c === 'rate_limited') zeigeVorschlagInfo('Gerade zu viele Anfragen – bitte in einem Moment nochmals versuchen.', true);
-        else if (c === 'session_expired') zeigeVorschlagInfo('Bitte melde dich bei Claude neu an und versuche es dann nochmals.', true);
-        else zeigeVorschlagInfo('Die Vorschläge konnten nicht geladen werden. Versuch es nochmals oder formuliere das Thema etwas anders.', true);
-      });
-    });
-  }
-  function eingebauteThemen(){
-    return 'Ohne Claude gibt es Vorschläge zu diesen Themen: ' + THEMEN.map(function(th){ return th.name; }).join(', ') + '. Oder gib eigene Wörter ein.';
-  }
-  function vorschlagLaedt(ja){
-    var b = $('#vorschlagen'); b.disabled = ja; $('#mehrVorschlaege').disabled = ja;
-    if (ja){
-      $('#vorschlaege').hidden = false;
-      $('#vorschlagTitel').innerHTML = 'Vorschläge zu «' + esc(vorschlag.thema) + '»';
-      $('#vorschlagInfo').innerHTML = '<span class="lade" aria-hidden="true"></span>Claude sucht passende Wörter …';
-    }
-  }
-  function zeigeVorschlagInfo(html, imPanel){
-    $('#vorschlaege').hidden = false;
-    if (!vorschlag || !vorschlag.woerter.length){ $('#vorschlagChips').innerHTML = ''; $('#vorschlagTitel').textContent = 'Wortvorschläge'; }
-    $('#vorschlagInfo').innerHTML = html;
-    $('#alleUebernehmen').hidden = !vorschlag || !vorschlag.woerter.length;
-    $('#mehrVorschlaege').hidden = !vorschlag || !vorschlag.woerter.length;
-  }
-  function zeigeVorschlaege(woerter, quelle){
-    vorschlag.woerter = woerter; vorschlag.quelle = quelle;
-    woerter.forEach(function(w){ vorschlag.gezeigt[norm(w)] = true; });
-    $('#vorschlaege').hidden = false;
-    $('#vorschlagTitel').innerHTML = 'Vorschläge zu «' + esc(vorschlag.thema) + '»<span class="quelle">' + (quelle === 'Claude' ? 'von Claude' : 'eingebaute Liste') + '</span>';
-    $('#vorschlagInfo').textContent = 'Anklicken, um ein Wort zu übernehmen oder wieder zu entfernen.';
-    $('#alleUebernehmen').hidden = false; $('#mehrVorschlaege').hidden = false;
-    zeichneVorschlaege();
-  }
-  function zeichneVorschlaege(){
-    var box = $('#vorschlagChips');
-    box.innerHTML = '';
-    if (!vorschlag) return;
-    var drin = {}; st.woerter.forEach(function(w){ drin[norm(w)] = true; });
-    vorschlag.woerter.forEach(function(w){
-      var b = document.createElement('button');
-      b.type = 'button'; b.className = 'chip-vorschlag'; b.textContent = w;
-      b.setAttribute('aria-pressed', drin[norm(w)] ? 'true' : 'false');
-      b.addEventListener('click', function(){
-        if (b.getAttribute('aria-pressed') === 'true') wortEntfernen(norm(w));
-        else woerterHinzu([w]);
-      });
-      box.appendChild(b);
-    });
-  }
-  $('#alleUebernehmen').addEventListener('click', function(){ if (vorschlag) woerterHinzu(vorschlag.woerter); });
-  $('#mehrVorschlaege').addEventListener('click', function(){ vorschlagen(true); });
-  function mischen(a){ a = a.slice(); for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
-
-  /* ---------- Deine Wörter ---------- */
-  function woerterHinzu(liste){
-    var drin = {}, zuKurz = [], schon = [];
-    st.woerter.forEach(function(w){ drin[norm(w)] = true; });
-    liste.forEach(function(w){
-      w = schreibweise(w);
-      var n = norm(w);
-      if (n.length < 2){ if (w) zuKurz.push(w); return; }
-      if (drin[n]){ schon.push(w); return; }
-      drin[n] = true; st.woerter.push(w);
-    });
-    var notiz = [];
-    if (zuKurz.length) notiz.push('Zu kurz: ' + zuKurz.map(esc).join(', '));
-    if (schon.length && liste.length === 1) notiz.push('«' + esc(schon[0]) + '» ist schon in der Liste');
-    zeichneWoerter(); geaendert(notiz.join(' · '));
-  }
-  function wortEntfernen(n){
-    st.woerter = st.woerter.filter(function(w){ return norm(w) !== n; });
-    zeichneWoerter(); geaendert();
-  }
-  function zeichneWoerter(){
-    var box = $('#wortChips');
-    box.innerHTML = '';
-    var gesehen = {};
-    st.woerter.forEach(function(w){
-      var n = norm(w), chip = document.createElement('span'), problem = n.length < 2 ? 'zu kurz' : gesehen[n] ? 'doppelt' : '';
-      gesehen[n] = true;
-      chip.className = 'chip-wort' + (problem ? ' ungueltig' : '');
-      if (problem) chip.title = 'Wird weggelassen (' + problem + ')';
-      chip.innerHTML = '<span></span><button type="button" aria-label="' + esc(w) + ' entfernen" title="Entfernen">×</button>';
-      chip.firstChild.textContent = w;
-      chip.lastChild.addEventListener('click', function(){
-        var i = st.woerter.indexOf(w); if (i >= 0) st.woerter.splice(i, 1);
-        zeichneWoerter(); geaendert();
-      });
-      box.appendChild(chip);
-    });
-    vorschlagStatus();
-  }
-  /* Nur den Zustand der Vorschlags-Chips nachführen (Fokus bleibt erhalten) */
-  function vorschlagStatus(){
-    var drin = {}; st.woerter.forEach(function(w){ drin[norm(w)] = true; });
-    [].forEach.call(document.querySelectorAll('#vorschlagChips .chip-vorschlag'), function(b){
-      b.setAttribute('aria-pressed', drin[norm(b.textContent)] ? 'true' : 'false');
-    });
-  }
-  var eigen = $('#eigenesWort');
-  function eigeneUebernehmen(){
-    var liste = teileListe(eigen.value);
-    if (!liste.length){ eigen.focus(); return; }
-    eigen.value = '';
-    woerterHinzu(liste);
-    eigen.focus();
-  }
-  $('#wortPlus').addEventListener('click', eigeneUebernehmen);
-  eigen.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); eigeneUebernehmen(); } });
-  eigen.addEventListener('paste', function(e){
-    var t = (e.clipboardData || window.clipboardData).getData('text');
-    if (!/[\n,;\t]/.test(t)) return;
-    e.preventDefault();
-    woerterHinzu(teileListe(t));
-  });
-  /* Zweimal klicken statt confirm() (das in eingebetteten Seiten blockiert sein kann) */
-  var loeschTimer = 0;
-  $('#alleWeg').addEventListener('click', function(){
-    var b = this;
-    if (!st.woerter.length) return;
-    if (!b.classList.contains('sicher')){
-      b.classList.add('sicher'); b.textContent = 'Wirklich alle entfernen?';
-      clearTimeout(loeschTimer);
-      loeschTimer = setTimeout(function(){ b.classList.remove('sicher'); b.textContent = 'Alle entfernen'; }, 4000);
-      return;
-    }
-    clearTimeout(loeschTimer); b.classList.remove('sicher'); b.textContent = 'Alle entfernen';
-    st.woerter = []; zeichneWoerter(); geaendert();
-  });
+  function zeichneWoerter(){ ww.zeichne(); }
 
   /* ---------- Eingabe: Zahlen ---------- */
   function zeichneZahlen(fokus){
@@ -1264,7 +1005,7 @@ function starte(bereich){
       if (!gefunden.length) html += '<p>Auch mit einer anderen Ziffer an einer Stelle geht es nicht.</p>';
       var tipp = '';
       if (grund === 'zuWenig') tipp = 'Oder füge noch ' + (an.minWoerter - an.woerter) + ' ' + zahlWort(an.minWoerter - an.woerter, 'Wort', 'Wörter') + ' hinzu, dann geht die gewünschte Zahl.';
-      else if (grund === 'zuViel') tipp = 'Oder entferne einige Wörter bzw. füge eine weitere Zahl hinzu, damit sich die Buchstaben verteilen.';
+      else if (grund === 'zuViel') tipp = 'Oder entferne einige Wörter oder nimm eine Zahl mit mehr Ziffern, damit sich die Buchstaben verteilen.';
       else if (grund === 'zuKurz') tipp = 'Oder nimm ein paar längere Wörter dazu.';
       else tipp = 'Oder füge ein, zwei Wörter hinzu (bzw. entferne eines) – oft passt es dann schon.';
       html += '<p class="hinweis">' + tipp + '</p>';
@@ -1574,7 +1315,8 @@ function starte(bereich){
 
   /* Beim Wechsel zu einem anderen Rätsel: laufende Suchen beenden und aufräumen */
   return function stopp(){
-    aus = true; lauf++; vorschlagLauf++;
+    aus = true; lauf++;
+    ww.stopp();
     if (speicherTimer) speichernJetzt();
     window.removeEventListener('beforeprint', druckVorbereiten);
     document.body.classList.remove('mit-loesung');

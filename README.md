@@ -22,7 +22,13 @@ Lässt sich die Zahl mit den Wörtern nicht bilden, erklärt die Seite den Grund
 
 Einstellungen: Wörter dürfen sich überlappen, Ziffern unterschiedlich gross oder liegend, Ziffern neben- oder untereinander, Wörter rückwärts, die 1 mit Fähnchen, Umlaute ersetzen, Wortliste, Gitterlinien, Abstand und Rand.
 
-Wortvorschläge: Als Claude-Artefakt kommen sie für jedes Thema von Claude. Als normale Webseite gibt es Vorschläge für 21 eingebaute Themen (Tiere, Berufe, Weltraum, Römer …); eigene Wörter gehen immer.
+Wortvorschläge (gleich bei allen Generatoren mit Wörtern, `gemeinsam/wortwahl.js`):
+
+- **Eingebaute Themen:** 22 Themen (Tiere, Fussball, Berufe, Weltraum, Römer …) funktionieren sofort, auch ohne Internet.
+- **Jedes andere Thema – aus dem Internet, ohne Claude:** Die Seite sucht den passenden Artikel in der deutschen Wikipedia und schlägt die Nomen vor, die darin am häufigsten vorkommen. Allgemeine Wörter (Jahr, Teil, Beispiel …) werden ausgefiltert, Mehrzahlformen zusammengefasst, ß wird ss. Der Artikel wird verlinkt. «Andere Vorschläge» zeigt die nächsten Wörter aus demselben Artikel.
+- **Im Claude-Artefakt** ist das Internet gesperrt; dort schlägt Claude die Wörter vor.
+
+Eigene Wörter gehen immer.
 
 Thema, Wörter und Lösungszahl gelten nur für den geöffneten Tab: Neu laden behält sie, ein neuer Tab beginnt leer. Die Einstellungen bleiben im Browser gespeichert.
 
@@ -32,8 +38,7 @@ Das klassische Wortsuchrätsel: Die Wörter liegen kreuz und quer im Buchstabenf
 
 - **Schwierigkeit:** *Leicht* (waagrecht → und senkrecht ↓), *Mittel* (dazu schräg ↘ ↗), *Schwer* (dazu rückwärts ← ↑ ↖ ↙). Wörter dürfen sich auf Wunsch kreuzen.
 - **Feldgrösse:** automatisch (so klein wie möglich) oder fest 10 × 10 bis 20 × 20.
-- **Look passend zum Thema:** Das Blatt bekommt Farbe, Deko-Emojis und ein Muster, z. B. Fussball als Rasen mit Eckfahnen, Weltraum als Sternenhimmel, Essen als karierte Tischdecke, Schule als Häuschenpapier, Verkehr als Strasse, Weihnachten mit Schnee. Erkannt wird der Look über die eingebauten Themen und Stichworte (`gemeinsam/looks.js`); für andere Themen entwirft im Artefakt Claude einen Look. Er lässt sich auch selbst wählen oder auf «Schlicht» stellen.
-- Markieren am Bildschirm, Lösung zeigen, Drucken bzw. Herunterladen mit Lösungsblatt (die Farben des Looks werden mitgedruckt).
+- Markieren am Bildschirm, Lösung zeigen, Drucken bzw. Herunterladen mit Lösungsblatt.
 
 ### Rebus
 
@@ -56,8 +61,7 @@ Drei Stufen: *Einfach* (höchstens eine Regel pro Bild), *Mittel* (bis zwei Rege
 index.html                      Rätsellabor: Kopfleiste mit Menü, Startseite, Platz für den Generator
 gemeinsam/labor.css             gemeinsames Aussehen (Farben, Schriften, Kopfleiste, Menü, Karten, Knöpfe)
 gemeinsam/labor.js              Menü, Startseite und Wechsel zwischen den Generatoren
-gemeinsam/wortwahl.js           Baustein «Thema und Wörter»: Themenliste, Vorschläge, Wort-Chips
-gemeinsam/looks.js              Looks: thematische Gestaltung (Farbe, Deko-Emojis, Muster)
+gemeinsam/wortwahl.js           Baustein «Thema und Wörter»: Themenliste, Vorschläge (Wikipedia), Wort-Chips
 gemeinsam/gitter.js             Baustein «Buchstabengitter»: Zeichnen, Markieren, Füllbuchstaben
 raetsel/zahlen-suchsel/         der Generator «Zahlen-Suchsel»
   zahlen-suchsel.js             Kern (Ziffern bauen, Wörter verteilen), Oberfläche, Bedienung
@@ -68,7 +72,7 @@ raetsel/rebus/                  der Generator «Rebus»
   rebus.css                     Aussehen dieses Generators
 ```
 
-Kein Build-Schritt, keine Abhängigkeiten ausser den Schriften Fredoka und Inter von Google Fonts. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel` oder `…/#rebus` öffnet direkt einen Generator, `…/#start` die Startseite.
+Kein Build-Schritt, keine Abhängigkeiten ausser den Schriften Fredoka und Inter von Google Fonts. Für Wortvorschläge zu Themen ausserhalb der eingebauten Liste fragt die Seite die Wikipedia-Schnittstelle (`de.wikipedia.org/w/api.php`) an, direkt aus dem Browser, ohne Anmeldung. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel` oder `…/#rebus` öffnet direkt einen Generator, `…/#start` die Startseite.
 
 ## Einen neuen Generator hinzufügen
 
@@ -94,7 +98,7 @@ Kein Build-Schritt, keine Abhängigkeiten ausser den Schriften Fredoka und Inter
 
 3. In `index.html` unten eine Zeile ergänzen: `<script src="raetsel/mein-raetsel/mein-raetsel.js"></script>`
 
-Der neue Generator erscheint dann automatisch im Menü und auf der Startseite. Gemeinsame Bausteine wie `.karte`, `.btn`, Eingabefelder und `.meldung` stehen in `gemeinsam/labor.css` bereit. Bausteine zum Wiederverwenden: `Wortwahl` (Thema und Wörter), `Gitter` (Buchstabengitter) und `Looks` (thematische Gestaltung). In `gemeinsam/labor.js` gibt es Helfer für alle Generatoren: `Labor.imArtefakt()`, `Labor.claude(name)` (Claude-Fähigkeiten im Artefakt), `Labor.blattDatei(titel, html)` (Arbeitsblatt als Datei) und `Labor.esc()`.
+Der neue Generator erscheint dann automatisch im Menü und auf der Startseite. Gemeinsame Bausteine wie `.karte`, `.btn`, Eingabefelder und `.meldung` stehen in `gemeinsam/labor.css` bereit. Bausteine zum Wiederverwenden: `Wortwahl` (Thema und Wörter mit Vorschlägen) und `Gitter` (Buchstabengitter). In `gemeinsam/labor.js` gibt es Helfer für alle Generatoren: `Labor.imArtefakt()`, `Labor.claude(name)` (Claude-Fähigkeiten im Artefakt), `Labor.blattDatei(titel, html)` (Arbeitsblatt als Datei) und `Labor.esc()`.
 
 ## Veröffentlichen
 

@@ -77,6 +77,8 @@ h1,h2,h3{text-wrap:balance}
 .trenner{height:1px;background:var(--line);margin:16px -18px}
 .hinweis{font-size:.84rem;color:var(--muted);margin:8px 0 0}
 .hinweis:empty{display:none}
+.hinweis a{color:var(--accent-2);font-weight:600;text-underline-offset:2px}
+.hinweis a:hover{color:var(--accent)}
 
 input[type=text],select{background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:8px 11px;width:100%;transition:border-color .15s,box-shadow .15s}
 input::placeholder{color:var(--muted-2)}
