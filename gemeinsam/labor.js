@@ -75,13 +75,13 @@ var Labor = (function(){
     svg.setAttribute('aria-label', 'Buchstabengitter: Die markierten Wörter RÄTSEL und LABOR bilden zusammen eine 7.');
     function el(tag, a){ var e = document.createElementNS(NS, tag); for (var k in a) e.setAttribute(k, a[k]); svg.appendChild(e); return e; }
     el('rect', { x:0, y:0, width:zeilen[0].length * S, height:zeilen.length * S, fill:'#fff' });
-    el('line', { x1:1.5 * S, y1:1.5 * S, x2:6.5 * S, y2:1.5 * S, stroke:'#fcd34d', 'stroke-width':S * 0.78, 'stroke-linecap':'round', opacity:.75 });
-    el('line', { x1:6.5 * S, y1:1.5 * S, x2:6.5 * S, y2:5.5 * S, stroke:'#86c5ea', 'stroke-width':S * 0.78, 'stroke-linecap':'round', opacity:.7 });
+    el('line', { x1:1.5 * S, y1:1.5 * S, x2:6.5 * S, y2:1.5 * S, stroke:'#F7A25D', 'stroke-width':S * 0.78, 'stroke-linecap':'round', opacity:.75 });
+    el('line', { x1:6.5 * S, y1:1.5 * S, x2:6.5 * S, y2:5.5 * S, stroke:'#63C2EA', 'stroke-width':S * 0.78, 'stroke-linecap':'round', opacity:.7 });
     var d = '';
     for (var c = 1; c < zeilen[0].length; c++) d += 'M' + c * S + ' 0V' + zeilen.length * S;
     for (var r = 1; r < zeilen.length; r++) d += 'M0 ' + r * S + 'H' + zeilen[0].length * S;
-    el('path', { d:d, stroke:'#e3e6eb', 'stroke-width':0.35, fill:'none' });
-    el('rect', { x:0.4, y:0.4, width:zeilen[0].length * S - 0.8, height:zeilen.length * S - 0.8, fill:'none', stroke:'#374151', 'stroke-width':0.6, rx:1.2 });
+    el('path', { d:d, stroke:'#E9E2DB', 'stroke-width':0.35, fill:'none' });
+    el('rect', { x:0.4, y:0.4, width:zeilen[0].length * S - 0.8, height:zeilen.length * S - 0.8, fill:'none', stroke:'#3D3530', 'stroke-width':0.6, rx:1.2 });
     zeilen.forEach(function(z, r){ Array.from(z).forEach(function(ch, c){ el('text', { x:c * S + S / 2, y:r * S + S / 2 + 0.3 }).textContent = ch; }); });
     var probe = $('#probe'); probe.insertBefore(svg, probe.firstChild);
   }

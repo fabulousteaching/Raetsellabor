@@ -7,7 +7,7 @@
 var Gitter = (function(){
   'use strict';
   var S = 10, NS = 'http://www.w3.org/2000/svg';
-  var FARBEN = ['#fcd34d', '#86efac', '#93c5fd', '#fca5a5', '#c4b5fd', '#fdba74', '#5eead4', '#f9a8d4'];
+  var FARBEN = ['#FAD852', '#68D77E', '#63C2EA', '#F7A25D', '#F27A8A', '#C4B5FD', '#5EEAD4', '#D8BC94'];   // aus den Flüssigkeiten im Fabulous-Teaching-Logo
   var RICHTUNGEN = [[0, 1], [1, 0], [1, 1], [1, -1], [0, -1], [-1, 0], [-1, -1], [-1, 1]];
   var HAEUFIG = { E:17.4, N:9.8, I:7.6, S:7.3, R:7, A:6.5, T:6.2, D:5.1, H:4.8, U:4.4, L:3.4, C:3.1, G:3, M:2.5, O:2.5, B:1.9, W:1.9,
     F:1.7, K:1.2, Z:1.1, P:0.8, V:0.7, J:0.3, Y:0.1, X:0.1, Q:0.05, 'Ä':0.6, 'Ö':0.3, 'Ü':0.7 };
@@ -79,9 +79,9 @@ var Gitter = (function(){
       var d = '';
       for (var c = 1; c < f.spalten; c++) d += 'M' + c * S + ' 0V' + h;
       for (var r = 1; r < f.zeilen; r++) d += 'M0 ' + r * S + 'H' + w;
-      el('path', { d:d, 'class':'linien', stroke:'#e3e6eb', 'stroke-width':0.35, fill:'none' }, s);
+      el('path', { d:d, 'class':'linien', stroke:'#E9E2DB', 'stroke-width':0.35, fill:'none' }, s);
     }
-    el('rect', { x:0.4, y:0.4, width:w - 0.8, height:h - 0.8, 'class':'rahmen', fill:'none', stroke:'#374151', 'stroke-width':0.7, rx:1.2 }, s);
+    el('rect', { x:0.4, y:0.4, width:w - 0.8, height:h - 0.8, 'class':'rahmen', fill:'none', stroke:'#3D3530', 'stroke-width':0.7, rx:1.2 }, s);
     var gT = el('g', { 'class':'ebene-text' }, s);
     f.gitter.forEach(function(zeile, r){ zeile.forEach(function(ch, c){ el('text', { x:c * S + S / 2, y:r * S + S / 2 + 0.3 }, gT).textContent = ch; }); });
     return s;
@@ -119,7 +119,7 @@ var Gitter = (function(){
       }
       return z;
     }
-    function zeigeTemp(z){ if (temp) temp.remove(); temp = kapsel(gA, z, o.auswahlFarbe || '#0075BA', 'auswahl'); }
+    function zeigeTemp(z){ if (temp) temp.remove(); temp = kapsel(gA, z, o.auswahlFarbe || '#F28C38', 'auswahl'); }
     function startPunkt(rc){
       if (punkt){ punkt.remove(); punkt = null; }
       if (rc){ var m = mitte(rc); punkt = el('circle', { cx:m[0], cy:m[1], r:S * 0.42, 'class':'startpunkt' }, gA); }

@@ -639,7 +639,7 @@ var VORLAGE = `<div class="zs">
   <section class="ausgabe" aria-label="Ergebnis">
     <div id="meldung" aria-live="polite"></div>
     <div class="leer-zustand" id="leer">
-      <svg width="56" height="56" viewBox="0 0 56 56" fill="none" aria-hidden="true"><rect x="1" y="1" width="54" height="54" rx="12" fill="#e8f3fa" stroke="#b5d8ee"/><g fill="#9aa1ad"><circle cx="14" cy="14" r="2"/><circle cx="28" cy="14" r="2"/><circle cx="42" cy="14" r="2"/><circle cx="14" cy="28" r="2"/><circle cx="28" cy="28" r="2"/><circle cx="42" cy="28" r="2"/><circle cx="14" cy="42" r="2"/><circle cx="28" cy="42" r="2"/><circle cx="42" cy="42" r="2"/></g><path d="M14 14h28v28" stroke="#0075BA" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/></svg>
+      <svg width="56" height="56" viewBox="0 0 56 56" fill="none" aria-hidden="true"><rect x="1" y="1" width="54" height="54" rx="12" fill="#FFF1E5" stroke="#F7CBA3"/><g fill="#A0968E"><circle cx="14" cy="14" r="2"/><circle cx="28" cy="14" r="2"/><circle cx="42" cy="14" r="2"/><circle cx="14" cy="28" r="2"/><circle cx="28" cy="28" r="2"/><circle cx="42" cy="28" r="2"/><circle cx="14" cy="42" r="2"/><circle cx="28" cy="42" r="2"/><circle cx="42" cy="42" r="2"/></g><path d="M14 14h28v28" stroke="#F28C38" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/></svg>
       <h2>Noch kein Suchsel</h2>
       <p>In drei Schritten zum Arbeitsblatt:</p>
       <ol>
@@ -698,7 +698,7 @@ function starte(bereich){
   var SPEICHER = 'zahlen-suchsel-v2', SPEICHER_TAB = 'zahlen-suchsel-eingaben', SPEICHER_OPT = 'zahlen-suchsel-einstellungen';
   var STANDARD = { rueckwaerts:false, schraeg:true, umlaute:false, wortliste:true, linien:true, anordnung:'neben', abstand:1, rand:2, mitLoesung:true,
     ueberlappen:true, verschieden:false, liegen:false, ziffern:'neben' };
-  var FARBEN = ['#fcd34d', '#86efac', '#86c5ea', '#fca5a5', '#c4b5fd', '#fdba74', '#5eead4', '#f9a8d4'];
+  var FARBEN = ['#FAD852', '#68D77E', '#63C2EA', '#F7A25D', '#F27A8A', '#C4B5FD', '#5EEAD4', '#D8BC94'];
   var S = 10, NS = 'http://www.w3.org/2000/svg';
   var ZAHLWORT = ['null', 'eine', 'zwei', 'drei', 'vier', 'fünf', 'sechs', 'sieben', 'acht'];
 
@@ -1080,9 +1080,9 @@ function starte(bereich){
       var d = '';
       for (var c = 1; c < f.spalten; c++) d += 'M' + c * S + ' 0V' + h;
       for (var r = 1; r < f.zeilen; r++) d += 'M0 ' + r * S + 'H' + w;
-      el('path', { d:d, stroke:'#e3e6eb', 'stroke-width':0.35, fill:'none' }, svg);
+      el('path', { d:d, stroke:'#E9E2DB', 'stroke-width':0.35, fill:'none' }, svg);
     }
-    el('rect', { x:0.4, y:0.4, width:w - 0.8, height:h - 0.8, fill:'none', stroke:'#374151', 'stroke-width':0.7, rx:1.2 }, svg);
+    el('rect', { x:0.4, y:0.4, width:w - 0.8, height:h - 0.8, fill:'none', stroke:'#3D3530', 'stroke-width':0.7, rx:1.2 }, svg);
     var gT = el('g', { 'class':'ebene-text' }, svg);
     f.gitter.forEach(function(zeile, r){
       zeile.forEach(function(ch, c){ var t = el('text', { x:c * S + S / 2, y:r * S + S / 2 + 0.3 }, gT); t.textContent = ch; });
@@ -1164,7 +1164,7 @@ function starte(bereich){
     }
     function zeigeTemp(z){
       if (temp) temp.remove();
-      temp = kapsel(gA, z, '#0075BA', 'auswahl');
+      temp = kapsel(gA, z, '#F28C38', 'auswahl');
     }
     function startPunkt(rc){
       if (punkt){ punkt.remove(); punkt = null; }

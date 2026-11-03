@@ -42,18 +42,18 @@ details.optionen[open] summary{margin-bottom:6px}
 .sb-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
 
 /* ---------- Das Arbeitsblatt ---------- */
-.sb-blatt{background:#fff;color:#111827;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:30px clamp(16px,3.2vw,40px)}
+.sb-blatt{background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:30px clamp(16px,3.2vw,40px)}
 .sb-blatt.veraltet::before{content:'Eingaben geändert – «Suchsel erstellen» klicken, um das Feld zu aktualisieren.';display:block;margin:-10px 0 16px;
-  background:var(--warn-soft);color:#78400a;border:1px solid var(--warn-line);font-size:.86rem;padding:7px 12px;border-radius:8px}
-.sb-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#111827}
-.sb-anleitung{margin:0 0 16px;color:#4b5563;max-width:80ch}
+  background:var(--warn-soft);color:#6B4E00;border:1px solid var(--warn-line);font-size:.86rem;padding:7px 12px;border-radius:8px}
+.sb-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
+.sb-anleitung{margin:0 0 16px;color:#554C45;max-width:80ch}
 .sb-gitter{display:flex;justify-content:center;margin-top:16px}
 .sb-anleitung + .sb-gitter{margin-top:0}
-.sb-woerter-box h3{font-size:.95rem;font-weight:650;margin:22px 0 6px;color:#111827}
+.sb-woerter-box h3{font-size:.95rem;font-weight:650;margin:22px 0 6px;color:#1C1714}
 .sb-woerter{columns:4 9.5em;column-gap:20px;list-style:none;padding:0;margin:0}
 .sb-woerter li{break-inside:avoid;padding:.14em 0;font-weight:600;letter-spacing:.05em;font-size:.92rem}
-.sb-woerter li::before{content:'';display:inline-block;width:.8em;height:.8em;border:1.5px solid #9ca3af;border-radius:3px;margin-right:.5em;vertical-align:-.05em}
-.sb-woerter li.gefunden{color:#9ca3af;text-decoration:line-through;text-decoration-thickness:2px}
+.sb-woerter li::before{content:'';display:inline-block;width:.8em;height:.8em;border:1.5px solid #A39A92;border-radius:3px;margin-right:.5em;vertical-align:-.05em}
+.sb-woerter li.gefunden{color:#A39A92;text-decoration:line-through;text-decoration-thickness:2px}
 .sb-woerter li.gefunden::before{background:var(--accent);border-color:var(--accent)}
 .sb-fortschritt{margin:16px 0 0;font-size:.92rem;color:var(--muted);min-height:1.5em}
 .sb-fortschritt.fertig{font-weight:650;font-size:1rem;color:var(--ok)}
@@ -61,7 +61,7 @@ details.optionen[open] summary{margin-bottom:6px}
 
 /* Buchstabengitter (gemeinsam/gitter.js) */
 svg.gitter{display:block;width:100%;height:auto;max-height:78vh;max-width:calc(var(--spalten, 15) * 44px);touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair;background:#fff}
-svg.gitter text{font-family:var(--font);font-weight:600;font-size:5.6px;fill:#111827;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+svg.gitter text{font-family:var(--font);font-weight:600;font-size:5.6px;fill:#1C1714;text-anchor:middle;dominant-baseline:central;pointer-events:none}
 svg.gitter .kapsel{opacity:.55}
 svg.gitter .ebene-loesung{display:none}
 .zeige-loesung svg.gitter .ebene-loesung,.sb-loesungsblatt svg.gitter .ebene-loesung{display:inline}
@@ -84,8 +84,8 @@ svg.gitter .startpunkt{fill:none;stroke:var(--accent);stroke-width:1}
   .sb-blatt{box-shadow:none;border:0;border-radius:0;padding:0}
   .sb-blatt.veraltet::before{display:none}
   #sbBlatt .ebene-loesung,#sbBlatt .ebene-markiert,#sbBlatt .ebene-auswahl{display:none!important}
-  .sb-woerter li.gefunden{color:#111827;text-decoration:none}
-  .sb-woerter li.gefunden::before{background:none;border-color:#9ca3af}
+  .sb-woerter li.gefunden{color:#1C1714;text-decoration:none}
+  .sb-woerter li.gefunden::before{background:none;border-color:#A39A92}
   svg.gitter{max-height:200mm;max-width:calc(var(--spalten, 15) * 12mm)}
   body.mit-loesung .sb-loesungsblatt{display:block;break-before:page;margin-top:0}
   body.mit-loesung .sb-loesungsblatt svg.gitter{max-height:235mm}
