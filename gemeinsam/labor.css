@@ -115,6 +115,14 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input[type=checkbox]:
 .vorschlaege-kopf{display:flex;align-items:center;justify-content:space-between;gap:4px 8px;flex-wrap:wrap;margin-bottom:10px}
 .vorschlaege-kopf strong{font-size:.92rem;font-weight:650}
 .quelle{white-space:nowrap;display:inline-block;font-size:.7rem;font-weight:600;color:var(--accent-2);background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:999px;padding:1px 7px;margin-left:6px;vertical-align:1px}
+.ki-einstellung{margin:14px -18px -4px;padding:10px 18px 0;border-top:1px solid var(--line)}
+.ki-einstellung summary{cursor:pointer;font-size:.84rem;font-weight:600;color:var(--muted);list-style:none;display:flex;align-items:center;gap:6px}
+.ki-einstellung summary::-webkit-details-marker{display:none}
+.ki-einstellung summary::before{content:"";width:6px;height:6px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .2s;margin-right:2px}
+.ki-einstellung[open] summary::before{transform:rotate(45deg)}
+.ki-einstellung .zeile{margin-top:10px}
+.ki-status{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.ki-notiz{color:var(--accent-2)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip-vorschlag{font-size:.86rem;border:1px solid var(--line-2);background:#fff;border-radius:999px;padding:4px 12px 4px 10px;cursor:pointer;color:var(--text);transition:background .12s,border-color .12s}
 .chip-vorschlag::before{content:'+';display:inline-block;width:.9em;margin-right:3px;color:var(--muted-2);font-weight:600}

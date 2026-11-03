@@ -25,7 +25,8 @@ Einstellungen: Wörter dürfen sich überlappen, Ziffern unterschiedlich gross o
 Wortvorschläge (gleich bei allen Generatoren mit Wörtern, `gemeinsam/wortwahl.js`):
 
 - **Eingebaute Themen:** 22 Themen (Tiere, Fussball, Berufe, Weltraum, Römer …) funktionieren sofort, auch ohne Internet.
-- **Jedes andere Thema – aus dem Internet, ohne Claude:** Die Seite liest den passenden Artikel im [Klexikon](https://klexikon.zum.de) (Kinderlexikon) und in der deutschen Wikipedia und schlägt Nomen daraus vor:
+- **Jedes andere Thema – KI über Pollinations.ai:** Die Seite fragt eine KI über die offene Schnittstelle von [Pollinations.ai](https://pollinations.ai) nach 30 kindgerechten Nomen zum Thema. Pollinations verlangt dafür inzwischen meist einen kostenlosen Schlüssel: bei Pollinations.ai anmelden, einen Schlüssel erstellen (beginnt mit `sk_`, am besten auf das Gratis-Guthaben beschränkt) und im Labor unter «KI für Wortvorschläge» einfügen. Der Schlüssel wird nur im eigenen Browser gespeichert (localStorage), nie im Code. Ohne Schlüssel versucht die Seite es einmal ohne Anmeldung. Die Antwort der KI wird gleich geprüft wie alle Vorschläge (einzelne Wörter, ß → ss, kein Suchwort im Wort). «Andere Vorschläge» zeigt zuerst die restlichen Wörter und fragt dann nochmals nach, ohne die schon gezeigten.
+- **Wenn die KI nicht antwortet (kein Schlüssel, Guthaben aufgebraucht, keine Verbindung) – Klexikon und Wikipedia:** Die Seite liest den passenden Artikel im [Klexikon](https://klexikon.zum.de) (Kinderlexikon) und in der deutschen Wikipedia und schlägt Nomen daraus vor:
   - nur Wörter, die Kinder von 8 bis 14 kennen: Sie stehen im Grundwortschatz (`gemeinsam/wortschatz.js`, rund 2400 Nomen nach Sachgebieten) oder sind aus zwei Wörtern daraus zusammengesetzt (Kinosaal, Tonspur). Im Klexikon geschriebene Wörter gelten ebenfalls als kindgerecht.
   - keine Wörter, die das Suchwort enthalten (bei «Film» also kein «Spielfilm», keine «Filmindustrie»). Das gilt auch für die eingebauten Listen.
   - wichtig ist, was oft und in der Einleitung vorkommt; nur einmal nebenbei Erwähntes fällt weg. Die Abschnitte Literatur, Weblinks, Einzelnachweise usw. werden nicht gelesen (dort stehen Verlagsorte wie «Frankfurt» oder «Taschenbuch»).
@@ -67,7 +68,7 @@ index.html                      Rätsellabor: Kopfleiste mit Menü, Startseite, 
 gemeinsam/labor.css             gemeinsames Aussehen (Farben, Schriften, Kopfleiste, Menü, Karten, Knöpfe)
 gemeinsam/labor.js              Menü, Startseite und Wechsel zwischen den Generatoren
 gemeinsam/wortschatz.js         Grundwortschatz: Nomen, die Kinder von 8 bis 14 kennen (für Vorschläge aus dem Internet)
-gemeinsam/wortwahl.js           Baustein «Thema und Wörter»: Themenliste, Vorschläge (Klexikon, Wikipedia), Wort-Chips
+gemeinsam/wortwahl.js           Baustein «Thema und Wörter»: Themenliste, Vorschläge (KI, Klexikon, Wikipedia), Wort-Chips
 gemeinsam/gitter.js             Baustein «Buchstabengitter»: Zeichnen, Markieren, Füllbuchstaben
 raetsel/zahlen-suchsel/         der Generator «Zahlen-Suchsel»
   zahlen-suchsel.js             Kern (Ziffern bauen, Wörter verteilen), Oberfläche, Bedienung
@@ -78,7 +79,7 @@ raetsel/rebus/                  der Generator «Rebus»
   rebus.css                     Aussehen dieses Generators
 ```
 
-Kein Build-Schritt, keine Abhängigkeiten ausser den Schriften Fredoka und Inter von Google Fonts. Für Wortvorschläge zu Themen ausserhalb der eingebauten Liste fragt die Seite die Schnittstellen von Klexikon (`klexikon.zum.de/api.php`) und Wikipedia (`de.wikipedia.org/w/api.php`) an, direkt aus dem Browser, ohne Anmeldung. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel` oder `…/#rebus` öffnet direkt einen Generator, `…/#start` die Startseite.
+Kein Build-Schritt, keine Abhängigkeiten ausser den Schriften Fredoka und Inter von Google Fonts. Für Wortvorschläge zu Themen ausserhalb der eingebauten Liste fragt die Seite die Schnittstellen von Pollinations.ai (`gen.pollinations.ai`), Klexikon (`klexikon.zum.de/api.php`) und Wikipedia (`de.wikipedia.org/w/api.php`) an, direkt aus dem Browser, ohne Anmeldung. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel` oder `…/#rebus` öffnet direkt einen Generator, `…/#start` die Startseite.
 
 ## Einen neuen Generator hinzufügen
 
