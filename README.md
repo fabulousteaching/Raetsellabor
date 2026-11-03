@@ -108,7 +108,7 @@ Beide Arten: am Bildschirm lösbar (Weg vom Start aus ziehen; durch Wände geht 
 Rechenrätsel, in denen Emojis für Zahlen stehen: Gleiche Emojis haben den gleichen Wert. Aus den Hinweiszeilen findet man die Werte heraus und rechnet damit die letzte Zeile («?») aus.
 
 - **Eindeutig lösbar:** Jede Hinweiszeile bringt genau ein neues Emoji, alle anderen darin sind schon bekannt – so lässt sich das Rätsel Zeile für Zeile lösen, und es gibt genau eine Lösung (nur natürliche Zahlen, keine negativen Zwischenergebnisse, Divisionen gehen auf). Die letzte Zeile ist nie gleich wie eine Hinweiszeile.
-- **Schwierigkeit:** *Leicht* (Plus im Zahlenraum 20, 3 Emojis, ab 1. Klasse), *Mittel* (Plus und Minus bis 100, ab 3. Klasse), *Schwer* (mit Mal und Punkt vor Strich, 3–4 Emojis, ab 4. Klasse), *Sehr schwer* (alle vier Grundoperationen, 4 Emojis, Zeilen gemischt; zwei Emojis findet man nur aus zwei Zeilen zusammen, ab 6. Klasse). Mal und Geteilt werden wie in der Schweiz als «·» und «:» geschrieben.
+- **Schwierigkeit** (auf der Seite nur die Namen): *Leicht* (Plus im Zahlenraum 20, 3 Emojis), *Mittel* (Plus und Minus bis 100), *Schwer* (mit Mal und Punkt vor Strich, 3–4 Emojis), *Sehr schwer* (alle vier Grundoperationen, 4 Emojis, Zeilen gemischt; zwei Emojis findet man nur aus zwei Zeilen zusammen). Mal und Geteilt werden wie in der Schweiz als «·» und «:» geschrieben.
 - **Emoji-Themen:** Früchte, Tiere, Meer, Süsses, Gemüse, Natur, Fahrzeuge, Sport, Schule, Musik, Weltall, Gesichter oder gemischt – ohne Emojis, die sich in klein zu ähnlich sehen.
 - **Blatt:** 1, 2, 4 oder 6 Rätsel pro Blatt, auf Wunsch mit Hilfsfeldern für die Werte der Emojis («🍎 = …»). Am Bildschirm lassen sich Werte und Ergebnis eintippen (richtige werden grün), Lösung zeigen, neue Rätsel; PDF mit Lösungsblatt.
 
@@ -117,7 +117,7 @@ Rechenrätsel, in denen Emojis für Zahlen stehen: Gleiche Emojis haben den glei
 Ein eigener Text (auch mehrere Zeilen) in fünf Fassungen: **horizontal gespiegelt** (Spiegelschrift, von rechts nach links), **vertikal gespiegelt** (an einer waagrechten Linie umgeklappt), **auf den Kopf gedreht** (beides, um 180°), **rückwärts** und **Wörter rückwärts** (jedes Wort rückwärts, Reihenfolge und Satzzeichen bleiben).
 
 - **Kopieren mit einem Klick:** Ein Klick auf eine Fassung legt sie in die Zwischenablage (sonst wird der Text markiert, damit man ihn selbst kopieren kann). Die gespiegelten Fassungen bestehen aus ähnlich aussehenden Unicode-Zeichen (z. B. b → d, R → Я, a → ɐ, Umlaute mit Pünktchen oben bzw. unten) – so lassen sie sich überall einfügen; nicht jeder Buchstabe hat ein perfektes Gegenstück.
-- **Arbeitsblatt:** Hier wird die echte Schrift gespiegelt (CSS, exakt, Schrift Andika), in einer der fünf Darstellungen und drei Schriftgrössen, mit passendem Auftrag und Linien zum Aufschreiben. Das Lösungsblatt zeigt den Originaltext. PDF wie bei allen Generatoren.
+- Bewusst ein reines Werkzeug zum Kopieren – ohne Arbeitsblatt und PDF.
 
 ## Aufbau
 
@@ -140,7 +140,7 @@ raetsel/labyrinth/              der Generator «Labyrinth»
   labyrinth.js                  Art «Mit Start und Ziel» (Figuren) und Auswahl der Art
   labyrinth-satz.js             Art «Mit Lösungssatz» (Buchstaben in jedem Feld)
 raetsel/emoji-rechnen/          der Generator «Emoji-Rechnen» (Kern: Rätsel bauen und prüfen; Oberfläche)
-raetsel/text-spiegeln/          der Generator «Text spiegeln» (Kern: Unicode-Spiegelung; Oberfläche, Arbeitsblatt)
+raetsel/text-spiegeln/          der Generator «Text spiegeln» (Kern: Unicode-Spiegelung; Oberfläche zum Kopieren)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)
 gemeinsam/extern/html2canvas.min.js, jspdf.umd.min.js   für den PDF-Download (html2canvas 1.4.1, jsPDF 2.5.2, MIT, unverändert; Lizenzen daneben)

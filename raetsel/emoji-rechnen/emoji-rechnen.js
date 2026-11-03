@@ -119,19 +119,14 @@ var THEMEN = [   // Kürzel, Name, Emojis (verbreitete Emojis; keine, die sich i
   ['gesichter', 'Gesichter', ['😀', '😎', '🤓', '😴', '🥳', '😍', '🤠', '😇', '🤔', '😜']],
   ['gemischt', 'Gemischt', null]
 ];
-var STUFEN_TEXT = {
-  leicht:['Leicht', 'Plus im Zahlenraum 20 · 3 Emojis', 'ab 1. Klasse'],
-  mittel:['Mittel', 'Plus und Minus bis 100 · 3 Emojis', 'ab 3. Klasse'],
-  schwer:['Schwer', 'Mit Mal, Punkt vor Strich · 3–4 Emojis', 'ab 4. Klasse'],
-  sehrschwer:['Sehr schwer', 'Alle vier Grundoperationen · 4 Emojis · Zeilen gemischt, zwei Emojis zusammen finden', 'ab 6. Klasse']
-};
+var STUFEN_TEXT = { leicht:'Leicht', mittel:'Mittel', schwer:'Schwer', sehrschwer:'Sehr schwer' };
 var VORLAGE = '<div class="em">' +
   '<header class="em-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Emoji-Rechnen</h1>' +
     '<p>Jedes Emoji steht für eine Zahl. Aus den Zeilen findet man heraus, welche – und rechnet damit die letzte Zeile aus. Vier Schwierigkeitsstufen und viele Emoji-Themen.</p></header>' +
   '<div class="em-layout"><section class="em-eingabe" aria-label="Eingaben">' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Schwierigkeit</h2><p>Zahlenraum, Rechenarten und Anzahl Emojis.</p></div></div>' +
       '<div class="em-stufen" role="radiogroup" aria-label="Schwierigkeit">' +
-        Object.keys(STUFEN_TEXT).map(function(k){ var t = STUFEN_TEXT[k]; return '<label class="em-stufe"><input type="radio" name="emStufe" value="' + k + '"><span><b>' + t[0] + ' <em>' + t[2] + '</em></b><small>' + t[1] + '</small></span></label>'; }).join('') +
+        Object.keys(STUFEN_TEXT).map(function(k){ return '<label class="em-stufe"><input type="radio" name="emStufe" value="' + k + '"><span>' + STUFEN_TEXT[k] + '</span></label>'; }).join('') +
       '</div></div>' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Emoji-Thema</h2><p>Aus welchen Emojis die Rätsel bestehen.</p></div></div>' +
       '<div class="em-themen" role="radiogroup" aria-label="Emoji-Thema">' +
