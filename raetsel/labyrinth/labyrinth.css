@@ -1,0 +1,84 @@
+/* Rätsellabor · Labyrinth – nur aktiv, solange dieser Generator offen ist.
+   Gemeinsame Bausteine (Karten, Knöpfe, Eingabefelder, Meldungen) stehen in gemeinsam/labor.css. */
+.lb{max-width:1440px;margin:0 auto;padding-block:22px 48px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.lb-kopf{display:grid;gap:4px;margin:0 0 20px}
+.lb-kopf h1{font-family:var(--display);font-weight:600;font-size:clamp(1.7rem,3vw,2.2rem);letter-spacing:-.01em;line-height:1.1;margin:0;color:var(--ink)}
+.lb-kopf p:last-child{margin:2px 0 0;color:var(--muted);max-width:70ch}
+.lb-layout{display:grid;grid-template-columns:minmax(320px,440px) minmax(0,1fr);gap:24px;align-items:start}
+.lb-eingabe{display:grid;gap:16px;min-width:0}
+@media (min-width:961px){ .lb-eingabe{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--kopf-h) + 16px);max-height:calc(100vh - var(--kopf-h) - 32px);overflow:auto;padding:2px 4px 2px 2px;scrollbar-width:thin} }
+@media (max-width:960px){ .lb-layout{grid-template-columns:minmax(0,1fr);gap:18px} }
+@media (max-width:640px){ .lb{padding-block:18px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))} }
+
+/* ---------- Eingaben ---------- */
+.lb textarea{display:block;width:100%;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;resize:vertical;min-height:3.4em;line-height:1.45;font-size:1.05rem;font-weight:600;transition:border-color .15s,box-shadow .15s}
+.lb textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+[data-form][hidden]{display:none}
+.lb-wahl,.lb-stufen,.lb-paare{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.lb-stufen,.lb-paare{margin:0}
+.lb-wahl label,.lb-stufen label,.lb-paare label{position:relative;cursor:pointer}
+.lb-wahl input,.lb-stufen input,.lb-paare input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.lb-wahl span,.lb-stufen span,.lb-paare span{display:inline-block;padding:6px 12px;border:1px solid var(--line-2);border-radius:999px;background:#fff;font-size:.88rem;font-weight:600;color:var(--muted);transition:border-color .15s,background .15s,color .15s}
+.lb-paare span{font-size:1.05rem;padding:5px 12px}
+.lb-wahl label:hover span,.lb-stufen label:hover span,.lb-paare label:hover span{border-color:var(--accent-line)}
+.lb-wahl input:checked + span,.lb-stufen input:checked + span,.lb-paare input:checked + span{background:var(--accent);border-color:var(--accent);color:var(--auf-akzent)}
+.lb-wahl input:focus-visible + span,.lb-stufen input:focus-visible + span,.lb-paare input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+.opt{display:flex;align-items:flex-start;gap:10px;margin:10px 0;font-size:.9rem}
+.opt input[type=checkbox]{width:16px;height:16px;margin:3px 0 0;accent-color:var(--accent);flex:none}
+.opt-raster{display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center;margin-top:12px;font-size:.9rem}
+.opt-raster select{width:auto;min-width:10em}
+.opt-raster input[type=text]{width:auto;min-width:12em}
+.opt-raster input[type=color]{width:40px;height:32px;padding:2px;border:1px solid var(--line-2);border-radius:8px;background:#fff;cursor:pointer;justify-self:end}
+details.optionen summary{cursor:pointer;font-weight:650;font-size:1rem;list-style:none;display:flex;align-items:center;justify-content:space-between}
+details.optionen summary::-webkit-details-marker{display:none}
+details.optionen summary::after{content:'';width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .2s;margin:0 6px 4px 0}
+details.optionen[open] summary::after{transform:rotate(-135deg);margin-bottom:0}
+details.optionen[open] summary{margin-bottom:6px}
+@media (max-width:480px){ .opt-raster{grid-template-columns:1fr} .opt-raster select,.opt-raster input[type=text]{width:100%} }
+
+/* ---------- Ausgabe ---------- */
+.lb-ausgabe{min-width:0}
+.leer-zustand{background:#fff;border:1px dashed var(--line-2);border-radius:14px;padding:48px 24px;text-align:center;color:var(--muted)}
+.leer-zustand h2{color:var(--text);font-size:1.15rem;font-weight:650;margin:0 0 4px}
+.leer-zustand ol{display:inline-grid;gap:10px;text-align:left;margin:18px 0 0;padding:0;list-style:none;counter-reset:s}
+.leer-zustand li{counter-increment:s;display:flex;gap:10px;align-items:center;color:var(--text);font-size:.92rem}
+.leer-zustand li::before{content:counter(s);flex:none;width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent-2);font-weight:700;font-size:.78rem;display:grid;place-items:center}
+.lb-werkzeug{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.lb-werkzeug .abstand{flex:1}
+.lb-werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
+.lb-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+
+.lb-blatt{background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:30px clamp(16px,3.2vw,40px)}
+.lb-blatt.veraltet::before{content:'Eingaben geändert – «Labyrinth erstellen» klicken, um es zu aktualisieren.';display:block;margin:-10px 0 16px;
+  background:var(--warn-soft);color:#6B4E00;border:1px solid var(--warn-line);font-size:.86rem;padding:7px 12px;border-radius:8px}
+.lb-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
+.lb-anleitung{margin:0 0 16px;color:#554C45;max-width:80ch}
+.lb-feld{display:flex;justify-content:center}
+.lb-loesungsblatt{display:none;margin-top:16px}
+.lb-fortschritt{margin:14px 0 0;font-size:.92rem;color:var(--muted);min-height:1.5em;text-align:center}
+.lb-fortschritt.fertig{font-weight:650;font-size:1rem;color:var(--ok)}
+
+svg.lb-svg{display:block;width:100%;height:auto;max-height:76vh;touch-action:none;user-select:none;-webkit-user-select:none}
+#lbBlatt svg.lb-svg{cursor:crosshair}
+svg.lb-svg .lb-ton{fill:#FFF1E5}
+svg.lb-svg .lb-waende{fill:none;stroke-linecap:round;stroke-linejoin:round}
+svg.lb-svg .lb-loesung{fill:none;stroke:var(--accent);stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+#lbBlatt svg.lb-svg .lb-loesung{opacity:0;transition:opacity .2s}
+#lbBlatt.zeige-loesung svg.lb-svg .lb-loesung{opacity:.45}
+svg.lb-svg .lb-weg{fill:none;stroke:#2F7DC0;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.geschafft svg.lb-svg .lb-weg{stroke:var(--ok)}
+svg.lb-svg .lb-figur{font-size:11px;text-anchor:middle;dominant-baseline:central;font-family:system-ui,'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif}
+
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#fff!important}
+  .lb-kopf,.lb-eingabe,.lb-werkzeug,#lbMeldung,#lbLeer,.nur-bildschirm{display:none!important}
+  .lb{padding:0;max-width:none}
+  .lb-layout{display:block}
+  .lb-blatt{box-shadow:none;border:0;border-radius:0;padding:0;break-inside:avoid}
+  .lb-blatt.veraltet::before{display:none}
+  #lbBlatt .lb-weg{display:none}
+  svg.lb-svg{max-height:225mm;max-width:186mm;margin:0 auto}
+  svg.lb-svg .lb-ton{fill:#FFF5EC;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body.mit-loesung .lb-loesungsblatt{display:block;break-before:page;margin-top:0}
+}

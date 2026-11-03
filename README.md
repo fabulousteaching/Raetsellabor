@@ -77,6 +77,16 @@ Aus einem Text oder Link wird ein QR-Code – in zwei Varianten:
 
 Links mit «www.» bekommen automatisch «https://» davor, damit das Handy sie direkt öffnet. Die Codes berechnet die Bibliothek *qrcode-generator* von Kazuhiko Arase (MIT-Lizenz, `gemeinsam/extern/`).
 
+### Labyrinth
+
+Ein Labyrinth in der Form eines eigenen Wortes (eine oder zwei Zeilen) – oder als Rechteck, Kreis, Herz oder Stern.
+
+- Der Text wird auf eine Zeichenfläche geschrieben (Schrift Fredoka, mit Kontur verdickt) und in Felder zerlegt. Getrennte Buchstaben verbinden kurze Brücken, damit ein einziges Labyrinth entsteht; winzige Splitter fallen weg.
+- Darin entsteht ein «perfektes» Labyrinth: Jedes Feld ist erreichbar, und zwischen zwei Feldern gibt es genau einen Weg (Algorithmus «wachsender Baum»). Start links, Ziel rechts – unter mehreren Randfeldern wird das Paar mit dem längsten Weg gewählt.
+- **Schwierigkeit:** *Leicht* bis *Sehr schwer* – schmalere Gänge und längere, verschlungenere Wege.
+- **Start und Ziel:** 🐭 → 🧀, 🐰 → 🥕, 🐝 → 🌻, 🚀 → 🪐, 🐶 → 🦴, 🦜 → 💰 oder ▶ → 🏁, mit passendem Auftrag («Hilf der Maus zum Käse!»).
+- Am Bildschirm lösbar (Weg vom Start aus ziehen; durch Wände geht es nicht, zurückziehen löscht), Lösung zeigen, «Neu mischen», Drucken mit Lösungsblatt. Einstellungen: Titel, Liniendicke, Farbe der Wände, Form leicht einfärben.
+
 ## Aufbau
 
 ```
@@ -94,13 +104,14 @@ raetsel/rebus/                  der Generator «Rebus»
   rebus.js                      Bilderliste, Kern (Zerlegung), Oberfläche, Bedienung
   rebus.css                     Aussehen dieses Generators
 raetsel/qr-code/                der Generator «QR-Code» (zum Ausmalen und fertige Codes)
+raetsel/labyrinth/              der Generator «Labyrinth» (Wörter und Figuren als Labyrinth)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)
 B/                              Botschaftsseiten /B/<ID>/ (werden auf dem Server angelegt)
 api/botschaft.php               Server-Teil (PHP): speichert Botschaften für QR-Codes; Anzeige: api/botschaft-seite.php
 ```
 
-Kein Build-Schritt; ausser den Schriften Fredoka und Inter von Google Fonts und der mitgelieferten QR-Code-Bibliothek keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus` oder `…/#qr-code` öffnet direkt einen Generator, `…/#start` die Startseite.
+Kein Build-Schritt; ausser den Schriften Fredoka und Inter von Google Fonts und der mitgelieferten QR-Code-Bibliothek keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code` oder `…/#labyrinth` öffnet direkt einen Generator, `…/#start` die Startseite.
 
 ## Einen neuen Generator hinzufügen
 
