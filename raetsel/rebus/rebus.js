@@ -184,6 +184,45 @@ function zerlegeWort(W, st, rnd, meiden, einzelwort){
   return teile;
 }
 
+/* Bestes Zerlegen nur des Wortstücks W[a…b), ohne die verbotenen Bilder → Teile oder null */
+function zerlegeBereich(W, a, b, st, rnd, meiden, einzelwort, verboten){
+  var best = {}, wahl = {};
+  best[b] = 0;
+  for (var i = b - 1; i >= a; i--){
+    best[i] = Infinity;
+    kandidaten(W, i, st, rnd, meiden, einzelwort).forEach(function(c){
+      var j = i + c.laenge;
+      if (j > b || (c.bild && verboten[c.bild.wort])) return;
+      if (c.kosten + best[j] < best[i]){ best[i] = c.kosten + best[j]; wahl[i] = c; }
+    });
+    if (!wahl[i]) return null;
+  }
+  var teile = [];
+  for (i = a; i < b; i += wahl[i].laenge) teile.push(wahl[i]);
+  return teile;
+}
+/* Anderer Vorschlag für Teil k eines Wortes (Klick auf ein Bild, das nicht gefällt): dasselbe Wortstück mit anderen
+   Bildern; die Bilder in o.verboten (das alte und früher abgelehnte) kommen nicht vor. Gibt es so kein Bild, wird ein
+   Nachbarteil mit einbezogen. Die übrigen Teile bleiben. → neue Teile-Liste oder null */
+function ersetze(W, teile, k, o){
+  o = o || {};
+  var st = STUFEN[o.stufe] || STUFEN.mittel, rnd = o.rnd || Math.random, verboten = {}, meiden = {}, start = [], pos = 0;
+  (o.verboten || []).forEach(function(w){ verboten[w] = true; });
+  (o.schonBenutzt || []).forEach(function(w){ meiden[w] = (meiden[w] || 0) + 2.5; });
+  teile.forEach(function(c){ start.push(pos); pos += c.laenge; });
+  function gleich(x, y){ return x.laenge === y.laenge && (x.bild ? y.bild && x.bild.wort === y.bild.wort : !y.bild && x.buchstabe === y.buchstabe); }
+  function versuch(von, bis){
+    if (von < 0 || bis >= teile.length) return null;
+    var a = start[von], b = start[bis] + teile[bis].laenge;
+    var neu = zerlegeBereich(W, a, b, st, rnd, meiden, !!o.einzelwort, verboten);
+    if (!neu || !neu.some(function(c){ return c.bild; })) return null;   // nur Buchstaben wäre kein Ersatz für ein Bild
+    var alt = teile.slice(von, bis + 1);
+    if (neu.length === alt.length && neu.every(function(c, i){ return gleich(c, alt[i]); })) return null;
+    return teile.slice(0, von).concat(neu, teile.slice(bis + 1));
+  }
+  return versuch(k, k) || versuch(k - 1, k) || versuch(k, k + 1) || versuch(k - 1, k + 1);
+}
+
 /* Was ein Teil ergibt */
 function ergebnis(c){ return c.buchstabe ? c.buchstabe : anwenden(c.bild.wort, c.regeln); }
 
@@ -200,7 +239,7 @@ function rebus(text, o){
   });
 }
 
-return { LISTE:LISTE, STUFEN:STUFEN, rebus:rebus, ergebnis:ergebnis, anwenden:anwenden, woerter:woerter, norm:norm };
+return { LISTE:LISTE, STUFEN:STUFEN, rebus:rebus, ersetze:ersetze, ergebnis:ergebnis, anwenden:anwenden, woerter:woerter, norm:norm };
 })();
 /* KERN-ENDE */
 
@@ -258,6 +297,7 @@ var VORLAGE = `<div class="rb">
         <label><input type="checkbox" id="rbMitLoesung"> mit Lösungsblatt</label>
         <button type="button" class="btn klein primary" id="rbDrucken">PDF herunterladen</button>
         <button type="button" class="btn klein primary" id="rbHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>
+        <p class="rb-tipp">Tipp: Gefällt dir ein Bild nicht? Klicke darauf – dann kommt ein anderer Vorschlag.</p>
       </div>
       <article class="rb-blatt" id="rbBlatt"></article>
       <article class="rb-blatt rb-loesungsblatt" id="rbLoesung" aria-hidden="true"></article>
@@ -302,7 +342,9 @@ function starte(bereich){
   // Fertige Rätsel je Eintrag (ein neuer Eintrag verändert die anderen nicht)
   var raetsel = {};
   function schluessel(t){ return Kern.woerter(t).join(' '); }
+  var abgelehnt = {};   // je Wort: Bilder, die man per Klick weggeschickt hat (kommen dort nicht wieder)
   function wuerfle(t, alle){
+    Object.keys(abgelehnt).forEach(function(k){ if (k.indexOf(schluessel(t) + '|') === 0) delete abgelehnt[k]; });
     var benutzt = [];
     st.eintraege.forEach(function(x){ var r = raetsel[schluessel(x)]; if (r && schluessel(x) !== schluessel(t)) r.forEach(function(w){ w.teile.forEach(function(c){ if (c.bild) benutzt.push(c.bild.wort); }); }); });
     raetsel[schluessel(t)] = Kern.rebus(t, { stufe:st.opt.stufe, schonBenutzt:alle ? [] : benutzt });
@@ -362,11 +404,13 @@ function starte(bereich){
   /* ---------- Darstellung ---------- */
   function klein(t){ return String(t).toLocaleLowerCase('de-CH'); }
   function regelText(r){ return r.art === 'tausch' ? klein(r.von) + '=' + klein(r.zu) : r.art === 'weg' ? '−' + klein(r.von) : '+' + klein(r.zu); }
-  /* Ein Teil: Bildkärtchen mit den Regeln darunter; in der Lösung zusätzlich Bildname und Ergebnis */
-  function teilHtml(c){
+  /* Ein Teil: Bildkärtchen mit den Regeln darunter; in der Lösung zusätzlich Bildname und Ergebnis.
+     ort { i, w, k } (Rätsel, Wort, Teil): auf dem Arbeitsblatt am Bildschirm lässt sich das Bild per Klick austauschen */
+  function teilHtml(c, ort){
     if (c.buchstabe) return '<div class="rb-teil rb-nur-buchstabe"><div class="rb-karte"><span class="rb-buchstabe">' + esc(c.buchstabe) + '</span></div>' +
       '<span class="rb-ergebnis">' + esc(c.buchstabe) + '</span></div>';
-    return '<div class="rb-teil"><div class="rb-karte"><span class="rb-bild">' + c.bild.emoji + '</span>' +
+    var tausch = ort ? ' rb-tauschbar" data-i="' + ort.i + '" data-w="' + ort.w + '" data-k="' + ort.k + '" role="button" tabindex="0" title="Anderes Bild" aria-label="Anderes Bild statt ' + esc(c.bild.wort.toLocaleLowerCase('de-CH')) : '';
+    return '<div class="rb-teil' + tausch + '"><div class="rb-karte"><span class="rb-bild">' + c.bild.emoji + '</span>' +
       (c.regeln.length ? '<span class="rb-regeln">' + c.regeln.map(function(r){ return '<span class="rb-regel">' + esc(regelText(r)) + '</span>'; }).join('') + '</span>' : '') +
       '</div><span class="rb-name' + (st.opt.namen ? ' rb-hilfe' : '') + '">' + esc(c.bild.wort) + '</span>' +
       '<span class="rb-ergebnis">' + esc(Kern.ergebnis(c)) + '</span></div>';
@@ -401,7 +445,7 @@ function starte(bereich){
     html += '<ol class="rb-raetsel">';
     liste.forEach(function(x, i){
       html += '<li class="rb-eintrag" data-i="' + i + '"><span class="rb-nr">' + (liste.length > 1 ? (i + 1) + '.' : '') + '</span><div class="rb-inhalt">' +
-        '<div class="rb-zeile">' + x.r.map(function(w){ return '<div class="rb-wort">' + w.teile.map(teilHtml).join('') + '</div>'; }).join('<span class="rb-wortgrenze" aria-hidden="true"></span>') + '</div>';
+        '<div class="rb-zeile">' + x.r.map(function(w, wi){ return '<div class="rb-wort' + (w.teile.length > 1 ? ' rb-mehrteilig' : '') + '">' + w.teile.map(function(c, k){ return teilHtml(c, !loesung && !beispiel ? { i:i, w:wi, k:k } : null); }).join('') + '</div>'; }).join('<span class="rb-wortgrenze" aria-hidden="true"></span>') + '</div>';
       if (loesung) html += '<p class="rb-loesungswort">' + esc(x.r.map(function(w){ return w.wort; }).join(' ')) + '</p>';
       else if (st.opt.kaestchen) html += kaestchen(x.r, false);
       else html += '<div class="rb-linie" aria-hidden="true"></div>';
@@ -464,7 +508,36 @@ function starte(bereich){
   }
 
   /* ---------- Werkzeuge ---------- */
-  $('#rbWuerfeln').addEventListener('click', function(){ raetsel = {}; zeige(); });
+  $('#rbWuerfeln').addEventListener('click', function(){ raetsel = {}; abgelehnt = {}; zeige(); });
+
+  /* ---------- Ein Bild austauschen: Klick (oder Enter) auf ein Bildkärtchen ---------- */
+  function tauschen(i, wi, k, mitTastatur){
+    var t = st.eintraege[i], key = t && schluessel(t), r = key && raetsel[key];
+    if (!r || !r[wi]) return;
+    var w = r[wi], c = w.teile[k];
+    if (!c || !c.bild) return;
+    var ak = key + '|' + wi, liste = abgelehnt[ak] = abgelehnt[ak] || [];
+    if (liste.indexOf(c.bild.wort) < 0) liste.push(c.bild.wort);
+    // Bilder der anderen Rätsel möglichst nicht doppelt verwenden
+    var benutzt = [];
+    Object.keys(raetsel).forEach(function(x){ raetsel[x].forEach(function(ww){ if (ww !== w) ww.teile.forEach(function(cc){ if (cc.bild) benutzt.push(cc.bild.wort); }); }); });
+    var o = { stufe:st.opt.stufe, verboten:liste, schonBenutzt:benutzt, einzelwort:r.length === 1 };
+    var neu = Kern.ersetze(w.wort, w.teile, k, o);
+    if (!neu && liste.length > 1){ abgelehnt[ak] = o.verboten = [c.bild.wort]; neu = Kern.ersetze(w.wort, w.teile, k, o); }   // alle durch: wieder von vorn
+    if (!neu){ meldung('info', '<p>Für dieses Bild gibt es keinen anderen Vorschlag. Mit «Anders» bekommt das ganze Rätsel neue Bilder.</p>'); return; }
+    w.teile = neu;
+    zeige();
+    if (mitTastatur){ var el = bereich.querySelector('#rbBlatt .rb-tauschbar[data-i="' + i + '"][data-w="' + wi + '"][data-k="' + Math.min(k, neu.length - 1) + '"]'); if (el) el.focus(); }
+  }
+  $('#rbBlatt').addEventListener('click', function(ev){
+    var el = ev.target.closest('.rb-tauschbar'); if (!el) return;
+    tauschen(+el.dataset.i, +el.dataset.w, +el.dataset.k, false);
+  });
+  $('#rbBlatt').addEventListener('keydown', function(ev){
+    if (ev.key !== 'Enter' && ev.key !== ' ') return;
+    var el = ev.target.closest('.rb-tauschbar'); if (!el) return;
+    ev.preventDefault(); tauschen(+el.dataset.i, +el.dataset.w, +el.dataset.k, true);
+  });
   $('#rbZeigeLoesung').addEventListener('click', function(){
     var an = this.getAttribute('aria-pressed') !== 'true';
     this.setAttribute('aria-pressed', an ? 'true' : 'false');
