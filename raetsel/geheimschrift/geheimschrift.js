@@ -1,8 +1,8 @@
 /* Rätsellabor – Generator «Geheimschriften»
-   Ein Text in einer von acht Geheimschriften, jeweils mit dem passenden Schlüssel zum Entschlüsseln:
+   Ein Text in einer von neun Geheimschriften, jeweils mit dem passenden Schlüssel zum Entschlüsseln:
    Caesar-Verschiebung (mit Caesar-Scheibe zum Basteln), Rückwärts-Alphabet, Zahlen-Code, Handy-Tasten,
-   Koordinaten-Gitter (Polybios), Morse-Code, Blindenschrift (Braille) und Hieroglyphen.
-   Der Freimaurer-Code hat einen eigenen Generator (hier verlinkt).
+   Koordinaten-Gitter (Polybios), Freimaurer-Code, Morse-Code, Blindenschrift (Braille) und Hieroglyphen.
+   Alte Links auf …/#freimaurer (früher ein eigener Generator) öffnen die Geheimschriften mit dem Freimaurer-Code.
    Herunterladen: Geheimtext (PDF, wahlweise mit Lösungsblatt und Schlüssel; oder als Bild) und der Schlüssel einzeln. */
 (function(){
 'use strict';
@@ -31,6 +31,26 @@ var Kern = (function(){
     K:'Korb', L:'Löwe', M:'Eule', N:'Wasser', O:'Lasso', P:'Hocker', Q:'Hügel', R:'Mund', S:'Tuch', T:'Brot', U:'Küken', V:'Hornviper', W:'Küken',
     X:'Korb + Tuch', Y:'zwei Schilfblätter', Z:'Riegel' };
 
+  /* Freimaurer-Code: A–I im Gitter #, J–R im Gitter # mit Punkt, S–V im X (oben, links, rechts, unten), W–Z im X mit Punkt.
+     Zeichen im Feld 0…100: d = Linien (SVG-Pfad), punkt = [x, y] oder null – eine Linie dort, wo im Schlüssel eine
+     Gitterlinie an das Feld des Buchstabens grenzt. */
+  function freimaurer(c){
+    var i = ABC.indexOf(c);
+    if (i < 0) return null;
+    if (i < 18){
+      var r = Math.floor(i % 9 / 3), s = i % 3, a = 14, z = 86, da = [r > 0, s < 2, r < 2, s > 0];   // oben, rechts, unten, links
+      var S = [[a, a, z, a], [z, a, z, z], [z, z, a, z], [a, z, a, a]], d;
+      if (da[0] && da[1] && da[2] && da[3]) d = 'M' + a + ' ' + a + 'H' + z + 'V' + z + 'H' + a + 'Z';
+      else {
+        var k0 = [0, 1, 2, 3].filter(function(k){ return da[k] && !da[(k + 3) % 4]; })[0], k = k0;
+        d = 'M' + S[k0][0] + ' ' + S[k0][1];
+        do { d += 'L' + S[k][2] + ' ' + S[k][3]; k = (k + 1) % 4; } while (da[k] && k !== k0);
+      }
+      return { d:d, punkt:i >= 9 ? [50, 50] : null };
+    }
+    var X = [['M14 16L50 86L86 16', [50, 40]], ['M16 14L86 50L16 86', [40, 50]], ['M84 14L14 50L84 86', [60, 50]], ['M14 84L50 14L86 84', [50, 60]]][(i - 18) % 4];
+    return { d:X[0], punkt:i >= 22 ? X[1] : null };
+  }
   // Text in Grossbuchstaben; Umlaute und ß bleiben (Morse, Blindenschrift) oder werden zu AE, OE, UE, SS
   function normal(text, umlaute){
     var t = String(text || '').replace(/ẞ/g, 'ß').replace(/ß/g, umlaute ? '' : 'SS').toUpperCase();
@@ -52,6 +72,7 @@ var Kern = (function(){
       case 'polybios':
         var g = GITTER.indexOf(c === 'J' ? 'I' : c);
         return g < 0 ? null : { text:String(Math.floor(g / 5) + 1) + String(g % 5 + 1) };
+      case 'freimaurer': return i < 0 ? null : { freimaurer:freimaurer(c) };
       case 'morse': return MORSE[c] ? { morse:MORSE[c] } : null;
       case 'braille':
         if (/[0-9]/.test(c)){ var m = BRAILLE[ZIFFER_BRAILLE[+c]]; return { braille:/[0-9]/.test(vorher || '') ? [m] : [ZAHLZEICHEN, m] }; }
@@ -71,7 +92,7 @@ var Kern = (function(){
     });
   }
   return { ABC:ABC, GITTER:GITTER, MORSE:MORSE, BRAILLE:BRAILLE, ZAHLZEICHEN:ZAHLZEICHEN, HANDY:HANDY, HIERO:HIERO, HIERO_NAME:HIERO_NAME,
-    normal:normal, zeichen:zeichen, zerlege:zerlege, UMLAUTE:UMLAUTE };
+    normal:normal, zeichen:zeichen, zerlege:zerlege, freimaurer:freimaurer, UMLAUTE:UMLAUTE };
 })();
 /* KERN-ENDE */
 
@@ -81,6 +102,7 @@ var SCHRIFTEN = [
   ['zahlen', 'Zahlen-Code', 'A = 1, B = 2 … Z = 26'],
   ['handy', 'Handy-Tasten', 'So oft tippen wie auf der Handytaste: B = 22'],
   ['polybios', 'Koordinaten-Gitter', 'Zeile und Spalte im Gitter: B = 12'],
+  ['freimaurer', 'Freimaurer-Code', 'Stücke von Gittern, manche mit Punkt'],
   ['morse', 'Morse-Code', 'Punkte und Striche'],
   ['braille', 'Blindenschrift', 'Punkte zum Ertasten (Braille)'],
   ['hieroglyphen', 'Hieroglyphen', 'Bildzeichen aus dem alten Ägypten']
@@ -129,8 +151,33 @@ function glyphe(cps, klasse){
   var b = glyphenBilder[t];
   return '<img class="' + (klasse || 'gs-h') + '" src="' + b.src + '" style="aspect-ratio:' + b.w + '/' + b.h + '" alt="">';
 }
+function fmInnen(z){
+  return '<path d="' + z.d + '" fill="none" stroke="' + TINTE + '" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>' +
+    (z.punkt ? '<circle cx="' + z.punkt[0] + '" cy="' + z.punkt[1] + '" r="8.5" fill="' + TINTE + '"/>' : '');
+}
+function fmSvg(z, klasse){ return '<svg class="' + (klasse || 'gs-fm') + '" viewBox="0 0 100 100" aria-hidden="true">' + fmInnen(z) + '</svg>'; }
+// Freimaurer-Schlüssel: Gitter # mit 9 Buchstaben ab «ab» bzw. X mit 4 Buchstaben, im Feld 0…300
+function fmText(x, y, t){ return '<text x="' + x + '" y="' + (y + 16).toFixed(1) + '" font-family="Andika, Arial, sans-serif" font-weight="700" font-size="46" fill="' + TINTE + '" text-anchor="middle">' + t + '</text>'; }
+function fmGitter(ab, punkt){
+  var h = '<path d="M100 14V286M200 14V286M14 100H286M14 200H286" stroke="' + TINTE + '" stroke-width="7" stroke-linecap="round" fill="none"/>';
+  for (var i = 0; i < 9; i++){
+    var cx = 50 + i % 3 * 100, cy = 50 + Math.floor(i / 3) * 100;
+    h += fmText(punkt ? cx - 11 : cx, cy, Kern.ABC[ab + i]);
+    if (punkt) h += '<circle cx="' + (cx + 22) + '" cy="' + cy + '" r="7" fill="' + TINTE + '"/>';
+  }
+  return h;
+}
+function fmX(ab, punkt){
+  var h = '<path d="M30 30L270 270M270 30L30 270" stroke="' + TINTE + '" stroke-width="7" stroke-linecap="round" fill="none"/>';
+  [[150, 70], [70, 150], [230, 150], [150, 230]].forEach(function(p, i){
+    h += fmText(punkt ? p[0] - 11 : p[0], p[1], Kern.ABC[ab + i]);
+    if (punkt) h += '<circle cx="' + (p[0] + 22) + '" cy="' + p[1] + '" r="7" fill="' + TINTE + '"/>';
+  });
+  return h;
+}
 function symbolHtml(code){
   if (code.text !== undefined) return '<span class="gs-t">' + esc(code.text) + '</span>';
+  if (code.freimaurer) return fmSvg(code.freimaurer);
   if (code.morse) return morseSvg(code.morse);
   if (code.braille) return brailleSvg(code.braille);
   return glyphe(code.glyphe);
@@ -189,6 +236,11 @@ function schluesselHtml(art, o){
       var g = '<table class="gs-gitter"><tr><th></th>' + [1, 2, 3, 4, 5].map(function(s){ return '<th>' + s + '</th>'; }).join('') + '</tr>';
       for (var r = 0; r < 5; r++){ g += '<tr><th>' + (r + 1) + '</th>'; for (var c = 0; c < 5; c++){ var b = Kern.GITTER[r * 5 + c]; g += '<td>' + (b === 'I' ? 'I/J' : b) + '</td>'; } g += '</tr>'; }
       return '<p class="gs-erklaerung">Jeder Buchstabe wird zu zwei Ziffern: zuerst die <b>Zeile</b>, dann die <b>Spalte</b>. B steht in Zeile 1, Spalte 2, also <b>12</b>. I und J teilen sich ein Feld.</p>' + g + '</table>';
+    case 'freimaurer':
+      return '<p class="gs-erklaerung">Jeder Buchstabe wird als das Stück Gitter geschrieben, das ihn umgibt – mit Punkt, wenn neben ihm ein Punkt steht.</p>' +
+        '<div class="gs-fm-schluessel">' + [[fmGitter, 0, false, 'A bis I'], [fmGitter, 9, true, 'J bis R, mit Punkt'], [fmX, 18, false, 'S bis V'], [fmX, 22, true, 'W bis Z, mit Punkt']]
+          .map(function(k){ return '<svg viewBox="0 0 300 300" role="img" aria-label="Schlüssel ' + k[3] + '">' + k[0](k[1], k[2]) + '</svg>'; }).join('') + '</div>' +
+        tabelle(A.map(function(c){ return [c, fmSvg(Kern.freimaurer(c), 'gs-fm-k')]; }), 'gs-tab-fm');
     case 'morse':
       return '<p class="gs-erklaerung">Jeder Buchstabe besteht aus kurzen (Punkt) und langen (Strich) Zeichen.</p>' +
         tabelle(A.concat(['Ä', 'Ö', 'Ü', 'ß']).map(function(c){ return [c, morseSvg(Kern.MORSE[c], 'gs-morse-k')]; }), 'gs-tab-morse') +
@@ -209,7 +261,7 @@ function schriftName(art, o){ var s = SCHRIFTEN.filter(function(x){ return x[0] 
 
 var VORLAGE = '<div class="gs">' +
   '<header class="gs-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Geheimschriften</h1>' +
-    '<p>Dein Text in einer Geheimschrift – von der Caesar-Verschiebung über den Morse-Code bis zu Hieroglyphen. Zu jeder Schrift gibt es den Schlüssel zum Entschlüsseln.</p></header>' +
+    '<p>Dein Text in einer Geheimschrift – von der Caesar-Verschiebung über den Freimaurer-Code und das Morsen bis zu Hieroglyphen. Zu jeder Schrift gibt es den Schlüssel zum Entschlüsseln.</p></header>' +
   '<div class="gs-layout"><section class="gs-eingabe" aria-label="Eingaben">' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Geheimer Text</h2><p>Wörter oder Sätze, auch mehrere Zeilen.</p></div></div>' +
       '<label class="vh" for="gsText">Geheimer Text</label><textarea id="gsText" rows="5" maxlength="400" autocomplete="off" spellcheck="false"></textarea>' +
@@ -218,7 +270,6 @@ var VORLAGE = '<div class="gs">' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Geheimschrift</h2></div></div>' +
       '<div class="gs-schriften" role="radiogroup" aria-label="Geheimschrift">' +
         SCHRIFTEN.map(function(s){ return '<label><input type="radio" name="gsSchrift" value="' + s[0] + '"><span><i class="gs-vorschau-platz" data-art="' + s[0] + '"></i><b>' + s[1] + '</b><small>' + s[2] + '</small></span></label>'; }).join('') +
-        '<a class="gs-verweis" href="#freimaurer"><span><b>Freimaurer-Code</b><small>Gitter und Punkte – eigener Generator ›</small></span></a>' +
       '</div>' +
       '<div class="gs-caesar" id="gsCaesar">' +
         '<div class="opt-raster"><label for="gsVerschiebung">Verschiebung</label><select id="gsVerschiebung">' +
@@ -268,14 +319,21 @@ var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke
 Labor.registriere({
   id:'geheimschrift',
   titel:'Geheimschriften',
-  kurz:'Caesar, Morse, Blindenschrift, Hieroglyphen und mehr',
-  beschreibung:'Ein eigener Text in einer von acht Geheimschriften – Caesar-Verschiebung, Rückwärts-Alphabet, Zahlen, Handy-Tasten, Koordinaten, Morse, Blindenschrift oder Hieroglyphen. Mit Schlüssel zum Entschlüsseln.',
-  merkmale:['Acht Geheimschriften', 'Schlüssel einzeln als PDF oder Bild', 'Mit Lösungsblatt'],
+  kurz:'Caesar, Freimaurer, Morse, Blindenschrift, Hieroglyphen und mehr',
+  beschreibung:'Ein eigener Text in einer von neun Geheimschriften – Caesar-Verschiebung, Rückwärts-Alphabet, Zahlen, Handy-Tasten, Koordinaten, Freimaurer-Code, Morse, Blindenschrift oder Hieroglyphen. Mit Schlüssel zum Entschlüsseln.',
+  merkmale:['Neun Geheimschriften', 'Schlüssel einzeln als PDF oder Bild', 'Mit Lösungsblatt'],
   symbol:SYMBOL,
   css:'raetsel/geheimschrift/geheimschrift.css',
   html:VORLAGE,
   start:starte
 });
+
+/* Alte Links auf den früheren Generator «Freimaurer-Code» (…/#freimaurer): Geheimschriften mit dem Freimaurer-Code öffnen.
+   Läuft vor dem Labor (beim Laden und vor dessen Adresswechsel), damit dieses gleich die richtige Seite zeigt. */
+var vorwahl = null;
+function alterLink(){ if (location.hash === '#freimaurer'){ vorwahl = 'freimaurer'; history.replaceState(null, '', location.pathname + location.search + '#geheimschrift'); } }
+alterLink();
+window.addEventListener('hashchange', alterLink);
 
 /* ===== Bedienung ===== */
 function starte(bereich){
@@ -285,6 +343,7 @@ function starte(bereich){
   var st = { text:'', titel:'', opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
   try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.text = String(e.text || ''); st.titel = String(e.titel || ''); } } catch(x){}
+  if (vorwahl){ st.opt.art = vorwahl; vorwahl = null; }
   if (!SCHRIFTEN.some(function(s){ return s[0] === st.opt.art; })) st.opt.art = 'caesar';
   var timer = 0;
   function speichernJetzt(){ clearTimeout(timer); timer = 0;

@@ -135,19 +135,11 @@ Ein eigenes Bild wird zum Online-Puzzle mit klassischen Puzzle-Teilen (Nasen und
 - **Teile neben dem Brett:** Gemischt liegen alle Teile samt Nasen neben dem Brett, nie darauf – zuerst auf freie Plätze, wenn sie nicht reichen, teilweise übereinander. Das Brett wird so gross gewählt, dass rundherum genug Platz bleibt; auch nach einer Grössenänderung (Vollbild, Drehen des Tablets) rückt kein Teil aufs Brett.
 - **QR-Code zum Puzzle:** Das Puzzle wird auf dem eigenen Server gespeichert (`api/puzzle.php`; Angaben in `api/daten/puzzles/`, das Bild als `/P/<ID>/bild.jpg`, mit GD neu gespeichert), der Code führt zur Puzzle-Seite `/P/<ID>/` (Link in Grossbuchstaben → kleiner Code). Gleiches Puzzle → gleiche ID; höchstens 20 neue pro Stunde und Netz, 200 pro Tag. Dazu Link kopieren, QR als Bild (PNG) und ein PDF-Blatt mit QR-Code und Link (ohne das Bild; Titel und Anleitung wählbar). Nur mit eigenem Server (Infomaniak), nicht auf GitHub Pages.
 
-### Freimaurer-Code
-
-Eine Geheimschrift (Freimaurer-Alphabet, engl. Pigpen Cipher): Jeder Buchstabe wird als das Stück Gitter geschrieben, das ihn im Schlüssel umgibt – A–I im Gitter #, J–R im Gitter # mit Punkt, S–V im X (oben, links, rechts, unten), W–Z im X mit Punkt.
-
-- **Text:** auch mehrere Zeilen; Umlaute werden als AE, OE, UE geschrieben, ß als SS, Akzente fallen weg; Ziffern und Satzzeichen bleiben stehen.
-- **Blatt:** Zeichen klein, mittel oder gross, auf Wunsch mit Schreiblinien; Titel frei wählbar (sonst «Geheimbotschaft»). «Lösung zeigen» schreibt die Buchstaben am Bildschirm darunter. Ist der Text für eine A4-Seite zu lang, kommt ein Hinweis.
-- **Herunterladen:** Geheimtext als PDF – wahlweise mit Alphabet und Lösungsblatt (je eine Seite) – oder als Bild (PNG). Das **Freimaurer-Alphabet** (die vier Schlüssel-Figuren und eine Tabelle A–Z mit allen Zeichen) gibt es einzeln als PDF oder Bild. Im Claude-Artefakt als HTML-Datei bzw. SVG-Bild.
-
 ### Geheimschriften
 
-Ein eigener Text in einer von acht Geheimschriften, jeweils mit Schlüssel (wie beim Freimaurer-Code, der einen eigenen Generator hat und hier verlinkt ist):
+Ein eigener Text in einer von neun Geheimschriften, jeweils mit Schlüssel:
 
-- **Caesar-Verschiebung** (Verschiebung 1–25; im Schlüssel Tabelle und auf Wunsch eine **Caesar-Scheibe zum Basteln**) · **Rückwärts-Alphabet** (A ↔ Z) · **Zahlen-Code** (A = 1 … Z = 26) · **Handy-Tasten** (B = 22, mit Tastenfeld) · **Koordinaten-Gitter** (Polybios-Quadrat, Zeile und Spalte; I/J teilen sich ein Feld) · **Morse-Code** (mit Ä, Ö, Ü, ß, Ziffern und Satzzeichen) · **Blindenschrift** (deutsche Basisschrift mit Umlauten und Zahlzeichen) · **Hieroglyphen** (Einkonsonantenzeichen; C/K, E/I, F/V, U/W teilen sich ein Zeichen – steht im Schlüssel).
+- **Caesar-Verschiebung** (Verschiebung 1–25; im Schlüssel Tabelle und auf Wunsch eine **Caesar-Scheibe zum Basteln**) · **Rückwärts-Alphabet** (A ↔ Z) · **Zahlen-Code** (A = 1 … Z = 26) · **Handy-Tasten** (B = 22, mit Tastenfeld) · **Koordinaten-Gitter** (Polybios-Quadrat, Zeile und Spalte; I/J teilen sich ein Feld) · **Freimaurer-Code** (Pigpen: A–I im Gitter #, J–R im Gitter # mit Punkt, S–V im X, W–Z im X mit Punkt; Schlüssel mit den vier Figuren und einer Tabelle A–Z – früher ein eigener Generator, alte Links …/#freimaurer öffnen die Geheimschriften mit dem Freimaurer-Code) · **Morse-Code** (mit Ä, Ö, Ü, ß, Ziffern und Satzzeichen) · **Blindenschrift** (deutsche Basisschrift mit Umlauten und Zahlzeichen) · **Hieroglyphen** (Einkonsonantenzeichen; C/K, E/I, F/V, U/W teilen sich ein Zeichen – steht im Schlüssel).
 - Umlaute werden als AE, OE, UE geschrieben (ausser bei Morse und Blindenschrift, die eigene Zeichen haben); Ziffern und Satzzeichen bleiben sonst stehen.
 - **Blatt:** Zeichen klein, mittel oder gross, Schreiblinien, Titel; «Lösung zeigen». **Herunterladen:** Geheimtext als PDF (wahlweise mit Schlüssel und Lösungsblatt) oder als Bild (PNG); der Schlüssel einzeln als PDF oder Bild. Hieroglyphen werden mit der Schrift «Noto Sans Egyptian Hieroglyphs» (Google Fonts) als Bild gezeichnet, damit sie auch im PDF sicher erscheinen.
 - Neu in `gemeinsam/labor.js`: `Labor.bildHerunterladen(blatt, name)` und `Labor.bildKnopf()` – ein Blatt als PNG, gezeichnet wie im PDF.
@@ -196,7 +188,6 @@ raetsel/text-spiegeln/          der Generator «Text spiegeln» (Kern: Unicode-S
 raetsel/puzzle/                 der Generator «Puzzle»
   puzzle-spiel.js               das Spiel selbst (Teile, Mischen, Ziehen, Einrasten); auch für die Puzzle-Seite /P/<ID>/
   puzzle.js                     Oberfläche: Bild, Schwierigkeit, QR-Code
-raetsel/freimaurer/             der Generator «Freimaurer-Code» (Kern: Zeichen der Buchstaben; Blätter, Alphabet, Bilder)
 raetsel/geheimschrift/          der Generator «Geheimschriften» (Kern: Verschlüsseln; Zeichen, Schlüssel, Caesar-Scheibe)
 raetsel/kreuzwort/              der Generator «Kreuzworträtsel» (Kern: Anordnen, freie Flächen für Bilder; Seite, Bilder, Lösung)
 raetsel/trimino/                der Generator «Trimino» (Kern: Formen, Kanten, Aufgaben, Belegung; Zeichnen mit Schriftanpassung)
@@ -217,7 +208,7 @@ api/puzzle.php                  Server-Teil (PHP): speichert Puzzles für QR-Cod
 - Beim Hochladen hängt der GitHub-Workflow eine Versionsnummer an alle Skripte und Stile (`…/labor.js?v=1a2b3c4d`, auch für die Stile der Generatoren). Nach jeder Änderung lädt der Browser so sicher die neuen Dateien.
 - Ist die Seite schon offen, wenn eine neue Version hochgeladen wird (das Labor wechselt zwischen den Generatoren ohne Neuladen), merkt sie das: Der Workflow schreibt die Versionsnummer in `version.txt`, die Seite fragt sie ab, wenn man zu ihr zurückkehrt und alle 10 Minuten. Bei einer neuen Version erscheint ein Hinweis «Neu laden», und der nächste Wechsel zu einem Generator lädt die Seite von selbst neu.
 
-Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und den mitgelieferten Bibliotheken in `gemeinsam/extern/` keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code`, `…/#labyrinth`, `…/#emoji-rechnen`, `…/#text-spiegeln`, `…/#puzzle`, `…/#freimaurer`, `…/#geheimschrift`, `…/#trimino` oder `…/#kreuzwort` öffnet direkt einen Generator, `…/#start` die Startseite.
+Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und den mitgelieferten Bibliotheken in `gemeinsam/extern/` keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code`, `…/#labyrinth`, `…/#emoji-rechnen`, `…/#text-spiegeln`, `…/#puzzle`, `…/#geheimschrift`, `…/#trimino` oder `…/#kreuzwort` öffnet direkt einen Generator, `…/#start` die Startseite.
 
 ## Einen neuen Generator hinzufügen
 
