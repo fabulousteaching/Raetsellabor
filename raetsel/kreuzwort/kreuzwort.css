@@ -1,0 +1,81 @@
+/* Rätsellabor · Kreuzworträtsel – nur aktiv, solange dieser Generator offen ist.
+   Gemeinsame Bausteine (Karten, Knöpfe, Eingabefelder, Meldungen) stehen in gemeinsam/labor.css. */
+.kw{max-width:1440px;margin:0 auto;padding-block:22px 48px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.kw-kopf{display:grid;gap:4px;margin:0 0 20px}
+.kw-kopf h1{font-family:var(--display);font-weight:600;font-size:clamp(1.7rem,3vw,2.2rem);letter-spacing:-.01em;line-height:1.1;margin:0;color:var(--ink)}
+.kw-kopf h1:focus{outline:none}
+.kw-kopf p:last-child{margin:2px 0 0;color:var(--muted);max-width:70ch}
+.kw-layout{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:24px;align-items:start}
+.kw-eingabe{display:grid;gap:16px;min-width:0}
+@media (min-width:961px){ .kw-eingabe{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--kopf-h) + 16px);max-height:calc(100vh - var(--kopf-h) - 32px);overflow:auto;padding:2px 4px 2px 2px;scrollbar-width:thin} }
+@media (max-width:960px){ .kw-layout{grid-template-columns:minmax(0,1fr);gap:18px} }
+@media (max-width:640px){ .kw{padding-block:18px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))} }
+
+/* ---------- Eingaben ---------- */
+.kw textarea{display:block;width:100%;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;resize:vertical;min-height:11em;line-height:1.45;font-size:.98rem;transition:border-color .15s,box-shadow .15s}
+.kw textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.kw .kw-label{text-transform:none;letter-spacing:0;font-size:.86rem}
+.kw code{font-size:.85em;background:#F3EEE9;border-radius:4px;padding:1px 4px}
+.kw-zaehler{margin-top:10px;font-size:.88rem}
+.kw-zaehler p{margin:6px 0 0}
+.kw-zaehler-haupt{padding:8px 11px;border-radius:9px;margin:0!important}
+.kw-zaehler-haupt.ok{background:var(--ok-soft);color:var(--ok)}
+.kw-zaehler-haupt.fehlt{background:var(--accent-soft);color:var(--accent-2)}
+.kw-zaehler .warnung{color:var(--accent-2)}
+.kw-ablage{display:grid;justify-items:center;padding:16px 12px;border:2px dashed var(--accent-line);border-radius:12px;background:var(--accent-soft);cursor:pointer;text-align:center;transition:border-color .15s,background .15s}
+.kw-ablage:hover,.kw-ablage.ziehen{border-color:var(--accent);background:#FFE7D2}
+.kw-ablage:focus-within{outline:2px solid var(--accent-2);outline-offset:2px}
+.kw-ablage span{display:grid;gap:1px}
+.kw-ablage b{color:var(--accent-2)}
+.kw-ablage small{color:var(--muted);font-size:.82rem}
+.kw-bilder{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.kw-bilder:empty{display:none}
+.kw-bild-klein{position:relative;display:block;width:64px;height:64px;border:1px solid var(--line);border-radius:8px;background:#fff;overflow:hidden}
+.kw-bild-klein img{width:100%;height:100%;object-fit:contain}
+.kw-weg{position:absolute;top:2px;right:2px;width:22px;height:22px;border:0;border-radius:50%;background:rgba(28,23,20,.75);color:#fff;font-size:15px;line-height:22px;padding:0;cursor:pointer}
+.kw-weg:hover{background:var(--err)}
+.kw .opt{display:flex;align-items:flex-start;gap:10px;margin:4px 0 10px;font-size:.9rem}
+.kw .opt input[type=checkbox]{width:16px;height:16px;margin:3px 0 0;accent-color:var(--accent);flex:none}
+.kw .opt-raster{display:grid;grid-template-columns:1fr;gap:6px;font-size:.9rem}
+
+/* ---------- Ausgabe ---------- */
+.kw-ausgabe{min-width:0}
+.kw-werkzeug{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.kw-werkzeug .abstand{flex:1}
+.kw-werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
+.kw-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+/* Die Seite ist immer 703 × 1032 Pixel gross (A4 ohne Rand, wie im PDF) und wird am Bildschirm eingepasst */
+.kw-rahmen{position:relative;width:100%;--massstab:1}
+.kw-rahmen[hidden]{display:none}
+.kw-loesungs-rahmen{display:none}
+.kw-seite{position:relative;width:703px;height:1032px;box-sizing:content-box;background:#fff;color:#1C1714;overflow:hidden;
+  transform:scale(var(--massstab));transform-origin:top left;outline:1px solid var(--line);box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08)}
+.kw-fluss{position:static;width:703px}
+.kw-seite h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714;line-height:1.2;display:table}
+.kw-anleitung{margin:0 0 18px;color:#554C45;max-width:80ch;display:table}
+.kw-gitter-platz{display:flex;justify-content:center;margin:4px 0 22px}
+.kw-gitter-platz.links{justify-content:flex-start}
+.kw-gitter{display:block}
+.kw-buchstabe{fill:transparent}
+.zeige-loesung .kw-buchstabe,.kw-buchstabe.an{fill:var(--accent-2)}
+.kw-hinweise{display:grid;grid-template-columns:1fr 1fr;gap:10px 30px;font-size:14.5px;line-height:1.38}
+.kw-hinweise h3{font-size:1.02rem;font-weight:700;margin:0 0 6px;color:#1C1714;display:table}
+.kw-hinweise ol{list-style:none;margin:0;padding:0}
+.kw-hinweise li{margin:0 0 5px}
+.kw-hinweise li > span{display:inline}
+.kw-hinweise li b{display:inline-block;min-width:1.6em;color:#1C1714}
+.kw-hinweise small{color:#6E655E;font-size:.86em}
+.kw-bild{position:absolute;object-fit:contain;display:block}
+
+/* ---------- Drucken (gilt auch für das PDF und das Bild) ---------- */
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#fff!important}
+  .kw-kopf,.kw-eingabe,.kw-werkzeug,#kwMeldung,.nur-bildschirm{display:none!important}
+  .kw{padding:0;max-width:none}
+  .kw-layout{display:block}
+  .kw-rahmen{height:auto!important}
+  .kw-seite{transform:none!important;outline:0;box-shadow:none}
+  .kw-loesungs-rahmen{display:none}
+  body.mit-loesung .kw-loesungs-rahmen{display:block;break-before:page}
+}

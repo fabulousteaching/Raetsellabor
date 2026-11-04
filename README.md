@@ -152,6 +152,14 @@ Ein eigener Text in einer von acht Geheimschriften, jeweils mit Schlüssel (wie 
 - **Blatt:** Zeichen klein, mittel oder gross, Schreiblinien, Titel; «Lösung zeigen». **Herunterladen:** Geheimtext als PDF (wahlweise mit Schlüssel und Lösungsblatt) oder als Bild (PNG); der Schlüssel einzeln als PDF oder Bild. Hieroglyphen werden mit der Schrift «Noto Sans Egyptian Hieroglyphs» (Google Fonts) als Bild gezeichnet, damit sie auch im PDF sicher erscheinen.
 - Neu in `gemeinsam/labor.js`: `Labor.bildHerunterladen(blatt, name)` und `Labor.bildKnopf()` – ein Blatt als PNG, gezeichnet wie im PDF.
 
+### Kreuzworträtsel
+
+Eigene Wörter mit Hinweisen werden waagrecht und senkrecht verschränkt (jedes Wort kreuzt mindestens ein anderes, kein Wort läuft neben einem anderen her; viele Anordnungen werden probiert, die kompakteste mit den meisten Wörtern gewinnt; «Neu anordnen» probiert andere). Wörter, die nirgends über Kreuz passen, werden genannt.
+
+- **Eingabe:** «Wort = Hinweis», ein Paar pro Zeile (auch «;», Tabulator, « - »); Zähler; Leerzeichen und Bindestriche im Wort fallen weg, ß → SS, Ä/Ö/Ü bleiben ein Feld. Bis 30 Wörter.
+- **Bilder:** bis 6 eigene Bilder (auswählen oder hineinziehen). Das Blatt ist eine feste A4-Seite (703 × 1032 Pixel, wie im PDF); nach dem Aufbau werden alle belegten Flächen gemessen (Titel, Anleitung, jedes Gitterfeld, jeder Hinweis), und jedes Bild kommt in die grösste freie Fläche – mit Abstand zum Rätsel, zu den Texten, zu den anderen Bildern und zum Rand, auch in die Lücken des Gitters. Reicht der Platz nicht, wird das Gitter kleiner; hat ein Bild trotzdem keinen Platz, kommt ein Hinweis.
+- **Blatt:** Hinweise «Waagrecht» und «Senkrecht», auf Wunsch mit Anzahl Buchstaben; Titel und Anleitung wählbar; «Lösung zeigen»; Lösungsblatt (gleicher Aufbau, Bilder am gleichen Platz); PDF oder Bild.
+
 ### Trimino
 
 Dreieckige Spielsteine, die so aneinandergelegt werden, dass aufeinandertreffende Seiten zusammenpassen (Aufgabe und Ergebnis, Wort und Übersetzung). Alles entsteht direkt im Browser.
@@ -190,6 +198,7 @@ raetsel/puzzle/                 der Generator «Puzzle»
   puzzle.js                     Oberfläche: Bild, Schwierigkeit, QR-Code
 raetsel/freimaurer/             der Generator «Freimaurer-Code» (Kern: Zeichen der Buchstaben; Blätter, Alphabet, Bilder)
 raetsel/geheimschrift/          der Generator «Geheimschriften» (Kern: Verschlüsseln; Zeichen, Schlüssel, Caesar-Scheibe)
+raetsel/kreuzwort/              der Generator «Kreuzworträtsel» (Kern: Anordnen, freie Flächen für Bilder; Seite, Bilder, Lösung)
 raetsel/trimino/                der Generator «Trimino» (Kern: Formen, Kanten, Aufgaben, Belegung; Zeichnen mit Schriftanpassung)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)
@@ -208,7 +217,7 @@ api/puzzle.php                  Server-Teil (PHP): speichert Puzzles für QR-Cod
 - Beim Hochladen hängt der GitHub-Workflow eine Versionsnummer an alle Skripte und Stile (`…/labor.js?v=1a2b3c4d`, auch für die Stile der Generatoren). Nach jeder Änderung lädt der Browser so sicher die neuen Dateien.
 - Ist die Seite schon offen, wenn eine neue Version hochgeladen wird (das Labor wechselt zwischen den Generatoren ohne Neuladen), merkt sie das: Der Workflow schreibt die Versionsnummer in `version.txt`, die Seite fragt sie ab, wenn man zu ihr zurückkehrt und alle 10 Minuten. Bei einer neuen Version erscheint ein Hinweis «Neu laden», und der nächste Wechsel zu einem Generator lädt die Seite von selbst neu.
 
-Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und den mitgelieferten Bibliotheken in `gemeinsam/extern/` keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code`, `…/#labyrinth`, `…/#emoji-rechnen`, `…/#text-spiegeln`, `…/#puzzle`, `…/#freimaurer`, `…/#geheimschrift` oder `…/#trimino` öffnet direkt einen Generator, `…/#start` die Startseite.
+Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und den mitgelieferten Bibliotheken in `gemeinsam/extern/` keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code`, `…/#labyrinth`, `…/#emoji-rechnen`, `…/#text-spiegeln`, `…/#puzzle`, `…/#freimaurer`, `…/#geheimschrift`, `…/#trimino` oder `…/#kreuzwort` öffnet direkt einen Generator, `…/#start` die Startseite.
 
 ## Einen neuen Generator hinzufügen
 
