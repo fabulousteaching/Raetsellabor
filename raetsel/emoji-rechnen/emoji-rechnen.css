@@ -55,7 +55,7 @@
 .em-raster.pro-6{--em:1.55rem;gap:14px}
 .em-raetsel{position:relative;display:grid;justify-items:center;gap:12px;padding:18px 18px 14px;border:1.5px solid #D8CEC4;border-radius:16px;break-inside:avoid;min-width:0}
 .em-raster:not(.pro-1) .em-raetsel{padding-left:38px}
-.em-nr{position:absolute;left:13px;top:10px;font-family:var(--display);font-weight:600;font-size:1.1rem;color:var(--marke)}
+.em-nr{position:absolute;left:13px;top:10px;font-family:var(--blatt-display);font-weight:600;font-size:1.1rem;color:var(--marke)}
 .em-zeilen{display:grid;grid-template-columns:auto auto auto;align-items:center;gap:calc(var(--em) * .22) calc(var(--em) * .3)}
 .em-term{display:flex;align-items:center;justify-content:flex-end;gap:calc(var(--em) * .2)}
 .em-e{font-size:var(--em);line-height:1.15;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif}

@@ -372,8 +372,8 @@ function starte(bereich){
     var h = '<svg class="kw-gitter" width="' + (R.breite * f + 2) + '" height="' + (R.hoehe * f + 2) + '" viewBox="-1 -1 ' + (R.breite * f + 2) + ' ' + (R.hoehe * f + 2) + '" role="img" aria-label="Kreuzworträtsel-Gitter">';
     R.zellen.forEach(function(z){ h += '<rect x="' + z.c * f + '" y="' + z.r * f + '" width="' + f + '" height="' + f + '" fill="#fff" stroke="' + TINTE + '" stroke-width="1.4"/>'; });
     R.zellen.forEach(function(z){
-      if (z.nr) h += '<text x="' + (z.c * f + 2.2) + '" y="' + (z.r * f + f * 0.3 + 1) + '" font-size="' + (f * 0.3).toFixed(1) + '" font-family="Inter, Arial, sans-serif" font-weight="600" fill="' + TINTE + '">' + z.nr + '</text>';
-      h += '<text class="kw-buchstabe' + (loesung ? ' an' : '') + '" x="' + (z.c * f + f / 2) + '" y="' + (z.r * f + f * 0.74) + '" font-size="' + (f * 0.6).toFixed(1) + '" font-family="Andika, Arial, sans-serif" font-weight="700" text-anchor="middle">' + esc(z.b) + '</text>';
+      if (z.nr) h += '<text x="' + (z.c * f + 2.2) + '" y="' + (z.r * f + f * 0.3 + 1) + '" font-size="' + (f * 0.3).toFixed(1) + '" style="font-family:var(--blatt-schrift)" font-weight="600" fill="' + TINTE + '">' + z.nr + '</text>';
+      h += '<text class="kw-buchstabe' + (loesung ? ' an' : '') + '" x="' + (z.c * f + f / 2) + '" y="' + (z.r * f + f * 0.74) + '" font-size="' + (f * 0.6).toFixed(1) + '" style="font-family:var(--blatt-buchstaben)" font-weight="700" text-anchor="middle">' + esc(z.b) + '</text>';
     });
     return h + '</svg>';
   }

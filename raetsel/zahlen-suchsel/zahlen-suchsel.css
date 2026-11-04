@@ -86,7 +86,7 @@ details.optionen[open] summary{margin-bottom:6px}
 .anleitung{margin:0 0 16px;color:#554C45}
 .gitter-rahmen{display:flex;justify-content:center}
 svg.gitter{display:block;width:100%;height:auto;max-height:80vh;max-width:calc(var(--spalten, 30) * 44px);touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair}
-svg.gitter text{font-family:var(--font);font-weight:600;font-size:5.6px;fill:#1C1714;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+svg.gitter text{font-family:var(--blatt-schrift);font-weight:600;font-size:5.6px;fill:#1C1714;text-anchor:middle;dominant-baseline:central;pointer-events:none}
 svg.gitter .kapsel{opacity:.55}
 svg.gitter .ebene-loesung{display:none}
 .zeige-loesung svg.gitter .ebene-loesung{display:inline}

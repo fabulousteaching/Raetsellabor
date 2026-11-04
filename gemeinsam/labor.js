@@ -183,7 +183,7 @@ var Labor = (function(){
       '@media print{.leiste{display:none}.seite{max-width:none;padding:0;display:block}.neue-seite{break-before:page}}';
     return '<!DOCTYPE html>\n<html lang="de">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
       '<title>' + esc(titel) + '</title>\n' +
-      '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@500;600&family=Inter:wght@400;500;600;700&display=swap">\n' +
+      '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@500;600&family=Inter:wght@400;500;600;700&display=swap">\n' + schriftLinkHtml() +
       '<style>' + css + '</style>\n</head>\n<body>\n<div class="seite">\n' +
       '<div class="leiste"><button class="btn primary" onclick="window.print()">Drucken</button><span>Tipp: Im Druckdialog «Hintergrundgrafiken» einschalten, damit Farben mitgedruckt werden.</span></div>\n' +
       inhalt + '\n</div>\n</body>\n</html>\n';
@@ -192,10 +192,12 @@ var Labor = (function(){
      blattSchalterHtml() kommt in die Werkzeugleiste, blattSchalter() verbindet die Häkchen mit opt.titelAn und
      opt.anleitungAn (Standard: beide an) und ruft nachher() auf, damit der Generator das Blatt neu zeichnet. */
   function blattSchalterHtml(){
-    return '<label class="blatt-schalter"><input type="checkbox" data-blatt="titelAn"> Titel</label>' +
+    return schriftWahlHtml() + '<label class="blatt-schalter"><input type="checkbox" data-blatt="titelAn"> Titel</label>' +
       '<label class="blatt-schalter"><input type="checkbox" data-blatt="anleitungAn"> Arbeitsanweisung</label>';
   }
   function blattSchalter(bereich, opt, nachher){
+    schriftNachher = nachher; schriftBereich = bereich;
+    [].forEach.call(bereich.querySelectorAll('.schrift-wahl'), schriftFeld);
     [].forEach.call(bereich.querySelectorAll('input[data-blatt]'), function(c){
       var k = c.getAttribute('data-blatt');
       if (typeof opt[k] !== 'boolean') opt[k] = true;
@@ -203,6 +205,154 @@ var Labor = (function(){
       c.addEventListener('change', function(){ opt[k] = c.checked; if (nachher) nachher(); });
     });
   }
+  /* ---------- Schrift der Arbeitsblätter (in allen Generatoren gleich) ----------
+     Die Wahl gilt für alle Generatoren und bleibt gespeichert. Sie setzt drei CSS-Variablen, die die Blätter verwenden:
+     --blatt-schrift (Text, Standard Inter), --blatt-buchstaben (Rätselbuchstaben, Standard Andika), --blatt-display
+     (Zierschrift, Standard Fredoka). Schriften kommen von Google Fonts und werden erst geladen, wenn man sie braucht.
+     Im Suchfeld kann man auch eine beliebige andere Schrift von Google Fonts eintippen. */
+  var SCHRIFTEN = [
+    { id:'standard', name:'Standard', info:'Inter, Rätselbuchstaben in Andika' },
+    { id:'basisschrift', name:'Basisschrift', info:'schräge Schulschrift, ähnlich der Deutschschweizer Basisschrift', familie:'Playwrite DK Uloopet', gf:'Playwrite+DK+Uloopet:wght@100..400' },
+    { id:'grundschrift', name:'Grundschrift', info:'aufrechte Schulschrift, unverbunden', familie:'Playwrite DE Grund', gf:'Playwrite+DE+Grund:wght@100..400' },
+    { id:'andika', name:'Andika', info:'klar unterscheidbare Buchstaben, für Leseanfänger', familie:'Andika', gf:'Andika:wght@400;700' },
+    { id:'atkinson', name:'Atkinson Hyperlegible', info:'besonders gut lesbar, auch bei Sehschwäche', familie:'Atkinson Hyperlegible', gf:'Atkinson+Hyperlegible:wght@400;700' },
+    { id:'lexend', name:'Lexend', info:'ruhig und leicht zu lesen', familie:'Lexend', gf:'Lexend:wght@400;600;700' },
+    { id:'nunito', name:'Nunito', info:'rund und freundlich', familie:'Nunito', gf:'Nunito:wght@400;600;700' },
+    { id:'fredoka', name:'Fredoka', info:'rund und kräftig, für Titel', familie:'Fredoka', gf:'Fredoka:wght@400;500;600;700' },
+    { id:'comic', name:'Comic Neue', info:'verspielt, wie gezeichnet', familie:'Comic Neue', gf:'Comic+Neue:wght@400;700' },
+    { id:'patrick', name:'Patrick Hand', info:'wie von Hand geschrieben', familie:'Patrick Hand', gf:'Patrick+Hand' },
+    { id:'merriweather', name:'Merriweather', info:'mit Serifen, wie in einem Buch', familie:'Merriweather', gf:'Merriweather:wght@400;700' }
+  ];
+  var SCHRIFT_SPEICHER = 'labor-schrift';
+  var schriftGewaehlt = (function(){ try { return JSON.parse(localStorage.getItem(SCHRIFT_SPEICHER)) || null; } catch(e){ return null; } })();
+  var schriftNachher = null, schriftBereich = null, schriftZaehler = 0;
+  function gfName(f){ return encodeURIComponent(f.trim()).replace(/%20/g, '+'); }
+  function schriftStapel(f){ return "'" + String(f).replace(/['"\\;{}<>]/g, '') + "',Andika,system-ui,sans-serif"; }
+  function googleSchrift(f){ return { id:'google', name:f, info:'von Google Fonts', familie:f, gf:gfName(f) }; }
+  function aktuelleSchrift(){
+    var g = schriftGewaehlt;
+    if (g && g.id === 'google' && g.familie) return googleSchrift(g.familie);
+    return (g && SCHRIFTEN.filter(function(s){ return s.id === g.id; })[0]) || SCHRIFTEN[0];
+  }
+  var schriftLinks = {};
+  function schriftLink(s){
+    if (!s.gf) return Promise.resolve();
+    var href = 'https://fonts.googleapis.com/css2?family=' + s.gf + '&display=swap';
+    if (!schriftLinks[href]) schriftLinks[href] = new Promise(function(ok, fehler){
+      var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = href; l.setAttribute('data-blatt-schrift', s.familie);
+      l.onload = function(){ ok(); };
+      l.onerror = function(){ l.remove(); delete schriftLinks[href]; fehler(new Error('Schrift nicht gefunden')); };
+      document.head.appendChild(l);
+    });
+    return schriftLinks[href];
+  }
+  function schriftLaden(s){
+    return schriftLink(s).then(function(){
+      if (!s.familie || !document.fonts || !document.fonts.load) return;
+      var f = "'" + s.familie + "'";
+      return Promise.all([document.fonts.load('400 20px ' + f), document.fonts.load('700 20px ' + f)]).then(function(r){ if (!r[0].length && !r[1].length) throw new Error('Schrift nicht gefunden'); });
+    });
+  }
+  function schriftSetzen(s){
+    var r = document.documentElement.style;
+    ['--blatt-schrift', '--blatt-buchstaben', '--blatt-display'].forEach(function(k){ if (s.familie) r.setProperty(k, schriftStapel(s.familie)); else r.removeProperty(k); });
+  }
+  // Schrift für Messungen in Zeichenflächen (z. B. Canvas): 'buchstaben' (Standard Andika) oder 'text' (Standard Inter)
+  function blattSchrift(art){ var s = aktuelleSchrift(); return s.familie ? schriftStapel(s.familie) : art === 'text' ? "'Inter',system-ui,sans-serif" : "'Andika',Arial,sans-serif"; }
+  function schriftNeuZeichnen(){
+    [].forEach.call(document.querySelectorAll('.schrift-feld'), schriftAnzeigen);
+    if (schriftNachher && schriftBereich && schriftBereich.isConnected) { try { schriftNachher(); } catch(e){} }
+  }
+  function schriftWaehlen(s){
+    return schriftLaden(s).then(function(){
+      schriftGewaehlt = s.id === 'google' ? { id:'google', familie:s.familie } : { id:s.id };
+      try { localStorage.setItem(SCHRIFT_SPEICHER, JSON.stringify(schriftGewaehlt)); } catch(e){}
+      schriftSetzen(s); schriftNeuZeichnen();
+    });
+  }
+  // Beim Start: gewählte Schrift setzen und laden; danach das Blatt neu zeichnen (neu messen)
+  (function(){
+    var s = aktuelleSchrift(); schriftSetzen(s);
+    if (s.gf) schriftLaden(s).then(schriftNeuZeichnen, function(){ schriftSetzen(SCHRIFTEN[0]); schriftNeuZeichnen(); });
+  })();
+  function schriftWahlHtml(){
+    var id = 'schriftListe' + (++schriftZaehler);
+    return '<span class="schrift-wahl" title="Schrift auf dem Blatt – gilt für alle Generatoren"><span class="schrift-aa" aria-hidden="true">Aa</span>' +
+      '<input type="text" class="schrift-feld" role="combobox" aria-label="Schrift auf dem Blatt (suchen oder wählen)" aria-autocomplete="list" aria-expanded="false" aria-controls="' + id + '" autocomplete="off" spellcheck="false">' +
+      '<span class="schrift-pfeil" aria-hidden="true"></span><ul class="schrift-liste" id="' + id + '" role="listbox" aria-label="Schriften" hidden></ul>' +
+      '<span class="schrift-meldung" role="status" aria-live="polite" hidden></span></span>';
+  }
+  function schriftAnzeigen(feld){
+    if (feld === document.activeElement) return;
+    var s = aktuelleSchrift();
+    feld.value = s.name; feld.style.fontFamily = s.familie ? schriftStapel(s.familie) : '';
+  }
+  function suchText(t){ return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+  function grossAnfang(t){ return t.replace(/(^|\s)(\S)/g, function(_, a, b){ return a + b.toUpperCase(); }); }
+  var vorschauGeladen = false;
+  function schriftFeld(wrap){
+    if (wrap.getAttribute('data-bereit')) return;
+    wrap.setAttribute('data-bereit', '1');
+    var feld = wrap.querySelector('.schrift-feld'), liste = wrap.querySelector('.schrift-liste'), meldung = wrap.querySelector('.schrift-meldung');
+    var treffer = [], aktiv = -1, offen = false, getippt = false, meldungZeit = 0;
+    schriftAnzeigen(feld);
+    function melden(t){ meldung.textContent = t; meldung.hidden = false; clearTimeout(meldungZeit); meldungZeit = setTimeout(function(){ meldung.hidden = true; }, 4000); }
+    function bauen(){
+      var q = getippt ? feld.value.trim() : '', n = suchText(q), akt = aktuelleSchrift();   // vor dem Tippen: alle Schriften
+      treffer = SCHRIFTEN.filter(function(s){ return !n || suchText(s.name + ' ' + s.info + ' ' + (s.familie || '')).indexOf(n) >= 0; });
+      var genau = SCHRIFTEN.some(function(s){ return suchText(s.name) === n || suchText(s.familie) === n; });
+      if (n.length >= 3 && !genau){ var g = googleSchrift(q); g.suche = true; g.info = 'bei Google Fonts suchen und laden'; treffer.push(g); }
+      if (aktiv >= treffer.length) aktiv = treffer.length - 1;
+      liste.innerHTML = treffer.length ? treffer.map(function(s, i){
+        var gewaehlt = s.id === akt.id && (s.id !== 'google' || s.familie === akt.familie);
+        return '<li role="option" id="' + liste.id + '-' + i + '" data-i="' + i + '" aria-selected="' + (i === aktiv) + '"' + (gewaehlt ? ' class="gewaehlt"' : '') + '>' +
+          '<b' + (s.familie && !s.suche ? ' style="font-family:' + esc(schriftStapel(s.familie)) + '"' : '') + '>' + esc(s.suche ? '«' + s.name + '»' : s.name) + '</b>' +
+          '<small>' + esc(s.info) + '</small></li>';
+      }).join('') : '<li class="leer">Keine passende Schrift</li>';
+      feld.setAttribute('aria-activedescendant', aktiv >= 0 ? liste.id + '-' + aktiv : '');
+      var a = liste.querySelector('[aria-selected="true"]'); if (a && a.scrollIntoView) a.scrollIntoView({ block:'nearest' });
+    }
+    function oeffnen(){
+      if (!vorschauGeladen){ vorschauGeladen = true; SCHRIFTEN.forEach(function(s){ schriftLink(s).catch(function(){}); }); }
+      offen = true; getippt = false; liste.hidden = false; feld.setAttribute('aria-expanded', 'true');
+      var r = wrap.getBoundingClientRect(); wrap.classList.toggle('rechts', r.left + 300 > window.innerWidth);
+      bauen();
+    }
+    function schliessen(){ offen = false; liste.hidden = true; aktiv = -1; feld.setAttribute('aria-expanded', 'false'); feld.removeAttribute('aria-activedescendant'); }
+    function waehlen(s){
+      if (!s) return;
+      schliessen(); feld.blur();
+      if (s.suche){ feld.value = 'Wird geladen …'; feld.style.fontFamily = ''; }
+      var versuche = s.suche ? [s.familie, grossAnfang(s.familie)].filter(function(f, i, a){ return a.indexOf(f) === i; }) : [null];
+      (function versuch(k){
+        var x = versuche[k] === null ? s : googleSchrift(versuche[k]);
+        schriftWaehlen(x).then(function(){ schriftAnzeigen(feld); }, function(){
+          if (k + 1 < versuche.length) return versuch(k + 1);
+          schriftAnzeigen(feld); melden(s.suche ? '«' + s.familie + '» gibt es bei Google Fonts nicht. Schreibweise prüfen, z. B. «Open Sans».' : 'Die Schrift konnte nicht geladen werden. Bitte später nochmals versuchen.');
+        });
+      })(0);
+    }
+    feld.addEventListener('focus', function(){ feld.select(); oeffnen(); });
+    feld.addEventListener('click', function(){ if (!offen) oeffnen(); });
+    feld.addEventListener('input', function(){ if (!offen) oeffnen(); getippt = true; aktiv = 0; bauen(); });
+    feld.addEventListener('keydown', function(e){
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){
+        e.preventDefault(); if (!offen){ oeffnen(); }
+        aktiv = Math.max(0, Math.min(treffer.length - 1, aktiv + (e.key === 'ArrowDown' ? 1 : -1))); bauen();
+      } else if (e.key === 'Enter'){
+        e.preventDefault(); if (offen) waehlen(treffer[aktiv >= 0 ? aktiv : 0]);
+      } else if (e.key === 'Escape'){
+        if (offen){ e.preventDefault(); schliessen(); feld.blur(); schriftAnzeigen(feld); }
+      }
+    });
+    feld.addEventListener('blur', function(){ setTimeout(function(){ if (document.activeElement !== feld){ schliessen(); schriftAnzeigen(feld); } }, 120); });
+    liste.addEventListener('mousedown', function(e){ e.preventDefault(); });
+    liste.addEventListener('click', function(e){ var li = e.target.closest('li[data-i]'); if (li) waehlen(treffer[+li.getAttribute('data-i')]); });
+    wrap.querySelector('.schrift-pfeil').addEventListener('mousedown', function(e){ e.preventDefault(); if (offen){ schliessen(); feld.blur(); } else feld.focus(); });
+  }
+  // Link auf die gewählte Schrift (für gespeicherte Blätter)
+  function schriftLinkHtml(){ var s = aktuelleSchrift(); return s.gf ? '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=' + s.gf + '&display=swap">\n' : ''; }
+
   // Dateinamen-tauglicher Text
   function dateiname(t){ return String(t || '').trim().replace(/[^\p{L}\p{N} _-]+/gu, '').replace(/\s+/g, '-').slice(0, 40); }
 
@@ -222,30 +372,33 @@ var Labor = (function(){
     });
     return skripte[src];
   }
-  // Webschriften als data:-Adressen (für Text in SVG-Grafiken), einmal pro Seitenaufruf geholt
-  var schriften = null;
+  // Webschriften als data:-Adressen (für Text in SVG-Grafiken): alle Google-Fonts-Links der Seite (auch die gewählte
+  // Blattschrift), jeder einmal pro Seitenaufruf geholt
+  var cssAbrufe = {}, dateien = {};
   function schriftBloecke(){
-    if (schriften) return schriften;
-    var link = document.querySelector('link[href*="fonts.googleapis.com/css2"]');
-    if (!link || !window.fetch || !window.FileReader) return (schriften = Promise.resolve([]));
-    var dateien = {};
+    var links = [].slice.call(document.querySelectorAll('link[href*="fonts.googleapis.com/css2"]'));
+    if (!links.length || !window.fetch || !window.FileReader){ var leer = Promise.resolve([]); leer.alsDaten = alsDaten; return leer; }
     function alsDaten(url){
       if (!dateien[url]) dateien[url] = fetch(url).then(function(r){ if (!r.ok) throw new Error(r.status); return r.blob(); }).then(function(b){
         return new Promise(function(ok){ var f = new FileReader(); f.onload = function(){ ok(f.result); }; f.onerror = function(){ ok(''); }; f.readAsDataURL(b); });
       }).catch(function(){ return ''; });
       return dateien[url];
     }
-    schriften = fetch(link.href).then(function(r){ return r.text(); }).then(function(css){
+    function bloeckeAus(href){ if (!cssAbrufe[href]) cssAbrufe[href] = fetch(href).then(function(r){ return r.text(); }).then(function(css){
       var bloecke = [];
       css.replace(/\/\*\s*([\w-]+)\s*\*\/\s*(@font-face\s*\{[^}]*\})/g, function(_, teil, block){
-        if (teil !== 'latin' && teil !== 'latin-ext') return;
+        if (teil !== 'latin' && teil !== 'latin-ext' && teil !== 'fallback') return;   // «fallback»: Schriften in einer einzigen Datei (z. B. Playwrite)
         var fam = /font-family:\s*'?([^';]+)'?;/.exec(block), url = /url\((https:[^)]+)\)/.exec(block);
         if (fam && url) bloecke.push({ familie:fam[1].trim().toLowerCase(), css:block, url:url[1] });
       });
       return bloecke;
-    }).catch(function(){ return []; });
-    schriften.alsDaten = alsDaten;
-    return schriften;
+    }).catch(function(){ delete cssAbrufe[href]; return []; }); return cssAbrufe[href]; }
+    var alle = Promise.all(links.map(function(l){ return bloeckeAus(l.href); })).then(function(listen){
+      var gesehen = {};
+      return [].concat.apply([], listen).filter(function(b){ if (gesehen[b.url]) return false; gesehen[b.url] = true; return true; });
+    });
+    alle.alsDaten = alsDaten;
+    return alle;
   }
   function schriftCssFuer(familien){
     if (!familien.length) return Promise.resolve('');
@@ -388,5 +541,5 @@ var Labor = (function(){
 
   return { registriere:registriere, start:start, imArtefakt:imArtefakt, claude:claude, sammleCss:sammleCss, blattDatei:blattDatei, dateiname:dateiname, esc:esc,
     blattSchalterHtml:blattSchalterHtml, blattSchalter:blattSchalter, pdfHerunterladen:pdfHerunterladen, pdfKnopf:pdfKnopf, pdfName:pdfName,
-    bildHerunterladen:bildHerunterladen, bildKnopf:bildKnopf, bildKopieren:bildKopieren };
+    bildHerunterladen:bildHerunterladen, bildKnopf:bildKnopf, bildKopieren:bildKopieren, blattSchrift:blattSchrift };
 })();

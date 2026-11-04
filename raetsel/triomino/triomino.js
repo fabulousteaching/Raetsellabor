@@ -415,9 +415,9 @@ function starte(bereich){
 
   /* ---------- Zeichnen ----------
      Ein Teil hat die Seitenlänge S = 100. Jeder Text steht parallel zu seiner Kante, die Oberseite zur Mitte des Teils;
-     die Schriftgrösse passt sich der verfügbaren Länge an (gemessen mit Andika). */
+     die Schriftgrösse passt sich der verfügbaren Länge an (gemessen mit der Blattschrift, Standard Andika). */
   var S = 100, H = S * Kern.R3, messer = document.createElement('canvas').getContext('2d');
-  function breite(t, fett){ messer.font = (fett ? '700' : '400') + ' 100px Andika, Arial, sans-serif'; return messer.measureText(t).width / 100; }
+  function breite(t, fett){ messer.font = (fett ? '700' : '400') + ' 100px ' + Labor.blattSchrift('buchstaben'); return messer.measureText(t).width / 100; }
   function textInhalt(x){
     // → { b: Breite je Schriftgrösse 1, h: Zeilen, svg(fs) }
     if (x.bruch){
@@ -492,7 +492,7 @@ function starte(bereich){
     return '<svg class="tr-figur" viewBox="' + x0.toFixed(1) + ' ' + y0.toFixed(1) + ' ' + (x1 - x0).toFixed(1) + ' ' + (y1 - y0).toFixed(1) + '" role="img" aria-label="Triomino ' + esc(form().name) + (loesung ? ', Lösung' : '') + '">' +
       '<path d="' + ecken + '" fill="' + farbe + '"/>' +
       '<path d="' + linien + '" fill="none" stroke="' + TINTE + '" stroke-width="0.9" stroke-linejoin="round"/>' +
-      '<g font-family="Andika, Arial, sans-serif" fill="' + TINTE + '" text-anchor="middle">' + texte + '</g></svg>';
+      '<g style="font-family:var(--blatt-buchstaben)" fill="' + TINTE + '" text-anchor="middle">' + texte + '</g></svg>';
   }
   function titel(){ return st.titel.trim() || 'Triomino'; }
   function zeichnen(){

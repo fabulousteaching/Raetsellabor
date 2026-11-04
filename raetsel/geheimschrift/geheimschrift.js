@@ -233,7 +233,7 @@ function fmInnen(z){
 }
 function fmSvg(z, klasse){ return '<svg class="' + (klasse || 'gs-fm') + '" viewBox="0 0 100 100" aria-hidden="true">' + fmInnen(z) + '</svg>'; }
 // Freimaurer-Schlüssel: Gitter # mit 9 Buchstaben ab «ab» bzw. X mit 4 Buchstaben, im Feld 0…300
-function fmText(x, y, t){ return '<text x="' + x + '" y="' + (y + 16).toFixed(1) + '" font-family="Andika, Arial, sans-serif" font-weight="700" font-size="46" fill="' + TINTE + '" text-anchor="middle">' + t + '</text>'; }
+function fmText(x, y, t){ return '<text x="' + x + '" y="' + (y + 16).toFixed(1) + '" style="font-family:var(--blatt-buchstaben)" font-weight="700" font-size="46" fill="' + TINTE + '" text-anchor="middle">' + t + '</text>'; }
 function fmGitter(ab, punkt){
   var h = '<path d="M100 14V286M200 14V286M14 100H286M14 200H286" stroke="' + TINTE + '" stroke-width="7" stroke-linecap="round" fill="none"/>';
   for (var i = 0; i < 9; i++){
@@ -285,7 +285,7 @@ function vogelSvg(v, klasse){ return '<svg class="' + (klasse || 'gs-vogel') + '
 // Draht ohne Vogel (zwischen den Wörtern) bzw. mit einem stehenbleibenden Zeichen darüber
 function drahtSvg(text){
   return '<svg class="gs-vogel ' + (text ? 'gs-draht-zeichen' : 'gs-draht-luecke') + '" viewBox="0 0 ' + (text ? 60 : 70) + ' 100" aria-hidden="true">' + draht(-1, text ? 61 : 71) +
-    (text ? '<text x="30" y="66" font-family="Andika, Arial, sans-serif" font-size="40" fill="#6E655E" text-anchor="middle">' + esc(text) + '</text>' : '') + '</svg>';
+    (text ? '<text x="30" y="66" style="font-family:var(--blatt-buchstaben)" font-size="40" fill="#6E655E" text-anchor="middle">' + esc(text) + '</text>' : '') + '</svg>';
 }
 // Kreis-Code: Feld 0…100, Kreis mit Radius 38 um (50, 50)
 function kreisInnen(teile){
@@ -338,7 +338,7 @@ function segmentPlan(){
     t += '<text x="' + l[1] + '" y="' + l[2] + '" font-size="' + l[3] + '">' + l[0] + '</text>';
   });
   return '<svg class="gs-seg-plan" viewBox="-16 -16 132 192" role="img" aria-label="Die 14 Segmente mit ihren Namen">' + segmentInnen(SEG_NAMEN, '#E4572E') +
-    '<g font-family="Andika, Arial, sans-serif" font-weight="700" fill="' + TINTE + '" text-anchor="middle">' + t + '</g></svg>';
+    '<g style="font-family:var(--blatt-buchstaben)" font-weight="700" fill="' + TINTE + '" text-anchor="middle">' + t + '</g></svg>';
 }
 function segmentHtml(code){
   if (!code.ausmalen) return segmentSvg(code.segmente);
@@ -390,7 +390,7 @@ function caesarScheibe(){
     return h;
   }
   return '<svg class="gs-scheibe" viewBox="0 0 400 230" role="img" aria-label="Caesar-Scheibe zum Ausschneiden">' +
-    '<g font-family="Andika, Arial, sans-serif" font-weight="700" fill="' + TINTE + '" text-anchor="middle">' +
+    '<g style="font-family:var(--blatt-buchstaben)" font-weight="700" fill="' + TINTE + '" text-anchor="middle">' +
     scheibe(108, 100, 88, 74, 15, 'grosse Scheibe (aussen: Klartext)') + scheibe(300, 72, 61, 47, 13, 'kleine Scheibe (Geheimtext)') + '</g></svg>';
 }
 function schluesselHtml(art, o){

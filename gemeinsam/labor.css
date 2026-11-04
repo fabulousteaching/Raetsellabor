@@ -13,6 +13,8 @@
   --err:#c62828; --err-soft:#fdf1f1; --err-line:#f2c4c4;
   --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
   --display:'Fredoka','Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  /* Schrift der Arbeitsblätter – in der Werkzeugleiste jedes Generators wählbar (gemeinsam/labor.js setzt sie) */
+  --blatt-schrift:var(--font); --blatt-buchstaben:'Andika',var(--font); --blatt-display:var(--display);
   --schatten:0 1px 2px rgba(45,28,12,.05),0 6px 20px rgba(45,28,12,.05);
   --kopf-h:60px;
   color-scheme:light;
@@ -102,6 +104,30 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input[type=checkbox]:
 .btn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent-2)}
 .btn.sicher,.btn.sicher:hover{background:var(--err);border-color:var(--err);color:#fff}
 .btn:disabled{opacity:.6;cursor:progress}
+
+/* ---------- Schrift der Arbeitsblätter ---------- */
+.em-blatt,.gs-blatt,.kw-seite,.sl-blatt,.lb-blatt,.pz-blatt,.qr-blatt,.rb-blatt,.sb-blatt,.tr-blatt,.zs .blatt{font-family:var(--blatt-schrift)}
+/* Auswahl wie in Word: Feld mit der aktuellen Schrift, beim Tippen wird gesucht */
+.schrift-wahl{position:relative;display:inline-flex;align-items:center;width:200px;max-width:100%;height:32px;border:1px solid var(--line-2);border-radius:8px;background:var(--card);transition:border-color .15s,box-shadow .15s}
+.schrift-wahl:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.schrift-aa{flex:none;padding:0 2px 0 9px;font-family:Merriweather,Georgia,serif;font-size:.78rem;font-weight:700;color:var(--accent-2)}
+.schrift-wahl .schrift-feld{flex:1;min-width:0;width:auto;height:100%;border:0;border-radius:8px;background:transparent;padding:0 4px 0 6px;font-size:.9rem;color:var(--text);box-shadow:none;text-overflow:ellipsis}
+.schrift-wahl .schrift-feld:focus{outline:none;box-shadow:none}
+.schrift-pfeil{flex:none;width:26px;height:100%;cursor:pointer;background:no-repeat center/10px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%236E655E' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+.schrift-liste{position:absolute;top:calc(100% + 4px);left:-1px;z-index:40;width:300px;max-width:calc(100vw - 32px);max-height:min(360px,60vh);overflow:auto;margin:0;padding:5px;list-style:none;
+  background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px rgba(45,28,12,.16)}
+.schrift-wahl.rechts .schrift-liste{left:auto;right:-1px}
+.schrift-liste[hidden]{display:none}
+.schrift-liste li{display:grid;gap:1px;padding:7px 10px;border-radius:8px;cursor:pointer}
+.schrift-liste li b{font-size:1.1rem;font-weight:400;line-height:1.35;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.schrift-liste li small{font-size:.74rem;color:var(--muted);line-height:1.3}
+.schrift-liste li:hover,.schrift-liste li[aria-selected="true"]{background:var(--accent-soft)}
+.schrift-liste li.gewaehlt b::after{content:" ✓";font-family:var(--font);font-size:.85rem;color:var(--accent-2)}
+.schrift-liste li.leer{cursor:default;color:var(--muted);font-size:.86rem}
+.schrift-meldung{position:absolute;top:calc(100% + 4px);left:0;z-index:41;width:280px;max-width:calc(100vw - 32px);padding:8px 11px;border-radius:10px;background:#1C1714;color:#fff;font-size:.82rem;line-height:1.35;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.schrift-wahl.rechts .schrift-meldung{left:auto;right:0}
+.schrift-meldung[hidden]{display:none}
+@media (max-width:640px){ .schrift-wahl .schrift-feld{font-size:16px} }
 
 .meldung{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;box-shadow:var(--schatten);padding:12px 16px;margin-bottom:14px;font-size:.92rem}
 .meldung h3{font-size:1rem;font-weight:650;margin:0 0 4px}

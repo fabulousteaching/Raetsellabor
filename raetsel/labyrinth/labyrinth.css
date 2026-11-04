@@ -151,7 +151,7 @@ svg.lb-svg .lb-figur{font-size:11px;text-anchor:middle;dominant-baseline:central
 svg.sl-svg{display:block;width:100%;height:auto;max-height:74vh;touch-action:none;user-select:none;-webkit-user-select:none}
 #slBlatt svg.sl-svg{cursor:crosshair}
 svg.sl-svg .sl-waende{fill:none;stroke:#1C1714;stroke-linecap:square;stroke-linejoin:miter}
-svg.sl-svg .sl-buchstaben text{font-family:'Andika','Inter',system-ui,sans-serif;font-size:5.6px;fill:#1C1714;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+svg.sl-svg .sl-buchstaben text{font-family:var(--blatt-buchstaben);font-size:5.6px;fill:#1C1714;text-anchor:middle;dominant-baseline:central;pointer-events:none}
 svg.sl-svg .sl-pfeil{fill:none;stroke:var(--accent-dunkel,#E0741C);stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round}
 /* Weg wie mit Leuchtstift: breit und durchscheinend, die Buchstaben bleiben lesbar */
 svg.sl-svg .sl-loesung{fill:none;stroke:#F7A25D;stroke-width:6.4;stroke-linecap:round;stroke-linejoin:round;opacity:.55;-webkit-print-color-adjust:exact;print-color-adjust:exact}

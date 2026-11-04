@@ -106,7 +106,7 @@ svg.qr-raster.spiel{touch-action:none;user-select:none;-webkit-user-select:none;
 svg.qr-raster.fertig{max-width:min(100%, 360px)}
 svg.qr-raster .feld{fill:#fff;stroke:#C9BFB5;stroke-width:.35}
 svg.qr-raster .rahmen{stroke:#3D3530;stroke-width:.6}
-svg.qr-raster text{font-family:var(--font);text-anchor:middle;dominant-baseline:central;pointer-events:none;fill:#1C1714}
+svg.qr-raster text{font-family:var(--blatt-schrift);text-anchor:middle;dominant-baseline:central;pointer-events:none;fill:#1C1714}
 svg.qr-raster text.inhalt{font-weight:600}
 svg.qr-raster text.nr{font-size:3.4px;fill:#6E655E;font-weight:500}
 svg.qr-raster .kreis{fill:none;stroke:#1C1714;stroke-width:.9;pointer-events:none}
@@ -131,7 +131,7 @@ svg.qr-raster .ebene-gemalt path{fill:#1C1714;pointer-events:none}
 .qr-karten.pro-4 .qr-karte svg{max-width:220px}
 .qr-karten.pro-6 .qr-karte svg{max-width:180px}
 .qr-karten.pro-12 .qr-karte svg{max-width:140px}
-.qr-karte-titel{font-family:var(--display);font-weight:600;font-size:1.15rem;color:#1C1714;overflow-wrap:anywhere}
+.qr-karte-titel{font-family:var(--blatt-display);font-weight:600;font-size:1.15rem;color:#1C1714;overflow-wrap:anywhere}
 .qr-karten.pro-12 .qr-karte-titel{font-size:.95rem}
 .qr-karte-text{margin:0;font-size:.78rem;color:#554C45;overflow-wrap:anywhere;max-width:100%}
 .qr-bild{margin-top:2px}
