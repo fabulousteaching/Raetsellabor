@@ -1,7 +1,7 @@
 /* Rätsellabor – Generator «Geheimschriften»
-   Ein Text in einer von zehn Geheimschriften, jeweils mit dem passenden Schlüssel zum Entschlüsseln:
+   Ein Text in einer von elf Geheimschriften, jeweils mit dem passenden Schlüssel zum Entschlüsseln:
    Caesar-Verschiebung (mit Caesar-Scheibe zum Basteln), Rückwärts-Alphabet, Zahlen-Code, Handy-Tasten,
-   Koordinaten-Gitter (Polybios), Freimaurer-Code, Vögel auf dem Draht, Morse-Code, Blindenschrift (Braille) und Hieroglyphen.
+   Koordinaten-Gitter (Polybios), Freimaurer-Code, Vögel auf dem Draht, Kreis-Code, Morse-Code, Blindenschrift (Braille) und Hieroglyphen.
    Alte Links auf …/#freimaurer (früher ein eigener Generator) öffnen die Geheimschriften mit dem Freimaurer-Code.
    Herunterladen: Geheimtext (PDF, wahlweise mit Lösungsblatt und Schlüssel; oder als Bild) und der Schlüssel einzeln. */
 (function(){
@@ -57,6 +57,29 @@ var Kern = (function(){
   var VOEGEL = {}, HALTUNGEN = ['sitzend', 'fluegel', 'pickend', 'kueken'], SCHWAENZE = ['kurz', 'lang', 'schraeg'];
   HALTUNGEN.forEach(function(h, a){ [1, -1].forEach(function(blick, b){ SCHWAENZE.forEach(function(sw, c){ VOEGEL[ABC[a * 6 + b * 3 + c]] = [h, blick, sw]; }); }); });
   VOEGEL.Y = ['liegend', 1, 'lang']; VOEGEL.Z = ['liegend', -1, 'lang'];
+  /* Kreis-Code (Circles, Vorlage kryptografie.de): jedes Zeichen aus Bögen eines Kreises und Strecken.
+     ['b', von, bis]: Bogen im Uhrzeigersinn, Winkel in Grad (0 rechts, 90 unten, 180 links, 270 oben); ['k']: ganzer Kreis;
+     ['l', x1, y1, x2, y2]: Strecke, Kreis mit Radius 1 um (0, 0), y nach unten. Wie in der Vorlage sehen 5 und S gleich aus. */
+  var H = ['l', -1, 0, 1, 0], V = ['l', 0, -1, 0, 1], LUECKE_UNTEN = ['b', 100, 440], LUECKE_OBEN = ['b', 280, 620];
+  var KREISE = {
+    '0':[['k'], ['l', -0.04, 0.04, -0.5, 0.54]],
+    '1':[['b', 190, 270], ['b', 10, 170], V],
+    '2':[['b', 190, 270], V, ['b', 10, 90]],
+    '3':[['b', 190, 270], ['l', 0, -1, 0, 0], ['l', 0, 0, 1, 0], ['b', 0, 80]],
+    '4':[['b', 180, 270], V, H],
+    '5':[['b', 180, 260], H, ['b', 0, 80]],
+    '6':[['b', 0, 258], H],
+    '7':[['b', 190, 360], ['l', 1, 0, 0, 0], ['l', 0, 0, 0, 1]],
+    '8':[['b', 180, 270], V, H, ['b', 0, 90]],
+    '9':[['b', 180, 440], H],
+    A:[LUECKE_UNTEN, H], B:[['b', 0, 270], ['l', 0, 0, 1, 0], ['l', 0, 0, 0, -1]], C:[['b', 10, 350]], D:[['b', 190, 440]],
+    E:[['b', 10, 350], ['l', -1, 0, -0.15, 0]], F:[['b', 100, 350], ['l', -1, 0, -0.15, 0]], G:[['b', 0, 260], ['l', 0.16, 0, 1, 0]],
+    H:[['b', 280, 440], ['b', 100, 260], H], I:[['b', 10, 170], ['b', 190, 350], V], J:[['b', 280, 530]],
+    K:[['b', 180, 260], H, ['l', 0, 0, 0, 1]], L:[['b', 10, 260]], M:[LUECKE_UNTEN, ['l', 0, -1, 0, -0.15]], N:[LUECKE_UNTEN], O:[['k']],
+    P:[['b', 100, 360], H], Q:[['k'], ['l', 0, 0.15, 0, 1]], R:[['b', 100, 270], ['l', 0, -1, 0, 0], H, ['b', 0, 80]],
+    S:[['b', 180, 260], H, ['b', 0, 80]], T:[['b', 190, 350], V], U:[LUECKE_OBEN], V:[['b', 90, 260], ['l', 0, 1, 0, 0], ['l', 0, 0, 1, 0]],
+    W:[LUECKE_OBEN, ['l', 0, 0.15, 0, 1]], X:[H, V], Y:[['b', 180, 260], ['b', 280, 360], H, ['l', 0, 0, 0, 1]], Z:[['b', 280, 360], H, ['b', 100, 180]]
+  };
   // Text in Grossbuchstaben; Umlaute und ß bleiben (Morse, Blindenschrift) oder werden zu AE, OE, UE, SS
   function normal(text, umlaute){
     var t = String(text || '').replace(/ẞ/g, 'ß').replace(/ß/g, umlaute ? '' : 'SS').toUpperCase();
@@ -80,6 +103,7 @@ var Kern = (function(){
         return g < 0 ? null : { text:String(Math.floor(g / 5) + 1) + String(g % 5 + 1) };
       case 'freimaurer': return i < 0 ? null : { freimaurer:freimaurer(c) };
       case 'voegel': return i < 0 ? null : { vogel:VOEGEL[c] };
+      case 'kreise': return KREISE[c] ? { kreis:KREISE[c] } : null;
       case 'morse': return MORSE[c] ? { morse:MORSE[c] } : null;
       case 'braille':
         if (/[0-9]/.test(c)){ var m = BRAILLE[ZIFFER_BRAILLE[+c]]; return { braille:/[0-9]/.test(vorher || '') ? [m] : [ZAHLZEICHEN, m] }; }
@@ -99,7 +123,7 @@ var Kern = (function(){
     });
   }
   return { ABC:ABC, GITTER:GITTER, MORSE:MORSE, BRAILLE:BRAILLE, ZAHLZEICHEN:ZAHLZEICHEN, HANDY:HANDY, HIERO:HIERO, HIERO_NAME:HIERO_NAME,
-    normal:normal, zeichen:zeichen, zerlege:zerlege, freimaurer:freimaurer, VOEGEL:VOEGEL, UMLAUTE:UMLAUTE };
+    normal:normal, zeichen:zeichen, zerlege:zerlege, freimaurer:freimaurer, VOEGEL:VOEGEL, KREISE:KREISE, UMLAUTE:UMLAUTE };
 })();
 /* KERN-ENDE */
 
@@ -111,6 +135,7 @@ var SCHRIFTEN = [
   ['polybios', 'Koordinaten-Gitter', 'Zeile und Spalte im Gitter: B = 12'],
   ['freimaurer', 'Freimaurer-Code', 'Stücke von Gittern, manche mit Punkt'],
   ['voegel', 'Vögel auf dem Draht', 'Jeder Vogel sitzt anders (Birds on a Wire)'],
+  ['kreise', 'Kreis-Code', 'Bögen und Striche im Kreis (Circles)'],
   ['morse', 'Morse-Code', 'Punkte und Striche'],
   ['braille', 'Blindenschrift', 'Punkte zum Ertasten (Braille)'],
   ['hieroglyphen', 'Hieroglyphen', 'Bildzeichen aus dem alten Ägypten']
@@ -234,7 +259,20 @@ function drahtSvg(text){
   return '<svg class="gs-vogel ' + (text ? 'gs-draht-zeichen' : 'gs-draht-luecke') + '" viewBox="0 0 ' + (text ? 60 : 70) + ' 100" aria-hidden="true">' + draht(-1, text ? 61 : 71) +
     (text ? '<text x="30" y="66" font-family="Andika, Arial, sans-serif" font-size="40" fill="#6E655E" text-anchor="middle">' + esc(text) + '</text>' : '') + '</svg>';
 }
+// Kreis-Code: Feld 0…100, Kreis mit Radius 38 um (50, 50)
+function kreisInnen(teile){
+  var R = 38, h = '';
+  function p(w){ var a = w * Math.PI / 180; return (50 + R * Math.cos(a)).toFixed(2) + ' ' + (50 + R * Math.sin(a)).toFixed(2); }
+  teile.forEach(function(t){
+    if (t[0] === 'k' || (t[0] === 'b' && t[2] - t[1] >= 360)) h += '<circle cx="50" cy="50" r="' + R + '" fill="none"/>';
+    else if (t[0] === 'b') h += '<path d="M' + p(t[1]) + 'A' + R + ' ' + R + ' 0 ' + (t[2] - t[1] > 180 ? 1 : 0) + ' 1 ' + p(t[2]) + '" fill="none" stroke-linecap="butt"/>';
+    else h += '<path d="M' + (50 + R * t[1]).toFixed(2) + ' ' + (50 + R * t[2]).toFixed(2) + 'L' + (50 + R * t[3]).toFixed(2) + ' ' + (50 + R * t[4]).toFixed(2) + '" stroke-linecap="square"/>';
+  });
+  return '<g stroke="' + TINTE + '" stroke-width="7.6">' + h + '</g>';
+}
+function kreisSvg(teile, klasse){ return '<svg class="' + (klasse || 'gs-kreis') + '" viewBox="0 0 100 100" aria-hidden="true">' + kreisInnen(teile) + '</svg>'; }
 function symbolHtml(code){
+  if (code.kreis) return kreisSvg(code.kreis);
   if (code.vogel) return vogelSvg(code.vogel);
   if (code.text !== undefined) return '<span class="gs-t">' + esc(code.text) + '</span>';
   if (code.freimaurer) return fmSvg(code.freimaurer);
@@ -304,6 +342,10 @@ function schluesselHtml(art, o){
     case 'voegel':
       return '<p class="gs-erklaerung">Jeder Buchstabe ist ein Vogel auf dem Draht – achte darauf, wohin er schaut, wie sein Schwanz hängt (kurz, lang oder schräg) und was er tut: sitzen (A–F), mit den Flügeln schlagen (G–L), picken (M–R), als Küken sitzen (S–X) oder liegen (Y, Z).</p>' +
         tabelle(A.map(function(c){ return [c, vogelSvg(Kern.VOEGEL[c], 'gs-vogel-k')]; }), 'gs-tab-voegel');
+    case 'kreise':
+      return '<p class="gs-erklaerung">Jeder Buchstabe besteht aus Bögen eines Kreises und geraden Strichen. Achte darauf, wo der Kreis offen ist und wo die Striche liegen. Achtung: 5 und S sehen gleich aus.</p>' +
+        tabelle(A.map(function(c){ return [c, kreisSvg(Kern.KREISE[c], 'gs-kreis-k')]; }), 'gs-tab-kreise') +
+        '<h3 class="gs-unter">Ziffern</h3>' + tabelle('0123456789'.split('').map(function(c){ return [c, kreisSvg(Kern.KREISE[c], 'gs-kreis-k')]; }), 'gs-tab-kreise');
     case 'morse':
       return '<p class="gs-erklaerung">Jeder Buchstabe besteht aus kurzen (Punkt) und langen (Strich) Zeichen.</p>' +
         tabelle(A.concat(['Ä', 'Ö', 'Ü', 'ß']).map(function(c){ return [c, morseSvg(Kern.MORSE[c], 'gs-morse-k')]; }), 'gs-tab-morse') +
@@ -386,9 +428,9 @@ var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke
 Labor.registriere({
   id:'geheimschrift',
   titel:'Geheimschriften',
-  kurz:'Caesar, Freimaurer, Vögel, Morse, Blindenschrift, Hieroglyphen und mehr',
-  beschreibung:'Ein eigener Text in einer von zehn Geheimschriften – Caesar-Verschiebung, Rückwärts-Alphabet, Zahlen, Handy-Tasten, Koordinaten, Freimaurer-Code, Vögel auf dem Draht, Morse, Blindenschrift oder Hieroglyphen. Mit Schlüssel zum Entschlüsseln.',
-  merkmale:['Zehn Geheimschriften', 'Schlüssel einzeln als PDF oder Bild', 'Mit Lösungsblatt'],
+  kurz:'Caesar, Freimaurer, Vögel, Kreise, Morse, Blindenschrift, Hieroglyphen und mehr',
+  beschreibung:'Ein eigener Text in einer von elf Geheimschriften – Caesar-Verschiebung, Rückwärts-Alphabet, Zahlen, Handy-Tasten, Koordinaten, Freimaurer-Code, Vögel auf dem Draht, Kreis-Code, Morse, Blindenschrift oder Hieroglyphen. Mit Schlüssel zum Entschlüsseln.',
+  merkmale:['Elf Geheimschriften', 'Schlüssel einzeln als PDF oder Bild', 'Mit Lösungsblatt'],
   symbol:SYMBOL,
   css:'raetsel/geheimschrift/geheimschrift.css',
   html:VORLAGE,

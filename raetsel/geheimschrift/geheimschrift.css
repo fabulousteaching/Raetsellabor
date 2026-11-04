@@ -129,6 +129,9 @@
 .gs-vogel-k{height:56px;width:56px;display:block}
 .gs-vorschau .gs-vogel{height:24px}
 .gs-vorschau.gs-v-voegel{gap:0}
+.gs-kreis{height:calc(var(--fm) * .92);width:auto;aspect-ratio:1;display:block}
+.gs-kreis-k{height:40px;width:40px;display:block}
+.gs-vorschau .gs-kreis{height:20px}
 .gs-fm-k{height:38px;width:38px;display:block}
 .gs-fm-schluessel{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(10px,2.4vw,24px);margin:4px 0 22px}
 .gs-fm-schluessel svg{display:block;width:100%;height:auto;aspect-ratio:1}
