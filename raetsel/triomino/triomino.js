@@ -162,13 +162,18 @@ var Kern = (function(){
 
   /* ---------- Wortpaare (Englisch, Französisch, eigene) ----------
      Eine Zeile pro Paar, getrennt durch Tabulator, «;», «=», «:» oder « - ». Doppelte Wörter zählen nur einmal. */
-  function wortpaare(text){
+  // Eine Zeile Text → [a, b] (b leer, wenn kein Trennzeichen da ist)
+  function teilen(z){
+    z = String(z || '').trim();
+    var m = /\s*(?:\t|;|=|:|\s[-–—]\s)\s*/.exec(z);
+    return m ? [z.slice(0, m.index).trim(), z.slice(m.index + m[0].length).trim()] : [z, ''];
+  }
+  // Liste [[a, b], …] → Paare; unvollständige Zeilen und doppelte Wörter werden gezählt, aber nicht verwendet
+  function paareListe(liste){
     var paare = [], ohne = 0, doppelt = 0, gesehen = {};
-    String(text || '').split(/\r?\n/).forEach(function(z){
-      z = z.trim(); if (!z) return;
-      var m = /\s*(?:\t|;|=|:|\s[-–—]\s)\s*/.exec(z);
-      if (!m){ ohne++; return; }
-      var a = z.slice(0, m.index).trim(), b = z.slice(m.index + m[0].length).trim();
+    liste.forEach(function(x){
+      var a = String(x[0] || '').trim(), b = String(x[1] || '').trim();
+      if (!a && !b) return;
       if (!a || !b){ ohne++; return; }
       var ka = 'a' + a.toLowerCase(), kb = 'b' + b.toLowerCase();
       if (gesehen[ka] || gesehen[kb]){ doppelt++; return; }
@@ -177,6 +182,7 @@ var Kern = (function(){
     });
     return { paare:paare, ohne:ohne, doppelt:doppelt };
   }
+  function wortpaare(text){ return paareListe(String(text || '').split(/\r?\n/).filter(function(z){ return z.trim(); }).map(teilen)); }
 
   /* ---------- Triomino bauen ----------
      → { tris, inhalt[t][k], plaetze: [{ teil, dreh }] (Schnittbogen), paare, aussen } */
@@ -197,7 +203,7 @@ var Kern = (function(){
   }
 
   return { FORMEN:FORMEN, R3:R3, zufall:zufall, dreiecke:dreiecke, kanten:kanten, punkt:punkt, auswahl:auswahl,
-    rechnen:rechnen, dezimalbrueche:dezimalbrueche, stellenwerte:stellenwerte, brueche:brueche, bruchWort:bruchWort, wortpaare:wortpaare, belegen:belegen };
+    rechnen:rechnen, dezimalbrueche:dezimalbrueche, stellenwerte:stellenwerte, brueche:brueche, bruchWort:bruchWort, teilen:teilen, paareListe:paareListe, wortpaare:wortpaare, belegen:belegen };
 })();
 /* KERN-ENDE */
 
@@ -254,9 +260,10 @@ var VORLAGE = '<div class="tr">' +
       '</div>' +
       '</div>' +
       '<div class="tr-teil" data-art="englisch franzoesisch eigene">' +
-        '<label class="feld-label" for="trWoerter" id="trWoerterLabel"></label>' +
-        '<textarea id="trWoerter" rows="9" autocomplete="off" spellcheck="false"></textarea>' +
+        '<div class="tr-zeilen-kopf" aria-hidden="true"><span id="trKopfA"></span><span id="trKopfB"></span></div>' +
+        '<div class="tr-zeilen" id="trZeilen" role="list" aria-label="Wortpaare"></div>' +
         '<p class="hinweis" id="trWoerterHilfe"></p>' +
+        '<p class="tr-ue-meldung" id="trUeMeldung" aria-live="polite" hidden></p>' +
         '<div class="tr-zaehler" id="trZaehler" aria-live="polite"></div>' +
       '</div>' +
     '</div>' +
@@ -311,12 +318,22 @@ function starte(bereich){
   var TAB = 'triomino-eingaben', OPT = 'triomino-einstellungen';
   var STANDARD = { form:'stern', art:'rechnen', matheArt:'rechnen', ops:['plus', 'minus'], zr:'100', dez:'2', stellen:'dezimal', bruch:'10', sep:'.', rand:'leer', farbe:'#F28C38',
     mitLoesung:true, titelAn:true, anleitungAn:true };
-  var st = { titel:'', woerter:{ englisch:'', franzoesisch:'', eigene:'' }, seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
+  // zeilen[art]: [{ a, b, auto }] – auto: welche Seite automatisch übersetzt wurde ('a', 'b' oder '')
+  var st = { titel:'', zeilen:{ englisch:[], franzoesisch:[], eigene:[] }, seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
-  try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.titel = String(e.titel || ''); Object.assign(st.woerter, e.woerter || {}); st.seed = +e.seed || st.seed; } } catch(x){}
+  try {
+    var e = JSON.parse(sessionStorage.getItem(TAB));
+    if (e){
+      st.titel = String(e.titel || ''); st.seed = +e.seed || st.seed;
+      Object.keys(st.zeilen).forEach(function(k){
+        if (e.zeilen && Array.isArray(e.zeilen[k])) st.zeilen[k] = e.zeilen[k].map(function(z){ return { a:String(z.a || ''), b:String(z.b || ''), auto:z.auto === 'a' || z.auto === 'b' ? z.auto : '' }; });
+        else if (e.woerter && e.woerter[k]) st.zeilen[k] = String(e.woerter[k]).split(/\r?\n/).filter(function(z){ return z.trim(); }).map(function(z){ var t = Kern.teilen(z); return { a:t[0], b:t[1], auto:'' }; });   // früher: Textfeld
+      });
+    }
+  } catch(x){}
   var timer = 0;
   function speichernJetzt(){ clearTimeout(timer); timer = 0;
-    try { sessionStorage.setItem(TAB, JSON.stringify({ titel:st.titel, woerter:st.woerter, seed:st.seed })); } catch(x){}
+    try { sessionStorage.setItem(TAB, JSON.stringify({ titel:st.titel, zeilen:st.zeilen, seed:st.seed })); } catch(x){}
     try { localStorage.setItem(OPT, JSON.stringify(st.opt)); } catch(x){} }
   function speichern(){ clearTimeout(timer); timer = setTimeout(speichernJetzt, 200); }
   function meldung(art, html){ $('#trMeldung').innerHTML = html ? '<div class="meldung ' + art + '">' + html + '</div>' : ''; }
@@ -352,7 +369,6 @@ function starte(bereich){
   });
   $('#trTitel').value = st.titel;
   $('#trTitel').addEventListener('input', function(){ st.titel = this.value; speichern(); zeichnen(); });
-  $('#trWoerter').addEventListener('input', function(){ st.woerter[st.opt.art] = this.value; speichern(); baldErzeugen(); });
   $('#trMitLoesung').checked = st.opt.mitLoesung;
   $('#trMitLoesung').addEventListener('change', function(){ st.opt.mitLoesung = this.checked; speichern(); });
   Labor.blattSchalter(bereich, st.opt, function(){ speichern(); zeichnen(); });
@@ -362,10 +378,187 @@ function starte(bereich){
     [].forEach.call(bereich.querySelectorAll('.tr-teil, .tr-unter'), function(d){ d.hidden = d.dataset.art.split(' ').indexOf(st.opt.art) < 0; });
     if (sprache()){
       var s = SPRACHE[st.opt.art];
-      $('#trWoerterLabel').textContent = s[0] + ' = ' + s[1] + ' (ein Paar pro Zeile)';
-      $('#trWoerterHilfe').innerHTML = 'Zum Beispiel <code>' + esc(s[2]) + '</code> – getrennt durch «=», «;», einen Tabulator oder « - ». Aus Excel oder Word kopierte Tabellen mit zwei Spalten gehen auch.';
-      $('#trWoerter').value = st.woerter[st.opt.art] || '';
+      $('#trKopfA').textContent = s[0]; $('#trKopfB').textContent = s[1];
+      zeilenZeigen(); hilfeZeigen(); ueMelden('');
     }
+  }
+
+  /* ---------- Wortpaare: Zeilen mit zwei Feldern ----------
+     Unten steht immer eine leere Zeile; sobald man hineinschreibt, kommt eine neue dazu. Eingabetaste: links → rechts →
+     nächste Zeile. Eine eingefügte Liste (z. B. aus Excel oder Word) wird auf Zeilen verteilt.
+     Englisch und Französisch: Ist nur ein Feld ausgefüllt, kommt die Übersetzung automatisch ins andere (orange
+     hinterlegt, bis man sie ändert) – auf der Website über api/uebersetzen.php, im Claude-Artefakt über Claude. */
+  var zeilenEl = $('#trZeilen');
+  function zeilen(){ return st.zeilen[st.opt.art] || (st.zeilen[st.opt.art] = []); }
+  function paare(){ return Kern.paareListe(zeilen().map(function(z){ return [z.a, z.b]; })); }
+  function zeileHtml(z, i){
+    var s = SPRACHE[st.opt.art] || ['', ''];
+    function feld(seite, wert, name){
+      var auto = z.auto === seite, laedt = z.laedt === seite;
+      return '<input type="text" class="tr-' + seite + (auto ? ' tr-auto' : '') + (laedt ? ' tr-laedt' : '') + '" value="' + esc(wert) + '" maxlength="60" autocomplete="off" spellcheck="false"' +
+        ' aria-label="' + esc(name) + ' ' + (i + 1) + '"' + (auto ? ' title="Automatisch übersetzt – bitte prüfen"' : '') + (laedt ? ' aria-busy="true"' : '') + '>';
+    }
+    return '<div class="tr-zeile" role="listitem">' + feld('a', z.a, s[0]) + feld('b', z.b, s[1]) +
+      '<button type="button" class="tr-x" aria-label="Zeile ' + (i + 1) + ' löschen" title="Zeile löschen">×</button></div>';
+  }
+  function zeilenZeigen(fokus){
+    var l = zeilen();
+    while (l.length && !l[l.length - 1].a && !l[l.length - 1].b && !l[l.length - 1].laedt) l.pop();
+    zeilenEl.innerHTML = l.concat([{ a:'', b:'', auto:'' }]).map(zeileHtml).join('');
+    zeilenEl.lastChild.classList.add('tr-neu');
+    if (fokus){ var f = zeilenEl.children[fokus[0]]; if (f) f.querySelector(fokus[1] ? '.tr-b' : '.tr-a').focus(); }
+  }
+  // eine Zeile im Bildschirm nachführen, ohne den Fokus zu verlieren
+  function zeileAuffrischen(i){
+    var el = zeilenEl.children[i], z = zeilen()[i]; if (!el || !z) return;
+    ['a', 'b'].forEach(function(seite){
+      var f = el.querySelector('.tr-' + seite);
+      if (f.value !== z[seite]) f.value = z[seite];
+      f.classList.toggle('tr-auto', z.auto === seite); f.classList.toggle('tr-laedt', z.laedt === seite);
+      if (z.auto === seite) f.title = 'Automatisch übersetzt – bitte prüfen'; else f.removeAttribute('title');
+      if (z.laedt === seite) f.setAttribute('aria-busy', 'true'); else f.removeAttribute('aria-busy');
+    });
+  }
+  function index(el){ return [].indexOf.call(zeilenEl.children, el.closest('.tr-zeile')); }
+  zeilenEl.addEventListener('input', function(ev){
+    var el = ev.target.closest('.tr-zeile'), i = index(ev.target); if (!el) return;
+    var l = zeilen(), z = l[i] || (l[i] = { a:'', b:'', auto:'' }), seite = ev.target.classList.contains('tr-a') ? 'a' : 'b';
+    z[seite] = ev.target.value;
+    if (z.auto === seite){ z.auto = ''; ev.target.classList.remove('tr-auto'); ev.target.removeAttribute('title'); }   // selbst geändert: gilt als eigene Eingabe
+    if (z.laedt === seite){ z.laedt = ''; zeileAuffrischen(i); }
+    if (el.classList.contains('tr-neu') && (z.a || z.b)){   // unterste Zeile benutzt: neue leere Zeile darunter
+      el.classList.remove('tr-neu');
+      zeilenEl.insertAdjacentHTML('beforeend', zeileHtml({ a:'', b:'', auto:'' }, i + 1)); zeilenEl.lastChild.classList.add('tr-neu');
+    }
+    speichern(); baldErzeugen();
+  });
+  // Feld verlassen (nach einer Änderung): fehlt die andere Seite, übersetzen
+  zeilenEl.addEventListener('change', function(ev){
+    var i = index(ev.target); if (i < 0) return;
+    uebersetzen(i, ev.target.classList.contains('tr-a') ? 'a' : 'b');
+  });
+  zeilenEl.addEventListener('click', function(ev){
+    var k = ev.target.closest('.tr-x'); if (!k) return;
+    var i = index(k), l = zeilen();
+    if (i < l.length){ l.splice(i, 1); zeilenZeigen([Math.min(i, l.length), 0]); speichern(); baldErzeugen(); }
+  });
+  zeilenEl.addEventListener('keydown', function(ev){
+    if (ev.key !== 'Enter') return;
+    ev.preventDefault();
+    var i = index(ev.target), el = zeilenEl.children[i];
+    if (ev.target.classList.contains('tr-a')) el.querySelector('.tr-b').focus();
+    else if (zeilenEl.children[i + 1]) zeilenEl.children[i + 1].querySelector('.tr-a').focus();
+  });
+  zeilenEl.addEventListener('paste', function(ev){
+    var t = ev.clipboardData && ev.clipboardData.getData('text');
+    if (!t || !/[\r\n\t]/.test(t.trim())) return;   // einzelnes Wort: normal einfügen
+    ev.preventDefault();
+    var neu = t.split(/\r?\n/).filter(function(z){ return z.trim(); }).map(function(z){ var x = Kern.teilen(z); return { a:x[0], b:x[1], auto:'' }; });
+    if (!neu.length) return;
+    var l = zeilen(), i = index(ev.target), hier = l[i], leer = !hier || (!hier.a && !hier.b);
+    l.splice.apply(l, [i, leer ? 1 : 0].concat(neu));
+    zeilenZeigen([i + neu.length, 0]); speichern(); baldErzeugen();
+    neu.forEach(function(z, k){ if (!z.b) uebersetzen(i + k, 'a'); else if (!z.a) uebersetzen(i + k, 'b'); });
+  });
+
+  /* ---------- Automatisch übersetzen ---------- */
+  var UE_SERVER = 'api/uebersetzen.php', ueWeg = null, ueTimer = 0, ueOffen = {}, ueSperre = 0;
+  function ueBereit(){   // → { art:'server' } | { art:'claude', ki } | null
+    if (ueWeg) return ueWeg;
+    if (Labor.imArtefakt()) return (ueWeg = Labor.claude('sample').then(function(ki){ return ki ? { art:'claude', ki:ki } : null; }));
+    if (!/^https?:$/.test(location.protocol) || !window.fetch) return (ueWeg = Promise.resolve(null));
+    ueWeg = fetch(UE_SERVER, { cache:'no-store' }).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){ return j && j.bereit ? { art:'server' } : null; }, function(){ return null; });
+    return ueWeg;
+  }
+  function hilfeZeigen(){
+    var s = SPRACHE[st.opt.art], h = $('#trWoerterHilfe');
+    var liste = ' Eine Liste mit zwei Spalten (aus Excel oder Word, oder Zeilen wie «' + esc(s[2]) + '») lässt sich auf einmal einfügen.';
+    if (st.opt.art === 'eigene'){ h.innerHTML = 'Links der Begriff, rechts das Gegenstück – zum Beispiel «Hauptstadt der Schweiz» und «Bern».' + liste; return; }
+    h.innerHTML = 'Schreib ein Wort auf Deutsch oder ' + esc(s[1]) + ' – die Übersetzung erscheint im anderen Feld.' + liste;
+    var art = st.opt.art;
+    ueBereit().then(function(w){
+      if (aus || st.opt.art !== art) return;
+      if (w) h.innerHTML = 'Schreib ein Wort auf Deutsch oder ' + esc(s[1]) + ' – die Übersetzung erscheint automatisch im anderen Feld (<span class="tr-auto-muster">orange hinterlegt</span>: bitte prüfen; einfach überschreiben, wenn sie nicht passt).' + liste;
+      else h.innerHTML = 'Beide Felder selbst ausfüllen. (Die automatische Übersetzung gibt es auf raetsellabor.fabulousteaching.ch.)' + liste;
+    });
+  }
+  function ueMelden(t){ var m = $('#trUeMeldung'); m.textContent = t; m.hidden = !t; }
+  function uebersetzen(i, seite){
+    var art = st.opt.art, z = zeilen()[i];
+    if (!SPRACHE[art] || art === 'eigene' || !z) return;
+    var ziel = seite === 'a' ? 'b' : 'a', wort = z[seite].trim();
+    if (!wort || (z[ziel].trim() && z.auto !== ziel)) return;   // nichts zu tun: leer, oder die andere Seite ist eine eigene Eingabe
+    if (Date.now() < ueSperre) return;
+    ueBereit().then(function(w){
+      if (!w || aus) return;
+      z.laedt = ziel; zeileAuffrischen(zeilen().indexOf(z));
+      var schl = art + '|' + (seite === 'a' ? 'hin' : 'zurueck');
+      (ueOffen[schl] = ueOffen[schl] || {})[wort] = true;
+      clearTimeout(ueTimer); ueTimer = setTimeout(function(){ ueSenden(w); }, 350);
+    });
+  }
+  function ueSenden(w){
+    var auftraege = ueOffen; ueOffen = {};
+    Object.keys(auftraege).forEach(function(schl){
+      var teile = schl.split('|'), art = teile[0], richtung = teile[1], woerter = Object.keys(auftraege[schl]).slice(0, 40);
+      var von = richtung === 'hin' ? 'a' : 'b', ziel = richtung === 'hin' ? 'b' : 'a';
+      (w.art === 'server' ? ueServer(art, richtung, woerter) : ueClaude(w.ki, art, richtung, woerter)).then(function(ergebnis){
+        ueMelden('');
+        eintragen(art, von, ziel, woerter, ergebnis);
+      }, function(e){
+        var c = e && e.code;
+        ueMelden(c === 'zuViele' || c === 'rate_limited' ? 'Gerade zu viele Übersetzungen – bitte in einer Minute nochmals versuchen (Feld anklicken und wieder verlassen).'
+          : c === 'cancelled' ? '' : 'Die Übersetzung hat gerade nicht geklappt. Bitte das andere Feld selbst ausfüllen oder es später nochmals versuchen.');
+        if (c === 'zuViele' || c === 'rate_limited') ueSperre = Date.now() + 60000;
+        eintragen(art, von, ziel, woerter, {});
+      });
+    });
+  }
+  // Ergebnis in die Zeilen eintragen, die noch auf genau dieses Wort warten
+  function eintragen(art, von, ziel, woerter, ergebnis){
+    if (aus) return;
+    (st.zeilen[art] || []).forEach(function(z, i){
+      if (z.laedt !== ziel || woerter.indexOf(z[von].trim()) < 0) return;
+      z.laedt = '';
+      var t = ergebnis[z[von].trim()];
+      if (t && (!z[ziel].trim() || z.auto === ziel)){ z[ziel] = t; z.auto = ziel; }
+      if (art === st.opt.art) zeileAuffrischen(i);
+    });
+    speichern(); if (art === st.opt.art) baldErzeugen();
+  }
+  function ueFehler(code){ var e = new Error(code); e.code = code; return e; }
+  function ueServer(art, richtung, woerter){
+    var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, uhr = setTimeout(function(){ if (ctl) ctl.abort(); }, 40000);
+    return fetch(UE_SERVER, { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ sprache:art, richtung:richtung, woerter:woerter }),
+      signal:ctl ? ctl.signal : undefined }).then(function(r){
+      clearTimeout(uhr);
+      return r.json().catch(function(){ return {}; }).then(function(j){
+        if (r.ok && j && j.uebersetzungen && typeof j.uebersetzungen === 'object') return j.uebersetzungen;
+        throw ueFehler((j && j.fehler) || (r.status === 429 ? 'zuViele' : 'ki'));
+      });
+    }, function(){ clearTimeout(uhr); throw ueFehler('netz'); });
+  }
+  function ueClaude(ki, art, richtung, woerter){
+    var fremd = art === 'englisch' ? 'Englisch (britisches Englisch)' : 'Französisch', von = richtung === 'hin' ? 'Deutsch' : fremd, nach = richtung === 'hin' ? fremd : 'Deutsch';
+    var regeln = ['Nimm die gebräuchlichste Übersetzung, wie sie in einem Schulwörterbuch für Kinder steht; bei mehreren Bedeutungen die häufigste.',
+      'Gleiche Form wie das Original: Nomen bleiben Nomen (Einzahl oder Mehrzahl wie im Original), Verben und Adjektive in der Grundform; Ausdrücke als Ganzes übersetzen.',
+      'Hat das Original einen Artikel, übersetze mit Artikel; sonst ohne.'];
+    if (nach === 'Französisch') regeln.push("Französische Nomen immer mit bestimmtem Artikel (le, la, l', les).");
+    if (nach === 'Deutsch') regeln.push('Deutsche Nomen mit grossem Anfangsbuchstaben; Schweizer Rechtschreibung: ss statt ß.');
+    if (art === 'englisch' && richtung === 'hin') regeln.push('Englische Verben ohne «to».');
+    var auftrag = 'Du bist ein zuverlässiges Wörterbuch für den Sprachunterricht an Schweizer Schulen (Kinder von 8 bis 14 Jahren).\n' +
+      'Übersetze jedes dieser Wörter von ' + von + ' nach ' + nach + '.\nRegeln:\n- ' + regeln.join('\n- ') + '\nWörter (JSON-Liste): ' + JSON.stringify(woerter) + '\n' +
+      'Antworte nur mit JSON in dieser Form: {"uebersetzungen": [{"von": "…", "nach": "…"}]} – für jedes Wort genau einen Eintrag, «von» genau wie in der Liste.';
+    return ki.json(auftrag, { modelTier:'quick' }).then(function(d){
+      var ergebnis = {}, liste = d && (d.uebersetzungen || d);
+      (Array.isArray(liste) ? liste : []).forEach(function(x){
+        var v = x && String(x.von || '').trim(), n = x && String(x.nach || '').trim();
+        if (!v || !n || n.length > 80) return;
+        var o = woerter.filter(function(w){ return w.toLowerCase() === v.toLowerCase(); })[0];
+        if (o) ergebnis[o] = nach === 'Deutsch' ? n.replace(/ß/g, 'ss') : n;
+      });
+      return ergebnis;
+    });
   }
 
   /* ---------- Triomino erzeugen ---------- */
@@ -377,16 +570,17 @@ function starte(bereich){
     if (o.art === 'dezimalbrueche') return Kern.dezimalbrueche(+o.dez, o.sep);
     if (o.art === 'stellenwerte') return Kern.stellenwerte(o.stellen, o.sep);
     if (o.art === 'brueche') return Kern.brueche(+o.bruch, bedarf);
-    return Kern.wortpaare(st.woerter[o.art]).paare;
+    return paare().paare;
   }
   function zaehlerZeigen(){
     if (!sprache()) return;
-    var w = Kern.wortpaare(st.woerter[st.opt.art]), n = w.paare.length, f = form(), fehlt = f.paare - n;
+    var w = paare(), n = w.paare.length, f = form(), fehlt = f.paare - n;
     var h = '<p class="tr-zaehler-haupt ' + (fehlt > 0 ? 'fehlt' : 'ok') + '"><b>' + n + '</b> ' + (n === 1 ? 'Paar' : 'Paare') + ' eingegeben · ' + f.name + ' braucht <b>' + f.paare + '</b>' +
       (fehlt > 0 ? ' – es fehlen noch <b>' + fehlt + '</b>.' : ' ✓') + '</p>';
     h += '<p class="tr-zaehler-formen">' + Object.keys(Kern.FORMEN).map(function(k){ var x = Kern.FORMEN[k]; return '<span class="' + (n >= x.paare ? 'ok' : '') + '">' + x.name + ': ' + x.paare + '</span>'; }).join('') + '</p>';
     if (fehlt < 0) h += '<p>' + (-fehlt) + ' Paare mehr als nötig: Es werden zufällig ' + f.paare + ' ausgewählt' + (st.opt.rand === 'ablenker' ? ', übrige Wörter dienen als Ablenker an den Aussenkanten.' : '.') + '</p>';
-    if (w.ohne) h += '<p class="warnung">' + w.ohne + ' Zeile' + (w.ohne > 1 ? 'n' : '') + ' ohne Trennzeichen – bitte z. B. «=» zwischen die Wörter setzen.</p>';
+    var wartend = zeilen().filter(function(z){ return z.laedt; }).length;
+    if (w.ohne > wartend) h += '<p class="warnung">' + (w.ohne - wartend) + ' Zeile' + (w.ohne - wartend > 1 ? 'n haben' : ' hat') + ' erst ein Wort – sie zählt, sobald beide Felder ausgefüllt sind.</p>';
     if (w.doppelt) h += '<p class="warnung">' + w.doppelt + ' doppelte' + (w.doppelt > 1 ? '' : 's') + ' Wort' + (w.doppelt > 1 ? 'e' : '') + ' nicht verwendet (sonst passten zwei Teile).</p>';
     $('#trZaehler').innerHTML = h;
   }
@@ -401,8 +595,8 @@ function starte(bereich){
       trimino = null;
       $('#trBlatt').hidden = $('#trLoesung').hidden = $('#trPaare').hidden = true;
       ['#trZeigeLoesung', '#trPdf', '#trHerunterladen'].forEach(function(s){ $(s).disabled = true; });
-      meldung(sprache() && !Kern.wortpaare(st.woerter[st.opt.art]).paare.length ? 'info' : 'warnung', sprache()
-        ? '<p>Für ' + (st.opt.form === 'stern' ? 'einen ' : st.opt.form === 'sechseck' ? 'ein ' : 'ein ') + esc(f.name) + ' braucht es <b>' + f.paare + ' Paare</b>' + (Kern.wortpaare(st.woerter[st.opt.art]).paare.length ? ' – es fehlen noch ' + info.fehlen + '.' : '. Gib links deine Wörter ein (ein Paar pro Zeile).') + '</p>'
+      meldung(sprache() && !paare().paare.length ? 'info' : 'warnung', sprache()
+        ? '<p>Für ' + (st.opt.form === 'stern' ? 'einen ' : st.opt.form === 'sechseck' ? 'ein ' : 'ein ') + esc(f.name) + ' braucht es <b>' + f.paare + ' Paare</b>' + (paare().paare.length ? ' – es fehlen noch ' + info.fehlen + '.' : '. Gib links deine Wortpaare ein.') + '</p>'
         : '<p>Mit diesen Einstellungen gibt es nicht genug verschiedene Aufgaben. Wähle einen grösseren Zahlenraum oder eine kleinere Form.</p>');
       return;
     }
