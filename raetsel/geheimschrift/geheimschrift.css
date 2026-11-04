@@ -58,6 +58,16 @@
 .gs-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
 .gs-anleitung{margin:0 0 20px;color:#554C45;max-width:80ch}
 .gs-loesungsblatt{display:none;margin-top:16px}
+/* Geheimtext anklicken: als Bild kopieren */
+#gsBlatt .gs-code{cursor:copy;border-radius:6px;transition:background .15s,box-shadow .15s}
+#gsBlatt .gs-code:hover,#gsBlatt .gs-code:focus-visible{background:#FFF8F1;box-shadow:0 0 0 8px #FFF8F1,0 0 0 10px var(--accent-line);outline:none}
+#gsBlatt .gs-code.gs-wird-kopiert{opacity:.6}
+.gs-tipp{margin:8px 2px 0;font-size:.84rem;color:var(--muted)}
+.gs-tipp[hidden]{display:none}
+.gs-kopiert{position:fixed;left:50%;bottom:24px;transform:translate(-50%,12px);z-index:50;max-width:calc(100% - 32px);padding:10px 16px;border-radius:12px;
+  background:#1C1714;color:#fff;font-size:.92rem;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.25);opacity:0;transition:opacity .25s,transform .25s}
+.gs-kopiert.an{opacity:1;transform:translate(-50%,0)}
+.gs-kopiert[hidden]{display:none}
 
 /* Geheimtext: Zeilen aus Wörtern, Wörter aus Zellen; --fm = Höhe eines Zeichens */
 .gs-code{display:grid;gap:calc(var(--fm) * .42);--fm:42px}
@@ -119,7 +129,8 @@
 @media print{
   @page{size:A4;margin:12mm}
   html,body{background:#fff!important}
-  .gs-kopf,.gs-eingabe,.gs-werkzeug,.gs-teil-titel,#gsMeldung,.nur-bildschirm{display:none!important}
+  .gs-kopf,.gs-eingabe,.gs-werkzeug,.gs-teil-titel,#gsMeldung,.gs-tipp,.gs-kopiert,.nur-bildschirm{display:none!important}
+  #gsBlatt .gs-code{background:none!important;box-shadow:none!important;opacity:1!important}
   .gs{padding:0;max-width:none}
   .gs-layout,.gs-ausgabe{display:block}
   .gs-blatt{box-shadow:none;border:0;border-radius:0;padding:0}

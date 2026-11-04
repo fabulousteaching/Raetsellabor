@@ -310,23 +310,27 @@ var VORLAGE = '<div class="gs">' +
         Labor.blattSchalterHtml() +
         '<label><input type="checkbox" id="gsMitLoesung"> mit Lösungsblatt</label>' +
         '<label><input type="checkbox" id="gsMitSchluessel"> mit Schlüssel</label>' +
+        '<button type="button" class="btn klein" id="gsCodeKopieren" title="Den Geheimtext als Bild kopieren – zum Einfügen in Word">Bild kopieren</button>' +
         '<button type="button" class="btn klein" id="gsCodeBild">Als Bild</button>' +
         '<button type="button" class="btn klein primary" id="gsPdf">PDF herunterladen</button>' +
         '<button type="button" class="btn klein primary" id="gsHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
       '</div>' +
       '<article class="gs-blatt" id="gsBlatt"></article>' +
+      '<p class="gs-tipp" id="gsTipp">Tipp: Auf den Geheimtext klicken – er wird als Bild kopiert und lässt sich in Word mit Ctrl+V (Mac: Cmd+V) einfügen.</p>' +
       '<article class="gs-blatt gs-loesungsblatt" id="gsLoesung" aria-hidden="true"></article>' +
     '</div>' +
     '<div class="gs-teil">' +
       '<h2 class="gs-teil-titel">Schlüssel</h2>' +
       '<div class="gs-werkzeug"><span class="gs-werkzeug-text">Zum Entschlüsseln – auch einzeln.</span><span class="abstand"></span>' +
+        '<button type="button" class="btn klein" id="gsSchluesselKopieren" title="Den Schlüssel als Bild kopieren – zum Einfügen in Word">Bild kopieren</button>' +
         '<button type="button" class="btn klein" id="gsSchluesselBild">Als Bild</button>' +
         '<button type="button" class="btn klein primary" id="gsSchluesselPdf">PDF herunterladen</button>' +
         '<button type="button" class="btn klein primary" id="gsSchluesselHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Schlüssel herunterladen</button>' +
       '</div>' +
       '<article class="gs-blatt gs-schluessel" id="gsSchluessel"></article>' +
     '</div>' +
-  '</section></div></div>';
+  '</section></div>' +
+  '<div class="gs-kopiert" id="gsKopiert" role="status" aria-live="polite" hidden></div></div>';
 
 var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
   '<circle cx="8" cy="15" r="4"/><path d="M11 12l8-8M16 7l2 2M14 9l2 2"/></svg>';
@@ -427,7 +431,8 @@ function starte(bereich){
     $('#gsTextHinweis').textContent = Kern.UMLAUTE[o.art] ? 'Ä, Ö, Ü und ß haben in dieser Schrift eigene Zeichen' + (o.art === 'morse' ? '; Ziffern und einige Satzzeichen auch.' : '; Ziffern bekommen das Zahlzeichen.') :
       'Umlaute werden als AE, OE, UE geschrieben, ß als SS.' + (o.art === 'polybios' ? ' J wird wie I geschrieben.' : '') + ' Ziffern und Satzzeichen bleiben stehen.';
     $('#gsBlatt').hidden = $('#gsLoesung').hidden = leer;
-    ['#gsZeigeLoesung', '#gsCodeBild', '#gsPdf', '#gsHerunterladen'].forEach(function(s){ $(s).disabled = leer; });
+    ['#gsZeigeLoesung', '#gsCodeKopieren', '#gsCodeBild', '#gsPdf', '#gsHerunterladen'].forEach(function(s){ $(s).disabled = leer; });
+    $('#gsTipp').hidden = leer;
     if (leer){
       $('#gsBlatt').innerHTML = $('#gsLoesung').innerHTML = '';
       meldung('info', '<p>Schreibe links einen Text – er erscheint hier in der Geheimschrift. Den Schlüssel unten kannst du schon jetzt herunterladen.</p>');
@@ -439,6 +444,9 @@ function starte(bereich){
       (o.anleitungAn ? '<p class="gs-anleitung">Entschlüssle die Geheimschrift (' + esc(name) + ') mit dem Schlüssel' + (o.linien ? ' und schreibe die Buchstaben auf die Linien' : '') + '.</p>' : '') + codeHtml();
     $('#gsLoesung').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + ' – Lösung</h2>' : '<p class="gs-anleitung"><b>Lösung</b></p>') + codeHtml();
     $('#gsBlatt').classList.toggle('zeige-loesung', $('#gsZeigeLoesung').getAttribute('aria-pressed') === 'true');
+    var code = $('#gsBlatt .gs-code');
+    code.setAttribute('role', 'button'); code.setAttribute('tabindex', '0'); code.title = 'Klicken: als Bild kopieren (zum Einfügen in Word)';
+    code.setAttribute('aria-label', 'Geheimtext – klicken, um ihn als Bild zu kopieren');
     var b = $('#gsBlatt');
     if (b.offsetWidth && b.scrollHeight / b.offsetWidth > 1.5) meldung('warnung', '<p>Der Text ist lang für eine A4-Seite – im PDF wird das Blatt verkleinert. Wähle kleinere Zeichen oder kürze den Text.</p>');
   }
@@ -463,6 +471,28 @@ function starte(bereich){
   Labor.pdfKnopf($('#gsSchluesselPdf'), function(){ return { blaetter:[$('#gsSchluessel')], name:'Schluessel-' + (Labor.dateiname(schriftName(st.opt.art, st.opt)) || 'Geheimschrift') + '.pdf' }; }, fehler);
   Labor.bildKnopf($('#gsCodeBild'), function(){ return hatZeichen() && { blatt:$('#gsBlatt'), name:dateiName('Geheimschrift', 'png') }; }, fehler);
   Labor.bildKnopf($('#gsSchluesselBild'), function(){ return { blatt:$('#gsSchluessel'), name:'Schluessel-' + (Labor.dateiname(schriftName(st.opt.art, st.opt)) || 'Geheimschrift') + '.png' }; }, fehler);
+  /* ---------- Als Bild kopieren (zum Einfügen in Word) ---------- */
+  var kopiertZeit = 0;
+  function bestaetigen(text){
+    var k = $('#gsKopiert'); k.textContent = text; k.hidden = false; k.classList.add('an');
+    clearTimeout(kopiertZeit); kopiertZeit = setTimeout(function(){ k.classList.remove('an'); setTimeout(function(){ k.hidden = true; }, 300); }, 2600);
+  }
+  function kopieren(el, was, knopf, eng){
+    if (!el) return;
+    var text = knopf && knopf.textContent;
+    if (knopf){ knopf.disabled = true; knopf.textContent = 'Wird kopiert …'; }
+    el.classList.add('gs-wird-kopiert');
+    Labor.bildKopieren(el, eng ? { eng:'.gs-z' } : {}).then(function(){
+      bestaetigen('✓ ' + was + ' als Bild kopiert – in Word mit Ctrl+V (Mac: Cmd+V) einfügen.');
+    }, function(e){
+      meldung('warnung', '<p>Das Kopieren hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '. Lade das Bild mit «Als Bild» herunter und füge es in Word ein.</p>');
+    }).then(function(){ el.classList.remove('gs-wird-kopiert'); if (knopf){ knopf.disabled = false; knopf.textContent = text; } });
+  }
+  $('#gsCodeKopieren').addEventListener('click', function(){ if (hatZeichen()) kopieren($('#gsBlatt .gs-code'), 'Geheimtext', this, true); });
+  $('#gsSchluesselKopieren').addEventListener('click', function(){ kopieren($('#gsSchluessel'), 'Schlüssel', this); });
+  $('#gsBlatt').addEventListener('click', function(ev){ var c = ev.target.closest('.gs-code'); if (c) kopieren(c, 'Geheimtext', null, true); });
+  $('#gsBlatt').addEventListener('keydown', function(ev){ var c = ev.target.closest('.gs-code'); if (c && (ev.key === 'Enter' || ev.key === ' ')){ ev.preventDefault(); kopieren(c, 'Geheimtext', null, true); } });
+
   var speicherOrt = null;
   if (Labor.imArtefakt()){
     ['#gsPdf', '#gsSchluesselPdf', '#gsCodeBild', '#gsSchluesselBild'].forEach(function(s){ $(s).hidden = true; });

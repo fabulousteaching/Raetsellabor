@@ -332,21 +332,41 @@ var Labor = (function(){
       }).then(function(){ knopf.disabled = false; knopf.textContent = text; });
     });
   }
-  // Ein Blatt als Bild (PNG) herunterladen – gleich gezeichnet wie im PDF (Druckregeln gelten)
-  function bildHerunterladen(blatt, dateiname){
-    if (!blatt) return Promise.resolve();
+  // Ein Blatt (oder ein Teil davon) als Bild zeichnen – gleich wie im PDF (Druckregeln gelten); o: { scale, rand (Pixel Weissraum), eng (rechts zuschneiden; Selektor der Teile, nach denen gemessen wird) }
+  function blattLeinwand(blatt, o){
+    o = o || {};
     var ausgeschaltet = [].filter.call(document.styleSheets, function(s){ return s.disabled && s.href; }).map(function(s){ return s.href; });
     return ladeSkript('gemeinsam/extern/html2canvas.min.js').then(function(){
-      return window.html2canvas(blatt, { scale:3, backgroundColor:'#ffffff', logging:false, useCORS:true, windowWidth:703, scrollX:0, scrollY:0,
-        onclone:function(doc, kopie){ return druckKopie(doc, kopie, blatt, ausgeschaltet); } });
-    }).then(function(cv){
-      return new Promise(function(ok, fehler){
-        cv.toBlob(function(b){
-          if (!b){ fehler(new Error('Bild leer')); return; }
-          var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = dateiname || 'Blatt.png';
-          document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000); ok();
-        }, 'image/png');
-      });
+      return window.html2canvas(blatt, { scale:o.scale || 3, backgroundColor:'#ffffff', logging:false, useCORS:true, windowWidth:703, scrollX:0, scrollY:0,
+        onclone:function(doc, kopie){
+          if (o.rand) kopie.style.padding = o.rand + 'px';
+          return Promise.resolve(druckKopie(doc, kopie, blatt, ausgeschaltet)).then(function(){
+            if (!o.eng) return;   // rechts auf den Inhalt zuschneiden (die Zeilen bleiben gleich umbrochen)
+            var r = kopie.getBoundingClientRect(), max = r.left;
+            [].forEach.call(kopie.querySelectorAll(typeof o.eng === 'string' ? o.eng : '*'), function(el){ var b = el.getBoundingClientRect(); if (b.width && b.right > max) max = b.right; });
+            kopie.style.width = Math.ceil(max - r.left + (o.rand || 0) + 1) + 'px';
+          });
+        } });
+    });
+  }
+  function alsPng(cv){ return new Promise(function(ok, fehler){ cv.toBlob(function(b){ if (b) ok(b); else fehler(new Error('Bild leer')); }, 'image/png'); }); }
+  // Ein Blatt als Bild (PNG) herunterladen
+  function bildHerunterladen(blatt, dateiname){
+    if (!blatt) return Promise.resolve();
+    return blattLeinwand(blatt).then(alsPng).then(function(b){
+      var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = dateiname || 'Blatt.png';
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+    });
+  }
+  /* Ein Blatt (oder ein Teil davon) als Bild in die Zwischenablage – zum Einfügen in Word & Co.
+     Das Bild wird als «Versprechen» übergeben, damit auch Safari den Klick noch als Auslöser gelten lässt. */
+  function bildKopieren(blatt, o){
+    if (!blatt) return Promise.resolve();
+    if (!navigator.clipboard || !navigator.clipboard.write || !window.ClipboardItem) return Promise.reject(new Error('Dieser Browser kann keine Bilder kopieren'));
+    o = Object.assign({ scale:2, rand:14 }, o || {});
+    var bild = blattLeinwand(blatt, o).then(alsPng);
+    return navigator.clipboard.write([new ClipboardItem({ 'image/png':bild })]).catch(function(){
+      return bild.then(function(b){ return navigator.clipboard.write([new ClipboardItem({ 'image/png':b })]); });
     });
   }
   // Knopf «Als Bild»: auftrag() liefert { blatt, name:'….png' }
@@ -368,5 +388,5 @@ var Labor = (function(){
 
   return { registriere:registriere, start:start, imArtefakt:imArtefakt, claude:claude, sammleCss:sammleCss, blattDatei:blattDatei, dateiname:dateiname, esc:esc,
     blattSchalterHtml:blattSchalterHtml, blattSchalter:blattSchalter, pdfHerunterladen:pdfHerunterladen, pdfKnopf:pdfKnopf, pdfName:pdfName,
-    bildHerunterladen:bildHerunterladen, bildKnopf:bildKnopf };
+    bildHerunterladen:bildHerunterladen, bildKnopf:bildKnopf, bildKopieren:bildKopieren };
 })();
