@@ -400,7 +400,6 @@ var VORLAGE = '<div class="gs">' +
         '<label title="Linien unter den Zeichen zum Hinschreiben der Buchstaben"><input type="checkbox" id="gsLinien"> Schreiblinien</label>' +
         '<label><input type="checkbox" id="gsMitLoesung"> mit Lösungsblatt</label>' +
         '<label><input type="checkbox" id="gsMitSchluessel"> mit Schlüssel</label>' +
-        '<button type="button" class="btn klein" id="gsCodeKopieren" title="Den Geheimtext als Bild kopieren – zum Einfügen in Word">Bild kopieren</button>' +
         '<button type="button" class="btn klein" id="gsCodeBild">Als Bild</button>' +
         '<button type="button" class="btn klein primary" id="gsPdf">PDF herunterladen</button>' +
         '<button type="button" class="btn klein primary" id="gsHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
@@ -412,7 +411,6 @@ var VORLAGE = '<div class="gs">' +
     '<div class="gs-teil">' +
       '<h2 class="gs-teil-titel">Schlüssel</h2>' +
       '<div class="gs-werkzeug"><span class="gs-werkzeug-text">Zum Entschlüsseln – auch einzeln.</span><span class="abstand"></span>' +
-        '<button type="button" class="btn klein" id="gsSchluesselKopieren" title="Den Schlüssel als Bild kopieren – zum Einfügen in Word">Bild kopieren</button>' +
         '<button type="button" class="btn klein" id="gsSchluesselBild">Als Bild</button>' +
         '<button type="button" class="btn klein primary" id="gsSchluesselPdf">PDF herunterladen</button>' +
         '<button type="button" class="btn klein primary" id="gsSchluesselHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Schlüssel herunterladen</button>' +
@@ -524,7 +522,7 @@ function starte(bereich){
     $('#gsTextHinweis').textContent = Kern.UMLAUTE[o.art] ? 'Ä, Ö, Ü und ß haben in dieser Schrift eigene Zeichen' + (o.art === 'morse' ? '; Ziffern und einige Satzzeichen auch.' : '; Ziffern bekommen das Zahlzeichen.') :
       'Umlaute werden als AE, OE, UE geschrieben, ß als SS.' + (o.art === 'polybios' ? ' J wird wie I geschrieben.' : '') + ' Ziffern und Satzzeichen bleiben stehen.';
     $('#gsBlatt').hidden = $('#gsLoesung').hidden = leer;
-    ['#gsZeigeLoesung', '#gsCodeKopieren', '#gsCodeBild', '#gsPdf', '#gsHerunterladen'].forEach(function(s){ $(s).disabled = leer; });
+    ['#gsZeigeLoesung', '#gsCodeBild', '#gsPdf', '#gsHerunterladen'].forEach(function(s){ $(s).disabled = leer; });
     $('#gsTipp').hidden = leer;
     if (leer){
       $('#gsBlatt').innerHTML = $('#gsLoesung').innerHTML = '';
@@ -581,8 +579,6 @@ function starte(bereich){
       meldung('warnung', '<p>Das Kopieren hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '. Lade das Bild mit «Als Bild» herunter und füge es in Word ein.</p>');
     }).then(function(){ el.classList.remove('gs-wird-kopiert'); if (knopf){ knopf.disabled = false; knopf.textContent = text; } });
   }
-  $('#gsCodeKopieren').addEventListener('click', function(){ if (hatZeichen()) kopieren($('#gsBlatt .gs-code'), 'Geheimtext', this, true); });
-  $('#gsSchluesselKopieren').addEventListener('click', function(){ kopieren($('#gsSchluessel'), 'Schlüssel', this); });
   $('#gsBlatt').addEventListener('click', function(ev){ var c = ev.target.closest('.gs-code'); if (c) kopieren(c, 'Geheimtext', null, true); });
   $('#gsBlatt').addEventListener('keydown', function(ev){ var c = ev.target.closest('.gs-code'); if (c && (ev.key === 'Enter' || ev.key === ' ')){ ev.preventDefault(); kopieren(c, 'Geheimtext', null, true); } });
 
