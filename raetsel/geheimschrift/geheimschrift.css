@@ -1,0 +1,127 @@
+/* Rätsellabor · Geheimschriften – nur aktiv, solange dieser Generator offen ist.
+   Gemeinsame Bausteine (Karten, Knöpfe, Eingabefelder, Meldungen) stehen in gemeinsam/labor.css. */
+.gs{max-width:1440px;margin:0 auto;padding-block:22px 48px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.gs-kopf{display:grid;gap:4px;margin:0 0 20px}
+.gs-kopf h1{font-family:var(--display);font-weight:600;font-size:clamp(1.7rem,3vw,2.2rem);letter-spacing:-.01em;line-height:1.1;margin:0;color:var(--ink)}
+.gs-kopf h1:focus{outline:none}
+.gs-kopf p:last-child{margin:2px 0 0;color:var(--muted);max-width:70ch}
+.gs-layout{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:24px;align-items:start}
+.gs-eingabe{display:grid;gap:16px;min-width:0}
+@media (min-width:961px){ .gs-eingabe{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--kopf-h) + 16px);max-height:calc(100vh - var(--kopf-h) - 32px);overflow:auto;padding:2px 4px 2px 2px;scrollbar-width:thin} }
+@media (max-width:960px){ .gs-layout{grid-template-columns:minmax(0,1fr);gap:18px} }
+@media (max-width:640px){ .gs{padding-block:18px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))} }
+
+/* ---------- Eingaben ---------- */
+.gs textarea{display:block;width:100%;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;resize:vertical;min-height:5em;line-height:1.45;font-size:1.05rem;font-weight:600;transition:border-color .15s,box-shadow .15s}
+.gs textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.gs-schriften{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.gs-schriften label{position:relative;cursor:pointer;display:flex}
+.gs-schriften input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.gs-schriften label > span,.gs-verweis > span{display:grid;align-content:start;gap:2px;width:100%;padding:9px 10px 9px;border:1px solid var(--line);border-radius:10px;background:#fff;transition:border-color .15s,background .15s}
+.gs-schriften label > span > b,.gs-verweis > span > b{font-size:.88rem;font-weight:650;color:var(--text);line-height:1.25}
+.gs-schriften label > span > small,.gs-verweis > span > small{font-size:.74rem;color:var(--muted);line-height:1.3}
+.gs-schriften label:hover > span,.gs-verweis:hover span{border-color:var(--accent-line)}
+.gs-schriften input:checked + span{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.gs-schriften input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+.gs-verweis{display:flex;text-decoration:none;color:inherit}
+.gs-verweis > span{border-style:dashed;background:transparent}
+.gs-vorschau-platz{display:block;font-style:normal;height:24px;margin-bottom:4px}
+.gs-vorschau{display:flex;align-items:center;gap:6px;height:24px;font-family:Andika,var(--font);font-weight:700;font-size:1.05rem;color:var(--accent-2)}
+.gs-vorschau .gs-vz{display:inline-flex;align-items:center;height:100%}
+.gs-vorschau svg,.gs-vorschau img{height:20px;width:auto}
+.gs-vorschau .gs-braille{height:22px}
+.gs-vorschau .gs-morse{height:22px}
+.gs-vorschau .gs-h-text{font-family:"Noto Sans Egyptian Hieroglyphs";font-weight:400;font-size:1.2rem}
+.gs-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.gs-chips label{position:relative;cursor:pointer}
+.gs-chips input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.gs-chips span{display:inline-block;padding:6px 14px;border:1px solid var(--line-2);border-radius:999px;background:#fff;font-size:.88rem;font-weight:600;color:var(--muted);transition:border-color .15s,background .15s,color .15s}
+.gs-chips label:hover span{border-color:var(--accent-line)}
+.gs-chips input:checked + span{background:var(--accent);border-color:var(--accent);color:var(--auf-akzent)}
+.gs-chips input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+.gs-caesar{margin-top:12px;padding:12px;border-radius:10px;background:#FBF8F5}
+.gs-caesar[hidden]{display:none}
+.gs .opt{display:flex;align-items:flex-start;gap:10px;margin:10px 0 0;font-size:.9rem}
+.gs .opt input[type=checkbox]{width:16px;height:16px;margin:3px 0 0;accent-color:var(--accent);flex:none}
+.gs .opt-raster{display:grid;grid-template-columns:1fr;gap:6px;font-size:.9rem;margin-top:10px}
+.gs-caesar .opt-raster{margin-top:0}
+
+/* ---------- Ausgabe ---------- */
+.gs-ausgabe{min-width:0;display:grid;gap:30px}
+.gs-teil{min-width:0}
+.gs-teil-titel{font-family:var(--display);font-weight:600;font-size:1.25rem;margin:0 0 8px;color:var(--ink)}
+.gs-werkzeug{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.gs-werkzeug .abstand{flex:1}
+.gs-werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
+.gs-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+.gs-werkzeug-text{font-size:.88rem;color:var(--muted)}
+.gs-blatt{background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:30px clamp(16px,3.2vw,40px)}
+.gs-blatt[hidden]{display:none}
+.gs-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
+.gs-anleitung{margin:0 0 20px;color:#554C45;max-width:80ch}
+.gs-loesungsblatt{display:none;margin-top:16px}
+
+/* Geheimtext: Zeilen aus Wörtern, Wörter aus Zellen; --fm = Höhe eines Zeichens */
+.gs-code{display:grid;gap:calc(var(--fm) * .42);--fm:42px}
+.gs-zeile{display:flex;flex-wrap:wrap;gap:calc(var(--fm) * .42) calc(var(--fm) * .8);min-height:var(--fm)}
+.gs-wort{display:flex;flex-wrap:wrap;gap:calc(var(--fm) * .42) calc(var(--fm) * .22)}
+.gs-z{display:grid;justify-items:center;min-width:calc(var(--fm) * .8)}
+.gs-s{display:flex;align-items:center;justify-content:center;height:var(--fm);min-width:calc(var(--fm) * .8);padding:0 2px}
+.gs-t{font-family:Andika,var(--font);font-weight:700;font-size:calc(var(--fm) * .66);line-height:1;white-space:nowrap}
+.gs-art-zahlen .gs-t,.gs-art-handy .gs-t,.gs-art-polybios .gs-t{font-size:calc(var(--fm) * .56);letter-spacing:.02em}
+.gs-bleibt{font-weight:400;color:#6E655E}
+.gs-morse{height:calc(var(--fm) * .7);width:auto;display:block}
+.gs-braille{height:calc(var(--fm) * .9);width:auto;display:block}
+.gs-h{height:var(--fm);width:auto;display:block}
+.gs-h-text{font-family:"Noto Sans Egyptian Hieroglyphs";font-size:calc(var(--fm) * .8);line-height:1}
+.gs-linie{display:grid;place-items:end center;width:100%;height:calc(var(--fm) * .72);border-bottom:2px solid #1C1714;font-family:Andika,var(--font);font-size:calc(var(--fm) * .56);line-height:1.1}
+.gs-linie.gs-leer{border-bottom-color:transparent}
+.gs-andere{min-width:0}
+.gs-andere .gs-s{min-width:0}
+.gs-loes{visibility:hidden;color:var(--accent-2);font-weight:700}
+.zeige-loesung .gs-loes,.gs-loesungsblatt .gs-loes{visibility:visible}
+.gs-code.ohne-linien .gs-linie{display:none}
+.zeige-loesung .gs-code.ohne-linien .gs-linie,.gs-loesungsblatt .gs-code.ohne-linien .gs-linie{display:grid;border-bottom-color:transparent;height:calc(var(--fm) * .62)}
+
+/* Schlüssel */
+.gs-erklaerung{margin:0 0 16px;color:#3A322C;max-width:80ch;line-height:1.5}
+.gs-unter{font-size:1.15rem;font-weight:700;margin:26px 0 6px;color:#1C1714}
+.gs-reihen{border-collapse:collapse;margin:0 0 14px;width:100%;table-layout:fixed;font-family:Andika,var(--font)}
+.gs-reihen th{width:5.6em;text-align:left;font-family:var(--font);font-size:.78rem;font-weight:600;color:#6E655E;padding:0 6px 0 0}
+.gs-reihen td{border:1.5px solid #D8CEC4;text-align:center;font-weight:700;font-size:1.15rem;padding:6px 0;line-height:1.2}
+.gs-reihen td.gs-geheim{color:var(--accent-2);background:#FFF8F1}
+.gs-tabelle{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px;margin-bottom:6px}
+.gs-tab-zelle{display:grid;justify-items:center;align-content:start;gap:5px;padding:8px 4px 9px;border:1.5px solid #D8CEC4;border-radius:10px;min-width:0}
+.gs-tab-zelle b{font-family:Andika,var(--font);font-size:1.2rem;line-height:1}
+.gs-tab-zelle small{font-size:.66rem;color:#6E655E;text-align:center;line-height:1.2}
+.gs-tab-zelle .gs-t{font-size:1.1rem;color:var(--accent-2)}
+.gs-tab-morse{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}
+.gs-morse-k{height:20px;width:auto;max-width:100%;display:block}
+.gs-braille-k{height:34px;width:auto;display:block}
+.gs-tab-braille .gs-tab-zelle b{font-size:1.05rem}
+.gs-h-k{height:40px;width:auto;max-width:100%;display:block}
+.gs-tab-hiero .gs-h-text{font-size:2rem}
+.gs-gitter{border-collapse:collapse;font-family:Andika,var(--font);margin:6px 0}
+.gs-gitter th{width:2.6em;height:2.2em;font-family:var(--font);font-size:.95rem;color:var(--accent-2)}
+.gs-gitter td{width:3.2em;height:2.8em;border:1.5px solid #8A7F76;text-align:center;font-weight:700;font-size:1.3rem}
+.gs-handy{display:grid;grid-template-columns:repeat(3,92px);gap:8px;margin:0 0 18px}
+.gs-taste{display:grid;justify-items:center;gap:0;padding:7px 4px;border:1.5px solid #8A7F76;border-radius:12px;background:#FBF8F5}
+.gs-taste b{font-family:Andika,var(--font);font-size:1.5rem;line-height:1.1}
+.gs-taste small{font-size:.8rem;font-weight:700;letter-spacing:.06em;color:var(--accent-2)}
+.gs-scheibe{display:block;width:100%;height:auto;margin-top:6px}
+@media (max-width:640px){ .gs-reihen td{font-size:.95rem} .gs-reihen th{width:4.4em} }
+
+/* ---------- Drucken (gilt auch für das PDF) ---------- */
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#fff!important}
+  .gs-kopf,.gs-eingabe,.gs-werkzeug,.gs-teil-titel,#gsMeldung,.nur-bildschirm{display:none!important}
+  .gs{padding:0;max-width:none}
+  .gs-layout,.gs-ausgabe{display:block}
+  .gs-blatt{box-shadow:none;border:0;border-radius:0;padding:0}
+  .gs-schluessel{break-before:page}
+  #gsBlatt .gs-loes{visibility:hidden!important}
+  #gsBlatt .gs-code.ohne-linien .gs-linie{display:none!important}
+  .gs-reihen td.gs-geheim{background:#fff}
+  body.mit-loesung .gs-loesungsblatt{display:block;break-before:page;margin-top:0}
+}

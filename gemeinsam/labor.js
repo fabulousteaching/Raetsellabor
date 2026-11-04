@@ -332,9 +332,41 @@ var Labor = (function(){
       }).then(function(){ knopf.disabled = false; knopf.textContent = text; });
     });
   }
+  // Ein Blatt als Bild (PNG) herunterladen – gleich gezeichnet wie im PDF (Druckregeln gelten)
+  function bildHerunterladen(blatt, dateiname){
+    if (!blatt) return Promise.resolve();
+    var ausgeschaltet = [].filter.call(document.styleSheets, function(s){ return s.disabled && s.href; }).map(function(s){ return s.href; });
+    return ladeSkript('gemeinsam/extern/html2canvas.min.js').then(function(){
+      return window.html2canvas(blatt, { scale:3, backgroundColor:'#ffffff', logging:false, useCORS:true, windowWidth:703, scrollX:0, scrollY:0,
+        onclone:function(doc, kopie){ return druckKopie(doc, kopie, blatt, ausgeschaltet); } });
+    }).then(function(cv){
+      return new Promise(function(ok, fehler){
+        cv.toBlob(function(b){
+          if (!b){ fehler(new Error('Bild leer')); return; }
+          var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = dateiname || 'Blatt.png';
+          document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000); ok();
+        }, 'image/png');
+      });
+    });
+  }
+  // Knopf «Als Bild»: auftrag() liefert { blatt, name:'….png' }
+  function bildKnopf(knopf, auftrag, fehler){
+    if (!knopf) return;
+    knopf.addEventListener('click', function(){
+      if (knopf.disabled) return;
+      var a = auftrag(); if (!a || !a.blatt) return;
+      var text = knopf.textContent; knopf.disabled = true; knopf.textContent = 'Bild wird erstellt …';
+      bildHerunterladen(a.blatt, a.name).catch(function(e){
+        if (window.console) console.error(e);
+        var t = 'Das Bild konnte nicht erstellt werden' + (e && e.message ? ' (' + e.message + ')' : '') + '. Bitte versuche es noch einmal.';
+        if (fehler) fehler(t); else alert(t);
+      }).then(function(){ knopf.disabled = false; knopf.textContent = text; });
+    });
+  }
   // Dateiname für ein PDF: «Labyrinth» + Titel → Labyrinth-Titel.pdf
   function pdfName(art, titel){ var t = dateiname(titel); return art + (t ? '-' + t : '') + '.pdf'; }
 
   return { registriere:registriere, start:start, imArtefakt:imArtefakt, claude:claude, sammleCss:sammleCss, blattDatei:blattDatei, dateiname:dateiname, esc:esc,
-    blattSchalterHtml:blattSchalterHtml, blattSchalter:blattSchalter, pdfHerunterladen:pdfHerunterladen, pdfKnopf:pdfKnopf, pdfName:pdfName };
+    blattSchalterHtml:blattSchalterHtml, blattSchalter:blattSchalter, pdfHerunterladen:pdfHerunterladen, pdfKnopf:pdfKnopf, pdfName:pdfName,
+    bildHerunterladen:bildHerunterladen, bildKnopf:bildKnopf };
 })();
