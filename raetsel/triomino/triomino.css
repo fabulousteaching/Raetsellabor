@@ -1,4 +1,4 @@
-/* Rätsellabor · Trimino – nur aktiv, solange dieser Generator offen ist.
+/* Rätsellabor · Triomino – nur aktiv, solange dieser Generator offen ist.
    Gemeinsame Bausteine (Karten, Knöpfe, Eingabefelder, Meldungen) stehen in gemeinsam/labor.css. */
 .tr{max-width:1440px;margin:0 auto;padding-block:22px 48px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
 .tr-kopf{display:grid;gap:4px;margin:0 0 20px}

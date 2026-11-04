@@ -1,4 +1,4 @@
-/* Rätsellabor – Generator «Trimino»
+/* Rätsellabor – Generator «Triomino» (früher «Trimino»; alte Links …/#trimino öffnen ihn weiterhin)
    Dreieckige Spielsteine, die so aneinandergelegt werden, dass aufeinandertreffende Seiten zusammenpassen
    (Aufgabe und Ergebnis, Wort und Übersetzung …). Je nach Form entsteht ein Dreieck, ein Stern oder ein Sechseck.
 
@@ -178,7 +178,7 @@ var Kern = (function(){
     return { paare:paare, ohne:ohne, doppelt:doppelt };
   }
 
-  /* ---------- Trimino bauen ----------
+  /* ---------- Triomino bauen ----------
      → { tris, inhalt[t][k], plaetze: [{ teil, dreh }] (Schnittbogen), paare, aussen } */
   function belegen(form, paare, ablenker, rnd){
     var tris = dreiecke(form), k = kanten(tris), inhalt = tris.map(function(){ return [null, null, null]; });
@@ -221,7 +221,7 @@ function formBild(form){
 }
 
 var VORLAGE = '<div class="tr">' +
-  '<header class="tr-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Trimino</h1>' +
+  '<header class="tr-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Triomino</h1>' +
     '<p>Dreieckige Spielsteine: Aneinanderstossende Seiten müssen zusammenpassen, dann entsteht ein Dreieck, ein Stern oder ein Sechseck. Mit fertigen Mathe-Aufgaben oder deinen eigenen Wörtern.</p></header>' +
   '<div class="tr-layout"><section class="tr-eingabe" aria-label="Eingaben">' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Form</h2></div></div>' +
@@ -289,21 +289,26 @@ var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke
   '<path d="M12 3 21 19H3z"/><path d="M7.5 11h9L12 19z"/></svg>';
 
 Labor.registriere({
-  id:'trimino',
-  titel:'Trimino',
+  id:'triomino',
+  titel:'Triomino',
   kurz:'Dreieckige Legespiele mit Aufgaben und Lösungen',
   beschreibung:'Dreiecke, deren Seiten zusammenpassen müssen – am Schluss entsteht ein Dreieck, ein Stern oder ein Sechseck. Mit fertigen Mathe-Aufgaben oder eigenen Wörtern für Englisch und Französisch.',
   merkmale:['Vier Formen', 'Mathe fertig, Sprachen mit eigenen Wörtern', 'Mit Lösungsblatt'],
   symbol:SYMBOL,
-  css:'raetsel/trimino/trimino.css',
+  css:'raetsel/triomino/triomino.css',
   html:VORLAGE,
   start:starte
 });
 
+// alte Links …/#trimino → …/#triomino (läuft vor dem Labor, damit dieses gleich die richtige Seite zeigt)
+function alterLink(){ if (location.hash === '#trimino') history.replaceState(null, '', location.pathname + location.search + '#triomino'); }
+alterLink();
+window.addEventListener('hashchange', alterLink);
+
 /* ===== Bedienung ===== */
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, esc = Labor.esc, aus = false;
-  var TAB = 'trimino-eingaben', OPT = 'trimino-einstellungen';
+  var TAB = 'triomino-eingaben', OPT = 'triomino-einstellungen';
   var STANDARD = { form:'stern', art:'rechnen', matheArt:'rechnen', ops:['plus', 'minus'], zr:'100', dez:'2', stellen:'dezimal', bruch:'10', sep:'.', rand:'leer', farbe:'#F28C38',
     mitLoesung:true, titelAn:true, anleitungAn:true };
   var st = { titel:'', woerter:{ englisch:'', franzoesisch:'', eigene:'' }, seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
@@ -363,7 +368,7 @@ function starte(bereich){
     }
   }
 
-  /* ---------- Trimino erzeugen ---------- */
+  /* ---------- Triomino erzeugen ---------- */
   var trimino = null, info = null;
   function form(){ return Kern.FORMEN[st.opt.form] || Kern.FORMEN.stern; }
   function quelle(bedarf){
@@ -484,12 +489,12 @@ function starte(bereich){
       texte += teilTexte(P, C, [0, 1, 2].map(function(k){ return t.inhalt[platz.teil][(k + platz.dreh) % 3]; }));
       linien += 'M' + P.map(function(p){ return p[0].toFixed(2) + ' ' + p[1].toFixed(2); }).join('L') + 'Z';
     });
-    return '<svg class="tr-figur" viewBox="' + x0.toFixed(1) + ' ' + y0.toFixed(1) + ' ' + (x1 - x0).toFixed(1) + ' ' + (y1 - y0).toFixed(1) + '" role="img" aria-label="Trimino ' + esc(form().name) + (loesung ? ', Lösung' : '') + '">' +
+    return '<svg class="tr-figur" viewBox="' + x0.toFixed(1) + ' ' + y0.toFixed(1) + ' ' + (x1 - x0).toFixed(1) + ' ' + (y1 - y0).toFixed(1) + '" role="img" aria-label="Triomino ' + esc(form().name) + (loesung ? ', Lösung' : '') + '">' +
       '<path d="' + ecken + '" fill="' + farbe + '"/>' +
       '<path d="' + linien + '" fill="none" stroke="' + TINTE + '" stroke-width="0.9" stroke-linejoin="round"/>' +
       '<g font-family="Andika, Arial, sans-serif" fill="' + TINTE + '" text-anchor="middle">' + texte + '</g></svg>';
   }
-  function titel(){ return st.titel.trim() || 'Trimino'; }
+  function titel(){ return st.titel.trim() || 'Triomino'; }
   function zeichnen(){
     if (!trimino) return;
     var o = st.opt, f = form();
@@ -512,7 +517,7 @@ function starte(bereich){
   });
   function druckVorbereiten(){ document.body.classList.toggle('mit-loesung', !!st.opt.mitLoesung); }
   window.addEventListener('beforeprint', druckVorbereiten);
-  Labor.pdfKnopf($('#trPdf'), function(){ return trimino && { blaetter:[$('#trBlatt'), st.opt.mitLoesung && $('#trLoesung')], name:Labor.pdfName('Trimino', st.titel) }; },
+  Labor.pdfKnopf($('#trPdf'), function(){ return trimino && { blaetter:[$('#trBlatt'), st.opt.mitLoesung && $('#trLoesung')], name:Labor.pdfName('Triomino', st.titel) }; },
     function(t){ meldung('fehler', '<p>' + esc(t) + '</p>'); });
   var speicherOrt = null;
   if (Labor.imArtefakt()){ $('#trPdf').hidden = true; Labor.claude('downloads').then(function(d){ if (!d || aus) return; speicherOrt = d; $('#trHerunterladen').hidden = false; }); }
@@ -520,7 +525,7 @@ function starte(bereich){
     if (!trimino || !speicherOrt) return;
     var bl = [$('#trBlatt')].concat(st.opt.mitLoesung ? [$('#trLoesung')] : []);
     var inhalt = bl.map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); k.removeAttribute('hidden'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
-    speicherOrt.save({ filename:Labor.pdfName('Trimino', st.titel).replace(/\.pdf$/, '.html'), data:Labor.blattDatei('Trimino', inhalt, '.tr-loesungsblatt{display:block}') }).catch(function(e){
+    speicherOrt.save({ filename:Labor.pdfName('Triomino', st.titel).replace(/\.pdf$/, '.html'), data:Labor.blattDatei('Triomino', inhalt, '.tr-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
       meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
