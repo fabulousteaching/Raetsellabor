@@ -132,6 +132,10 @@
 .gs-kreis{height:calc(var(--fm) * .92);width:auto;aspect-ratio:1;display:block}
 .gs-kreis-k{height:40px;width:40px;display:block}
 .gs-vorschau .gs-kreis{height:20px}
+.gs-buch{height:calc(var(--fm) * 1.25);width:auto;aspect-ratio:232/236;display:block}
+.gs-art-buecher .gs-s{height:calc(var(--fm) * 1.25);padding:0}
+.gs-buch-k{height:58px;width:auto;aspect-ratio:232/236;display:block}
+.gs-vorschau .gs-buch{height:26px}
 .gs-fm-k{height:38px;width:38px;display:block}
 .gs-fm-schluessel{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(10px,2.4vw,24px);margin:4px 0 22px}
 .gs-fm-schluessel svg{display:block;width:100%;height:auto;aspect-ratio:1}

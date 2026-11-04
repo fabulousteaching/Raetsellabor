@@ -1,7 +1,7 @@
 /* Rätsellabor – Generator «Geheimschriften»
-   Ein Text in einer von elf Geheimschriften, jeweils mit dem passenden Schlüssel zum Entschlüsseln:
+   Ein Text in einer von zwölf Geheimschriften, jeweils mit dem passenden Schlüssel zum Entschlüsseln:
    Caesar-Verschiebung (mit Caesar-Scheibe zum Basteln), Rückwärts-Alphabet, Zahlen-Code, Handy-Tasten,
-   Koordinaten-Gitter (Polybios), Freimaurer-Code, Vögel auf dem Draht, Kreis-Code, Morse-Code, Blindenschrift (Braille) und Hieroglyphen.
+   Koordinaten-Gitter (Polybios), Freimaurer-Code, Vögel auf dem Draht, Kreis-Code, Bücher-Code, Morse-Code, Blindenschrift (Braille) und Hieroglyphen.
    Alte Links auf …/#freimaurer (früher ein eigener Generator) öffnen die Geheimschriften mit dem Freimaurer-Code.
    Herunterladen: Geheimtext (PDF, wahlweise mit Lösungsblatt und Schlüssel; oder als Bild) und der Schlüssel einzeln. */
 (function(){
@@ -80,6 +80,11 @@ var Kern = (function(){
     S:[['b', 180, 260], H, ['b', 0, 80]], T:[['b', 190, 350], V], U:[LUECKE_OBEN], V:[['b', 90, 260], ['l', 0, 1, 0, 0], ['l', 0, 0, 1, 0]],
     W:[LUECKE_OBEN, ['l', 0, 0.15, 0, 1]], X:[H, V], Y:[['b', 180, 260], ['b', 280, 360], H, ['l', 0, 0, 0, 1]], Z:[['b', 280, 360], H, ['b', 100, 180]]
   };
+  /* Bücher-Code: das Bücher-Alphabet aus der Vorlage (Bilder in raetsel/geheimschrift/buecher/, alle im gleichen
+     Massstab auf gleich grossen Feldern mit gemeinsamer Grundlinie) – A–Z und . , ! - */
+  var BUECHER = {};
+  ABC.split('').forEach(function(c){ BUECHER[c] = c.toLowerCase(); });
+  BUECHER['.'] = 'punkt'; BUECHER[','] = 'komma'; BUECHER['!'] = 'ausrufezeichen'; BUECHER['-'] = 'bindestrich';
   // Text in Grossbuchstaben; Umlaute und ß bleiben (Morse, Blindenschrift) oder werden zu AE, OE, UE, SS
   function normal(text, umlaute){
     var t = String(text || '').replace(/ẞ/g, 'ß').replace(/ß/g, umlaute ? '' : 'SS').toUpperCase();
@@ -104,6 +109,7 @@ var Kern = (function(){
       case 'freimaurer': return i < 0 ? null : { freimaurer:freimaurer(c) };
       case 'voegel': return i < 0 ? null : { vogel:VOEGEL[c] };
       case 'kreise': return KREISE[c] ? { kreis:KREISE[c] } : null;
+      case 'buecher': return BUECHER[c] ? { buch:BUECHER[c] } : null;
       case 'morse': return MORSE[c] ? { morse:MORSE[c] } : null;
       case 'braille':
         if (/[0-9]/.test(c)){ var m = BRAILLE[ZIFFER_BRAILLE[+c]]; return { braille:/[0-9]/.test(vorher || '') ? [m] : [ZAHLZEICHEN, m] }; }
@@ -123,7 +129,7 @@ var Kern = (function(){
     });
   }
   return { ABC:ABC, GITTER:GITTER, MORSE:MORSE, BRAILLE:BRAILLE, ZAHLZEICHEN:ZAHLZEICHEN, HANDY:HANDY, HIERO:HIERO, HIERO_NAME:HIERO_NAME,
-    normal:normal, zeichen:zeichen, zerlege:zerlege, freimaurer:freimaurer, VOEGEL:VOEGEL, KREISE:KREISE, UMLAUTE:UMLAUTE };
+    normal:normal, zeichen:zeichen, zerlege:zerlege, freimaurer:freimaurer, VOEGEL:VOEGEL, KREISE:KREISE, BUECHER:BUECHER, UMLAUTE:UMLAUTE };
 })();
 /* KERN-ENDE */
 
@@ -136,6 +142,7 @@ var SCHRIFTEN = [
   ['freimaurer', 'Freimaurer-Code', 'Stücke von Gittern, manche mit Punkt'],
   ['voegel', 'Vögel auf dem Draht', 'Jeder Vogel sitzt anders (Birds on a Wire)'],
   ['kreise', 'Kreis-Code', 'Bögen und Striche im Kreis (Circles)'],
+  ['buecher', 'Bücher-Code', 'Buchstaben aus Büchern gelegt'],
   ['morse', 'Morse-Code', 'Punkte und Striche'],
   ['braille', 'Blindenschrift', 'Punkte zum Ertasten (Braille)'],
   ['hieroglyphen', 'Hieroglyphen', 'Bildzeichen aus dem alten Ägypten']
@@ -271,7 +278,11 @@ function kreisInnen(teile){
   return '<g stroke="' + TINTE + '" stroke-width="7.6">' + h + '</g>';
 }
 function kreisSvg(teile, klasse){ return '<svg class="' + (klasse || 'gs-kreis') + '" viewBox="0 0 100 100" aria-hidden="true">' + kreisInnen(teile) + '</svg>'; }
+// Bücher-Code: ausgeschnittene Bilder der Vorlage
+var BUECHER_ORDNER = 'raetsel/geheimschrift/buecher/';
+function buchSvg(name, klasse){ return '<img class="' + (klasse || 'gs-buch') + '" src="' + BUECHER_ORDNER + name + '.webp" width="232" height="236" alt="">'; }
 function symbolHtml(code){
+  if (code.buch) return buchSvg(code.buch);
   if (code.kreis) return kreisSvg(code.kreis);
   if (code.vogel) return vogelSvg(code.vogel);
   if (code.text !== undefined) return '<span class="gs-t">' + esc(code.text) + '</span>';
@@ -342,6 +353,10 @@ function schluesselHtml(art, o){
     case 'voegel':
       return '<p class="gs-erklaerung">Jeder Buchstabe ist ein Vogel auf dem Draht – achte darauf, wohin er schaut, wie sein Schwanz hängt (kurz, lang oder schräg) und was er tut: sitzen (A–F), mit den Flügeln schlagen (G–L), picken (M–R), als Küken sitzen (S–X) oder liegen (Y, Z).</p>' +
         tabelle(A.map(function(c){ return [c, vogelSvg(Kern.VOEGEL[c], 'gs-vogel-k')]; }), 'gs-tab-voegel');
+    case 'buecher':
+      return '<p class="gs-erklaerung">Jeder Buchstabe ist aus Büchern gelegt – liegend, stehend, schräg oder aufgeklappt. Schau genau, welche Form die Bücher zusammen bilden.</p>' +
+        tabelle(A.map(function(c){ return [c, buchSvg(Kern.BUECHER[c], 'gs-buch-k')]; }), 'gs-tab-buecher') +
+        '<h3 class="gs-unter">Satzzeichen</h3>' + tabelle([['.', 'Punkt'], [',', 'Komma'], ['!', 'Ausrufezeichen'], ['-', 'Bindestrich']].map(function(x){ return [x[0], buchSvg(Kern.BUECHER[x[0]], 'gs-buch-k'), x[1]]; }), 'gs-tab-buecher');
     case 'kreise':
       return '<p class="gs-erklaerung">Jeder Buchstabe besteht aus Bögen eines Kreises und geraden Strichen. Achte darauf, wo der Kreis offen ist und wo die Striche liegen. Achtung: 5 und S sehen gleich aus.</p>' +
         tabelle(A.map(function(c){ return [c, kreisSvg(Kern.KREISE[c], 'gs-kreis-k')]; }), 'gs-tab-kreise') +
@@ -426,9 +441,9 @@ var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke
 Labor.registriere({
   id:'geheimschrift',
   titel:'Geheimschriften',
-  kurz:'Caesar, Freimaurer, Vögel, Kreise, Morse, Blindenschrift, Hieroglyphen und mehr',
-  beschreibung:'Ein eigener Text in einer von elf Geheimschriften – Caesar-Verschiebung, Rückwärts-Alphabet, Zahlen, Handy-Tasten, Koordinaten, Freimaurer-Code, Vögel auf dem Draht, Kreis-Code, Morse, Blindenschrift oder Hieroglyphen. Mit Schlüssel zum Entschlüsseln.',
-  merkmale:['Elf Geheimschriften', 'Schlüssel einzeln als PDF oder Bild', 'Mit Lösungsblatt'],
+  kurz:'Caesar, Freimaurer, Vögel, Kreise, Bücher, Morse, Blindenschrift, Hieroglyphen und mehr',
+  beschreibung:'Ein eigener Text in einer von zwölf Geheimschriften – Caesar-Verschiebung, Rückwärts-Alphabet, Zahlen, Handy-Tasten, Koordinaten, Freimaurer-Code, Vögel auf dem Draht, Kreis-Code, Bücher-Code, Morse, Blindenschrift oder Hieroglyphen. Mit Schlüssel zum Entschlüsseln.',
+  merkmale:['Zwölf Geheimschriften', 'Schlüssel einzeln als PDF oder Bild', 'Mit Lösungsblatt'],
   symbol:SYMBOL,
   css:'raetsel/geheimschrift/geheimschrift.css',
   html:VORLAGE,
