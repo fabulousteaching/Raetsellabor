@@ -366,7 +366,7 @@ function starte(bereich){
     return '<div class="kw-fluss">' +
       (o.titelAn ? '<h2>' + esc(titel) + (loesung ? ' – Lösung' : '') + '</h2>' : '') +
       (o.anleitungAn ? '<p class="kw-anleitung">Lies die Hinweise und schreibe die Wörter waagrecht (→) und senkrecht (↓) ins Gitter. Die Zahl zeigt, wo ein Wort beginnt.</p>' : '') +
-      '<div class="kw-gitter-platz' + (mitBildern ? ' links' : '') + '">' + gitterSvg(R, f, loesung) + '</div>' +
+      '<div class="kw-gitter-platz">' + gitterSvg(R, f, loesung) + '</div>' +   // Gitter immer in der Mitte
       '<div class="kw-hinweise"><section><h3>Waagrecht →</h3><ol>' + liste(true) + '</ol></section><section><h3>Senkrecht ↓</h3><ol>' + liste(false) + '</ol></section></div>' +
       '</div>';
   }
@@ -415,9 +415,10 @@ function starte(bereich){
   }
   // Seite am Bildschirm in die Spalte einpassen (die Seite selbst bleibt 703 Pixel breit, wie im PDF)
   function massstab(){
-    var r = $('#kwRahmen'), s = Math.min(1, (r.parentNode.clientWidth || SEITE_B) / (SEITE_B + 2));
+    var r = $('#kwRahmen'), breit = r.parentNode.clientWidth || SEITE_B, s = Math.min(1, breit / (SEITE_B + 2));
     r.style.setProperty('--massstab', s.toFixed(4));
     r.style.height = (SEITE_H * s + 2).toFixed(0) + 'px';
+    $('#kwBlatt').style.marginLeft = Math.max(0, (breit - SEITE_B * s) / 2 - 1).toFixed(1) + 'px';   // Blatt mittig in der Spalte
   }
   var beobachter = window.ResizeObserver ? new ResizeObserver(function(){ massstab(); }) : null;
   if (beobachter) beobachter.observe($('.kw-ausgabe')); else window.addEventListener('resize', massstab);

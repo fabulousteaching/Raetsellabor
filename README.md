@@ -151,7 +151,7 @@ Eigene Wörter mit Hinweisen werden waagrecht und senkrecht verschränkt (jedes 
 
 - **Eingabe:** Zeilen mit zwei Feldern – links das Wort, rechts der Hinweis. Unten steht immer eine leere Zeile; sobald man hineinschreibt, kommt eine neue dazu. Eingabetaste: Wort → Hinweis → nächste Zeile; × löscht eine Zeile. Eine eingefügte Liste (z. B. aus Excel oder Word, Wort und Hinweis durch Tabulator, «=», «;» oder « - » getrennt) wird auf Zeilen verteilt. Zähler; Leerzeichen und Bindestriche im Wort fallen weg, ß → SS, Ä/Ö/Ü bleiben ein Feld. Bis 30 Wörter.
 - **Bilder:** bis 6 eigene Bilder (auswählen oder hineinziehen). Das Blatt ist eine feste A4-Seite (703 × 1032 Pixel, wie im PDF); nach dem Aufbau werden alle belegten Flächen gemessen (Titel, Anleitung, jedes Gitterfeld, jeder Hinweis), und jedes Bild kommt in die grösste freie Fläche – mit Abstand zum Rätsel, zu den Texten, zu den anderen Bildern und zum Rand, auch in die Lücken des Gitters. Reicht der Platz nicht, wird das Gitter kleiner; hat ein Bild trotzdem keinen Platz, kommt ein Hinweis.
-- **Blatt:** Hinweise «Waagrecht» und «Senkrecht», auf Wunsch mit Anzahl Buchstaben; Titel und Anleitung wählbar; «Lösung zeigen»; Lösungsblatt (gleicher Aufbau, Bilder am gleichen Platz); PDF oder Bild.
+- **Blatt:** Gitter immer in der Mitte (am Bildschirm steht auch das Blatt mittig in der Spalte); Hinweise «Waagrecht» und «Senkrecht», auf Wunsch mit Anzahl Buchstaben; Titel und Anleitung wählbar; «Lösung zeigen»; Lösungsblatt (gleicher Aufbau, Bilder am gleichen Platz); PDF oder Bild.
 
 ### Trimino
 

@@ -61,7 +61,6 @@
 .kw-seite h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714;line-height:1.2;display:table}
 .kw-anleitung{margin:0 0 18px;color:#554C45;max-width:80ch;display:table}
 .kw-gitter-platz{display:flex;justify-content:center;margin:4px 0 22px}
-.kw-gitter-platz.links{justify-content:flex-start}
 .kw-gitter{display:block}
 .kw-buchstabe{fill:transparent}
 .zeige-loesung .kw-buchstabe,.kw-buchstabe.an{fill:var(--accent-2)}
@@ -82,7 +81,7 @@
   .kw{padding:0;max-width:none}
   .kw-layout{display:block}
   .kw-rahmen{height:auto!important}
-  .kw-seite{transform:none!important;outline:0;box-shadow:none}
+  .kw-seite{transform:none!important;outline:0;box-shadow:none;margin-left:0!important}
   .kw-loesungs-rahmen{display:none}
   body.mit-loesung .kw-loesungs-rahmen{display:block;break-before:page}
 }
