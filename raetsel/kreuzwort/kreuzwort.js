@@ -143,6 +143,27 @@ var Kern = (function(){
         }
         return null;
       },
+      /* Deko-Platz: die Stelle mit dem meisten Freiraum rundherum (für ein Bild mit Seitenverhältnis ar). Für jede freie
+         Stelle wird die grösste passende Bildgrösse gesucht; gewählt wird die grösste – das Bild steht dann mittig in der
+         grössten Lücke. Grösse höchstens max (längere Seite), mindestens min; rand: Abstand zum Seitenrand. */
+      mitte:function(ar, max, min, rand){
+        var r0 = Math.ceil(rand / schritt), best = null, fx = ar >= 1 ? 1 : ar, fy = ar >= 1 ? 1 / ar : 1;
+        function passt(i, j, halb){   // Rechteck um Zelle (i, j) mit halber längerer Seite «halb» (in Zellen)
+          var hx = Math.max(1, Math.round(halb * fx)), hy = Math.max(1, Math.round(halb * fy));
+          if (i - hx < r0 || j - hy < r0 || i + hx > nx - r0 || j + hy > ny - r0) return false;
+          return leer(i - hx, j - hy, 2 * hx, 2 * hy);
+        }
+        var maxHalb = Math.ceil(max / 2 / schritt) + 12, minHalb = Math.ceil(min / 2 / schritt);
+        for (var j = r0; j < ny - r0; j += 2) for (var i = r0; i < nx - r0; i += 2){
+          if (b[j * nx + i] || !passt(i, j, minHalb)) continue;
+          var lo = minHalb, hi = maxHalb;
+          while (lo < hi){ var m = (lo + hi + 1) >> 1; if (passt(i, j, m)) lo = m; else hi = m - 1; }
+          if (!best || lo > best.halb) best = { i:i, j:j, halb:lo };
+        }
+        if (!best) return null;
+        var L = Math.min(max, 2 * best.halb * schritt - 10), w = L * fx, h = L * fy;
+        return { x:best.i * schritt - w / 2, y:best.j * schritt - h / 2, b:w, h:h };
+      },
       belege:function(x, y, w, h){ markiere(x, y, w, h); summen(); }
     };
   }
@@ -386,15 +407,15 @@ function starte(bereich){
     var R = raetsel, seite = $('#kwBlatt');
     $('#kwRahmen').hidden = false;
     ['#kwNeu', '#kwZeigeLoesung', '#kwPdf', '#kwBild', '#kwHerunterladen'].forEach(function(s){ $(s).disabled = false; });
-    var maxF = Math.max(16, Math.min(40, Math.floor((SEITE_B - 4) / R.breite), Math.floor(620 / R.hoehe)));
+    var maxF = Math.max(16, Math.min(40, Math.floor((SEITE_B - 76) / R.breite), Math.floor(600 / R.hoehe)));
     var wahl = null;
     for (var f = maxF; f >= 16; f -= 2){
       seite.innerHTML = seitenHtml(R, f, bilder.length > 0, false);
       var mess = messen(seite, R, f);
-      if (mess.hoehe > SEITE_H && f > 16) continue;
-      var platz = Kern.freieFlaeche(SEITE_B, SEITE_H, mess.belegt, 14, 4), lage = [];
+      if (mess.hoehe > SEITE_H - 26 && f > 16) continue;   // unten ebenfalls Rand lassen
+      var platz = Kern.freieFlaeche(SEITE_B, SEITE_H, mess.belegt, 18, 4), lage = [];
       var alle = bilder.every(function(b){
-        var p = platz.platz(b.b / b.h, 230, 70, 10);
+        var p = platz.mitte(b.b / b.h, 190, 64, 30);   // als Deko: mittig in der grössten Lücke, 30 Pixel vom Rand
         if (!p) return false;
         platz.belege(p.x, p.y, p.b, p.h); lage.push(p); return true;
       });

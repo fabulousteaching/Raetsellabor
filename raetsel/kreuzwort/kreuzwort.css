@@ -57,14 +57,15 @@
 .kw-loesungs-rahmen{display:none}
 .kw-seite{position:relative;width:703px;height:1032px;box-sizing:content-box;background:#fff;color:#1C1714;overflow:hidden;
   transform:scale(var(--massstab));transform-origin:top left;outline:1px solid var(--line);box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08)}
-.kw-fluss{position:static;width:703px}
-.kw-seite h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714;line-height:1.2;display:table}
-.kw-anleitung{margin:0 0 18px;color:#554C45;max-width:80ch;display:table}
+.kw-fluss{position:static;width:703px;box-sizing:border-box;padding:26px 34px 0;text-align:center}
+.kw-seite h2{font-size:1.6rem;font-weight:700;margin:0 auto 6px;letter-spacing:-.015em;color:#1C1714;line-height:1.2;display:table}
+.kw-anleitung{margin:0 auto 18px;color:#554C45;max-width:56ch;display:table;text-align:center}
 .kw-gitter-platz{display:flex;justify-content:center;margin:4px 0 22px}
 .kw-gitter{display:block}
 .kw-buchstabe{fill:transparent}
 .zeige-loesung .kw-buchstabe,.kw-buchstabe.an{fill:var(--accent-2)}
-.kw-hinweise{display:grid;grid-template-columns:1fr 1fr;gap:10px 30px;font-size:14.5px;line-height:1.38}
+.kw-hinweise{display:flex;justify-content:center;align-items:flex-start;gap:10px 40px;font-size:14.5px;line-height:1.38;text-align:left}
+.kw-hinweise section{flex:0 1 46%;min-width:0}
 .kw-hinweise h3{font-size:1.02rem;font-weight:700;margin:0 0 6px;color:#1C1714;display:table}
 .kw-hinweise ol{list-style:none;margin:0;padding:0}
 .kw-hinweise li{margin:0 0 5px}
