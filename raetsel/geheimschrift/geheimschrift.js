@@ -344,7 +344,6 @@ var VORLAGE = '<div class="gs">' +
       '<p class="feld-label">Grösse der Zeichen</p>' +
       '<div class="gs-chips" role="radiogroup" aria-label="Grösse der Zeichen">' +
         GROESSEN.map(function(g){ return '<label><input type="radio" name="gsGroesse" value="' + g[0] + '"><span>' + g[1] + '</span></label>'; }).join('') + '</div>' +
-      '<label class="opt"><input type="checkbox" id="gsLinien"><span>Schreiblinien unter den Zeichen</span></label>' +
       '<div class="opt-raster"><label for="gsTitel">Titel auf dem Blatt</label><input type="text" id="gsTitel" maxlength="60" autocomplete="off"></div>' +
     '</div>' +
   '</section>' +
@@ -356,6 +355,7 @@ var VORLAGE = '<div class="gs">' +
         '<button type="button" class="btn klein" id="gsZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
         '<span class="abstand"></span>' +
         Labor.blattSchalterHtml() +
+        '<label title="Linien unter den Zeichen zum Hinschreiben der Buchstaben"><input type="checkbox" id="gsLinien"> Schreiblinien</label>' +
         '<label><input type="checkbox" id="gsMitLoesung"> mit Lösungsblatt</label>' +
         '<label><input type="checkbox" id="gsMitSchluessel"> mit Schlüssel</label>' +
         '<button type="button" class="btn klein" id="gsCodeKopieren" title="Den Geheimtext als Bild kopieren – zum Einfügen in Word">Bild kopieren</button>' +
