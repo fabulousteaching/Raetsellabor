@@ -1,7 +1,7 @@
 /* Rätsellabor – Generator «Geheimschriften»
-   Ein Text in einer von neun Geheimschriften, jeweils mit dem passenden Schlüssel zum Entschlüsseln:
+   Ein Text in einer von zehn Geheimschriften, jeweils mit dem passenden Schlüssel zum Entschlüsseln:
    Caesar-Verschiebung (mit Caesar-Scheibe zum Basteln), Rückwärts-Alphabet, Zahlen-Code, Handy-Tasten,
-   Koordinaten-Gitter (Polybios), Freimaurer-Code, Morse-Code, Blindenschrift (Braille) und Hieroglyphen.
+   Koordinaten-Gitter (Polybios), Freimaurer-Code, Vögel auf dem Draht, Morse-Code, Blindenschrift (Braille) und Hieroglyphen.
    Alte Links auf …/#freimaurer (früher ein eigener Generator) öffnen die Geheimschriften mit dem Freimaurer-Code.
    Herunterladen: Geheimtext (PDF, wahlweise mit Lösungsblatt und Schlüssel; oder als Bild) und der Schlüssel einzeln. */
 (function(){
@@ -51,6 +51,12 @@ var Kern = (function(){
     var X = [['M14 16L50 86L86 16', [50, 40]], ['M16 14L86 50L16 86', [40, 50]], ['M84 14L14 50L84 86', [60, 50]], ['M14 84L50 14L86 84', [50, 60]]][(i - 18) % 4];
     return { d:X[0], punkt:i >= 22 ? X[1] : null };
   }
+  /* Vögel auf dem Draht (Birds on a Wire): jeder Buchstabe ein Vogel in einer anderen Haltung – nach einem System, damit
+     man sie gut unterscheidet: [Haltung, Blick (1 rechts, −1 links), Schwanz (kurz, lang, schräg)].
+     A–F sitzend, G–L Flügel hoch, M–R pickend, S–X Küken, Y und Z liegend. */
+  var VOEGEL = {}, HALTUNGEN = ['sitzend', 'fluegel', 'pickend', 'kueken'], SCHWAENZE = ['kurz', 'lang', 'schraeg'];
+  HALTUNGEN.forEach(function(h, a){ [1, -1].forEach(function(blick, b){ SCHWAENZE.forEach(function(sw, c){ VOEGEL[ABC[a * 6 + b * 3 + c]] = [h, blick, sw]; }); }); });
+  VOEGEL.Y = ['liegend', 1, 'lang']; VOEGEL.Z = ['liegend', -1, 'lang'];
   // Text in Grossbuchstaben; Umlaute und ß bleiben (Morse, Blindenschrift) oder werden zu AE, OE, UE, SS
   function normal(text, umlaute){
     var t = String(text || '').replace(/ẞ/g, 'ß').replace(/ß/g, umlaute ? '' : 'SS').toUpperCase();
@@ -73,6 +79,7 @@ var Kern = (function(){
         var g = GITTER.indexOf(c === 'J' ? 'I' : c);
         return g < 0 ? null : { text:String(Math.floor(g / 5) + 1) + String(g % 5 + 1) };
       case 'freimaurer': return i < 0 ? null : { freimaurer:freimaurer(c) };
+      case 'voegel': return i < 0 ? null : { vogel:VOEGEL[c] };
       case 'morse': return MORSE[c] ? { morse:MORSE[c] } : null;
       case 'braille':
         if (/[0-9]/.test(c)){ var m = BRAILLE[ZIFFER_BRAILLE[+c]]; return { braille:/[0-9]/.test(vorher || '') ? [m] : [ZAHLZEICHEN, m] }; }
@@ -92,7 +99,7 @@ var Kern = (function(){
     });
   }
   return { ABC:ABC, GITTER:GITTER, MORSE:MORSE, BRAILLE:BRAILLE, ZAHLZEICHEN:ZAHLZEICHEN, HANDY:HANDY, HIERO:HIERO, HIERO_NAME:HIERO_NAME,
-    normal:normal, zeichen:zeichen, zerlege:zerlege, freimaurer:freimaurer, UMLAUTE:UMLAUTE };
+    normal:normal, zeichen:zeichen, zerlege:zerlege, freimaurer:freimaurer, VOEGEL:VOEGEL, UMLAUTE:UMLAUTE };
 })();
 /* KERN-ENDE */
 
@@ -103,6 +110,7 @@ var SCHRIFTEN = [
   ['handy', 'Handy-Tasten', 'So oft tippen wie auf der Handytaste: B = 22'],
   ['polybios', 'Koordinaten-Gitter', 'Zeile und Spalte im Gitter: B = 12'],
   ['freimaurer', 'Freimaurer-Code', 'Stücke von Gittern, manche mit Punkt'],
+  ['voegel', 'Vögel auf dem Draht', 'Jeder Vogel sitzt anders (Birds on a Wire)'],
   ['morse', 'Morse-Code', 'Punkte und Striche'],
   ['braille', 'Blindenschrift', 'Punkte zum Ertasten (Braille)'],
   ['hieroglyphen', 'Hieroglyphen', 'Bildzeichen aus dem alten Ägypten']
@@ -190,7 +198,44 @@ function fmX(ab, punkt){
   });
   return h;
 }
+/* Vogel im Feld 0…100 (Draht bei y = 78), gezeichnet mit Blick nach rechts und für «links» gespiegelt */
+var DRAHT_Y = 78;
+function draht(x0, x1){ return '<path d="M' + x0 + ' ' + DRAHT_Y + 'H' + x1 + '" stroke="' + TINTE + '" stroke-width="3.4"/>'; }
+function vogelInnen(v){
+  var h = v[0], sw = v[2], k = '', f = TINTE;
+  function schwanz(x, y, gr){   // Ansatz (x, y) hinten unten am Körper
+    gr = gr || 1;
+    if (sw === 'kurz') return '<path d="M' + (x - 4 * gr) + ' ' + y + 'L' + (x + 4 * gr) + ' ' + y + 'L' + (x + 3 * gr) + ' ' + (y + 18 * gr) + 'L' + (x - 3 * gr) + ' ' + (y + 18 * gr) + 'Z" fill="' + f + '"/>';
+    if (sw === 'lang') return '<path d="M' + (x - 4 * gr) + ' ' + y + 'L' + (x + 4 * gr) + ' ' + y + 'L' + (x + 5 * gr) + ' ' + (y + 32 * gr) + 'L' + (x - 5 * gr) + ' ' + (y + 32 * gr) + 'Z" fill="' + f + '"/>';
+    return '<path d="M' + (x - 2 * gr) + ' ' + (y - 5 * gr) + 'L' + (x + 5 * gr) + ' ' + (y + 2 * gr) + 'L' + (x - 17 * gr) + ' ' + (y + 26 * gr) + 'L' + (x - 23 * gr) + ' ' + (y + 21 * gr) + 'Z" fill="' + f + '"/>';
+  }
+  function fuesse(x){ return '<path d="M' + (x - 3) + ' ' + (DRAHT_Y - 6) + 'V' + DRAHT_Y + 'M' + (x + 3) + ' ' + (DRAHT_Y - 6) + 'V' + DRAHT_Y + '" stroke="' + f + '" stroke-width="2.4"/>'; }
+  function kopf(x, y, r, schnabelRunter){
+    return '<circle cx="' + x + '" cy="' + y + '" r="' + r + '" fill="' + f + '"/>' +
+      (schnabelRunter ? '<path d="M' + (x + r * 0.6) + ' ' + (y + r * 0.5) + 'L' + (x + r * 1.1) + ' ' + (y + r * 1.6) + 'L' + (x + r * 0.05) + ' ' + (y + r * 0.95) + 'Z" fill="' + f + '"/>'
+        : '<path d="M' + (x + r * 0.8) + ' ' + (y - r * 0.35) + 'L' + (x + r * 1.75) + ' ' + (y + r * 0.05) + 'L' + (x + r * 0.8) + ' ' + (y + r * 0.45) + 'Z" fill="' + f + '"/>') +
+      '<circle cx="' + (x + r * 0.35) + '" cy="' + (y - r * 0.2) + '" r="' + (r * 0.17) + '" fill="#fff"/>';
+  }
+  if (h === 'liegend'){
+    k = '<path d="M30 60L8 52L10 60L30 66Z" fill="' + f + '"/>' + '<ellipse cx="50" cy="63" rx="24" ry="11" fill="' + f + '"/>' + kopf(72, 52, 9) + fuesse(52);
+  } else if (h === 'kueken'){
+    k = schwanz(46, 68, 0.7) + '<ellipse cx="50" cy="62" rx="11" ry="12" fill="' + f + '"/>' + kopf(54, 46, 8) + fuesse(50);
+  } else if (h === 'pickend'){
+    k = schwanz(41, 62) + '<ellipse cx="50" cy="58" rx="19" ry="13" transform="rotate(28 50 58)" fill="' + f + '"/>' + kopf(66, 66, 9, true) + fuesse(50);
+  } else {
+    if (h === 'fluegel') k += '<path d="M42 48L16 20L22 40L38 58Z" fill="' + f + '"/><path d="M58 48L84 20L78 40L62 58Z" fill="' + f + '"/>';
+    k += schwanz(47, 66) + '<ellipse cx="50" cy="55" rx="14" ry="19" fill="' + f + '"/>' + kopf(55, 30, 10.5) + fuesse(50);
+  }
+  return v[1] < 0 ? '<g transform="translate(100 0) scale(-1 1)">' + k + '</g>' : k;
+}
+function vogelSvg(v, klasse){ return '<svg class="' + (klasse || 'gs-vogel') + '" viewBox="0 0 100 100" aria-hidden="true">' + draht(-1, 101) + vogelInnen(v) + '</svg>'; }
+// Draht ohne Vogel (zwischen den Wörtern) bzw. mit einem stehenbleibenden Zeichen darüber
+function drahtSvg(text){
+  return '<svg class="gs-vogel ' + (text ? 'gs-draht-zeichen' : 'gs-draht-luecke') + '" viewBox="0 0 ' + (text ? 60 : 70) + ' 100" aria-hidden="true">' + draht(-1, text ? 61 : 71) +
+    (text ? '<text x="30" y="66" font-family="Andika, Arial, sans-serif" font-size="40" fill="#6E655E" text-anchor="middle">' + esc(text) + '</text>' : '') + '</svg>';
+}
 function symbolHtml(code){
+  if (code.vogel) return vogelSvg(code.vogel);
   if (code.text !== undefined) return '<span class="gs-t">' + esc(code.text) + '</span>';
   if (code.freimaurer) return fmSvg(code.freimaurer);
   if (code.morse) return morseSvg(code.morse);
@@ -256,6 +301,9 @@ function schluesselHtml(art, o){
         '<div class="gs-fm-schluessel">' + [[fmGitter, 0, false, 'A bis I'], [fmGitter, 9, true, 'J bis R, mit Punkt'], [fmX, 18, false, 'S bis V'], [fmX, 22, true, 'W bis Z, mit Punkt']]
           .map(function(k){ return '<svg viewBox="0 0 300 300" role="img" aria-label="Schlüssel ' + k[3] + '">' + k[0](k[1], k[2]) + '</svg>'; }).join('') + '</div>' +
         tabelle(A.map(function(c){ return [c, fmSvg(Kern.freimaurer(c), 'gs-fm-k')]; }), 'gs-tab-fm');
+    case 'voegel':
+      return '<p class="gs-erklaerung">Jeder Buchstabe ist ein Vogel auf dem Draht – achte darauf, wohin er schaut, wie sein Schwanz hängt (kurz, lang oder schräg) und was er tut: sitzen (A–F), mit den Flügeln schlagen (G–L), picken (M–R), als Küken sitzen (S–X) oder liegen (Y, Z).</p>' +
+        tabelle(A.map(function(c){ return [c, vogelSvg(Kern.VOEGEL[c], 'gs-vogel-k')]; }), 'gs-tab-voegel');
     case 'morse':
       return '<p class="gs-erklaerung">Jeder Buchstabe besteht aus kurzen (Punkt) und langen (Strich) Zeichen.</p>' +
         tabelle(A.concat(['Ä', 'Ö', 'Ü', 'ß']).map(function(c){ return [c, morseSvg(Kern.MORSE[c], 'gs-morse-k')]; }), 'gs-tab-morse') +
@@ -338,9 +386,9 @@ var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke
 Labor.registriere({
   id:'geheimschrift',
   titel:'Geheimschriften',
-  kurz:'Caesar, Freimaurer, Morse, Blindenschrift, Hieroglyphen und mehr',
-  beschreibung:'Ein eigener Text in einer von neun Geheimschriften – Caesar-Verschiebung, Rückwärts-Alphabet, Zahlen, Handy-Tasten, Koordinaten, Freimaurer-Code, Morse, Blindenschrift oder Hieroglyphen. Mit Schlüssel zum Entschlüsseln.',
-  merkmale:['Neun Geheimschriften', 'Schlüssel einzeln als PDF oder Bild', 'Mit Lösungsblatt'],
+  kurz:'Caesar, Freimaurer, Vögel, Morse, Blindenschrift, Hieroglyphen und mehr',
+  beschreibung:'Ein eigener Text in einer von zehn Geheimschriften – Caesar-Verschiebung, Rückwärts-Alphabet, Zahlen, Handy-Tasten, Koordinaten, Freimaurer-Code, Vögel auf dem Draht, Morse, Blindenschrift oder Hieroglyphen. Mit Schlüssel zum Entschlüsseln.',
+  merkmale:['Zehn Geheimschriften', 'Schlüssel einzeln als PDF oder Bild', 'Mit Lösungsblatt'],
   symbol:SYMBOL,
   css:'raetsel/geheimschrift/geheimschrift.css',
   html:VORLAGE,
@@ -416,10 +464,13 @@ function starte(bereich){
   /* ---------- Geheimtext ---------- */
   function px(){ return (GROESSEN.filter(function(g){ return g[0] === st.opt.groesse; })[0] || GROESSEN[1])[2]; }
   function codeHtml(){
+    var voegel = st.opt.art === 'voegel';   // Vögel: alle Zellen ohne Abstand, dazwischen Draht – ein durchgehender Draht pro Zeile
+    var luecke = '<span class="gs-z gs-andere"><span class="gs-s">' + drahtSvg('') + '</span><span class="gs-linie gs-leer"></span></span>';
     return '<div class="gs-code gs-art-' + st.opt.art + (st.opt.linien ? '' : ' ohne-linien') + '" style="--fm:' + px() + 'px">' + zellen().map(function(zeile){
-      return '<div class="gs-zeile">' + zeile.map(function(wort){
-        return '<span class="gs-wort">' + wort.map(function(c){
+      return '<div class="gs-zeile">' + zeile.map(function(wort, k){
+        return (voegel && k ? luecke : '') + '<span class="gs-wort">' + wort.map(function(c){
           if (c.code) return '<span class="gs-z"><span class="gs-s">' + symbolHtml(c.code) + '</span><span class="gs-linie"><b class="gs-loes">' + esc(c.b) + '</b></span></span>';
+          if (voegel) return '<span class="gs-z gs-andere"><span class="gs-s">' + drahtSvg(c.b) + '</span><span class="gs-linie gs-leer"></span></span>';
           return '<span class="gs-z gs-andere"><span class="gs-s"><span class="gs-t gs-bleibt">' + esc(c.b) + '</span></span><span class="gs-linie gs-leer"></span></span>';
         }).join('') + '</span>';
       }).join('') + '</div>';

@@ -118,6 +118,17 @@
 .gs-taste small{font-size:.8rem;font-weight:700;letter-spacing:.06em;color:var(--accent-2)}
 .gs-scheibe{display:block;width:100%;height:auto;margin-top:6px}
 .gs-fm{height:calc(var(--fm) * .92);width:auto;aspect-ratio:1;display:block}
+/* Vögel auf dem Draht: Zellen ohne Abstand, damit der Draht durchgeht */
+.gs-art-voegel .gs-zeile,.gs-art-voegel .gs-wort{column-gap:0}
+.gs-art-voegel .gs-z{min-width:0}
+.gs-art-voegel .gs-s{height:calc(var(--fm) * 1.3);min-width:0;padding:0}
+.gs-vogel{height:calc(var(--fm) * 1.3);width:auto;aspect-ratio:1;display:block}
+.gs-vogel.gs-draht-luecke{aspect-ratio:70/100}
+.gs-vogel.gs-draht-zeichen{aspect-ratio:60/100}
+.gs-art-voegel .gs-linie{width:calc(100% - 10px)}
+.gs-vogel-k{height:56px;width:56px;display:block}
+.gs-vorschau .gs-vogel{height:24px}
+.gs-vorschau.gs-v-voegel{gap:0}
 .gs-fm-k{height:38px;width:38px;display:block}
 .gs-fm-schluessel{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(10px,2.4vw,24px);margin:4px 0 22px}
 .gs-fm-schluessel svg{display:block;width:100%;height:auto;aspect-ratio:1}
