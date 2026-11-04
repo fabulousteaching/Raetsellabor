@@ -12,10 +12,17 @@
 @media (max-width:640px){ .kw{padding-block:18px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))} }
 
 /* ---------- Eingaben ---------- */
-.kw textarea{display:block;width:100%;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;resize:vertical;min-height:11em;line-height:1.45;font-size:.98rem;transition:border-color .15s,box-shadow .15s}
-.kw textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
-.kw .kw-label{text-transform:none;letter-spacing:0;font-size:.86rem}
-.kw code{font-size:.85em;background:#F3EEE9;border-radius:4px;padding:1px 4px}
+/* Zeilen: links das Wort, rechts der Hinweis, unten immer eine leere Zeile */
+.kw-zeilen-kopf,.kw-zeile{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,3fr) 28px;gap:6px;align-items:center}
+.kw-zeilen-kopf{margin-bottom:4px;font-size:.76rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.kw-zeilen{display:grid;gap:6px}
+.kw-zeile input{width:100%;min-width:0;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:7px 9px;font-size:.95rem;transition:border-color .15s,box-shadow .15s}
+.kw-zeile input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.kw-zeile .kw-w{font-weight:650}
+.kw-x{width:28px;height:28px;border:0;border-radius:50%;background:transparent;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;padding:0}
+.kw-x:hover{background:#F3EEE9;color:var(--err)}
+.kw-zeile.kw-neu input{border-style:dashed;background:#FBF8F5}
+.kw-zeile.kw-neu .kw-x{visibility:hidden}
 .kw-zaehler{margin-top:10px;font-size:.88rem}
 .kw-zaehler p{margin:6px 0 0}
 .kw-zaehler-haupt{padding:8px 11px;border-radius:9px;margin:0!important}

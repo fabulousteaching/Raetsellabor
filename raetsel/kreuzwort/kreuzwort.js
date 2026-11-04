@@ -16,21 +16,29 @@ var Kern = (function(){
   }
   // Wort fürs Gitter: Grossbuchstaben, ß → SS, Umlaute bleiben ein Feld, alles andere (Leerzeichen, Bindestriche) fällt weg
   function wort(t){ return String(t || '').replace(/ẞ/g, 'ß').toUpperCase().replace(/[^A-ZÄÖÜ]/g, ''); }
-  // Zeilen «Wort = Hinweis» (auch «;», Tabulator, «:» oder « - »)
-  function eintraege(text){
+  // eingegebene Paare [{ w, h }] prüfen → { liste:[{ wort, hinweis }], ohne (Hinweis fehlt), kurz, doppelt }
+  function pruefen(paare){
     var liste = [], ohne = 0, kurz = 0, doppelt = 0, gesehen = {};
-    String(text || '').split(/\r?\n/).forEach(function(z){
-      z = z.trim(); if (!z) return;
-      var m = /\s*(?:\t|;|=|:|\s[-–—]\s)\s*/.exec(z);
-      var w = wort(m ? z.slice(0, m.index) : z), h = m ? z.slice(m.index + m[0].length).trim() : '';
-      if (!m || !h){ ohne++; if (!w) return; }
+    (paare || []).forEach(function(p){
+      var w = wort(p.w), h = String(p.h || '').trim();
+      if (!w) return;
       if (w.length < 2){ kurz++; return; }
       if (gesehen[w]){ doppelt++; return; }
+      if (!h){ ohne++; return; }
       gesehen[w] = true;
       liste.push({ wort:w, hinweis:h });
     });
     return { liste:liste, ohne:ohne, kurz:kurz, doppelt:doppelt };
   }
+  // eingefügter Text mit mehreren Zeilen «Wort = Hinweis» (auch «;», Tabulator, «:» oder « - ») → [{ w, h }]
+  function zerlegeText(text){
+    return String(text || '').split(/\r?\n/).map(function(z){
+      z = z.trim(); if (!z) return null;
+      var m = /\s*(?:\t|;|=|:|\s[-–—]\s)\s*/.exec(z);
+      return { w:m ? z.slice(0, m.index).trim() : z, h:m ? z.slice(m.index + m[0].length).trim() : '' };
+    }).filter(Boolean);
+  }
+  function eintraege(text){ return pruefen(zerlegeText(text)); }
 
   /* ---------- Anordnen ----------
      Gitter als Karte "zeile,spalte" → { b: Buchstabe, h: gehört zu einem waagrechten Wort, v: zu einem senkrechten }.
@@ -138,7 +146,7 @@ var Kern = (function(){
       belege:function(x, y, w, h){ markiere(x, y, w, h); summen(); }
     };
   }
-  return { wort:wort, eintraege:eintraege, anordnen:anordnen, freieFlaeche:freieFlaeche, zufall:zufall };
+  return { wort:wort, pruefen:pruefen, zerlegeText:zerlegeText, eintraege:eintraege, anordnen:anordnen, freieFlaeche:freieFlaeche, zufall:zufall };
 })();
 /* KERN-ENDE */
 
@@ -149,10 +157,10 @@ var VORLAGE = '<div class="kw">' +
   '<header class="kw-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Kreuzworträtsel</h1>' +
     '<p>Deine Wörter mit Hinweisen werden waagrecht und senkrecht verschränkt. Eigene Bilder setzt der Generator dorthin, wo auf dem Blatt Platz frei ist.</p></header>' +
   '<div class="kw-layout"><section class="kw-eingabe" aria-label="Eingaben">' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Wörter und Hinweise</h2><p>Ein Wort pro Zeile, danach der Hinweis.</p></div></div>' +
-      '<label class="feld-label kw-label" for="kwWoerter">Wort = Hinweis</label>' +
-      '<textarea id="kwWoerter" rows="10" autocomplete="off" spellcheck="false"></textarea>' +
-      '<p class="hinweis">Zum Beispiel <code>Igel = Tier mit Stacheln</code> – getrennt durch «=», «;», einen Tabulator oder « - ». Leerzeichen und Bindestriche im Wort fallen weg, ß wird zu SS.</p>' +
+    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Wörter und Hinweise</h2><p>Pro Zeile ein Wort und sein Hinweis.</p></div></div>' +
+      '<div class="kw-zeilen-kopf" aria-hidden="true"><span>Wort</span><span>Hinweis</span></div>' +
+      '<div class="kw-zeilen" id="kwZeilen" role="list" aria-label="Wörter und Hinweise"></div>' +
+      '<p class="hinweis">Sobald du in die unterste Zeile schreibst, kommt eine neue dazu. Mit der Eingabetaste springst du weiter. Eine Liste aus Word oder Excel (Wort und Hinweis nebeneinander) kannst du auch einfach einfügen. Leerzeichen und Bindestriche im Wort fallen weg, ß wird zu SS.</p>' +
       '<div class="kw-zaehler" id="kwZaehler" aria-live="polite"></div>' +
     '</div>' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Bilder</h2><p>Freiwillig – zum Verzieren oder als Hilfe.</p></div></div>' +
@@ -202,12 +210,12 @@ function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, esc = Labor.esc, aus = false;
   var TAB = 'kreuzwort-eingaben', OPT = 'kreuzwort-einstellungen';
   var STANDARD = { laenge:false, mitLoesung:true, titelAn:true, anleitungAn:true };
-  var st = { text:'', titel:'', seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
+  var st = { paare:[], titel:'', seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
-  try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.text = String(e.text || ''); st.titel = String(e.titel || ''); st.seed = +e.seed || st.seed; } } catch(x){}
+  try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.paare = Array.isArray(e.paare) ? e.paare.map(function(p){ return { w:String(p.w || ''), h:String(p.h || '') }; }) : []; st.titel = String(e.titel || ''); st.seed = +e.seed || st.seed; } } catch(x){}
   var timer = 0;
   function speichernJetzt(){ clearTimeout(timer); timer = 0;
-    try { sessionStorage.setItem(TAB, JSON.stringify({ text:st.text, titel:st.titel, seed:st.seed })); } catch(x){}
+    try { sessionStorage.setItem(TAB, JSON.stringify({ paare:st.paare, titel:st.titel, seed:st.seed })); } catch(x){}
     try { localStorage.setItem(OPT, JSON.stringify(st.opt)); } catch(x){} }
   function speichern(){ clearTimeout(timer); timer = setTimeout(speichernJetzt, 200); }
   function meldung(art, html){ $('#kwMeldung').innerHTML = html ? '<div class="meldung ' + art + '">' + html + '</div>' : ''; }
@@ -215,9 +223,55 @@ function starte(bereich){
   var raetsel = null;
 
   /* ---------- Eingaben ---------- */
-  $('#kwWoerter').value = st.text;
-  var warte = 0;
-  $('#kwWoerter').addEventListener('input', function(){ st.text = this.value; speichern(); clearTimeout(warte); warte = setTimeout(erzeugen, 300); });
+  /* Zeilen mit zwei Feldern (Wort, Hinweis); unten steht immer eine leere Zeile – sobald man hineinschreibt, kommt eine
+     neue dazu. Eingabetaste: Wort → Hinweis → nächste Zeile. Text mit mehreren Zeilen einfügen: wird auf Zeilen verteilt. */
+  var warte = 0, zeilen = $('#kwZeilen');
+  function baldErzeugen(){ speichern(); clearTimeout(warte); warte = setTimeout(erzeugen, 300); }
+  function zeileHtml(p, i){
+    return '<div class="kw-zeile" role="listitem"><input type="text" class="kw-w" value="' + esc(p.w) + '" maxlength="30" autocomplete="off" spellcheck="false" aria-label="Wort ' + (i + 1) + '">' +
+      '<input type="text" class="kw-h" value="' + esc(p.h) + '" maxlength="120" autocomplete="off" aria-label="Hinweis ' + (i + 1) + '">' +
+      '<button type="button" class="kw-x" aria-label="Zeile ' + (i + 1) + ' löschen" title="Zeile löschen">×</button></div>';
+  }
+  function zeilenZeigen(fokus){
+    while (st.paare.length && !st.paare[st.paare.length - 1].w && !st.paare[st.paare.length - 1].h) st.paare.pop();
+    zeilen.innerHTML = st.paare.concat([{ w:'', h:'' }]).map(zeileHtml).join('');
+    zeilen.lastChild.classList.add('kw-neu');
+    if (fokus){ var f = zeilen.children[fokus[0]]; if (f) f.querySelector(fokus[1] ? '.kw-h' : '.kw-w').focus(); }
+  }
+  function index(el){ return [].indexOf.call(zeilen.children, el.closest('.kw-zeile')); }
+  zeilen.addEventListener('input', function(ev){
+    var z = ev.target.closest('.kw-zeile'), i = index(ev.target);
+    if (!z) return;
+    st.paare[i] = { w:z.querySelector('.kw-w').value, h:z.querySelector('.kw-h').value };
+    if (z.classList.contains('kw-neu') && (st.paare[i].w || st.paare[i].h)){   // unterste Zeile benutzt: neue leere Zeile darunter
+      z.classList.remove('kw-neu');
+      zeilen.insertAdjacentHTML('beforeend', zeileHtml({ w:'', h:'' }, i + 1)); zeilen.lastChild.classList.add('kw-neu');
+    }
+    baldErzeugen();
+  });
+  zeilen.addEventListener('click', function(ev){
+    var k = ev.target.closest('.kw-x'); if (!k) return;
+    var i = index(k);
+    if (i < st.paare.length){ st.paare.splice(i, 1); zeilenZeigen([Math.min(i, st.paare.length), 0]); baldErzeugen(); }
+  });
+  zeilen.addEventListener('keydown', function(ev){
+    if (ev.key !== 'Enter') return;
+    ev.preventDefault();
+    var i = index(ev.target), z = zeilen.children[i];
+    if (ev.target.classList.contains('kw-w')) z.querySelector('.kw-h').focus();
+    else if (zeilen.children[i + 1]) zeilen.children[i + 1].querySelector('.kw-w').focus();
+  });
+  zeilen.addEventListener('paste', function(ev){
+    var t = ev.clipboardData && ev.clipboardData.getData('text');
+    if (!t || !/[\r\n\t]/.test(t.trim())) return;   // einzelnes Wort: normal einfügen
+    ev.preventDefault();
+    var neu = Kern.zerlegeText(t), i = index(ev.target);
+    if (!neu.length) return;
+    var hier = st.paare[i] || { w:'', h:'' }, leer = !hier.w && !hier.h;
+    st.paare.splice.apply(st.paare, [i, leer ? 1 : 0].concat(neu));
+    zeilenZeigen([i + neu.length, 0]); baldErzeugen();
+  });
+  zeilenZeigen();
   $('#kwTitel').value = st.titel;
   $('#kwTitel').addEventListener('input', function(){ st.titel = this.value; speichern(); seiten(); });
   $('#kwLaenge').checked = st.opt.laenge;
@@ -265,7 +319,7 @@ function starte(bereich){
   /* ---------- Rätsel erzeugen ---------- */
   function zaehler(info){
     var n = info.liste.length, h = '<p class="kw-zaehler-haupt ' + (n >= 2 ? 'ok' : 'fehlt') + '"><b>' + n + '</b> ' + (n === 1 ? 'Wort' : 'Wörter') + (n < 2 ? ' – es braucht mindestens 2.' : '') + '</p>';
-    if (info.ohne) h += '<p class="warnung">' + info.ohne + ' Zeile' + (info.ohne > 1 ? 'n' : '') + ' ohne Hinweis – bitte «=» und den Hinweis ergänzen.</p>';
+    if (info.ohne) h += '<p class="warnung">' + info.ohne + ' Wort' + (info.ohne > 1 ? 'e' : '') + ' ohne Hinweis – bitte rechts den Hinweis ergänzen.</p>';
     if (info.doppelt) h += '<p class="warnung">' + info.doppelt + ' Wort' + (info.doppelt > 1 ? 'e' : '') + ' doppelt – nur einmal verwendet.</p>';
     if (info.kurz) h += '<p class="warnung">Wörter mit nur einem Buchstaben werden weggelassen.</p>';
     if (n > 30) h += '<p class="warnung">Mehr als 30 Wörter passen kaum auf ein Blatt – es werden die ersten 30 verwendet.</p>';
@@ -273,11 +327,11 @@ function starte(bereich){
   }
   function erzeugen(){
     if (aus) return;
-    var info = Kern.eintraege(st.text);
+    var info = Kern.pruefen(st.paare);
     zaehler(info);
     var liste = info.liste.slice(0, 30).filter(function(e){ return e.hinweis; });
     if (liste.length < 2){
-      raetsel = null; leer(liste.length ? '<p>Es braucht mindestens zwei Wörter mit Hinweis.</p>' : '<p>Schreibe links deine Wörter mit Hinweisen – ein Paar pro Zeile, z. B. «Igel = Tier mit Stacheln».</p>');
+      raetsel = null; leer(liste.length ? '<p>Es braucht mindestens zwei Wörter mit Hinweis.</p>' : '<p>Schreibe links deine Wörter und Hinweise in die Zeilen – links das Wort, rechts den Hinweis.</p>');
       return;
     }
     raetsel = Kern.anordnen(liste, st.seed, liste.length > 18 ? 40 : 70);
