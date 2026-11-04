@@ -1,7 +1,8 @@
 /* Rätsellabor – Generator «Geheimschriften»
-   Ein Text in einer von zwölf Geheimschriften, jeweils mit dem passenden Schlüssel zum Entschlüsseln:
+   Ein Text in einer von sechzehn Geheimschriften, jeweils mit dem passenden Schlüssel zum Entschlüsseln:
    Caesar-Verschiebung (mit Caesar-Scheibe zum Basteln), Rückwärts-Alphabet, Zahlen-Code, Handy-Tasten,
-   Koordinaten-Gitter (Polybios), Freimaurer-Code, Vögel auf dem Draht, Kreis-Code, Bücher-Code, Morse-Code, Blindenschrift (Braille) und Hieroglyphen.
+   Koordinaten-Gitter (Polybios), Freimaurer-Code, Vögel auf dem Draht, Kreis-Code, Bücher-Code, Bärte-Code, Segment-Code,
+   Altlatein, Runen, Morse-Code, Blindenschrift (Braille) und Hieroglyphen.
    Alte Links auf …/#freimaurer (früher ein eigener Generator) öffnen die Geheimschriften mit dem Freimaurer-Code.
    Herunterladen: Geheimtext (PDF, wahlweise mit Lösungsblatt und Schlüssel; oder als Bild) und der Schlüssel einzeln. */
 (function(){
@@ -85,6 +86,19 @@ var Kern = (function(){
   var BUECHER = {};
   ABC.split('').forEach(function(c){ BUECHER[c] = c.toLowerCase(); });
   BUECHER['.'] = 'punkt'; BUECHER[','] = 'komma'; BUECHER['!'] = 'ausrufezeichen'; BUECHER['-'] = 'bindestrich';
+  /* Bärte-Code, Altlatein und Runen: die ausgeschnittenen Zeichen der Vorlagen (raetsel/geheimschrift/<art>/a … z) */
+  var BILDZEICHEN = {};
+  ABC.split('').forEach(function(c){ BILDZEICHEN[c] = c.toLowerCase(); });
+  /* Segment-Code: 14-Segment-Anzeige. a oben, b rechts oben, c rechts unten, d unten, e links unten, f links oben,
+     g1 und g2 Mitte links und rechts, h i j oben (schräg links, senkrecht, schräg rechts), k l m unten (schräg links, senkrecht, schräg rechts) */
+  var SEGMENTE = {
+    A:'a b c e f g1 g2', B:'a b c d g2 i l', C:'a d e f', D:'a b c d i l', E:'a d e f g1 g2', F:'a e f g1 g2', G:'a c d e f g2', H:'b c e f g1 g2',
+    I:'a d i l', J:'b c d e', K:'e f g1 j m', L:'d e f', M:'b c e f h j', N:'b c e f h m', O:'a b c d e f', P:'a b e f g1 g2', Q:'a b c d e f m',
+    R:'a b e f g1 g2 m', S:'a c d g2 h', T:'a i l', U:'b c d e f', V:'e f j k', W:'b c e f k m', X:'h j k m', Y:'h j l', Z:'a d j k',
+    0:'a b c d e f j k', 1:'b c j', 2:'a b d e g1 g2', 3:'a b c d g2', 4:'b c f g1 g2', 5:'a c d f g1 g2', 6:'a c d e f g1 g2', 7:'a b c',
+    8:'a b c d e f g1 g2', 9:'a b c d f g1 g2'
+  };
+  Object.keys(SEGMENTE).forEach(function(k){ SEGMENTE[k] = SEGMENTE[k].split(' '); });
   // Text in Grossbuchstaben; Umlaute und ß bleiben (Morse, Blindenschrift) oder werden zu AE, OE, UE, SS
   function normal(text, umlaute){
     var t = String(text || '').replace(/ẞ/g, 'ß').replace(/ß/g, umlaute ? '' : 'SS').toUpperCase();
@@ -109,7 +123,9 @@ var Kern = (function(){
       case 'freimaurer': return i < 0 ? null : { freimaurer:freimaurer(c) };
       case 'voegel': return i < 0 ? null : { vogel:VOEGEL[c] };
       case 'kreise': return KREISE[c] ? { kreis:KREISE[c] } : null;
-      case 'buecher': return BUECHER[c] ? { buch:BUECHER[c] } : null;
+      case 'buecher': return BUECHER[c] ? { bild:['buecher', BUECHER[c]] } : null;
+      case 'baerte': case 'altlatein': case 'runen': return i < 0 ? null : { bild:[art, BILDZEICHEN[c]] };
+      case 'segmente': return SEGMENTE[c] ? { segmente:SEGMENTE[c], ausmalen:o.segArt === 'ausmalen' } : null;
       case 'morse': return MORSE[c] ? { morse:MORSE[c] } : null;
       case 'braille':
         if (/[0-9]/.test(c)){ var m = BRAILLE[ZIFFER_BRAILLE[+c]]; return { braille:/[0-9]/.test(vorher || '') ? [m] : [ZAHLZEICHEN, m] }; }
@@ -129,7 +145,8 @@ var Kern = (function(){
     });
   }
   return { ABC:ABC, GITTER:GITTER, MORSE:MORSE, BRAILLE:BRAILLE, ZAHLZEICHEN:ZAHLZEICHEN, HANDY:HANDY, HIERO:HIERO, HIERO_NAME:HIERO_NAME,
-    normal:normal, zeichen:zeichen, zerlege:zerlege, freimaurer:freimaurer, VOEGEL:VOEGEL, KREISE:KREISE, BUECHER:BUECHER, UMLAUTE:UMLAUTE };
+    normal:normal, zeichen:zeichen, zerlege:zerlege, freimaurer:freimaurer, VOEGEL:VOEGEL, KREISE:KREISE, BUECHER:BUECHER, BILDZEICHEN:BILDZEICHEN,
+    SEGMENTE:SEGMENTE, UMLAUTE:UMLAUTE };
 })();
 /* KERN-ENDE */
 
@@ -143,6 +160,10 @@ var SCHRIFTEN = [
   ['voegel', 'Vögel auf dem Draht', 'Jeder Vogel sitzt anders (Birds on a Wire)'],
   ['kreise', 'Kreis-Code', 'Bögen und Striche im Kreis (Circles)'],
   ['buecher', 'Bücher-Code', 'Buchstaben aus Büchern gelegt'],
+  ['baerte', 'Bärte-Code', 'Haare und Bart formen den Buchstaben'],
+  ['segmente', 'Segment-Code', 'Leuchtende Striche wie auf einer Anzeige'],
+  ['altlatein', 'Altlatein', 'Alte Buchstaben aus Italien, oft gespiegelt'],
+  ['runen', 'Runen', 'Schriftzeichen der Germanen'],
   ['morse', 'Morse-Code', 'Punkte und Striche'],
   ['braille', 'Blindenschrift', 'Punkte zum Ertasten (Braille)'],
   ['hieroglyphen', 'Hieroglyphen', 'Bildzeichen aus dem alten Ägypten']
@@ -278,11 +299,59 @@ function kreisInnen(teile){
   return '<g stroke="' + TINTE + '" stroke-width="7.6">' + h + '</g>';
 }
 function kreisSvg(teile, klasse){ return '<svg class="' + (klasse || 'gs-kreis') + '" viewBox="0 0 100 100" aria-hidden="true">' + kreisInnen(teile) + '</svg>'; }
-// Bücher-Code: ausgeschnittene Bilder der Vorlage
-var BUECHER_ORDNER = 'raetsel/geheimschrift/buecher/';
-function buchSvg(name, klasse){ return '<img class="' + (klasse || 'gs-buch') + '" src="' + BUECHER_ORDNER + name + '.webp" width="232" height="236" alt="">'; }
+/* Ausgeschnittene Zeichen der Vorlagen: Bücher und Bärte als Bild (gleich grosse Felder), Altlatein und Runen nachgezeichnet
+   als SVG (gleiche Höhe und Grundlinie, eigene Breite) */
+var BILDSAETZE = {
+  buecher:{ endung:'webp', h:236, b:232, klasse:'gs-buch' },
+  baerte:{ endung:'webp', h:234, b:174, klasse:'gs-bart' },
+  altlatein:{ endung:'svg', h:272, klasse:'gs-alt', b:{ a:156, b:160, c:136, d:164, e:144, f:144, g:136, h:160, i:56, j:56, k:152, l:144, m:236, n:152, o:220, p:144, q:188,
+    r:160, s:156, t:180, u:204, v:204, w:200, x:236, y:56, z:160 } },
+  runen:{ endung:'svg', h:260, klasse:'gs-rune', b:{ a:188, b:200, c:244, d:368, e:168, f:228, g:232, h:184, i:132, j:132, k:232, l:200, m:284, n:212, o:172, p:196,
+    q:224, r:188, s:232, t:204, u:248, v:248, w:248, x:252, y:352, z:236 } }
+};
+function bildHtml(satz, name, zusatz){
+  var s = BILDSAETZE[satz], b = typeof s.b === 'number' ? s.b : s.b[name];
+  return '<img class="' + s.klasse + (zusatz ? ' ' + s.klasse + zusatz : '') + '" src="raetsel/geheimschrift/' + satz + '/' + name + '.' + s.endung + '" width="' + b + '" height="' + s.h +
+    '" style="aspect-ratio:' + b + '/' + s.h + '" alt="">';
+}
+function buchSvg(name, klasse){ return bildHtml('buecher', name, klasse === 'gs-buch-k' ? '-k' : ''); }
+/* Segment-Code: 14-Segment-Anzeige im Feld 0…100 × 0…160. Leuchtende Segmente in Tinte, die anderen als feiner Umriss
+   (zum Erkennen der Anzeige und zum Ausmalen) */
+var SEG_LINIEN = { a:[20, 12, 80, 12], b:[88, 20, 88, 72], c:[88, 88, 88, 140], d:[20, 148, 80, 148], e:[12, 88, 12, 140], f:[12, 20, 12, 72],
+  g1:[20, 80, 44, 80], g2:[56, 80, 80, 80], h:[23, 25, 39, 69], i:[50, 23, 50, 70], j:[77, 25, 61, 69], k:[39, 91, 23, 135], l:[50, 90, 50, 137], m:[61, 91, 77, 135] };
+var SEG_NAMEN = ['a', 'b', 'c', 'd', 'e', 'f', 'g1', 'g2', 'h', 'i', 'j', 'k', 'l', 'm'];
+function segmentInnen(an, farbe, umriss){
+  var leer = '', voll = '';
+  SEG_NAMEN.forEach(function(s){
+    var p = SEG_LINIEN[s], d = 'M' + p[0] + ' ' + p[1] + 'L' + p[2] + ' ' + p[3];
+    if (an.indexOf(s) >= 0) voll += d; else leer += d;
+  });
+  return '<g fill="none" stroke-linecap="round">' + (leer ? '<path d="' + leer + '" stroke="' + (umriss || '#C9BEB4') + '" stroke-width="9"/><path d="' + leer + '" stroke="#fff" stroke-width="6"/>' : '') +
+    (voll ? '<path d="' + voll + '" stroke="' + (farbe || TINTE) + '" stroke-width="9"/>' : '') + '</g>';
+}
+function segmentSvg(an, klasse, farbe, umriss){ return '<svg class="' + (klasse || 'gs-seg') + '" viewBox="0 0 100 160" aria-hidden="true">' + segmentInnen(an, farbe, umriss) + '</svg>'; }
+// Beschriftete Anzeige für den Schlüssel
+function segmentPlan(){
+  var t = '';
+  [['a', 50, -1, 15], ['d', 50, 168, 15], ['f', -3, 51, 15], ['b', 103, 51, 15], ['e', -3, 119, 15], ['c', 103, 119, 15],
+    ['g1', 25, 74, 9], ['g2', 75, 74, 9], ['h', 37, 31, 9], ['i', 56, 31, 9], ['j', 65, 31, 9], ['k', 35, 134, 9], ['l', 56, 134, 9], ['m', 66, 134, 9]].forEach(function(l){
+    t += '<text x="' + l[1] + '" y="' + l[2] + '" font-size="' + l[3] + '">' + l[0] + '</text>';
+  });
+  return '<svg class="gs-seg-plan" viewBox="-16 -16 132 192" role="img" aria-label="Die 14 Segmente mit ihren Namen">' + segmentInnen(SEG_NAMEN, '#E4572E') +
+    '<g font-family="Andika, Arial, sans-serif" font-weight="700" fill="' + TINTE + '" text-anchor="middle">' + t + '</g></svg>';
+}
+function segmentHtml(code){
+  if (!code.ausmalen) return segmentSvg(code.segmente);
+  // Zum Ausmalen: Namen der Segmente über einer leeren Anzeige; in der Lösung leuchten die Segmente
+  // Namen ab fünf Segmenten auf zwei ausgeglichene Zeilen verteilt
+  var n = code.segmente, teil = n.length > 4 ? Math.ceil(n.length / 2) : n.length;
+  var namen = n.slice(0, teil).join(' ') + (teil < n.length ? '<br>' + n.slice(teil).join(' ') : '');
+  return '<span class="gs-seg-mal"><span class="gs-seg-namen">' + namen + '</span>' +
+    segmentSvg([], 'gs-seg gs-seg-leer', null, '#8F837A') + segmentSvg(code.segmente, 'gs-seg gs-seg-loes', '#C2410C', '#B5AAA0') + '</span>';
+}
 function symbolHtml(code){
-  if (code.buch) return buchSvg(code.buch);
+  if (code.bild) return bildHtml(code.bild[0], code.bild[1]);
+  if (code.segmente) return segmentHtml(code);
   if (code.kreis) return kreisSvg(code.kreis);
   if (code.vogel) return vogelSvg(code.vogel);
   if (code.text !== undefined) return '<span class="gs-t">' + esc(code.text) + '</span>';
@@ -357,6 +426,21 @@ function schluesselHtml(art, o){
       return '<p class="gs-erklaerung">Jeder Buchstabe ist aus Büchern gelegt – liegend, stehend, schräg oder aufgeklappt. Schau genau, welche Form die Bücher zusammen bilden.</p>' +
         tabelle(A.map(function(c){ return [c, buchSvg(Kern.BUECHER[c], 'gs-buch-k')]; }), 'gs-tab-buecher') +
         '<h3 class="gs-unter">Satzzeichen</h3>' + tabelle([['.', 'Punkt'], [',', 'Komma'], ['!', 'Ausrufezeichen'], ['-', 'Bindestrich']].map(function(x){ return [x[0], buchSvg(Kern.BUECHER[x[0]], 'gs-buch-k'), x[1]]; }), 'gs-tab-buecher');
+    case 'baerte':
+      return '<p class="gs-erklaerung">Jeder Buchstabe ist ein Gesicht: Haare und Bart formen zusammen den Buchstaben. Schau genau auf den Umriss des Bartes und der Haare.</p>' +
+        tabelle(A.map(function(c){ return [c, bildHtml('baerte', Kern.BILDZEICHEN[c], '-k')]; }), 'gs-tab-baerte');
+    case 'segmente':
+      return '<p class="gs-erklaerung">Wie auf einer Leuchtanzeige besteht jedes Zeichen aus bis zu 14 Strichen (Segmenten). Jedes Segment hat einen Namen. Für jeden Buchstaben leuchten bestimmte Segmente' +
+        (o.segArt === 'ausmalen' ? ' – male die genannten Segmente an und lies den Buchstaben ab.' : '.') + '</p>' +
+        '<div class="gs-seg-kopf">' + segmentPlan() + '<p class="gs-erklaerung">Aussen: <b>a</b> oben, <b>b</b> und <b>c</b> rechts, <b>d</b> unten, <b>e</b> und <b>f</b> links.<br>Mitte: <b>g1</b> und <b>g2</b> waagrecht.<br>Innen oben: <b>h</b>, <b>i</b>, <b>j</b>; innen unten: <b>k</b>, <b>l</b>, <b>m</b>.</p></div>' +
+        tabelle(A.map(function(c){ return [c, segmentSvg(Kern.SEGMENTE[c], 'gs-seg-k'), Kern.SEGMENTE[c].join(' ')]; }), 'gs-tab-seg') +
+        '<h3 class="gs-unter">Ziffern</h3>' + tabelle('0123456789'.split('').map(function(c){ return [c, segmentSvg(Kern.SEGMENTE[c], 'gs-seg-k'), Kern.SEGMENTE[c].join(' ')]; }), 'gs-tab-seg');
+    case 'altlatein':
+      return '<p class="gs-erklaerung">So schrieb man in Italien vor über 2500 Jahren. Damals schrieb man oft von rechts nach links – darum sehen manche Buchstaben gespiegelt aus. Achtung: C und G haben dasselbe Zeichen, ebenso I, J und Y sowie U, V und W.</p>' +
+        tabelle(A.map(function(c){ return [c, bildHtml('altlatein', Kern.BILDZEICHEN[c], '-k')]; }), 'gs-tab-alt');
+    case 'runen':
+      return '<p class="gs-erklaerung">Runen sind die alten Schriftzeichen der Germanen. Sie wurden oft in Holz, Knochen oder Stein geritzt. Achtung: I und J haben dieselbe Rune, ebenso U, V und W.</p>' +
+        tabelle(A.map(function(c){ return [c, bildHtml('runen', Kern.BILDZEICHEN[c], '-k')]; }), 'gs-tab-runen');
     case 'kreise':
       return '<p class="gs-erklaerung">Jeder Buchstabe besteht aus Bögen eines Kreises und geraden Strichen. Achte darauf, wo der Kreis offen ist und wo die Striche liegen. Achtung: 5 und S sehen gleich aus.</p>' +
         tabelle(A.map(function(c){ return [c, kreisSvg(Kern.KREISE[c], 'gs-kreis-k')]; }), 'gs-tab-kreise') +
@@ -395,6 +479,11 @@ var VORLAGE = '<div class="gs">' +
         '<div class="opt-raster"><label for="gsVerschiebung">Verschiebung</label><select id="gsVerschiebung">' +
           Array.from({ length:25 }, function(_, i){ return '<option value="' + (i + 1) + '">' + (i + 1) + ' (A → ' + Kern.ABC[i + 1] + ')</option>'; }).join('') + '</select></div>' +
         '<label class="opt"><input type="checkbox" id="gsScheibe"><span>Caesar-Scheibe zum Basteln im Schlüssel</span></label>' +
+      '</div>' +
+      '<div class="gs-caesar" id="gsSegment">' +
+        '<p class="feld-label">Aufgabe</p><div class="gs-chips" role="radiogroup" aria-label="Aufgabe beim Segment-Code">' +
+          [['anzeige', 'Anzeige lesen'], ['ausmalen', 'Segmente ausmalen']].map(function(a){ return '<label><input type="radio" name="gsSegArt" value="' + a[0] + '"><span>' + a[1] + '</span></label>'; }).join('') + '</div>' +
+        '<p class="hinweis">Beim Ausmalen stehen über jeder leeren Anzeige die Namen der Segmente (z. B. «a b c d g2 i l»); wer sie anmalt, sieht den Buchstaben.</p>' +
       '</div>' +
     '</div>' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Blatt</h2></div></div>' +
@@ -441,9 +530,9 @@ var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke
 Labor.registriere({
   id:'geheimschrift',
   titel:'Geheimschriften',
-  kurz:'Caesar, Freimaurer, Vögel, Kreise, Bücher, Morse, Blindenschrift, Hieroglyphen und mehr',
-  beschreibung:'Ein eigener Text in einer von zwölf Geheimschriften – Caesar-Verschiebung, Rückwärts-Alphabet, Zahlen, Handy-Tasten, Koordinaten, Freimaurer-Code, Vögel auf dem Draht, Kreis-Code, Bücher-Code, Morse, Blindenschrift oder Hieroglyphen. Mit Schlüssel zum Entschlüsseln.',
-  merkmale:['Zwölf Geheimschriften', 'Schlüssel einzeln als PDF oder Bild', 'Mit Lösungsblatt'],
+  kurz:'Caesar, Freimaurer, Vögel, Bücher, Bärte, Segmente, Runen, Morse, Hieroglyphen und mehr',
+  beschreibung:'Ein eigener Text in einer von sechzehn Geheimschriften – Caesar-Verschiebung, Rückwärts-Alphabet, Zahlen, Handy-Tasten, Koordinaten, Freimaurer-Code, Vögel auf dem Draht, Kreis-Code, Bücher-Code, Bärte-Code, Segment-Code, Altlatein, Runen, Morse, Blindenschrift oder Hieroglyphen. Mit Schlüssel zum Entschlüsseln.',
+  merkmale:['Sechzehn Geheimschriften', 'Schlüssel einzeln als PDF oder Bild', 'Mit Lösungsblatt'],
   symbol:SYMBOL,
   css:'raetsel/geheimschrift/geheimschrift.css',
   html:VORLAGE,
@@ -461,7 +550,7 @@ window.addEventListener('hashchange', alterLink);
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false;
   var TAB = 'geheimschrift-eingaben', OPT = 'geheimschrift-einstellungen';
-  var STANDARD = { art:'caesar', verschiebung:3, scheibe:true, groesse:'mittel', linien:true, mitLoesung:true, mitSchluessel:true, titelAn:true, anleitungAn:true };
+  var STANDARD = { art:'caesar', verschiebung:3, scheibe:true, segArt:'anzeige', groesse:'mittel', linien:true, mitLoesung:true, mitSchluessel:true, titelAn:true, anleitungAn:true };
   var st = { text:'', titel:'', opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
   try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.text = String(e.text || ''); st.titel = String(e.titel || ''); } } catch(x){}
@@ -507,6 +596,10 @@ function starte(bereich){
     r.checked = r.value === st.opt.groesse;
     r.addEventListener('change', function(){ if (!r.checked) return; st.opt.groesse = r.value; speichern(); zeichnen(); });
   });
+  [].forEach.call(bereich.querySelectorAll('input[name="gsSegArt"]'), function(r){
+    r.checked = r.value === st.opt.segArt;
+    r.addEventListener('change', function(){ if (!r.checked) return; st.opt.segArt = r.value; speichern(); alles(); });
+  });
   $('#gsVerschiebung').value = String(st.opt.verschiebung);
   $('#gsVerschiebung').addEventListener('change', function(){ st.opt.verschiebung = +this.value; speichern(); alles(); });
   [['#gsLinien', 'linien', zeichnen], ['#gsScheibe', 'scheibe', schluesselZeichnen], ['#gsMitLoesung', 'mitLoesung'], ['#gsMitSchluessel', 'mitSchluessel']].forEach(function(c){
@@ -521,7 +614,7 @@ function starte(bereich){
   function codeHtml(){
     var voegel = st.opt.art === 'voegel';   // Vögel: alle Zellen ohne Abstand, dazwischen Draht – ein durchgehender Draht pro Zeile
     var luecke = '<span class="gs-z gs-andere"><span class="gs-s">' + drahtSvg('') + '</span><span class="gs-linie gs-leer"></span></span>';
-    return '<div class="gs-code gs-art-' + st.opt.art + (st.opt.linien ? '' : ' ohne-linien') + '" style="--fm:' + px() + 'px">' + zellen().map(function(zeile){
+    return '<div class="gs-code gs-art-' + st.opt.art + (st.opt.art === 'segmente' && st.opt.segArt === 'ausmalen' ? ' gs-seg-ausmalen' : '') + (st.opt.linien ? '' : ' ohne-linien') + '" style="--fm:' + px() + 'px">' + zellen().map(function(zeile){
       return '<div class="gs-zeile">' + zeile.map(function(wort, k){
         return (voegel && k ? luecke : '') + '<span class="gs-wort">' + wort.map(function(c){
           if (c.code) return '<span class="gs-z"><span class="gs-s">' + symbolHtml(c.code) + '</span><span class="gs-linie"><b class="gs-loes">' + esc(c.b) + '</b></span></span>';
@@ -534,7 +627,8 @@ function starte(bereich){
   function zeichnen(){
     var o = st.opt, leer = !hatZeichen();
     $('#gsCaesar').hidden = o.art !== 'caesar';
-    $('#gsTextHinweis').textContent = Kern.UMLAUTE[o.art] ? 'Ä, Ö, Ü und ß haben in dieser Schrift eigene Zeichen' + (o.art === 'morse' ? '; Ziffern und einige Satzzeichen auch.' : '; Ziffern bekommen das Zahlzeichen.') :
+    $('#gsSegment').hidden = o.art !== 'segmente';
+    $('#gsTextHinweis').textContent = o.art === 'segmente' ? 'Umlaute werden als AE, OE, UE geschrieben, ß als SS. Ziffern haben eigene Zeichen; Satzzeichen bleiben stehen.' : Kern.UMLAUTE[o.art] ? 'Ä, Ö, Ü und ß haben in dieser Schrift eigene Zeichen' + (o.art === 'morse' ? '; Ziffern und einige Satzzeichen auch.' : '; Ziffern bekommen das Zahlzeichen.') :
       'Umlaute werden als AE, OE, UE geschrieben, ß als SS.' + (o.art === 'polybios' ? ' J wird wie I geschrieben.' : '') + ' Ziffern und Satzzeichen bleiben stehen.';
     $('#gsBlatt').hidden = $('#gsLoesung').hidden = leer;
     ['#gsZeigeLoesung', '#gsCodeBild', '#gsPdf', '#gsHerunterladen'].forEach(function(s){ $(s).disabled = leer; });
@@ -546,8 +640,10 @@ function starte(bereich){
     }
     meldung('', '');
     var name = schriftName(o.art, o);
+    var anleitung = o.art === 'segmente' && o.segArt === 'ausmalen' ? 'Male in jeder Anzeige die genannten Segmente an und lies den Buchstaben ab' + (o.linien ? '. Schreibe ihn auf die Linie' : '') + '. Der Schlüssel zeigt, wo welches Segment liegt.'
+      : 'Entschlüssle die Geheimschrift (' + esc(name) + ') mit dem Schlüssel' + (o.linien ? ' und schreibe die Buchstaben auf die Linien' : '') + '.';
     $('#gsBlatt').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + '</h2>' : '') +
-      (o.anleitungAn ? '<p class="gs-anleitung">Entschlüssle die Geheimschrift (' + esc(name) + ') mit dem Schlüssel' + (o.linien ? ' und schreibe die Buchstaben auf die Linien' : '') + '.</p>' : '') + codeHtml();
+      (o.anleitungAn ? '<p class="gs-anleitung">' + anleitung + '</p>' : '') + codeHtml();
     $('#gsLoesung').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + ' – Lösung</h2>' : '<p class="gs-anleitung"><b>Lösung</b></p>') + codeHtml();
     $('#gsBlatt').classList.toggle('zeige-loesung', $('#gsZeigeLoesung').getAttribute('aria-pressed') === 'true');
     var code = $('#gsBlatt .gs-code');

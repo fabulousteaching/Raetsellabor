@@ -136,6 +136,33 @@
 .gs-art-buecher .gs-s{height:calc(var(--fm) * 1.25);padding:0}
 .gs-buch-k{height:58px;width:auto;aspect-ratio:232/236;display:block}
 .gs-vorschau .gs-buch{height:26px}
+/* Bärte-Code: Gesichter, alle gleich gross */
+.gs-bart{height:calc(var(--fm) * 1.45);width:auto;aspect-ratio:174/234;display:block}
+.gs-art-baerte .gs-s{height:calc(var(--fm) * 1.45);padding:0}
+.gs-bart-k{height:80px}
+.gs-tab-baerte{grid-template-columns:repeat(auto-fill,minmax(78px,1fr))}
+.gs-vorschau .gs-bart{height:26px}
+/* Altlatein und Runen: nachgezeichnete Zeichen, gleiche Höhe, eigene Breite */
+.gs-alt,.gs-rune{height:calc(var(--fm) * .9);width:auto;display:block}
+.gs-alt-k,.gs-rune-k{height:40px}
+.gs-vorschau .gs-alt,.gs-vorschau .gs-rune{height:20px}
+/* Segment-Code */
+.gs-seg{height:calc(var(--fm) * 1.2);width:auto;aspect-ratio:100/160;display:block}
+.gs-art-segmente .gs-s{height:calc(var(--fm) * 1.2);padding:0 1px}
+.gs-seg-ausmalen .gs-s{height:auto}
+.gs-seg-mal{display:grid;justify-items:center;gap:3px}
+.gs-seg-namen{display:flex;align-items:flex-end;justify-content:center;min-height:2.3em;font-family:Andika,var(--font);font-size:max(10px,calc(var(--fm) * .28));font-weight:700;line-height:1.15;text-align:center;white-space:nowrap;color:#3A322C}
+.gs-seg-ausmalen .gs-seg{height:calc(var(--fm) * 1.6)}
+.gs-seg-ausmalen .gs-wort{column-gap:calc(var(--fm) * .3)}
+.gs-seg-loes{display:none}
+.zeige-loesung .gs-seg-loes,.gs-loesungsblatt .gs-seg-loes{display:block}
+.zeige-loesung .gs-seg-leer,.gs-loesungsblatt .gs-seg-leer{display:none}
+.gs-seg-k{height:52px;width:auto;aspect-ratio:100/160;display:block}
+.gs-tab-seg{grid-template-columns:repeat(auto-fill,minmax(84px,1fr))}
+.gs-seg-kopf{display:flex;flex-wrap:wrap;align-items:center;gap:8px 28px;margin:0 0 18px}
+.gs-seg-kopf .gs-erklaerung{margin:0;flex:1 1 220px}
+.gs-seg-plan{width:150px;height:auto;display:block;flex:none}
+.gs-vorschau .gs-seg{height:22px}
 .gs-fm-k{height:38px;width:38px;display:block}
 .gs-fm-schluessel{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(10px,2.4vw,24px);margin:4px 0 22px}
 .gs-fm-schluessel svg{display:block;width:100%;height:auto;aspect-ratio:1}
@@ -155,6 +182,8 @@
   .gs-schluessel{break-before:page}
   #gsBlatt .gs-loes{visibility:hidden!important}
   #gsBlatt .gs-code.ohne-linien .gs-linie{display:none!important}
+  #gsBlatt .gs-seg-loes{display:none!important}
+  #gsBlatt .gs-seg-leer{display:block!important}
   .gs-reihen td.gs-geheim{background:#fff}
   body.mit-loesung .gs-loesungsblatt{display:block;break-before:page;margin-top:0}
 }
