@@ -70,8 +70,8 @@
 .gs-bleibt{font-weight:400;color:#6E655E}
 .gs-morse{height:calc(var(--fm) * .7);width:auto;display:block}
 .gs-braille{height:calc(var(--fm) * .9);width:auto;display:block}
-.gs-h{height:var(--fm);width:auto;display:block}
-.gs-h-text{font-family:"Noto Sans Egyptian Hieroglyphs";font-size:calc(var(--fm) * .8);line-height:1}
+.gs-h{height:var(--fm);width:auto;display:block;object-fit:contain}
+.gs-h-text{display:block;height:var(--fm);overflow:hidden;font-family:"Noto Sans Egyptian Hieroglyphs";font-size:calc(var(--fm) * .6);line-height:var(--fm)}
 .gs-linie{display:grid;place-items:end center;width:100%;height:calc(var(--fm) * .72);border-bottom:2px solid #1C1714;font-family:Andika,var(--font);font-size:calc(var(--fm) * .56);line-height:1.1}
 .gs-linie.gs-leer{border-bottom-color:transparent}
 .gs-andere{min-width:0}
@@ -97,8 +97,8 @@
 .gs-morse-k{height:20px;width:auto;max-width:100%;display:block}
 .gs-braille-k{height:34px;width:auto;display:block}
 .gs-tab-braille .gs-tab-zelle b{font-size:1.05rem}
-.gs-h-k{height:40px;width:auto;max-width:100%;display:block}
-.gs-tab-hiero .gs-h-text{font-size:2rem}
+.gs-h-k{height:40px;width:auto;max-width:100%;display:block;object-fit:contain}
+.gs-tab-hiero .gs-h-text{height:40px;line-height:40px;font-size:1.5rem}
 .gs-gitter{border-collapse:collapse;font-family:Andika,var(--font);margin:6px 0}
 .gs-gitter th{width:2.6em;height:2.2em;font-family:var(--font);font-size:.95rem;color:var(--accent-2)}
 .gs-gitter td{width:3.2em;height:2.8em;border:1.5px solid #8A7F76;text-align:center;font-weight:700;font-size:1.3rem}

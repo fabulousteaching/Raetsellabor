@@ -135,21 +135,36 @@ function brailleSvg(muster, klasse){
   return '<svg class="' + (klasse || 'gs-braille') + '" viewBox="0 0 ' + w.toFixed(2) + ' 3.5" style="aspect-ratio:' + w.toFixed(2) + '/3.5" aria-hidden="true">' + teile + '</svg>';
 }
 // Hieroglyphen als Bild (Canvas), damit sie auch im PDF und im Bild sicher erscheinen
-var glyphenBilder = {}, hieroBereit = false;
+var glyphenBilder = {}, hieroBereit = false, hieroMass = null;
+/* Alle Hieroglyphen-Bilder bekommen denselben senkrechten Ausschnitt: so hoch, dass das höchste und das tiefste Zeichen
+   ganz hineinpassen. Waagrecht wird jedes Bild auf seine Tinte zugeschnitten. So füllt jedes Bild genau seinen Platz und
+   ragt nie über den Rand hinaus, und die Zeichen bleiben untereinander gleich gross. */
+var HIERO_GR = 160, HIERO_RAND = 6;
+function hieroMessen(){
+  var m = document.createElement('canvas').getContext('2d'), oben = 0, unten = 0;
+  m.font = HIERO_GR + 'px ' + HIERO_SCHRIFT;
+  Object.keys(Kern.HIERO).forEach(function(k){
+    var x = m.measureText(String.fromCodePoint.apply(null, Kern.HIERO[k]));
+    oben = Math.max(oben, x.actualBoundingBoxAscent || HIERO_GR * 0.8); unten = Math.max(unten, x.actualBoundingBoxDescent || 0);
+  });
+  return { oben:Math.ceil(oben), unten:Math.ceil(unten) };
+}
 function glyphe(cps, klasse){
   var t = String.fromCodePoint.apply(null, cps);
   if (!hieroBereit) return '<span class="' + (klasse || 'gs-h') + ' gs-h-text">' + t + '</span>';
+  if (!hieroMass) hieroMass = hieroMessen();
   if (!glyphenBilder[t]){
-    var gr = 160, m = document.createElement('canvas').getContext('2d');
-    m.font = gr + 'px ' + HIERO_SCHRIFT;
-    var w = Math.ceil(m.measureText(t).width) + 16, cv = document.createElement('canvas');
-    cv.width = w; cv.height = Math.round(gr * 1.25);
-    var g = cv.getContext('2d'); g.font = gr + 'px ' + HIERO_SCHRIFT; g.fillStyle = TINTE; g.textBaseline = 'middle'; g.textAlign = 'center';
-    g.fillText(t, w / 2, cv.height / 2);
-    glyphenBilder[t] = { src:cv.toDataURL('image/png'), w:w, h:cv.height };
+    var m = document.createElement('canvas').getContext('2d');
+    m.font = HIERO_GR + 'px ' + HIERO_SCHRIFT;
+    var x = m.measureText(t), links = Math.ceil(x.actualBoundingBoxLeft || 0), rechts = Math.ceil(x.actualBoundingBoxRight || x.width);
+    var cv = document.createElement('canvas');
+    cv.width = Math.max(1, links + rechts + 2 * HIERO_RAND); cv.height = hieroMass.oben + hieroMass.unten + 2 * HIERO_RAND;
+    var g = cv.getContext('2d'); g.font = HIERO_GR + 'px ' + HIERO_SCHRIFT; g.fillStyle = TINTE; g.textBaseline = 'alphabetic'; g.textAlign = 'left';
+    g.fillText(t, HIERO_RAND + links, HIERO_RAND + hieroMass.oben);
+    glyphenBilder[t] = { src:cv.toDataURL('image/png'), w:cv.width, h:cv.height };
   }
   var b = glyphenBilder[t];
-  return '<img class="' + (klasse || 'gs-h') + '" src="' + b.src + '" style="aspect-ratio:' + b.w + '/' + b.h + '" alt="">';
+  return '<img class="' + (klasse || 'gs-h') + '" src="' + b.src + '" width="' + b.w + '" height="' + b.h + '" style="aspect-ratio:' + b.w + '/' + b.h + '" alt="">';
 }
 function fmInnen(z){
   return '<path d="' + z.d + '" fill="none" stroke="' + TINTE + '" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>' +
@@ -359,7 +374,13 @@ function starte(bereich){
   function hieroLaden(){
     if (hieroBereit || !document.fonts || !document.fonts.load) return;
     var alle = Object.keys(Kern.HIERO).map(function(k){ return String.fromCodePoint.apply(null, Kern.HIERO[k]); }).join('');
-    function laden(){ document.fonts.load('40px ' + HIERO_SCHRIFT, alle).then(function(f){ if (f && f.length && !hieroBereit){ hieroBereit = true; glyphenBilder = {}; if (!aus){ vorschauen(); alles(); } } }, function(){}); }
+    function fertig(){ if (hieroBereit) return; hieroBereit = true; glyphenBilder = {}; hieroMass = null; if (!aus){ vorschauen(); alles(); } }
+    function laden(versuch){
+      document.fonts.load('40px ' + HIERO_SCHRIFT, alle).then(function(f){
+        var da = (f && f.length) || (document.fonts.check && document.fonts.check('40px ' + HIERO_SCHRIFT, alle) && [].some.call(document.fonts, function(x){ return /Egyptian/i.test(x.family) && x.status === 'loaded'; }));
+        if (da) fertig(); else if ((versuch || 0) < 8) setTimeout(function(){ laden((versuch || 0) + 1); }, 400);
+      }, function(){ if ((versuch || 0) < 8) setTimeout(function(){ laden((versuch || 0) + 1); }, 400); });
+    }
     var l = document.getElementById('gsHieroSchrift');
     if (!l){ l = document.createElement('link'); l.id = 'gsHieroSchrift'; l.rel = 'stylesheet'; l.href = HIERO_CSS; l.addEventListener('load', laden); document.head.appendChild(l); }
     else if (l.sheet) laden();
