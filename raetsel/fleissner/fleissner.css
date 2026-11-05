@@ -15,7 +15,8 @@
 /* ---------- Eingaben ---------- */
 .fl textarea{display:block;width:100%;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;resize:vertical;min-height:4.5em;line-height:1.45;font-size:1.05rem;font-weight:600;transition:border-color .15s,box-shadow .15s}
 .fl textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
-.fl-chips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+
+.fl-chips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .fl-chips-klein{display:flex;flex-wrap:wrap;gap:6px}
 .fl-chips label{position:relative;cursor:pointer;display:flex}
 .fl-chips input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
@@ -29,7 +30,7 @@
 .fl .opt{display:flex;align-items:flex-start;gap:10px;margin:10px 0 0;font-size:.9rem}
 .fl .opt input[type=checkbox]{width:16px;height:16px;margin:3px 0 0;accent-color:var(--accent);flex:none}
 .fl .opt-raster{display:grid;grid-template-columns:1fr;gap:6px;font-size:.9rem;margin-top:12px}
-.fl input[type=number]{background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:8px 11px;width:8em}
+
 .fl-zaehler{margin-top:10px;font-size:.88rem}
 .fl-zaehler p{margin:6px 0 0}
 .fl-zaehler-haupt{padding:8px 11px;border-radius:9px;margin:0!important}
@@ -56,12 +57,15 @@
 .fl-gitter,.fl-schablone-svg{display:block;flex:none}
 .fl-nr{font-size:.2px;font-weight:700;text-anchor:start;dominant-baseline:central}
 .fl-unter{margin:0 0 6px;font-weight:700;font-size:.95rem}
-.fl-kaestchen{display:grid;gap:7px}
-.fl-reihe{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
-.fl-reihe-nr{width:1.6em;font-weight:700;font-size:.9rem}
-.fl-k{display:grid;place-items:center;width:30px;height:32px;border:1.5px solid #8A7F76;border-radius:4px;font-family:var(--blatt-buchstaben);font-size:1.15rem}
-.fl-k b{color:var(--accent-2)}
-.fl-k b.fl-fuell{color:#A0968E;font-weight:400}
+/* Linie(n) für die Lösung */
+.fl-linien{display:grid;gap:14px;margin-top:4px}
+.fl-linie{display:flex;align-items:flex-end;gap:.12em;height:38px;border-bottom:2px solid #1C1714;font-family:var(--blatt-buchstaben);font-size:1.35rem;letter-spacing:.06em;padding:0 4px 3px}
+.fl-linie b{font-weight:700}
+.fl-linie b.fl-fuell{font-weight:400}
+
+
+
+
 .fl-text{margin:16px 0 0;color:#3A322C}
 .fl-loesungsblatt{display:none;margin-top:16px}
 .fl-kontrolle{margin:0;font-size:.82rem;color:#6E655E;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}

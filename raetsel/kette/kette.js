@@ -405,7 +405,9 @@ function starte(bereich){
   function druckVorbereiten(){ document.body.classList.toggle('mit-loesung', !!st.opt.mitLoesung); }
   window.addEventListener('beforeprint', druckVorbereiten);
   function fehler(t){ meldung('fehler', '<p>' + esc(t) + '</p>'); }
-  Labor.pdfKnopf($('#ktPdf'), function(){ return raetsel && !raetsel.fehlen && { blaetter:[$('#ktBlatt'), st.opt.mitLoesung && $('#ktLoesung')], name:Labor.pdfName('Kettenraetsel', st.titel) }; }, fehler);
+  // vor dem PDF «Lösung zeigen» ausschalten, damit das Arbeitsblatt ohne Lösung ins PDF kommt
+  function ohneLoesung(){ var k = $('#ktZeigeLoesung'); if (k.getAttribute('aria-pressed') === 'true'){ k.setAttribute('aria-pressed', 'false'); zeichnen(); } }
+  Labor.pdfKnopf($('#ktPdf'), function(){ ohneLoesung(); return raetsel && !raetsel.fehlen && { blaetter:[$('#ktBlatt'), st.opt.mitLoesung && $('#ktLoesung')], name:Labor.pdfName('Kettenraetsel', st.titel) }; }, fehler);
   var speicherOrt = null;
   if (Labor.imArtefakt()){
     $('#ktPdf').hidden = true;
@@ -413,6 +415,7 @@ function starte(bereich){
   }
   $('#ktHerunterladen').addEventListener('click', function(){
     if (!speicherOrt || !raetsel || raetsel.fehlen) return;
+    ohneLoesung();
     var name = Labor.pdfName('Kettenraetsel', st.titel).replace(/\.pdf$/, '.html');
     var inhalt = [$('#ktBlatt'), st.opt.mitLoesung && $('#ktLoesung')].filter(Boolean).map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
     speicherOrt.save({ filename:name, data:Labor.blattDatei(name.replace(/\.html$/, '').replace(/-/g, ' '), inhalt, '.kt-loesungsblatt{display:block}') }).catch(function(e){
