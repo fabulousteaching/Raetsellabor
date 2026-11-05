@@ -1,8 +1,8 @@
 /* Rätsellabor – Generator «Geheimschriften»
-   Ein Text in einer von sechzehn Geheimschriften, jeweils mit dem passenden Schlüssel zum Entschlüsseln:
+   Ein Text in einer von siebzehn Geheimschriften, jeweils mit dem passenden Schlüssel zum Entschlüsseln:
    Caesar-Verschiebung (mit Caesar-Scheibe zum Basteln), Rückwärts-Alphabet, Zahlen-Code, Handy-Tasten,
    Koordinaten-Gitter (Polybios), Freimaurer-Code, Vögel auf dem Draht, Kreis-Code, Bücher-Code, Bärte-Code, Segment-Code,
-   Altlatein, Runen, Morse-Code, Blindenschrift (Braille) und Hieroglyphen.
+   Altlatein, Runen, Fingeralphabet, Morse-Code, Blindenschrift (Braille) und Hieroglyphen.
    Alte Links auf …/#freimaurer (früher ein eigener Generator) öffnen die Geheimschriften mit dem Freimaurer-Code.
    Herunterladen: Geheimtext (PDF, wahlweise mit Lösungsblatt und Schlüssel; oder als Bild) und der Schlüssel einzeln. */
 (function(){
@@ -125,6 +125,7 @@ var Kern = (function(){
       case 'kreise': return KREISE[c] ? { kreis:KREISE[c] } : null;
       case 'buecher': return BUECHER[c] ? { bild:['buecher', BUECHER[c]] } : null;
       case 'baerte': case 'altlatein': case 'runen': return i < 0 ? null : { bild:[art, BILDZEICHEN[c]] };
+      case 'finger': return FINGER[c] ? { bild:['finger', FINGER[c]] } : null;
       case 'segmente': return SEGMENTE[c] ? { segmente:SEGMENTE[c], ausmalen:o.segArt === 'ausmalen' } : null;
       case 'morse': return MORSE[c] ? { morse:MORSE[c] } : null;
       case 'braille':
@@ -134,19 +135,34 @@ var Kern = (function(){
     }
     return null;
   }
-  var UMLAUTE = { morse:true, braille:true };
+  /* Fingeralphabet (Deutschschweizer Gebärdensprache, Darstellung SGB-FSS): A–Z, dazu eigene Handzeichen für Ä, Ö, Ü, CH und SCH */
+  var FINGER = {};
+  ABC.split('').forEach(function(c){ FINGER[c] = c.toLowerCase(); });
+  FINGER['Ä'] = 'ae'; FINGER['Ö'] = 'oe'; FINGER['Ü'] = 'ue'; FINGER.CH = 'ch'; FINGER.SCH = 'sch';
+  // Wort in Zeichen teilen; beim Fingeralphabet sind SCH und CH je ein Zeichen
+  function teilen(w, art){
+    if (art !== 'finger') return Array.from(w);
+    var aus = [], z = Array.from(w);
+    for (var i = 0; i < z.length;){
+      var drei = z.slice(i, i + 3).join(''), zwei = z.slice(i, i + 2).join('');
+      if (drei === 'SCH'){ aus.push(drei); i += 3; } else if (zwei === 'CH'){ aus.push(zwei); i += 2; } else { aus.push(z[i]); i++; }
+    }
+    return aus;
+  }
+  var UMLAUTE = { morse:true, braille:true, finger:true };
   // Text → Zeilen → Wörter → Zellen { b: Buchstabe (Lösung), code } (code null: Zeichen bleibt stehen)
   function zerlege(text, art, o){
+    if (art === 'finger') text = String(text || '').replace(/[ßẞ]/g, 'SS');   // ß hat kein eigenes Handzeichen
     return normal(text, UMLAUTE[art]).split(/\r?\n/).map(function(z){
       return z.split(/\s+/).filter(Boolean).map(function(w){
-        var zeichenListe = Array.from(w);
+        var zeichenListe = teilen(w, art);
         return zeichenListe.map(function(c, k){ return { b:c, code:zeichen(art, c, o, zeichenListe[k - 1]) }; });
       });
     });
   }
   return { ABC:ABC, GITTER:GITTER, MORSE:MORSE, BRAILLE:BRAILLE, ZAHLZEICHEN:ZAHLZEICHEN, HANDY:HANDY, HIERO:HIERO, HIERO_NAME:HIERO_NAME,
     normal:normal, zeichen:zeichen, zerlege:zerlege, freimaurer:freimaurer, VOEGEL:VOEGEL, KREISE:KREISE, BUECHER:BUECHER, BILDZEICHEN:BILDZEICHEN,
-    SEGMENTE:SEGMENTE, UMLAUTE:UMLAUTE };
+    SEGMENTE:SEGMENTE, FINGER:FINGER, UMLAUTE:UMLAUTE };
 })();
 /* KERN-ENDE */
 
@@ -164,6 +180,7 @@ var SCHRIFTEN = [
   ['segmente', 'Segment-Code', 'Leuchtende Striche wie auf einer Anzeige'],
   ['altlatein', 'Altlatein', 'Alte Buchstaben aus Italien, oft gespiegelt'],
   ['runen', 'Runen', 'Schriftzeichen der Germanen'],
+  ['finger', 'Fingeralphabet', 'Handzeichen der Gebärdensprache'],
   ['morse', 'Morse-Code', 'Punkte und Striche'],
   ['braille', 'Blindenschrift', 'Punkte zum Ertasten (Braille)'],
   ['hieroglyphen', 'Hieroglyphen', 'Bildzeichen aus dem alten Ägypten']
@@ -302,7 +319,9 @@ function kreisSvg(teile, klasse){ return '<svg class="' + (klasse || 'gs-kreis')
 /* Ausgeschnittene Zeichen der Vorlagen: Bücher und Bärte als Bild (gleich grosse Felder) */
 var BILDSAETZE = {
   buecher:{ endung:'webp', h:236, b:232, klasse:'gs-buch' },
-  baerte:{ endung:'webp', h:234, b:174, klasse:'gs-bart' }
+  baerte:{ endung:'webp', h:234, b:174, klasse:'gs-bart' },
+  // Fingeralphabet: aus der Vorlage des SGB-FSS (Vektorgrafik) gerendert, ohne Hintergrund, gleich hoch, unten bündig
+  finger:{ endung:'webp', h:300, klasse:'gs-hand', b:{ a:156, b:133, c:221, d:145, e:154, f:161, g:266, h:294, i:144, j:140, k:175, l:217, m:158, n:163, o:169, p:324, q:308, r:135, s:130, t:140, u:137, v:157, w:165, x:140, y:267, z:143, ae:208, oe:144, ue:132, ch:212, sch:287 } }
 };
 /* Altlatein und Runen: selbst neu gezeichnet als Linien, mit dem Aufbau der Zeichen aus den Vorlagen (welche Striche, wo,
    in welchem Winkel, Bögen, Punkte und Querbalken) – ohne Teile der Vorlagen zu übernehmen. Je Zeichen: [Breite, Pfad] oder
@@ -498,6 +517,11 @@ function schluesselHtml(art, o){
         '<div class="gs-seg-kopf">' + segmentPlan() + '<p class="gs-erklaerung">Aussen: <b>a</b> oben, <b>b</b> und <b>c</b> rechts, <b>d</b> unten, <b>e</b> und <b>f</b> links.<br>Mitte: <b>g1</b> und <b>g2</b> waagrecht.<br>Innen oben: <b>h</b>, <b>i</b>, <b>j</b>; innen unten: <b>k</b>, <b>l</b>, <b>m</b>.</p></div>' +
         tabelle(A.map(function(c){ return [c, segmentSvg(Kern.SEGMENTE[c], 'gs-seg-k'), Kern.SEGMENTE[c].join(' ')]; }), 'gs-tab-seg') +
         '<h3 class="gs-unter">Ziffern</h3>' + tabelle('0123456789'.split('').map(function(c){ return [c, segmentSvg(Kern.SEGMENTE[c], 'gs-seg-k'), Kern.SEGMENTE[c].join(' ')]; }), 'gs-tab-seg');
+    case 'finger':
+      return '<p class="gs-erklaerung">Mit dem Fingeralphabet buchstabieren gehörlose Menschen Namen und Wörter, für die es keine eigene Gebärde gibt. Jeder Buchstabe ist eine Handform. ' +
+        'Im Fingeralphabet der Deutschschweiz haben auch Ä, Ö, Ü, CH und SCH eigene Zeichen. Bei J und Z bewegt sich die Hand (Pfeil).</p>' +
+        tabelle(A.map(function(c){ return [c, bildHtml('finger', Kern.FINGER[c], '-k')]; }).concat(['Ä', 'Ö', 'Ü', 'CH', 'SCH'].map(function(c){ return [c, bildHtml('finger', Kern.FINGER[c], '-k')]; })), 'gs-tab-finger') +
+        '<p class="gs-quelle">Fingeralphabet: © SGB-FSS Schweizerischer Gehörlosenbund, www.sgb-fss.ch</p>';
     case 'altlatein':
       return '<p class="gs-erklaerung">So schrieb man in Italien vor über 2500 Jahren. Damals schrieb man oft von rechts nach links – darum sehen manche Buchstaben gespiegelt aus. Achtung: C und G haben dasselbe Zeichen, ebenso I, J und Y sowie U, V und W.</p>' +
         tabelle(A.map(function(c){ return [c, bildHtml('altlatein', Kern.BILDZEICHEN[c], '-k')]; }), 'gs-tab-alt');
@@ -594,8 +618,8 @@ Labor.registriere({
   id:'geheimschrift',
   titel:'Geheimschriften',
   kurz:'Caesar, Freimaurer, Vögel, Bücher, Bärte, Segmente, Runen, Morse, Hieroglyphen und mehr',
-  beschreibung:'Ein eigener Text in einer von sechzehn Geheimschriften – Caesar-Verschiebung, Rückwärts-Alphabet, Zahlen, Handy-Tasten, Koordinaten, Freimaurer-Code, Vögel auf dem Draht, Kreis-Code, Bücher-Code, Bärte-Code, Segment-Code, Altlatein, Runen, Morse, Blindenschrift oder Hieroglyphen. Mit Schlüssel zum Entschlüsseln.',
-  merkmale:['Sechzehn Geheimschriften', 'Schlüssel einzeln als PDF oder Bild', 'Mit Lösungsblatt'],
+  beschreibung:'Ein eigener Text in einer von siebzehn Geheimschriften – Caesar-Verschiebung, Rückwärts-Alphabet, Zahlen, Handy-Tasten, Koordinaten, Freimaurer-Code, Vögel auf dem Draht, Kreis-Code, Bücher-Code, Bärte-Code, Segment-Code, Altlatein, Runen, Fingeralphabet, Morse, Blindenschrift oder Hieroglyphen. Mit Schlüssel zum Entschlüsseln.',
+  merkmale:['Siebzehn Geheimschriften', 'Schlüssel einzeln als PDF oder Bild', 'Mit Lösungsblatt'],
   symbol:SYMBOL,
   css:'raetsel/geheimschrift/geheimschrift.css',
   html:VORLAGE,
@@ -691,7 +715,7 @@ function starte(bereich){
     var o = st.opt, leer = !hatZeichen();
     $('#gsCaesar').hidden = o.art !== 'caesar';
     $('#gsSegment').hidden = o.art !== 'segmente';
-    $('#gsTextHinweis').textContent = o.art === 'segmente' ? 'Umlaute werden als AE, OE, UE geschrieben, ß als SS. Ziffern haben eigene Zeichen; Satzzeichen bleiben stehen.' : Kern.UMLAUTE[o.art] ? 'Ä, Ö, Ü und ß haben in dieser Schrift eigene Zeichen' + (o.art === 'morse' ? '; Ziffern und einige Satzzeichen auch.' : '; Ziffern bekommen das Zahlzeichen.') :
+    $('#gsTextHinweis').textContent = o.art === 'finger' ? 'Ä, Ö, Ü, CH und SCH haben eigene Handzeichen; ß wird als SS geschrieben. Ziffern und Satzzeichen bleiben stehen.' : o.art === 'segmente' ? 'Umlaute werden als AE, OE, UE geschrieben, ß als SS. Ziffern haben eigene Zeichen; Satzzeichen bleiben stehen.' : Kern.UMLAUTE[o.art] ? 'Ä, Ö, Ü und ß haben in dieser Schrift eigene Zeichen' + (o.art === 'morse' ? '; Ziffern und einige Satzzeichen auch.' : '; Ziffern bekommen das Zahlzeichen.') :
       'Umlaute werden als AE, OE, UE geschrieben, ß als SS.' + (o.art === 'polybios' ? ' J wird wie I geschrieben.' : '') + ' Ziffern und Satzzeichen bleiben stehen.';
     $('#gsBlatt').hidden = $('#gsLoesung').hidden = leer;
     ['#gsZeigeLoesung', '#gsCodeBild', '#gsPdf', '#gsHerunterladen'].forEach(function(s){ $(s).disabled = leer; });

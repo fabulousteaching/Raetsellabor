@@ -142,6 +142,13 @@
 .gs-bart-k{height:80px}
 .gs-tab-baerte{grid-template-columns:repeat(auto-fill,minmax(78px,1fr))}
 .gs-vorschau .gs-bart{height:26px}
+/* Fingeralphabet: Hände gleich hoch, unten bündig, eigene Breite */
+.gs-hand{height:calc(var(--fm) * 1.8);width:auto;display:block}
+.gs-art-finger .gs-s{height:calc(var(--fm) * 1.8);padding:0}
+.gs-hand-k{height:72px}
+.gs-tab-finger{grid-template-columns:repeat(auto-fill,minmax(86px,1fr))}
+.gs-vorschau .gs-hand{height:26px}
+.gs-quelle{margin:14px 0 0;font-size:.78rem;color:#6E655E}
 /* Altlatein und Runen: nachgezeichnete Zeichen, gleiche Höhe, eigene Breite */
 .gs-alt,.gs-rune{height:calc(var(--fm) * .9);width:auto;display:block}
 .gs-alt-k,.gs-rune-k{height:40px}
