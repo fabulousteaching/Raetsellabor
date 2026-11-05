@@ -24,6 +24,14 @@
 .kt-zeichen span{display:grid;place-items:center;height:38px;border:1px solid var(--line-2);border-radius:8px;background:#fff;font-family:var(--display);font-size:1.15rem;font-weight:600;color:var(--text);transition:border-color .15s,background .15s}
 .kt-teil{margin-top:10px;padding-top:12px;border-top:1px dashed var(--line-2)}
 .kt-teil[hidden]{display:none}
+.kt-unter{margin-top:8px;padding:10px 12px 4px;border-radius:10px;background:#FBF8F5}
+.kt-unter[hidden]{display:none}
+.kt-unter .feld-label:first-child{margin-top:0}
+.kt-reihen span{padding:5px 11px;min-width:44px;text-align:center}
+.kt-paare{position:relative}
+.kt-vorschlag{margin:0 0 10px}
+.kt-vorschlag[hidden]{display:none}
+.kt-teil[data-fach="deutsch"]{padding-bottom:4px}
 .kt .feld-label{margin-top:8px}
 .kt .opt-raster{display:grid;grid-template-columns:1fr;gap:6px;font-size:.9rem;margin-top:12px}
 .kt-zaehler{margin-top:8px;font-size:.88rem}

@@ -11,6 +11,7 @@
                                          o.art() → aktuelle Liste, o.sprache(art) → 'englisch' | 'franzoesisch' | null
                                          o.kopf() → [links, rechts, Beispiel], o.hilfe() → Hilfetext ohne Übersetzung
                                          o.geaendert() → speichern und neu erzeugen, o.aus() → Generator geschlossen?
+                                         o.einfuegen: false → kein Hinweis aufs Einfügen einer Liste
                                          → { zeigen() }   zeigen(): Zeilen, Überschriften und Hilfe neu zeichnen */
 var Paarliste = (function(){
   'use strict';
@@ -147,8 +148,9 @@ var Paarliste = (function(){
 
     function hilfeZeigen(){
       var k = o.kopf(), h = q('hilfe'), art = o.art(), sprache = o.sprache(art);
-      var listeText = ' Eine Liste mit zwei Spalten (aus Excel oder Word, oder Zeilen wie «' + esc(k[2]) + '») lässt sich auf einmal einfügen.';
-      if (!sprache){ h.innerHTML = o.hilfe() + listeText; return; }
+      var listeText = o.einfuegen === false ? '' : ' Eine Liste mit zwei Spalten (aus Excel oder Word, oder Zeilen wie «' + esc(k[2]) + '») lässt sich auf einmal einfügen.';
+      if (!sprache){ h.innerHTML = o.hilfe() + listeText; h.hidden = !h.innerHTML; return; }
+      h.hidden = false;
       h.innerHTML = 'Schreib ein Wort auf Deutsch oder ' + esc(k[1]) + ' – die Übersetzung erscheint im anderen Feld.' + listeText;
       ueBereit().then(function(w){
         if (o.aus() || o.art() !== art) return;

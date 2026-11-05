@@ -93,19 +93,85 @@ var Kern = (function(){
     });
     return { paare:paare, ohne:ohne, doppelt:doppelt };
   }
-  // Rechnungen mit lauter verschiedenen Ergebnissen (so passt jede Rechnung nur zu einem einzigen Ergebnis auf dem Blatt)
-  function rechnen(ops, max, anzahl, rnd){
-    var paare = [], werte = {}, z = function(a, b){ return a + Math.floor(rnd() * (b - a + 1)); };
-    for (var v = 0; v < 4000 && paare.length < anzahl; v++){
-      var op = ops[Math.floor(rnd() * ops.length)], a, b, w, t;
-      if (op === 'plus'){ w = z(2, max); a = z(1, w - 1); b = w - a; t = a + ' + ' + b; }
-      else if (op === 'minus'){ a = z(2, max); b = z(1, a - 1); w = a - b; t = a + ' − ' + b; }
-      else if (op === 'mal'){ a = z(2, Math.min(10, Math.floor(max / 2))); b = z(2, Math.max(2, Math.floor(max / a))); w = a * b; if (w > max) continue; t = a + ' · ' + b; }
-      else { b = z(2, Math.min(10, Math.floor(max / 2))); w = z(1, Math.max(1, Math.floor(max / b))); a = w * b; t = a + ' : ' + b; }
-      if (werte[w]) continue;
-      werte[w] = true; paare.push({ a:t, b:String(w) });
+  /* Mathe: Paare { a, b, w } mit lauter verschiedenen Werten w – so passt jede Aufgabe zu genau einem Kreis
+     (bei Brüchen auch keine gleichwertigen wie 1/2 und 2/4). Aus einer Kandidatenliste in zufälliger Reihenfolge. */
+  function auswaehlen(kand, anzahl, rnd){
+    var aus = [], werte = {};
+    mischen(kand, rnd).forEach(function(k){
+      var key = (Math.round(k.w * 1e6) / 1e6).toString();
+      if (aus.length >= anzahl || werte[key]) return;
+      werte[key] = true; aus.push({ a:k.a, b:k.b });
+    });
+    return aus;
+  }
+  // Plus und Minus im Zahlenraum bis max
+  function plusMinus(ops, max, anzahl, rnd){
+    var kand = [], z = function(a, b){ return a + Math.floor(rnd() * (b - a + 1)); };
+    for (var v = 0; v < Math.max(300, anzahl * 20); v++){
+      var op = ops[Math.floor(rnd() * ops.length)], a, b, w;
+      if (op === 'minus'){ a = z(2, max); b = z(1, a - 1); w = a - b; kand.push({ a:a + ' − ' + b, b:String(w), w:w }); }
+      else { w = z(2, max); a = z(1, w - 1); b = w - a; kand.push({ a:a + ' + ' + b, b:String(w), w:w }); }
     }
-    return paare;
+    return auswaehlen(kand, anzahl, rnd);
+  }
+  // Einmaleins: gewählte Reihen, Mal und/oder Geteilt (3 · 7 = 21, 21 : 7 = 3)
+  function einmaleins(reihen, arten, anzahl, rnd){
+    var kand = [];
+    reihen.forEach(function(r){
+      for (var a = 1; a <= 10; a++){
+        if (arten.indexOf('mal') >= 0) kand.push({ a:a + ' · ' + r, b:String(a * r), w:a * r });
+        if (arten.indexOf('geteilt') >= 0) kand.push({ a:(a * r) + ' : ' + r, b:String(a), w:a });
+      }
+    });
+    return auswaehlen(kand, anzahl, rnd);
+  }
+  // Dezimalzahlen: Bruch mit Nenner 10, 100, 1000 ↔ Dezimalzahl (7/100 ↔ 0.07)
+  function dezimalText(z, k, sep){ var t = String(z); while (t.length < k + 1) t = '0' + t; return t.slice(0, -k) + sep + t.slice(-k); }
+  function dezimal(stufe, sep, anzahl, rnd){
+    var kand = [];
+    for (var k = 1; k <= stufe; k++){
+      var N = Math.pow(10, k), bis = k === 1 ? 19 : k === 2 ? 199 : 1999;
+      for (var z = 1; z <= bis; z++) if (z % 10) kand.push({ a:z + '/' + N, b:dezimalText(z, k, sep), w:z / N });
+    }
+    return auswaehlen(kand, anzahl, rnd);
+  }
+  // Brüche in Worten ↔ Bruch («drei Fünftel» ↔ 3/5); reichen die echten Brüche nicht, kommen unechte dazu
+  var ZAHLWORT = ['', 'ein', 'zwei', 'drei', 'vier', 'fünf', 'sechs', 'sieben', 'acht', 'neun', 'zehn', 'elf', 'zwölf', 'dreizehn', 'vierzehn',
+    'fünfzehn', 'sechzehn', 'siebzehn', 'achtzehn', 'neunzehn', 'zwanzig', 'einundzwanzig', 'zweiundzwanzig', 'dreiundzwanzig'];
+  var NENNER = { 2:'Halbe', 3:'Drittel', 4:'Viertel', 5:'Fünftel', 6:'Sechstel', 7:'Siebtel', 8:'Achtel', 9:'Neuntel', 10:'Zehntel', 11:'Elftel', 12:'Zwölftel' };
+  function bruchWort(z, n){ return n === 2 ? (z === 1 ? 'ein Halb' : ZAHLWORT[z] + ' Halbe') : ZAHLWORT[z] + ' ' + NENNER[n]; }
+  function brueche(max, anzahl, rnd){
+    var echt = [], unecht = [], n, z;
+    for (n = 2; n <= max; n++){ for (z = 1; z < n; z++) echt.push({ a:bruchWort(z, n), b:z + '/' + n, w:z / n }); for (z = n + 1; z < 2 * n; z++) unecht.push({ a:bruchWort(z, n), b:z + '/' + n, w:z / n }); }
+    var aus = auswaehlen(echt, anzahl, rnd);
+    if (aus.length < anzahl){
+      var werte = {}; aus.forEach(function(p){ var t = p.b.split('/'); werte[(Math.round(t[0] / t[1] * 1e6) / 1e6).toString()] = true; });
+      auswaehlen(unecht.filter(function(k){ return !werte[(Math.round(k.w * 1e6) / 1e6).toString()]; }), anzahl - aus.length, rnd).forEach(function(p){ aus.push(p); });
+    }
+    return aus;
+  }
+
+  /* Deutsch: eingebaute Vorschläge. Reimwörter: jedes Paar aus einer anderen Reimfamilie (kein Wort reimt sich auf ein
+     anderes Paar). Einzahl–Mehrzahl: nur Wörter, deren Mehrzahl anders aussieht. Gegenteile: jedes Wort nur einmal. */
+  var VORSCHLAEGE = {
+    reime:'Haus=Maus Buch=Tuch Stein=Bein Rose=Hose Tasche=Flasche Tisch=Fisch Hand=Sand Baum=Traum Hund=Mund Igel=Spiegel Sonne=Tonne Katze=Tatze ' +
+      'Nase=Vase Schnecke=Decke Kanne=Pfanne Feder=Leder Ball=Stall Brille=Grille Socke=Glocke Kopf=Topf Bett=Brett Fuchs=Luchs Schuh=Kuh Zahn=Hahn ' +
+      'Stern=Kern Wurst=Durst Kamm=Lamm Wal=Schal Floh=Stroh Reh=Klee Ei=Brei Bauch=Strauch Hut=Mut Licht=Gedicht Wagen=Kragen Riese=Wiese ' +
+      'Biene=Schiene Rakete=Trompete Daumen=Pflaumen Teller=Keller Gabel=Schnabel Mücke=Brücke Kiste=Liste Tasse=Kasse Puppe=Suppe Rock=Stock ' +
+      'Berg=Zwerg Lampe=Rampe Schiff=Riff',
+    mehrzahl:'Hund=Hunde Katze=Katzen Baum=Bäume Haus=Häuser Maus=Mäuse Buch=Bücher Kind=Kinder Apfel=Äpfel Vogel=Vögel Blume=Blumen Auto=Autos ' +
+      'Ball=Bälle Stuhl=Stühle Tisch=Tische Hand=Hände Fuss=Füsse Zahn=Zähne Kuh=Kühe Schaf=Schafe Pferd=Pferde Fisch=Fische Bett=Betten Glas=Gläser ' +
+      'Nuss=Nüsse Wurm=Würmer Mann=Männer Frau=Frauen Rad=Räder Dorf=Dörfer Wald=Wälder Blatt=Blätter Nest=Nester Ei=Eier Huhn=Hühner Ente=Enten ' +
+      'Schuh=Schuhe Hut=Hüte Stern=Sterne Wolke=Wolken Brücke=Brücken Tasche=Taschen Stift=Stifte Heft=Hefte Uhr=Uhren Tür=Türen Zug=Züge Boot=Boote ' +
+      'Bild=Bilder Lied=Lieder Kopf=Köpfe Topf=Töpfe Gans=Gänse',
+    gegenteile:'gross=klein warm=kalt hell=dunkel laut=leise schnell=langsam alt=jung lang=kurz dick=dünn nass=trocken voll=leer schwer=leicht ' +
+      'hart=weich oben=unten früh=spät Tag=Nacht offen=geschlossen viel=wenig stark=schwach reich=arm sauber=schmutzig süss=sauer links=rechts ' +
+      'vorne=hinten innen=aussen Anfang=Ende Sommer=Winter lachen=weinen kommen=gehen geben=nehmen kaufen=verkaufen gewinnen=verlieren Freund=Feind ' +
+      'fragen=antworten richtig=falsch wach=müde'
+  };
+  function vorschlaege(art, anzahl, rnd){
+    var l = (VORSCHLAEGE[art] || '').split(' ').filter(Boolean).map(function(x){ var t = x.split('='); return { a:t[0], b:t[1] }; });
+    return mischen(l, rnd).slice(0, anzahl);
   }
 
   /* ---------- Rätsel belegen ----------
@@ -172,18 +238,24 @@ var Kern = (function(){
     }
     return neu;
   }
-  return { zufall:zufall, mischen:mischen, ZEICHEN:ZEICHEN, form:form, paareListe:paareListe, rechnen:rechnen, belegen:belegen, eindeutig:eindeutig,
+  return { zufall:zufall, mischen:mischen, ZEICHEN:ZEICHEN, form:form, paareListe:paareListe, plusMinus:plusMinus, einmaleins:einmaleins, dezimal:dezimal,
+    brueche:brueche, bruchWort:bruchWort, VORSCHLAEGE:VORSCHLAEGE, vorschlaege:vorschlaege, belegen:belegen, eindeutig:eindeutig,
     abstandStrecke:abstandStrecke, verteilen:verteilen };
 })();
 /* KERN-ENDE */
 
 var FAECHER = [['mathe', 'Mathe'], ['deutsch', 'Deutsch'], ['englisch', 'Englisch'], ['franzoesisch', 'Französisch']];
-var SPRACHE = { deutsch:['Wort', 'Partner', 'Haus = Maus'], englisch:['Deutsch', 'Englisch', 'Hund = dog'], franzoesisch:['Deutsch', 'Französisch', 'Hund = le chien'] };
+var MATHE = [['plusminus', 'Plus & Minus'], ['einmaleins', 'Einmaleins'], ['dezimal', 'Dezimalzahlen'], ['brueche', 'Brüche']];
+var DEUTSCH = [['reime', 'Reimwörter'], ['mehrzahl', 'Einzahl – Mehrzahl'], ['gegenteile', 'Gegenteile'], ['eigene', 'Eigene Paare']];
+// Überschriften der Paarliste [links, rechts, Beispiel]; Schlüssel = Liste (Deutsch je Art eine eigene Liste)
+var KOEPFE = { 'd-reime':['Wort', 'Reimwort', 'Haus = Maus'], 'd-mehrzahl':['Einzahl', 'Mehrzahl', 'Hund = Hunde'], 'd-gegenteile':['Wort', 'Gegenteil', 'gross = klein'],
+  'd-eigene':['Wort', 'Partner', 'Haus = Maus'], englisch:['Deutsch', 'Englisch', 'Hund = dog'], franzoesisch:['Deutsch', 'Französisch', 'Hund = le chien'] };
 var ABLENKER = [[0, 'keine'], [4, 'wenige'], [8, 'einige'], [12, 'viele']];
 var BUCHSTABEN = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''), ZIFFERN = '0123456789'.split('');
 var TINTE = '#1C1714', LINIE = '#E46F12';
 var BLATT_B = 639, BLATT_H = 800;   // Zeichenfläche auf dem Blatt (Pixel; das Blatt ist 703 Pixel breit = 186 mm)
 function esc(t){ return Labor.esc(t); }
+function kaestchen(name, liste){ return liste.map(function(x){ return '<label><input type="checkbox" name="' + name + '" value="' + x[0] + '"><span>' + x[1] + '</span></label>'; }).join(''); }
 function chips(name, liste){ return liste.map(function(x){ return '<label><input type="radio" name="' + name + '" value="' + x[0] + '"><span>' + x[1] + '</span></label>'; }).join(''); }
 
 /* ---------- Zeichnen ---------- */
@@ -238,12 +310,32 @@ var VORLAGE = '<div class="kt">' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Inhalt</h2><p>Jede Linie ist ein Paar.</p></div></div>' +
       '<p class="feld-label">Fach</p><div class="kt-chips" role="radiogroup" aria-label="Fach">' + chips('ktFach', FAECHER) + '</div>' +
       '<div class="kt-teil" data-fach="mathe">' +
-        '<p class="feld-label">Rechenarten</p><div class="kt-chips kt-mehr">' +
-          [['plus', 'Plus +'], ['minus', 'Minus −'], ['mal', 'Mal ·'], ['geteilt', 'Geteilt :']].map(function(x){ return '<label><input type="checkbox" name="ktOp" value="' + x[0] + '"><span>' + x[1] + '</span></label>'; }).join('') + '</div>' +
-        '<p class="feld-label">Zahlenraum</p><div class="kt-chips">' + chips('ktZr', [['20', 'bis 20'], ['100', 'bis 100'], ['1000', 'bis 1000']]) + '</div>' +
-        '<p class="hinweis">Alle Ergebnisse sind verschieden – so passt jede Rechnung nur zu einem einzigen Kreis.</p>' +
+        '<p class="feld-label">Thema</p><div class="kt-chips" role="radiogroup" aria-label="Mathe-Thema">' + chips('ktMathe', MATHE) + '</div>' +
+        '<div class="kt-unter" data-mathe="plusminus">' +
+          '<p class="feld-label">Rechenarten</p><div class="kt-chips">' + kaestchen('ktOp', [['plus', 'Plus +'], ['minus', 'Minus −']]) + '</div>' +
+          '<p class="feld-label">Zahlenraum</p><div class="kt-chips">' + chips('ktZr', [['20', 'bis 20'], ['100', 'bis 100'], ['1000', 'bis 1000']]) + '</div>' +
+        '</div>' +
+        '<div class="kt-unter" data-mathe="einmaleins">' +
+          '<p class="feld-label">Rechnungen</p><div class="kt-chips">' + kaestchen('ktEOp', [['mal', 'Mal ·'], ['geteilt', 'Geteilt :']]) + '</div>' +
+          '<p class="feld-label">Reihen</p><div class="kt-chips kt-reihen">' + kaestchen('ktReihe', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(function(n){ return [n, n + 'er']; })) + '</div>' +
+        '</div>' +
+        '<div class="kt-unter" data-mathe="dezimal">' +
+          '<p class="feld-label">Brüche</p><div class="kt-chips">' + chips('ktDez', [['1', 'Zehntel'], ['2', 'bis Hundertstel'], ['3', 'bis Tausendstel']]) + '</div>' +
+          '<p class="feld-label">Dezimaltrennzeichen</p><div class="kt-chips">' + chips('ktSep', [['.', 'Punkt 0.5'], [',', 'Komma 0,5']]) + '</div>' +
+          '<p class="hinweis">z. B. 7/100 und 0.07</p>' +
+        '</div>' +
+        '<div class="kt-unter" data-mathe="brueche">' +
+          '<p class="feld-label">Nenner</p><div class="kt-chips">' + chips('ktNenner', [['6', 'bis Sechstel'], ['10', 'bis Zehntel'], ['12', 'bis Zwölftel']]) + '</div>' +
+          '<p class="hinweis">z. B. «drei Fünftel» und 3/5</p>' +
+        '</div>' +
+        '<p class="hinweis">Alle Ergebnisse sind verschieden – so passt jede Aufgabe nur zu einem einzigen Kreis.</p>' +
       '</div>' +
-      '<div class="kt-teil" data-fach="deutsch englisch franzoesisch"><div class="kt-paarliste" id="ktPaarliste">' + Paarliste.html() + '</div>' +
+      '<div class="kt-teil" data-fach="deutsch">' +
+        '<p class="feld-label">Art</p><div class="kt-chips" role="radiogroup" aria-label="Art der Paare">' + chips('ktDeutsch', DEUTSCH) + '</div>' +
+      '</div>' +
+      '<div class="kt-teil kt-paare" data-fach="deutsch englisch franzoesisch">' +
+        '<button type="button" class="btn klein kt-vorschlag" id="ktVorschlaege">Andere Vorschläge</button>' +
+        '<div class="kt-paarliste" id="ktPaarliste">' + Paarliste.html() + '</div>' +
         '<div class="kt-zaehler" id="ktZaehler" aria-live="polite"></div></div>' +
     '</div>' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Blatt</h2></div></div>' +
@@ -286,18 +378,30 @@ Labor.registriere({
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false;
   var TAB = 'kettenraetsel-eingaben', OPT = 'kettenraetsel-einstellungen';
-  var STANDARD = { modus:'buchstabe', zeichen:'M', fach:'deutsch', ops:['plus', 'minus'], zr:'100', ablenker:8, mitLoesung:true, titelAn:true, anleitungAn:true };
-  var st = { titel:'', zeilen:{ deutsch:[], englisch:[], franzoesisch:[] }, seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
+  var STANDARD = { modus:'buchstabe', zeichen:'M', fach:'deutsch', deutschArt:'reime', matheArt:'plusminus', ops:['plus', 'minus'], zr:'100',
+    eOps:['mal', 'geteilt'], reihen:[2, 3, 4, 5, 6, 7, 8, 9, 10], dez:'2', sep:'.', nenner:'10', ablenker:8, mitLoesung:true, titelAn:true, anleitungAn:true };
+  // zeilen: je Liste (d-reime, d-mehrzahl, d-gegenteile, d-eigene, englisch, franzoesisch); vorschlag: Liste ist unverändert vorgeschlagen
+  var st = { titel:'', zeilen:{}, vorschlag:{}, seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
   try {
     var e = JSON.parse(sessionStorage.getItem(TAB));
-    if (e){ st.titel = String(e.titel || ''); st.seed = +e.seed || st.seed; Object.keys(st.zeilen).forEach(function(k){ if (e.zeilen) st.zeilen[k] = Paarliste.aufraeumen(e.zeilen[k]); }); }
+    if (e){
+      st.titel = String(e.titel || ''); st.seed = +e.seed || st.seed;
+      Object.keys(KOEPFE).forEach(function(k){ if (e.zeilen && e.zeilen[k]) st.zeilen[k] = Paarliste.aufraeumen(e.zeilen[k]); });
+      if (e.zeilen && e.zeilen.deutsch && !st.zeilen['d-eigene']) st.zeilen['d-eigene'] = Paarliste.aufraeumen(e.zeilen.deutsch);   // früher eine Deutsch-Liste
+      if (e.vorschlag) Object.keys(e.vorschlag).forEach(function(k){ st.vorschlag[k] = !!e.vorschlag[k]; });
+    }
   } catch(x){}
   if (!Kern.ZEICHEN[st.opt.zeichen]) st.opt.zeichen = st.opt.modus === 'zahl' ? '7' : 'M';
   if (!FAECHER.some(function(f){ return f[0] === st.opt.fach; })) st.opt.fach = 'deutsch';
+  if (!DEUTSCH.some(function(f){ return f[0] === st.opt.deutschArt; })) st.opt.deutschArt = 'reime';
+  if (!MATHE.some(function(f){ return f[0] === st.opt.matheArt; })) st.opt.matheArt = 'plusminus';
+  st.opt.ops = (st.opt.ops || []).filter(function(x){ return x === 'plus' || x === 'minus'; }); if (!st.opt.ops.length) st.opt.ops = ['plus', 'minus'];   // früher auch Mal/Geteilt
+  if (!Array.isArray(st.opt.eOps) || !st.opt.eOps.length) st.opt.eOps = ['mal', 'geteilt'];
+  if (!Array.isArray(st.opt.reihen) || !st.opt.reihen.length) st.opt.reihen = STANDARD.reihen.slice();
   var timer = 0;
   function speichernJetzt(){ clearTimeout(timer); timer = 0;
-    try { sessionStorage.setItem(TAB, JSON.stringify({ titel:st.titel, zeilen:st.zeilen, seed:st.seed })); } catch(x){}
+    try { sessionStorage.setItem(TAB, JSON.stringify({ titel:st.titel, zeilen:st.zeilen, vorschlag:st.vorschlag, seed:st.seed })); } catch(x){}
     try { localStorage.setItem(OPT, JSON.stringify(st.opt)); } catch(x){} }
   function speichern(){ clearTimeout(timer); timer = setTimeout(speichernJetzt, 200); }
   function meldung(art, html){ $('#ktMeldung').innerHTML = html ? '<div class="meldung ' + art + '">' + html + '</div>' : ''; }
@@ -321,14 +425,21 @@ function starte(bereich){
   radios('ktModus', 'modus', zeichenZeigen);
   radios('ktFach', 'fach', fachZeigen);
   radios('ktZr', 'zr'); radios('ktAblenker', 'ablenker');
-  [].forEach.call(bereich.querySelectorAll('input[name="ktOp"]'), function(c){
-    c.checked = st.opt.ops.indexOf(c.value) >= 0;
-    c.addEventListener('change', function(){
-      var alle = [].filter.call(bereich.querySelectorAll('input[name="ktOp"]'), function(x){ return x.checked; }).map(function(x){ return x.value; });
-      if (!alle.length){ c.checked = true; return; }
-      st.opt.ops = alle; speichern(); zeichnen();
+  radios('ktMathe', 'matheArt', fachZeigen); radios('ktDeutsch', 'deutschArt', fachZeigen);
+  radios('ktDez', 'dez'); radios('ktSep', 'sep'); radios('ktNenner', 'nenner');
+  // Mehrfachwahl (mindestens eines bleibt gewählt)
+  function mehrfach(name, k, zahl){
+    [].forEach.call(bereich.querySelectorAll('input[name="' + name + '"]'), function(c){
+      var v = zahl ? +c.value : c.value;
+      c.checked = st.opt[k].indexOf(v) >= 0;
+      c.addEventListener('change', function(){
+        var alle = [].filter.call(bereich.querySelectorAll('input[name="' + name + '"]'), function(x){ return x.checked; }).map(function(x){ return zahl ? +x.value : x.value; });
+        if (!alle.length){ c.checked = true; return; }
+        st.opt[k] = alle; speichern(); zeichnen();
+      });
     });
-  });
+  }
+  mehrfach('ktOp', 'ops'); mehrfach('ktEOp', 'eOps'); mehrfach('ktReihe', 'reihen', true);
   $('#ktTitel').value = st.titel;
   $('#ktTitel').addEventListener('input', function(){ st.titel = this.value; speichern(); zeichnen(); });
   $('#ktMitLoesung').checked = st.opt.mitLoesung;
@@ -337,26 +448,51 @@ function starte(bereich){
   $('#ktNeu').addEventListener('click', function(){ st.seed = Math.floor(Math.random() * 1e9) + 1; speichern(); zeichnen(); });
   $('#ktZeigeLoesung').addEventListener('click', function(){ var an = this.getAttribute('aria-pressed') !== 'true'; this.setAttribute('aria-pressed', an ? 'true' : 'false'); zeichnen(); });
 
-  function sprache(){ return !!SPRACHE[st.opt.fach]; }
+  function sprache(){ return st.opt.fach !== 'mathe'; }
+  function listeName(){ return st.opt.fach === 'deutsch' ? 'd-' + st.opt.deutschArt : st.opt.fach; }
+  function vorschlagbar(){ return st.opt.fach === 'deutsch' && st.opt.deutschArt !== 'eigene'; }
   var paarliste = Paarliste.starte($('#ktPaarliste'), {
     liste:function(art){ return st.zeilen[art] || (st.zeilen[art] = []); },
-    art:function(){ return st.opt.fach; },
+    art:listeName,
     sprache:function(art){ return art === 'englisch' || art === 'franzoesisch' ? art : null; },
-    kopf:function(){ return SPRACHE[st.opt.fach] || ['', '', '']; },
-    hilfe:function(){ return 'Links ein Wort, rechts sein Partner – zum Beispiel Reimwörter (Haus – Maus), Einzahl und Mehrzahl, Gegenteile oder Nomen und Artikel. Achte darauf, dass kein Wort zu einem zweiten passt.'; },
-    geaendert:function(){ speichern(); baldZeichnen(); },
+    kopf:function(){ return KOEPFE[listeName()] || ['', '', '']; },
+    hilfe:function(){ return vorschlagbar() ? 'Vorschläge – ändern und ergänzen geht jederzeit.' : 'Links ein Wort, rechts sein Partner.'; },
+    einfuegen:false,
+    geaendert:function(){ st.vorschlag[listeName()] = false; speichern(); baldZeichnen(); },
     aus:function(){ return aus; }
   });
+  // Vorschläge (Deutsch): so viele Paare, wie die Form und die Ablenker brauchen; ersetzen = neue Auswahl
+  function bedarf(){ return Kern.form(String(st.opt.zeichen)).kanten.length + 2 * st.opt.ablenker; }
+  function vorschlagen(ersetzen){
+    if (!vorschlagbar()) return false;
+    var k = listeName(), l = st.zeilen[k] || [], voll = l.filter(function(z){ return z.a && z.b; }).length;
+    if (!ersetzen && (l.length && !st.vorschlag[k] || voll >= bedarf())) return false;
+    var alt = {}; if (!ersetzen) l.forEach(function(z){ alt[z.a.toLowerCase()] = true; });
+    var neu = Kern.vorschlaege(st.opt.deutschArt, 999, Kern.zufall(Math.floor(Math.random() * 1e9) + 1)).filter(function(p){ return !alt[p.a.toLowerCase()]; });
+    var liste = (ersetzen ? [] : l.filter(function(z){ return z.a || z.b; })).concat(neu.map(function(p){ return { a:p.a, b:p.b, auto:'' }; }));
+    st.zeilen[k] = liste.slice(0, Math.max(bedarf(), ersetzen ? 0 : voll));
+    st.vorschlag[k] = true; speichern();
+    return true;
+  }
+  $('#ktVorschlaege').addEventListener('click', function(){ vorschlagen(true); paarliste.zeigen(); zeichnen(); });
   function fachZeigen(){
     [].forEach.call(bereich.querySelectorAll('.kt-teil'), function(d){ d.hidden = d.dataset.fach.split(' ').indexOf(st.opt.fach) < 0; });
-    if (sprache()) paarliste.zeigen();
+    [].forEach.call(bereich.querySelectorAll('.kt-unter'), function(d){ d.hidden = d.dataset.mathe !== st.opt.matheArt; });
+    $('#ktVorschlaege').hidden = !vorschlagbar();
+    if (sprache()){ vorschlagen(false); paarliste.zeigen(); }
   }
 
   /* ---------- Rätsel ---------- */
   var raetsel = null, lage = null;
   function paare(rnd, bedarf){
-    if (st.opt.fach === 'mathe') return Kern.rechnen(st.opt.ops, +st.opt.zr, bedarf, rnd);
-    return Kern.paareListe((st.zeilen[st.opt.fach] || []).map(function(z){ return [z.a, z.b]; })).paare;
+    var o = st.opt;
+    if (o.fach === 'mathe'){
+      if (o.matheArt === 'einmaleins') return Kern.einmaleins(o.reihen, o.eOps, bedarf, rnd);
+      if (o.matheArt === 'dezimal') return Kern.dezimal(+o.dez, o.sep, bedarf, rnd);
+      if (o.matheArt === 'brueche') return Kern.brueche(+o.nenner, bedarf, rnd);
+      return Kern.plusMinus(o.ops, +o.zr, bedarf, rnd);
+    }
+    return Kern.paareListe((st.zeilen[listeName()] || []).map(function(z){ return [z.a, z.b]; })).paare;
   }
   function anleitung(){
     var was = st.opt.modus === 'zahl' ? 'Zahl' : 'Buchstabe';
@@ -366,13 +502,14 @@ function starte(bereich){
   function zeichnen(){
     if (aus) return;
     var o = st.opt, z = String(o.zeichen), f = Kern.form(z), e = f.kanten.length, rnd = Kern.zufall(st.seed);
+    if (sprache() && vorschlagen(false)) paarliste.zeigen();   // vorgeschlagene Liste reicht nicht (andere Form, mehr Ablenker): ergänzen
     var liste = paare(rnd, e + 2 * o.ablenker + 4);
     $('#ktFormInfo').innerHTML = '«' + esc(z) + '» hat <b>' + f.ecken.length + ' Kreise</b> und <b>' + e + ' Linien</b> – also braucht es ' + e + ' Paare' +
       (f.start.length > 1 ? '. Die Form hat ' + f.start.length + ' Teile, darum gibt es ' + f.start.length + '-mal START' : '') + '.';
     // Zähler bei den Sprachen
     if (sprache()){
-      var p = Kern.paareListe((st.zeilen[o.fach] || []).map(function(x){ return [x.a, x.b]; })), n = p.paare.length, fehlt = e - n, ab = Math.max(0, Math.floor((n - e) / 2));
-      var wartend = (st.zeilen[o.fach] || []).filter(function(x){ return x.laedt; }).length;
+      var p = Kern.paareListe((st.zeilen[listeName()] || []).map(function(x){ return [x.a, x.b]; })), n = p.paare.length, fehlt = e - n, ab = Math.max(0, Math.floor((n - e) / 2));
+      var wartend = (st.zeilen[listeName()] || []).filter(function(x){ return x.laedt; }).length;
       $('#ktZaehler').innerHTML = '<p class="kt-zaehler-haupt ' + (fehlt > 0 ? 'fehlt' : 'ok') + '"><b>' + n + '</b> ' + (n === 1 ? 'Paar' : 'Paare') + ' · «' + esc(z) + '» braucht <b>' + e + '</b> für die Linien' +
         (fehlt > 0 ? ' – es fehlen noch <b>' + fehlt + '</b>.' : ' ✓') + '</p>' +
         (fehlt <= 0 ? '<p>Weitere Paare werden zu Ablenkern: Von jedem kommt nur ein Wort aufs Blatt, je zwei Wörter ergeben einen Kreis. Jetzt möglich: <b>' + ab + '</b> Ablenker-Kreise.</p>' : '') +
@@ -382,12 +519,12 @@ function starte(bereich){
     raetsel = Kern.belegen(z, liste, o.ablenker, rnd);
     var leer = raetsel.fehlen > 0;
     ['#ktZeigeLoesung', '#ktNeu', '#ktPdf', '#ktHerunterladen'].forEach(function(s){ $(s).disabled = leer; });
-    $('#ktAblenkerInfo').textContent = !leer && raetsel.ablenker.length < o.ablenker ? 'Für ' + o.ablenker + ' Ablenker-Kreise braucht es mehr Paare – jetzt sind es ' + raetsel.ablenker.length + '.' : '';
+    $('#ktAblenkerInfo').textContent = !leer && raetsel.ablenker.length < o.ablenker ? 'Für ' + o.ablenker + ' Ablenker-Kreise braucht es ' + (o.fach === 'mathe' ? 'mehr verschiedene Aufgaben (z. B. mehr Reihen)' : 'mehr Paare') + ' – jetzt sind es ' + raetsel.ablenker.length + '.' : '';
     if (leer){
       $('#ktBlatt').parentNode.hidden = true;
       meldung(sprache() && !liste.length ? 'info' : 'warnung', sprache()
         ? '<p>Für «' + esc(z) + '» braucht es <b>' + e + ' Paare</b>' + (liste.length ? ' – es fehlen noch ' + raetsel.fehlen + '.' : '. Gib links deine Wortpaare ein.') + '</p>'
-        : '<p>Mit diesen Einstellungen gibt es nicht genug verschiedene Ergebnisse. Wähle einen grösseren Zahlenraum oder mehr Rechenarten.</p>');
+        : '<p>Mit diesen Einstellungen gibt es nicht genug verschiedene Ergebnisse. Wähle mehr Reihen, einen grösseren Zahlenraum oder mehr Rechenarten.</p>');
       return;
     }
     meldung('', '');
