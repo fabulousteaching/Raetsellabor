@@ -34,6 +34,8 @@
 .kt-vorschlag[hidden]{display:none}
 .kt-teil[data-fach="deutsch"]{padding-bottom:4px}
 .kt .feld-label{margin-top:8px}
+.kt .opt{display:flex;align-items:flex-start;gap:10px;margin:14px 0 0;font-size:.9rem}
+.kt .opt input[type=checkbox]{width:16px;height:16px;margin:3px 0 0;accent-color:var(--accent);flex:none}
 .kt .opt-raster{display:grid;grid-template-columns:1fr;gap:6px;font-size:.9rem;margin-top:12px}
 .kt-zaehler{margin-top:8px;font-size:.88rem}
 .kt-zaehler p{margin:6px 0 0}

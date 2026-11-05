@@ -58,12 +58,33 @@ var Kern = (function(){
     8:[[[2, 0], [3.6, 1.1], [2.9, 2.6], [0.2, 4.6], [2, 6], [3.8, 4.6], [1.1, 2.6], [0.4, 1.1], [2, 0]]]
   };
   ZEICHEN[9] = ZEICHEN[6].map(function(s){ return s.map(function(p){ return [Math.round((4 - p[0]) * 10) / 10, Math.round((6 - p[1]) * 10) / 10]; }); });   // 9 = 6 gedreht
+  /* Ohne dreigeteilte Kreise: keine Verzweigung und keine geschlossenen Ringe – Querstriche stossen nicht an, Ringe haben
+     eine kleine Lücke. Jeder Teil ist ein offener Strich mit START und ENDE (gleich geprüft wie oben). */
+  var ZEICHEN_EINFACH = {
+  A:[[[0, 6], [0.9, 3], [2, 0], [3.1, 3], [4, 6]], [[1.3, 4.4], [2.7, 4.4]]],
+    B:[[[0, 6], [0, 3], [0, 0], [2.6, 0], [3.7, 1.5], [2.2, 3], [3.9, 4.4], [3, 5.9], [1.5, 6.1]]],
+    D:[[[0, 4.6], [0, 2.3], [0, 0], [2, 0], [3.6, 1.2], [4, 3], [3.6, 4.8], [2, 6], [0.5, 6]]],
+    E:[[[4, 0], [2, 0], [0, 0], [0, 3], [0, 6], [2, 6], [4, 6]], [[1.5, 3], [3.2, 3]]],
+    F:[[[0, 6], [0, 3], [0, 0], [2, 0], [4, 0]], [[1.5, 3], [3.2, 3]]],
+    H:[[[0, 6], [0, 4], [0, 2], [0, 0]], [[4, 0], [4, 2], [4, 4], [4, 6]], [[1.3, 3], [2.7, 3]]],
+    K:[[[0, 6], [0, 3], [0, 0]], [[3.8, 0], [2.4, 1.5], [1.45, 3], [2.4, 4.5], [3.8, 6]]],
+    O:[[[2, 0], [3.7, 1.2], [4, 3], [3.7, 4.8], [2, 6], [0.3, 4.8], [0, 3], [0.3, 1.2]]],
+    P:[[[0, 6], [0, 3], [0, 0], [2.4, 0], [3.8, 1.5], [1.5, 3]]],
+    Q:[[[4, 3], [3.7, 1.2], [2, 0], [0.3, 1.2], [0, 3], [0.3, 4.8], [2, 6], [3.4, 5.4]], [[2.6, 3.4], [4.9, 5.2]]],
+    R:[[[0, 6], [0, 3], [0, 0], [2.4, 0], [3.8, 1.5], [1.5, 3]], [[2.6, 4], [4, 6]]],
+    T:[[[0, 0], [2, 0], [4, 0]], [[2, 6], [2, 3.75], [2, 1.5]]],
+    Y:[[[0, 0], [1, 1.5], [2, 3], [3, 1.5], [4, 0]], [[2, 6], [2, 4.5]]],
+    0:[[[2, 0], [3.4, 0.9], [3.8, 3], [3.4, 5.1], [2, 6], [0.6, 5.1], [0.2, 3], [0.6, 0.9]]],
+    6:[[[3.6, 0.6], [2, 0], [0.4, 1.2], [0, 3.4], [0.4, 5.2], [2, 6], [3.7, 5], [3.4, 3.3], [1.8, 2.8]]],
+    8:[[[2, 0], [3.6, 1.1], [2.9, 2.6], [0.2, 4.6], [2, 6], [3.8, 4.6], [1.1, 2.6], [0.4, 1.1]]]
+  };
+  ZEICHEN_EINFACH[9] = ZEICHEN_EINFACH[6].map(function(s){ return s.map(function(p){ return [Math.round((4 - p[0]) * 10) / 10, Math.round((6 - p[1]) * 10) / 10]; }); });
 
-  // Form → { ecken:[[x, y]], kanten:[[a, b]], grad:[], start:[Ecken], ende:[Ecken] }
-  function form(z){
+  // Form → { ecken:[[x, y]], kanten:[[a, b]], grad:[], start:[Ecken], ende:[Ecken] }; einfach: ohne dreigeteilte Kreise
+  function form(z, einfach){
     var ecken = [], kanten = [], index = {};
     function ecke(p){ var k = p[0].toFixed(2) + ',' + p[1].toFixed(2); if (!(k in index)){ index[k] = ecken.length; ecken.push(p); } return index[k]; }
-    (ZEICHEN[z] || []).forEach(function(s){
+    ((einfach && ZEICHEN_EINFACH[z]) || ZEICHEN[z] || []).forEach(function(s){
       for (var i = 1; i < s.length; i++){
         var a = ecke(s[i - 1]), b = ecke(s[i]);
         if (a !== b && !kanten.some(function(k){ return (k[0] === a && k[1] === b) || (k[0] === b && k[1] === a); })) kanten.push([a, b]);
@@ -177,9 +198,9 @@ var Kern = (function(){
   /* ---------- Rätsel belegen ----------
      → { form, woerter[ecke]: [{ t, kante | label }], ablenker:[[w1, w2]], fehlen, moeglich (Ablenker-Kreise maximal) }
      Linien bekommen je ein Paar (Seiten zufällig). Ablenker: von jedem übrigen Paar nur ein Wort – ohne Partner auf dem Blatt. */
-  function belegen(z, paare, ablenkerZiel, rnd){
-    var f = form(z), p = mischen(paare.slice(), rnd), e = f.kanten.length;
-    var aus = { form:f, woerter:[], ablenker:[], fehlen:Math.max(0, e - p.length), moeglich:Math.max(0, Math.floor((p.length - e) / 2)) };
+  function belegen(z, paare, ablenkerZiel, rnd, einfach){
+    var f = form(z, einfach), p = mischen(paare.slice(), rnd), e = f.kanten.length;
+    var aus = { zeichen:String(z), einfach:!!einfach, form:f, woerter:[], ablenker:[], fehlen:Math.max(0, e - p.length), moeglich:Math.max(0, Math.floor((p.length - e) / 2)) };
     if (aus.fehlen) return aus;
     var w = f.ecken.map(function(){ return []; });
     f.kanten.forEach(function(k, i){
@@ -215,30 +236,38 @@ var Kern = (function(){
   }
 
   /* ---------- Ablenker-Kreise verteilen (Pixel) ----------
-     Bester von vielen Zufallsorten: weit weg von anderen Kreisen, nie auf einer Linie der Form, nie am Rand. */
+     Damit die Anordnung die Form nicht verrät: Zuerst kommen Ablenker auf Plätze, an denen andere Buchstaben oder Zahlen
+     ihre Kreise hätten (lockvoegel), dann weitere möglichst in die Nähe der Form. Nie auf einer Linie, nie zu nah an einem
+     anderen Kreis, nie am Rand. */
   function abstandStrecke(p, a, b){
     var dx = b[0] - a[0], dy = b[1] - a[1], l = dx * dx + dy * dy, t = l ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l)) : 0;
     return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy);
   }
-  function verteilen(kreise, strecken, breite, hoehe, r, anzahl, rnd){
+  function verteilen(kreise, strecken, breite, hoehe, r, anzahl, rnd, lockvoegel, kasten){
     var neu = [], alle = kreise.slice();
-    for (var n = 0; n < anzahl; n++){
-      var bester = null, bestWert = -1;
+    function frei(p){
+      if (p[0] < r + 4 || p[1] < r + 4 || p[0] > breite - r - 4 || p[1] > hoehe - r - 4) return false;
+      if (!strecken.every(function(s){ return abstandStrecke(p, s[0], s[1]) > r + 10; })) return false;
+      return alle.every(function(k){ return Math.hypot(p[0] - k[0], p[1] - k[1]) >= 2 * r + 12; });
+    }
+    mischen((lockvoegel || []).slice(), rnd).forEach(function(p){ if (neu.length < anzahl && frei(p)){ neu.push(p); alle.push(p); } });
+    while (neu.length < anzahl){
+      var bester = null, bestWert = -Infinity;
       for (var v = 0; v < 260; v++){
         var p = [r + 4 + rnd() * (breite - 2 * r - 8), r + 4 + rnd() * (hoehe - 2 * r - 8)];
-        var ok = strecken.every(function(s){ return abstandStrecke(p, s[0], s[1]) > r + 10; });
-        if (!ok) continue;
+        if (!frei(p)) continue;
         var d = Infinity;
         alle.forEach(function(k){ d = Math.min(d, Math.hypot(p[0] - k[0], p[1] - k[1])); });
-        if (d < 2 * r + 16) continue;
-        if (d > bestWert){ bestWert = d; bester = p; }
+        var draussen = kasten ? Math.hypot(Math.max(kasten[0] - p[0], 0, p[0] - kasten[2]), Math.max(kasten[1] - p[1], 0, p[1] - kasten[3])) : 0;
+        var wert = Math.min(d, 2.8 * r + 20) - 0.6 * draussen;   // genug Abstand, aber lieber in der Nähe der Form
+        if (wert > bestWert){ bestWert = wert; bester = p; }
       }
       if (!bester) break;
       neu.push(bester); alle.push(bester);
     }
     return neu;
   }
-  return { zufall:zufall, mischen:mischen, ZEICHEN:ZEICHEN, form:form, paareListe:paareListe, plusMinus:plusMinus, einmaleins:einmaleins, dezimal:dezimal,
+  return { zufall:zufall, mischen:mischen, ZEICHEN:ZEICHEN, ZEICHEN_EINFACH:ZEICHEN_EINFACH, form:form, paareListe:paareListe, plusMinus:plusMinus, einmaleins:einmaleins, dezimal:dezimal,
     brueche:brueche, bruchWort:bruchWort, VORSCHLAEGE:VORSCHLAEGE, vorschlaege:vorschlaege, belegen:belegen, eindeutig:eindeutig,
     abstandStrecke:abstandStrecke, verteilen:verteilen };
 })();
@@ -270,37 +299,72 @@ function bruchSvg(x, y, gr, t){
     '<text x="' + x.toFixed(1) + '" y="' + (y + 0.66 * gr).toFixed(1) + '" font-size="' + gr.toFixed(1) + '">' + m[2] + '</text>';
 }
 function mitBruch(r){ return r.woerter.some(function(l){ return l.some(function(z){ return !z.label && BRUCH.test(z.t); }); }) || r.ablenker.some(function(l){ return l.some(function(t){ return BRUCH.test(t); }); }); }
-// Kreis mit 2 oder 3 Zeilen; Schrift so gross, wie es in die jeweilige Zeile passt
+/* Kreis mit 2 oder 3 Feldern. Jedes Feld zeigt in die Richtung seiner Linie (z.winkel, Bogenmass, 0 = rechts, im
+   Uhrzeigersinn wie im SVG): Die Trennlinien liegen genau zwischen den Richtungen. So verlässt jede Linie den Kreis im
+   Feld ihres Wortes und trifft beim Partner auf dessen Feld. Ohne Richtung (Ablenker): oben und unten.
+   Die Schrift bleibt waagrecht; sie kommt dorthin, wo im Feld am meisten Platz ist, so gross wie es passt. */
+var VOLL = 2 * Math.PI;
+function normWinkel(a){ a %= VOLL; return a < 0 ? a + VOLL : a; }
 function kreisSvg(x, y, r, zeilen){
   var n = zeilen.length, h = '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r.toFixed(1) + '" fill="#fff" stroke="' + TINTE + '" stroke-width="1.6"/>';
-  var mitten = n === 3 ? [-0.62, 0, 0.62] : n === 2 ? [-0.42, 0.42] : [0];
-  var trenn = n === 3 ? [-0.31, 0.31] : n === 2 ? [0] : [];
-  // Platz in der Breite auf Höhe yy (relativ zur Mitte), mit etwas Rand
-  function platz(yy){ var a = Math.min(r, Math.abs(yy)); return 2 * Math.sqrt(Math.max(0, r * r - a * a)) - 8; }
-  var zweiGr = Math.min(n === 3 ? 0.22 * r : 0.27 * r, 15);   // Schrift für Brüche und zweizeilige Wörter
-  trenn.forEach(function(t){ var yy = t * r, w = Math.sqrt(r * r - yy * yy); h += '<path d="M' + (x - w).toFixed(1) + ' ' + (y + yy).toFixed(1) + 'H' + (x + w).toFixed(1) + '" stroke="' + TINTE + '" stroke-width="0.9"/>'; });
-  zeilen.forEach(function(z, i){
-    var m = mitten[i] * r;
-    if (!z.label && BRUCH.test(z.t)){ h += bruchSvg(x, y + m, zweiGr, z.t); return; }
-    var gr0 = Math.min(n === 3 ? 0.3 * r : 0.33 * r, 16), aussen = Math.abs(m) + (n === 3 ? 0.18 : 0.24) * r;
-    var b = breite(z.t, gr0, z.label), gr = b > platz(aussen) ? gr0 * platz(aussen) / b : gr0;
-    // Zu klein und mehrere Wörter: auf zwei Zeilen umbrechen (Trennung, bei der die längere Zeile am kürzesten ist)
+  var w = zeilen.map(function(z, i){ return normWinkel(typeof z.winkel === 'number' ? z.winkel : n === 2 ? (i ? 0.5 : -0.5) * Math.PI : -Math.PI / 2 + i * VOLL / n); });
+  var ord = w.map(function(_, i){ return i; }).sort(function(a, b){ return w[a] - w[b]; });
+  // Grenze nach dem k-ten Feld (in Winkelreihenfolge): Mitte zum nächsten
+  var grenze = ord.map(function(i, k){ var a = w[i], b = w[ord[(k + 1) % n]]; if (b <= a) b += VOLL; return (a + b) / 2; });
+  grenze.forEach(function(g){ h += '<path d="M' + x.toFixed(1) + ' ' + y.toFixed(1) + 'L' + (x + r * Math.cos(g)).toFixed(1) + ' ' + (y + r * Math.sin(g)).toFixed(1) + '" stroke="' + TINTE + '" stroke-width="0.9"/>'; });
+  var zweiGr = Math.min(n === 3 ? 0.22 * r : 0.27 * r, 15), gr0 = Math.min(n === 3 ? 0.3 * r : 0.33 * r, 16);
+  ord.forEach(function(idx, k){
+    var s0 = grenze[(k + n - 1) % n], s1 = grenze[k];
+    while (s1 <= s0) s1 += VOLL;
+    var z = zeilen[idx], mitte = (s0 + s1) / 2;
+    function drin(px, py){
+      if (px * px + py * py > (r - 3) * (r - 3)) return false;
+      if (normWinkel(Math.atan2(py, px) - s0) > s1 - s0) return false;
+      return [s0, s1].every(function(g){ var ux = Math.cos(g), uy = Math.sin(g), dot = px * ux + py * uy; return (dot > 0 ? Math.abs(px * uy - py * ux) : Math.hypot(px, py)) >= 2.5; });
+    }
+    // waagrechter Platz auf Höhe yy (relativ zur Mitte) rund um cx: [links, rechts]
+    function lauf(yy, cx){
+      var schritt = 1.5, best = null, start = null;
+      for (var xx = -r; xx <= r + schritt; xx += schritt){
+        var ok = xx <= r && drin(xx, yy);
+        if (ok && start === null) start = xx;
+        if (!ok && start !== null){ var l = [start, xx - schritt]; if (!best || (cx >= l[0] && cx <= l[1]) || (!(cx >= best[0] && cx <= best[1]) && l[1] - l[0] > best[1] - best[0])) best = l; start = null; }
+      }
+      return best || [0, 0];
+    }
+    function platz(yc, hh, cx){ var a = lauf(yc - hh, cx), b = lauf(yc, cx), c = lauf(yc + hh, cx); return [Math.max(a[0], b[0], c[0]), Math.min(a[1], b[1], c[1])]; }
+    // beste Stelle im Feld: entlang der Feldmitte verschieden weit vom Mittelpunkt
+    function stelle(hh){
+      var beste = null;
+      [0.3, 0.4, 0.5, 0.6].forEach(function(q){
+        var cx = q * r * Math.cos(mitte), cy = q * r * Math.sin(mitte), pl = platz(cy, hh, cx), b = pl[1] - pl[0];
+        if (!beste || b > beste.b + 2) beste = { x:(pl[0] + pl[1]) / 2, y:cy, b:Math.max(0, b) };
+      });
+      return beste;
+    }
+    if (!z.label && BRUCH.test(z.t)){
+      var bs = stelle(1.1 * zweiGr), m = BRUCH.exec(z.t), bw = Math.max(breite(m[1], zweiGr), breite(m[2], zweiGr)) + 0.35 * zweiGr;
+      h += bruchSvg(x + bs.x, y + bs.y, Math.max(7, Math.min(zweiGr, zweiGr * bs.b / bw)), z.t);
+      return;
+    }
+    var st = stelle(0.42 * gr0), bw0 = breite(z.t, gr0, z.label), gr = bw0 > st.b ? gr0 * st.b / bw0 : gr0;
+    // zu klein und mehrere Wörter: zwei Zeilen (Trennung, bei der die längere Zeile am kürzesten ist)
     var teile = z.t.split(' ');
     if (!z.label && gr < gr0 * 0.8 && teile.length > 1){
       var bester = null;
-      for (var k = 1; k < teile.length; k++){
-        var l1 = teile.slice(0, k).join(' '), l2 = teile.slice(k).join(' '), w = Math.max(breite(l1, zweiGr), breite(l2, zweiGr));
-        if (!bester || w < bester.w) bester = { l1:l1, l2:l2, w:w };
+      for (var t = 1; t < teile.length; t++){
+        var l1 = teile.slice(0, t).join(' '), l2 = teile.slice(t).join(' '), bb = Math.max(breite(l1, zweiGr), breite(l2, zweiGr));
+        if (!bester || bb < bester.b) bester = { l1:l1, l2:l2, b:bb };
       }
-      var g2 = Math.min(zweiGr, zweiGr * platz(Math.abs(m) + 1.15 * zweiGr) / bester.w);
+      var st2 = stelle(1.15 * zweiGr), g2 = Math.min(zweiGr, zweiGr * st2.b / bester.b);
       if (g2 > gr){
-        h += '<text x="' + x.toFixed(1) + '" y="' + (y + m - 0.58 * g2).toFixed(1) + '" font-size="' + g2.toFixed(1) + '">' + esc(bester.l1) + '</text>' +
-          '<text x="' + x.toFixed(1) + '" y="' + (y + m + 0.62 * g2).toFixed(1) + '" font-size="' + g2.toFixed(1) + '">' + esc(bester.l2) + '</text>';
+        h += '<text x="' + (x + st2.x).toFixed(1) + '" y="' + (y + st2.y - 0.58 * g2).toFixed(1) + '" font-size="' + g2.toFixed(1) + '">' + esc(bester.l1) + '</text>' +
+          '<text x="' + (x + st2.x).toFixed(1) + '" y="' + (y + st2.y + 0.62 * g2).toFixed(1) + '" font-size="' + g2.toFixed(1) + '">' + esc(bester.l2) + '</text>';
         return;
       }
     }
     gr = Math.max(7, gr);
-    h += '<text x="' + x.toFixed(1) + '" y="' + (y + m).toFixed(1) + '" font-size="' + gr.toFixed(1) + '"' + (z.label ? ' font-style="italic"' : '') + '>' + esc(z.t) + '</text>';
+    h += '<text x="' + (x + st.x).toFixed(1) + '" y="' + (y + st.y).toFixed(1) + '" font-size="' + gr.toFixed(1) + '"' + (z.label ? ' font-style="italic"' : '') + '>' + esc(z.t) + '</text>';
   });
   return h;
 }
@@ -311,7 +375,20 @@ function raetselSvg(r, lage, loesung){
     var a = lage.ecken[k[0]], b = lage.ecken[k[1]];
     h += '<path d="M' + a[0].toFixed(1) + ' ' + a[1].toFixed(1) + 'L' + b[0].toFixed(1) + ' ' + b[1].toFixed(1) + '" stroke="' + LINIE + '" stroke-width="5" stroke-linecap="round"/>';
   });
-  lage.ecken.forEach(function(p, i){ h += kreisSvg(p[0], p[1], lage.r, r.woerter[i]); });
+  lage.ecken.forEach(function(p, i){
+    var felder = r.woerter[i].map(function(z){ return { t:z.t, label:z.label, kante:z.kante }; }), winkel = [];
+    felder.forEach(function(z){
+      if (z.label) return;
+      var k = r.form.kanten[z.kante], q = lage.ecken[k[0] === i ? k[1] : k[0]];
+      z.winkel = Math.atan2(q[1] - p[1], q[0] - p[0]); winkel.push(normWinkel(z.winkel));
+    });
+    // START/ENDE in die grösste Lücke zwischen den Linien (bei einer Linie: gegenüber)
+    winkel.sort(function(a, b){ return a - b; });
+    var luecke = { g:-1, m:0 };
+    winkel.forEach(function(a, k){ var b = k + 1 < winkel.length ? winkel[k + 1] : winkel[0] + VOLL; if (b - a > luecke.g) luecke = { g:b - a, m:(a + b) / 2 }; });
+    felder.forEach(function(z){ if (z.label) z.winkel = luecke.m; });
+    h += kreisSvg(p[0], p[1], lage.r, felder);
+  });
   lage.ablenker.forEach(function(p, i){ h += kreisSvg(p[0], p[1], lage.r, r.ablenker[i].map(function(t){ return { t:t }; })); });
   return '<svg class="kt-svg" viewBox="0 0 ' + BLATT_B + ' ' + BLATT_H + '" width="' + BLATT_B + '" height="' + BLATT_H + '" role="img" aria-label="Kreise zum Verbinden">' +
     '<g style="font-family:var(--blatt-schrift)" font-weight="600" fill="' + TINTE + '" text-anchor="middle" dominant-baseline="central">' + h + '</g></svg>';
@@ -321,11 +398,15 @@ function lageBerechnen(r, rnd){
   var e = r.form.ecken, minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
   e.forEach(function(p){ minX = Math.min(minX, p[0]); maxX = Math.max(maxX, p[0]); minY = Math.min(minY, p[1]); maxY = Math.max(maxY, p[1]); });
   // mit Brüchen etwas grössere Kreise, damit Zähler und Nenner übereinander Platz haben
-  var u = Math.min(BLATT_B * 0.64 / (maxX - minX + 1), BLATT_H * 0.86 / (maxY - minY + 1)), rad = mitBruch(r) ? Math.min(0.62 * u, 60) : Math.min(0.5 * u, 48);
+  var u = Math.min(BLATT_B * 0.7 / (maxX - minX + 1), BLATT_H * 0.86 / (maxY - minY + 1)), rad = mitBruch(r) ? Math.min(0.62 * u, 60) : Math.min(0.56 * u, 54);
   var ox = (BLATT_B - (maxX - minX) * u) / 2 - minX * u, oy = (BLATT_H - (maxY - minY) * u) / 2 - minY * u;
   var ecken = e.map(function(p){ return [ox + p[0] * u, oy + p[1] * u]; });
   var strecken = r.form.kanten.map(function(k){ return [ecken[k[0]], ecken[k[1]]]; });
-  return { ecken:ecken, r:rad, ablenker:Kern.verteilen(ecken, strecken, BLATT_B, BLATT_H, rad, r.ablenker.length, rnd) };
+  // Lockvögel: Kreisplätze von drei anderen Zeichen im gleichen Raster – so sieht man der Anordnung die Form nicht an
+  var andere = Kern.mischen(Object.keys(Kern.ZEICHEN).filter(function(k){ return k !== r.zeichen; }), rnd).slice(0, 3), lock = [];
+  andere.forEach(function(k){ Kern.form(k, r.einfach).ecken.forEach(function(q){ lock.push([ox + q[0] * u, oy + q[1] * u]); }); });
+  var kasten = [ox + minX * u - u, oy + minY * u - u, ox + maxX * u + u, oy + maxY * u + u];
+  return { ecken:ecken, r:rad, ablenker:Kern.verteilen(ecken, strecken, BLATT_B, BLATT_H, rad, r.ablenker.length, rnd, lock, kasten) };
 }
 
 var VORLAGE = '<div class="kt">' +
@@ -376,6 +457,8 @@ var VORLAGE = '<div class="kt">' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Blatt</h2></div></div>' +
       '<p class="feld-label">Ablenker-Kreise</p><div class="kt-chips" role="radiogroup" aria-label="Ablenker-Kreise">' + chips('ktAblenker', ABLENKER) + '</div>' +
       '<p class="hinweis" id="ktAblenkerInfo"></p>' +
+      '<label class="opt"><input type="checkbox" id="ktDrei"><span>Kreise mit drei Feldern (bei Verzweigungen und Ringen)</span></label>' +
+      '<p class="hinweis" id="ktDreiInfo"></p>' +
       '<div class="opt-raster"><label for="ktTitel">Titel auf dem Blatt</label><input type="text" id="ktTitel" maxlength="60" autocomplete="off"></div>' +
     '</div>' +
   '</section>' +
@@ -415,7 +498,7 @@ function starte(bereich){
   var TAB = 'kettenraetsel-eingaben', OPT = 'kettenraetsel-einstellungen';
   var STANDARD = { modus:'buchstabe', zeichen:'M', fach:'deutsch', deutschArt:'reime', matheArt:'plusminus', ops:['plus', 'minus'], zr:'100',
     eOps:['mal', 'geteilt'], einmal:'klein', reihen:[2, 3, 4, 5, 6, 7, 8, 9, 10], reihenGross:[11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
-    dez:'2', dezArt:'echt', sep:'.', nenner:'10', bruchArt:'echt', ablenker:8, mitLoesung:true, titelAn:true, anleitungAn:true };
+    dez:'2', dezArt:'echt', sep:'.', nenner:'10', bruchArt:'echt', drei:true, ablenker:8, mitLoesung:true, titelAn:true, anleitungAn:true };
   // zeilen: je Liste (d-reime, d-mehrzahl, d-gegenteile, d-eigene, englisch, franzoesisch); vorschlag: Liste ist unverändert vorgeschlagen
   var st = { titel:'', zeilen:{}, vorschlag:{}, seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
@@ -480,6 +563,8 @@ function starte(bereich){
   mehrfach('ktOp', 'ops'); mehrfach('ktEOp', 'eOps'); mehrfach('ktReihe', 'reihen', true); mehrfach('ktReiheG', 'reihenGross', true);
   $('#ktTitel').value = st.titel;
   $('#ktTitel').addEventListener('input', function(){ st.titel = this.value; speichern(); zeichnen(); });
+  $('#ktDrei').checked = st.opt.drei !== false;
+  $('#ktDrei').addEventListener('change', function(){ st.opt.drei = this.checked; speichern(); zeichnen(); });
   $('#ktMitLoesung').checked = st.opt.mitLoesung;
   $('#ktMitLoesung').addEventListener('change', function(){ st.opt.mitLoesung = this.checked; speichern(); });
   Labor.blattSchalter(bereich, st.opt, function(){ speichern(); zeichnen(); });
@@ -500,7 +585,7 @@ function starte(bereich){
     aus:function(){ return aus; }
   });
   // Vorschläge (Deutsch): so viele Paare, wie die Form und die Ablenker brauchen; ersetzen = neue Auswahl
-  function bedarf(){ return Kern.form(String(st.opt.zeichen)).kanten.length + 2 * st.opt.ablenker; }
+  function bedarf(){ return Kern.form(String(st.opt.zeichen), st.opt.drei === false).kanten.length + 2 * st.opt.ablenker; }
   function vorschlagen(ersetzen){
     if (!vorschlagbar()) return false;
     var k = listeName(), l = st.zeilen[k] || [], voll = l.filter(function(z){ return z.a && z.b; }).length;
@@ -540,7 +625,10 @@ function starte(bereich){
   }
   function zeichnen(){
     if (aus) return;
-    var o = st.opt, z = String(o.zeichen), f = Kern.form(z), e = f.kanten.length, rnd = Kern.zufall(st.seed);
+    var o = st.opt, z = String(o.zeichen), einfach = o.drei === false, f = Kern.form(z, einfach), e = f.kanten.length, rnd = Kern.zufall(st.seed);
+    var drei = f.ecken.filter(function(_, i){ return f.grad[i] + (f.start.indexOf(i) >= 0 || f.ende.indexOf(i) >= 0 ? 1 : 0) >= 3; }).length;
+    $('#ktDreiInfo').textContent = einfach ? (Kern.ZEICHEN_EINFACH[z] ? 'Darum stösst bei «' + z + '» ein Strich nicht an oder ein Ring hat eine kleine Lücke.' : '')
+      : drei ? '«' + z + '» hat ' + drei + ' Kreis' + (drei > 1 ? 'e' : '') + ' mit drei Feldern.' : '';
     if (sprache() && vorschlagen(false)) paarliste.zeigen();   // vorgeschlagene Liste reicht nicht (andere Form, mehr Ablenker): ergänzen
     var liste = paare(rnd, e + 2 * o.ablenker + 4);
     $('#ktFormInfo').innerHTML = '«' + esc(z) + '» hat <b>' + f.ecken.length + ' Kreise</b> und <b>' + e + ' Linien</b> – also braucht es ' + e + ' Paare' +
@@ -555,7 +643,7 @@ function starte(bereich){
         (p.ohne > wartend ? '<p class="warnung">' + (p.ohne - wartend) + ' Zeile' + (p.ohne - wartend > 1 ? 'n haben' : ' hat') + ' erst ein Wort – sie zählt, sobald beide Felder ausgefüllt sind.</p>' : '') +
         (p.doppelt ? '<p class="warnung">' + p.doppelt + ' Paar' + (p.doppelt > 1 ? 'e' : '') + ' mit einem doppelten Wort nicht verwendet (sonst gäbe es zwei Partner).</p>' : '');
     }
-    raetsel = Kern.belegen(z, liste, o.ablenker, rnd);
+    raetsel = Kern.belegen(z, liste, o.ablenker, rnd, einfach);
     var leer = raetsel.fehlen > 0;
     ['#ktZeigeLoesung', '#ktNeu', '#ktPdf', '#ktHerunterladen'].forEach(function(s){ $(s).disabled = leer; });
     $('#ktAblenkerInfo').textContent = !leer && raetsel.ablenker.length < o.ablenker ? 'Für ' + o.ablenker + ' Ablenker-Kreise braucht es ' + (o.fach === 'mathe' ? 'mehr verschiedene Aufgaben (z. B. mehr Reihen)' : 'mehr Paare') + ' – jetzt sind es ' + raetsel.ablenker.length + '.' : '';
