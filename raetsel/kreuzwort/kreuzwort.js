@@ -1,7 +1,8 @@
 /* Rätsellabor – Generator «Kreuzworträtsel»
    Eigene Wörter mit Hinweisen werden waagrecht und senkrecht ineinander verschränkt (jedes Wort kreuzt mindestens ein
    anderes). Das Blatt ist eine feste A4-Seite: Gitter, Hinweise «Waagrecht» und «Senkrecht» – und hochgeladene Bilder,
-   die der Generator selbst auf freie Flächen setzt, mit Abstand zum Rätsel, zu den Texten und zum Rand.
+   die der Generator zuerst selbst auf freie Flächen setzt, mit Abstand zum Rätsel, zu den Texten und zum Rand. Danach
+   lassen sie sich auf dem Blatt verschieben, vergrössern, verkleinern und drehen (von Hand gesetzte Bilder bleiben dort).
    Lösung einblenden, Lösungsblatt, PDF und Bild wie bei den anderen Generatoren. */
 (function(){
 'use strict';
@@ -176,7 +177,7 @@ var TINTE = '#1C1714';
 
 var VORLAGE = '<div class="kw">' +
   '<header class="kw-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Kreuzworträtsel</h1>' +
-    '<p>Deine Wörter mit Hinweisen werden waagrecht und senkrecht verschränkt. Eigene Bilder setzt der Generator dorthin, wo auf dem Blatt Platz frei ist.</p></header>' +
+    '<p>Deine Wörter mit Hinweisen werden waagrecht und senkrecht verschränkt. Eigene Bilder setzt der Generator dorthin, wo auf dem Blatt Platz frei ist – danach kannst du sie selbst verschieben, vergrössern, verkleinern und drehen.</p></header>' +
   '<div class="kw-layout"><section class="kw-eingabe" aria-label="Eingaben">' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Wörter und Hinweise</h2><p>Pro Zeile ein Wort und sein Hinweis.</p></div></div>' +
       '<div class="kw-zeilen-kopf" aria-hidden="true"><span>Wort</span><span>Hinweis</span></div>' +
@@ -188,7 +189,8 @@ var VORLAGE = '<div class="kw">' +
       '<label class="kw-ablage" id="kwAblage"><input type="file" id="kwDatei" accept="image/*" multiple class="vh">' +
         '<span><b>Bilder auswählen</b><small>oder hierher ziehen (bis 6)</small></span></label>' +
       '<div class="kw-bilder" id="kwBilder"></div>' +
-      '<p class="hinweis">Der Generator setzt die Bilder auf freie Flächen des Blatts – mit Abstand zum Rätsel, zu den Hinweisen und zum Rand. Wenn nötig, wird das Gitter dafür kleiner.</p>' +
+      '<p class="hinweis">Der Generator setzt die Bilder zuerst auf freie Flächen des Blatts. Danach kannst du jedes Bild auf dem Blatt anklicken: ziehen zum Verschieben, an einer Ecke ziehen für die Grösse, am runden Griff oben drehen. Von Hand gesetzte Bilder bleiben an ihrem Platz.</p>' +
+      '<button type="button" class="btn klein kw-auto" id="kwBilderAuto" hidden>Bilder automatisch verteilen</button>' +
     '</div>' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Blatt</h2></div></div>' +
       '<label class="opt"><input type="checkbox" id="kwLaenge"><span>Anzahl Buchstaben beim Hinweis angeben</span></label>' +
@@ -207,6 +209,17 @@ var VORLAGE = '<div class="kw">' +
       '<button type="button" class="btn klein primary" id="kwPdf">PDF herunterladen</button>' +
       '<button type="button" class="btn klein primary" id="kwHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
     '</div>' +
+    '<div class="kw-bildleiste" id="kwBildLeiste" role="group" aria-label="Bilder bearbeiten" hidden>' +
+      '<span class="kw-bild-tipp" id="kwBildTipp">Klicke auf ein Bild auf dem Blatt: Dann kannst du es verschieben, an einer Ecke grösser oder kleiner ziehen und am runden Griff drehen.</span>' +
+      '<span class="kw-bild-werkzeug" id="kwBildWerkzeug" hidden>' +
+      '<b id="kwBildName">Bild</b>' +
+      '<label class="kw-regler">Grösse <input type="range" id="kwBildGroesse" min="24" max="700" step="1"></label>' +
+      '<label class="kw-regler">Drehen <input type="range" id="kwBildDreh" min="-180" max="180" step="1"><output id="kwBildDrehWert" for="kwBildDreh">0°</output></label>' +
+      '<button type="button" class="btn klein" id="kwBildGerade">Gerade</button>' +
+      '<button type="button" class="btn klein" id="kwBildWeg">Entfernen</button>' +
+      '<span class="abstand"></span>' +
+      '<button type="button" class="btn klein primary" id="kwBildFertig">Fertig</button>' +
+    '</span></div>' +
     '<div class="kw-rahmen" id="kwRahmen"><article class="kw-seite kw-blatt" id="kwBlatt"></article></div>' +
     '<div class="kw-rahmen kw-loesungs-rahmen"><article class="kw-seite kw-blatt kw-loesungsblatt" id="kwLoesung" aria-hidden="true"></article></div>' +
   '</section></div></div>';
@@ -218,8 +231,8 @@ Labor.registriere({
   id:'kreuzwort',
   titel:'Kreuzworträtsel',
   kurz:'Wörter waagrecht und senkrecht, mit eigenen Bildern',
-  beschreibung:'Eigene Wörter mit Hinweisen werden zu einem Kreuzworträtsel verschränkt. Hochgeladene Bilder setzt der Generator auf freie Flächen des Blatts. Mit Lösungsblatt.',
-  merkmale:['Waagrecht und senkrecht', 'Eigene Bilder auf freie Flächen', 'Mit Lösungsblatt'],
+  beschreibung:'Eigene Wörter mit Hinweisen werden zu einem Kreuzworträtsel verschränkt. Hochgeladene Bilder setzt der Generator auf freie Flächen – verschieben, vergrössern und drehen kannst du sie selbst. Mit Lösungsblatt.',
+  merkmale:['Waagrecht und senkrecht', 'Eigene Bilder frei platzierbar', 'Mit Lösungsblatt'],
   symbol:SYMBOL,
   css:'raetsel/kreuzwort/kreuzwort.css',
   html:VORLAGE,
@@ -240,7 +253,10 @@ function starte(bereich){
     try { localStorage.setItem(OPT, JSON.stringify(st.opt)); } catch(x){} }
   function speichern(){ clearTimeout(timer); timer = setTimeout(speichernJetzt, 200); }
   function meldung(art, html){ $('#kwMeldung').innerHTML = html ? '<div class="meldung ' + art + '">' + html + '</div>' : ''; }
-  var bilder = [];   // { src, b, h } – nur solange die Seite offen ist
+  /* Bilder – nur solange die Seite offen ist: { src, b, h (Pixel), lage, auto, notfall }. Eine Lage ist { x, y (Mitte auf
+     der Seite), w (Breite), d (Drehung in Grad) }; die Höhe folgt aus dem Seitenverhältnis. lage: von Hand gesetzt (bleibt),
+     auto: vom Generator gesetzt (wird bei jedem Aufbau neu gesucht). */
+  var bilder = [], gewaehlt = -1, oben = 0;   // oben: zuletzt angeklicktes Bild liegt zuoberst (auch im PDF)
   var raetsel = null;
 
   /* ---------- Eingaben ---------- */
@@ -315,7 +331,7 @@ function starte(bereich){
           cv.width = Math.max(1, Math.round(img.naturalWidth * k)); cv.height = Math.max(1, Math.round(img.naturalHeight * k));
           cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height); URL.revokeObjectURL(url);
           var png = /png|gif|webp|svg/.test(f.type);   // durchsichtige Bilder bleiben durchsichtig
-          ok({ src:cv.toDataURL(png ? 'image/png' : 'image/jpeg', 0.88), b:cv.width, h:cv.height });
+          ok({ src:cv.toDataURL(png ? 'image/png' : 'image/jpeg', 0.88), b:cv.width, h:cv.height, lage:null, auto:null, notfall:false });
         };
         img.onerror = function(){ URL.revokeObjectURL(url); ok(null); };
         img.src = url;
@@ -328,8 +344,9 @@ function starte(bereich){
     });
   }
   function bilderZeigen(){
-    $('#kwBilder').innerHTML = bilder.map(function(b, i){ return '<span class="kw-bild-klein"><img src="' + b.src + '" alt="Bild ' + (i + 1) + '"><button type="button" class="kw-weg" data-i="' + i + '" aria-label="Bild ' + (i + 1) + ' entfernen">×</button></span>'; }).join('');
-    [].forEach.call($('#kwBilder').querySelectorAll('.kw-weg'), function(k){ k.addEventListener('click', function(){ bilder.splice(+k.dataset.i, 1); bilderZeigen(); seiten(); }); });
+    $('#kwBilder').innerHTML = bilder.map(function(b, i){ return '<span class="kw-bild-klein"><img src="' + b.src + '" alt="Bild ' + (i + 1) + '"><span class="kw-nr" aria-hidden="true">' + (i + 1) + '</span><button type="button" class="kw-weg" data-i="' + i + '" aria-label="Bild ' + (i + 1) + ' entfernen">×</button></span>'; }).join('');
+    [].forEach.call($('#kwBilder').querySelectorAll('.kw-weg'), function(k){ k.addEventListener('click', function(){ entfernen(+k.dataset.i); }); });
+    knopfAuto();
   }
   $('#kwDatei').addEventListener('change', function(){ bilderLaden(this.files); this.value = ''; });
   var ablage = $('#kwAblage');
@@ -359,7 +376,7 @@ function starte(bereich){
     seiten();
   }
   function leer(text){
-    $('#kwBlatt').innerHTML = ''; $('#kwLoesung').innerHTML = ''; $('#kwRahmen').hidden = true;
+    $('#kwBlatt').innerHTML = ''; $('#kwLoesung').innerHTML = ''; $('#kwRahmen').hidden = true; gewaehlt = -1; $('#kwBildLeiste').hidden = true; letzte = null;
     ['#kwNeu', '#kwZeigeLoesung', '#kwPdf', '#kwBild', '#kwHerunterladen'].forEach(function(s){ $(s).disabled = true; });
     meldung('info', text);
   }
@@ -401,6 +418,129 @@ function starte(bereich){
     var fluss = seite.querySelector('.kw-fluss');
     return { belegt:belegt, hoehe:fluss.getBoundingClientRect().height / m };
   }
+  /* ---------- Bilder auf dem Blatt ---------- */
+  function bildStil(b, p){
+    var h = p.w * b.h / b.b;
+    return 'left:' + (p.x - p.w / 2).toFixed(1) + 'px;top:' + (p.y - h / 2).toFixed(1) + 'px;width:' + p.w.toFixed(1) + 'px;height:' + h.toFixed(1) + 'px' +
+      (p.d ? ';transform:rotate(' + p.d.toFixed(1) + 'deg)' : '') + (b.z ? ';z-index:' + b.z : '');
+  }
+  // griffe: auf dem Arbeitsblatt am Bildschirm anfassbar (Rahmen mit Ecken zum Vergrössern und Griff zum Drehen)
+  function bildHtml(b, i, p, griffe){
+    return '<div class="kw-bild' + (griffe && i === gewaehlt ? ' gewaehlt' : '') + '" data-i="' + i + '" style="' + bildStil(b, p) + '"' +
+      (griffe ? ' tabindex="0" role="button" aria-label="Bild ' + (i + 1) + ' – ziehen oder Pfeiltasten zum Verschieben, Plus und Minus für die Grösse"' : '') + '>' +
+      '<img src="' + b.src + '" alt="" draggable="false">' +
+      (griffe ? '<span class="kw-dreh-stiel nur-bildschirm" aria-hidden="true"></span><span class="kw-griff kw-dreh nur-bildschirm" data-griff="dreh" title="Drehen" aria-hidden="true"></span>' +
+        ['lo', 'ro', 'lu', 'ru'].map(function(e){ return '<span class="kw-griff kw-ecke-' + e + ' nur-bildschirm" data-griff="gross" title="Grösse ändern" aria-hidden="true"></span>'; }).join('') : '') +
+      '</div>';
+  }
+  /* Bilder der Reihe nach in die grösste freie Lücke setzen (als Deko: mittig, längere Seite 64–190 Pixel, 30 Pixel vom
+     Rand), bis eines keinen Platz mehr findet. Die Werte werden sofort in neue Felder kopiert: In einer Chromium-Version
+     kam es sonst nach dem PDF vor, dass alle Bilder die Lage des letzten bekamen. */
+  function verteilen(platz, liste){
+    var lage = [];
+    for (var i = 0; i < liste.length; i++){
+      var q = platz.mitte(liste[i].b / liste[i].h, 190, 64, 30);
+      if (!q) break;
+      var x = +q.x, y = +q.y, w = +q.b, h = +q.h;
+      platz.belege(x, y, w, h);
+      lage.push({ x:x, y:y, b:w, h:h });
+    }
+    return lage;
+  }
+  function ausAuto(p){ return { x:p.x + p.b / 2, y:p.y + p.h / 2, w:p.b, d:0 }; }
+  // Ecken des (gedrehten) Bildes auf der Seite; Hülle: umschliessendes Rechteck [x, y, b, h]
+  function bildEcken(b, p, k){
+    var w = p.w * (k || 1), h = w * b.h / b.b, a = (p.d || 0) * Math.PI / 180, c = Math.cos(a), s = Math.sin(a);
+    return [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(function(e){ var dx = e[0] * w / 2, dy = e[1] * h / 2; return [p.x + dx * c - dy * s, p.y + dx * s + dy * c]; });
+  }
+  function huelle(P){
+    var xs = P.map(function(q){ return q[0]; }), ys = P.map(function(q){ return q[1]; });
+    var x0 = Math.min.apply(null, xs), y0 = Math.min.apply(null, ys);
+    return [x0, y0, Math.max.apply(null, xs) - x0, Math.max.apply(null, ys) - y0];
+  }
+  // Überschneiden sich zwei konvexe Vielecke? (Trennachsen)
+  function schneiden(P, Q){
+    function proj(V, nx, ny){ var lo = Infinity, hi = -Infinity; V.forEach(function(q){ var t = q[0] * nx + q[1] * ny; if (t < lo) lo = t; if (t > hi) hi = t; }); return [lo, hi]; }
+    return [P, Q].every(function(V){
+      return V.every(function(a, i){
+        var b = V[(i + 1) % V.length], nx = a[1] - b[1], ny = b[0] - a[0], p = proj(P, nx, ny), q = proj(Q, nx, ny);
+        return p[1] > q[0] && q[1] > p[0];
+      });
+    });
+  }
+  // Liegt das Bild über Gitter, Titel oder Hinweisen? (Bildränder sind oft leer – geprüft wird darum etwas kleiner)
+  function liegtUeber(b, p, belegt){
+    var P = bildEcken(b, p, 0.85), hb = huelle(P);
+    return belegt.some(function(r){
+      if (r[0] >= hb[0] + hb[2] || r[0] + r[2] <= hb[0] || r[1] >= hb[1] + hb[3] || r[1] + r[3] <= hb[1]) return false;
+      return schneiden(P, [[r[0], r[1]], [r[0] + r[2], r[1]], [r[0] + r[2], r[1] + r[3]], [r[0], r[1] + r[3]]]);
+    });
+  }
+  function aufzaehlen(n){ return n.length === 1 ? 'Bild ' + n[0] : 'die Bilder ' + n.slice(0, -1).join(', ') + ' und ' + n[n.length - 1]; }
+  var letzte = null;   // letzter Aufbau: { R, belegt (Gitter und Texte), zuHoch }
+  function meldungen(){
+    if (!letzte) return;
+    var R = letzte.R, m = [];
+    if (R.fehlend.length) m.push('<p>Nicht eingebaut (passt nirgends über Kreuz): <b>' + R.fehlend.map(function(e){ return esc(e.wort); }).join(', ') + '</b>. «Neu anordnen» probiert eine andere Anordnung.</p>');
+    var kein = [], ueber = [];
+    bilder.forEach(function(b, i){
+      if (b.notfall && !b.lage) kein.push(i + 1);
+      else if (liegtUeber(b, b.lage || b.auto, letzte.belegt)) ueber.push(i + 1);
+    });
+    if (kein.length) m.push('<p>Für ' + aufzaehlen(kein) + ' hat es keinen freien Platz – ' + (kein.length === 1 ? 'es liegt' : 'sie liegen') + ' klein unten rechts. Verschiebe oder verkleinere die Bilder, oder nimm weniger Wörter.</p>');
+    if (ueber.length){ var t = aufzaehlen(ueber); m.push('<p>' + t.charAt(0).toUpperCase() + t.slice(1) + (ueber.length === 1 ? ' liegt' : ' liegen') + ' über dem Rätsel oder den Hinweisen. Verschiebe ' + (ueber.length === 1 ? 'es' : 'sie') + ' oder klicke links «Bilder automatisch verteilen».</p>'); }
+    if (letzte.zuHoch) m.push('<p>Das Rätsel ist für eine A4-Seite sehr gross – im PDF wird das Blatt verkleinert.</p>');
+    meldung(m.length ? 'warnung' : '', m.join(''));
+  }
+  var meldungZeit = 0;
+  function meldungenBald(){ clearTimeout(meldungZeit); meldungZeit = setTimeout(meldungen, 250); }
+  function knopfAuto(){ $('#kwBilderAuto').hidden = !bilder.some(function(b){ return b.lage; }); }
+  // Sobald man ein Bild anfasst, bleiben alle Bilder dort, wo sie gerade sind (sonst würden die anderen springen)
+  function lageVon(b){
+    if (!b.lage){ bilder.forEach(function(x){ if (!x.lage && x.auto) x.lage = Object.assign({}, x.auto); x.notfall = false; }); knopfAuto(); }
+    return b.lage;
+  }
+  function breiteKlemm(b, w){ var ar = b.b / b.h; return Math.max(ar >= 1 ? 24 : 24 * ar, Math.min(SEITE_B, SEITE_H * ar, w)); }
+  function klemm(v, a, e){ return Math.max(a, Math.min(e, v)); }
+  function winkelRund(a, frei){
+    a = ((a + 180) % 360 + 360) % 360 - 180;
+    if (frei) return Math.round(a / 15) * 15;   // mit Umschalttaste in 15°-Schritten
+    var r = Math.round(a / 90) * 90;
+    return Math.abs(a - r) < 4 ? (r === -180 ? 180 : r) : Math.round(a);   // nahe bei gerade: einrasten
+  }
+  function bildEl(blatt, i){ return blatt.querySelector('.kw-bild[data-i="' + i + '"]'); }
+  function anwenden(i){
+    var b = bilder[i];
+    [$('#kwBlatt'), $('#kwLoesung')].forEach(function(bl){ var el = bildEl(bl, i); if (el) el.style.cssText = bildStil(b, b.lage); });
+    if (i === gewaehlt) leisteZeigen();
+  }
+  function waehle(i){
+    gewaehlt = bilder[i] ? i : -1;
+    var b = bilder[gewaehlt];
+    if (b && (!b.z || b.z < oben)){
+      b.z = ++oben;
+      [$('#kwBlatt'), $('#kwLoesung')].forEach(function(bl){ var el = bildEl(bl, gewaehlt); if (el) el.style.zIndex = b.z; });
+    }
+    [].forEach.call($('#kwBlatt').querySelectorAll('.kw-bild'), function(el){ el.classList.toggle('gewaehlt', +el.dataset.i === gewaehlt); });
+    leisteZeigen();
+  }
+  function leisteZeigen(){
+    // Die Leiste steht da, sobald Bilder auf dem Blatt sind (sonst würde das Blatt beim Anklicken nach unten rutschen)
+    var l = $('#kwBildLeiste'), b = bilder[gewaehlt], p = b && (b.lage || b.auto);
+    l.hidden = !bilder.length || !raetsel;
+    l.classList.toggle('an', !!p); $('#kwBildTipp').hidden = !!p; $('#kwBildWerkzeug').hidden = !p;
+    if (!p) return;
+    var ar = b.b / b.h, g = $('#kwBildGroesse'), d = Math.round(p.d || 0);
+    $('#kwBildName').textContent = 'Bild ' + (gewaehlt + 1);
+    g.max = Math.floor(ar >= 1 ? breiteKlemm(b, 1e4) : breiteKlemm(b, 1e4) / ar);
+    g.value = Math.round(ar >= 1 ? p.w : p.w / ar);
+    $('#kwBildDreh').value = d; $('#kwBildDrehWert').textContent = d + '°';
+  }
+  function entfernen(i){
+    if (!bilder[i]) return;
+    bilder.splice(i, 1); gewaehlt = -1; leisteZeigen();
+    bilderZeigen(); seiten();
+  }
   function seiten(){
     if (aus) return;
     if (!raetsel){ return; }
@@ -413,25 +553,37 @@ function starte(bereich){
       seite.innerHTML = seitenHtml(R, f, bilder.length > 0, false);
       var mess = messen(seite, R, f);
       if (mess.hoehe > SEITE_H - 26 && f > 16) continue;   // unten ebenfalls Rand lassen
-      var platz = Kern.freieFlaeche(SEITE_B, SEITE_H, mess.belegt, 18, 4), lage = [];
-      var alle = bilder.every(function(b){
-        var p = platz.mitte(b.b / b.h, 190, 64, 30);   // als Deko: mittig in der grössten Lücke, 30 Pixel vom Rand
-        if (!p) return false;
-        platz.belege(p.x, p.y, p.b, p.h); lage.push(p); return true;
-      });
-      wahl = { f:f, lage:lage, alle:alle, zuHoch:mess.hoehe > SEITE_H };
+      var lage = verteilen(Kern.freieFlaeche(SEITE_B, SEITE_H, mess.belegt, 18, 4), bilder), alle = lage.length === bilder.length;
+      wahl = { f:f, lage:lage, alle:alle, zuHoch:mess.hoehe > SEITE_H, belegt:mess.belegt };
       if (alle || f <= 16) break;
     }
-    // Bilder setzen (bei zu wenig Platz: so viele wie möglich)
-    var bilderHtml = wahl.lage.map(function(p, i){ return '<img class="kw-bild" src="' + bilder[i].src + '" alt="" style="left:' + p.x.toFixed(1) + 'px;top:' + p.y.toFixed(1) + 'px;width:' + p.b.toFixed(1) + 'px;height:' + p.h.toFixed(1) + 'px">'; }).join('');
-    seite.innerHTML = seitenHtml(R, wahl.f, bilder.length > 0, false) + bilderHtml;
-    $('#kwLoesung').innerHTML = seitenHtml(R, wahl.f, bilder.length > 0, true) + bilderHtml;
+    /* Bilder setzen. Die Grösse des Gitters hängt nicht davon ab, ob Bilder von Hand verschoben sind (sonst würde es beim
+       ersten Anfassen springen). Von Hand gesetzte Bilder bleiben, wo sie sind; die übrigen kommen in die grössten
+       freien Flächen um sie herum. Findet ein Bild keinen Platz, liegt es klein unten rechts – zum Selber-Verschieben. */
+    var hand = bilder.some(function(b){ return b.lage; }), lagen;
+    if (!hand) lagen = bilder.map(function(_, i){ return wahl.lage[i] ? ausAuto(wahl.lage[i]) : null; });
+    else {
+      var belegt = wahl.belegt.slice();
+      bilder.forEach(function(b){ if (b.lage) belegt.push(huelle(bildEcken(b, b.lage))); });
+      var frei = Kern.freieFlaeche(SEITE_B, SEITE_H, belegt, 18, 4);
+      lagen = bilder.map(function(b){
+        if (b.lage) return b.lage;
+        var p = verteilen(frei, [b])[0];
+        return p ? ausAuto(p) : null;
+      });
+    }
+    var ecke = 0;
+    bilder.forEach(function(b, i){
+      b.notfall = !lagen[i];
+      if (!lagen[i]){ var ar = b.b / b.h, w = ar >= 1 ? 110 : 110 * ar, h = w / ar; lagen[i] = { x:SEITE_B - 26 - w / 2 - ecke * 16, y:SEITE_H - 26 - h / 2 - ecke * 16, w:w, d:0 }; ecke++; }
+      b.auto = b.lage ? null : lagen[i];
+    });
+    if (gewaehlt >= bilder.length) gewaehlt = -1;
+    seite.innerHTML = seitenHtml(R, wahl.f, bilder.length > 0, false) + bilder.map(function(b, i){ return bildHtml(b, i, lagen[i], true); }).join('');
+    $('#kwLoesung').innerHTML = seitenHtml(R, wahl.f, bilder.length > 0, true) + bilder.map(function(b, i){ return bildHtml(b, i, lagen[i], false); }).join('');
     seite.classList.toggle('zeige-loesung', $('#kwZeigeLoesung').getAttribute('aria-pressed') === 'true');
-    var m = [];
-    if (R.fehlend.length) m.push('<p>Nicht eingebaut (passt nirgends über Kreuz): <b>' + R.fehlend.map(function(e){ return esc(e.wort); }).join(', ') + '</b>. «Neu anordnen» probiert eine andere Anordnung.</p>');
-    if (wahl.lage.length < bilder.length) m.push('<p>Für ' + (bilder.length - wahl.lage.length === 1 ? 'ein Bild' : (bilder.length - wahl.lage.length) + ' Bilder') + ' hat es auf dem Blatt keinen Platz mehr. Weniger Wörter oder kleinere Bilder helfen.</p>');
-    if (wahl.zuHoch) m.push('<p>Das Rätsel ist für eine A4-Seite sehr gross – im PDF wird das Blatt verkleinert.</p>');
-    meldung(m.length ? 'warnung' : '', m.join(''));
+    letzte = { R:R, belegt:wahl.belegt, zuHoch:wahl.zuHoch };
+    meldungen(); leisteZeigen(); knopfAuto();
     massstab();
   }
   // Seite am Bildschirm in die Spalte einpassen (die Seite selbst bleibt 703 Pixel breit, wie im PDF)
@@ -443,6 +595,74 @@ function starte(bereich){
   }
   var beobachter = window.ResizeObserver ? new ResizeObserver(function(){ massstab(); }) : null;
   if (beobachter) beobachter.observe($('.kw-ausgabe')); else window.addEventListener('resize', massstab);
+
+  /* ---------- Bilder anfassen: verschieben, Grösse, drehen ----------
+     Bild ziehen = verschieben, Ecke ziehen = Grösse (um die Mitte, Seitenverhältnis bleibt), runder Griff = drehen
+     (rastet bei 0°, 90°, 180° ein; mit Umschalttaste in 15°-Schritten). Tastatur: Pfeiltasten verschieben (mit
+     Umschalttaste weiter), Plus/Minus ändern die Grösse, Esc beendet. Das Lösungsblatt zeigt die Bilder am gleichen Ort. */
+  var blatt = $('#kwBlatt');
+  function seitenPunkt(e){ var r = blatt.getBoundingClientRect(), m = r.width / SEITE_B || 1; return { x:(e.clientX - r.left) / m, y:(e.clientY - r.top) / m }; }
+  blatt.addEventListener('pointerdown', function(ev){
+    if (ev.button > 0) return;
+    var el = ev.target.closest('.kw-bild');
+    if (!el){ if (gewaehlt >= 0) waehle(-1); return; }
+    var i = +el.dataset.i, b = bilder[i];
+    if (!b) return;
+    ev.preventDefault();
+    if (gewaehlt !== i) waehle(i);
+    try { el.focus({ preventScroll:true }); } catch(x){}
+    var griff = ev.target.getAttribute('data-griff') || 'zieh', s = Object.assign({}, b.lage || b.auto), p0 = seitenPunkt(ev);
+    var d0 = Math.max(4, Math.hypot(p0.x - s.x, p0.y - s.y)), bewegt = false;
+    try { el.setPointerCapture(ev.pointerId); } catch(x){}
+    el.classList.add('aktiv');
+    function zug(e){
+      var p = seitenPunkt(e);
+      if (!bewegt && Math.hypot(p.x - p0.x, p.y - p0.y) < 2) return;   // nur angeklickt
+      bewegt = true;
+      var l = lageVon(b);
+      if (griff === 'zieh'){ l.x = klemm(s.x + p.x - p0.x, 0, SEITE_B); l.y = klemm(s.y + p.y - p0.y, 0, SEITE_H); }
+      else if (griff === 'gross') l.w = breiteKlemm(b, s.w * Math.hypot(p.x - s.x, p.y - s.y) / d0);
+      else l.d = winkelRund(Math.atan2(p.y - s.y, p.x - s.x) * 180 / Math.PI + 90, e.shiftKey);
+      anwenden(i);
+    }
+    function ende(){
+      el.removeEventListener('pointermove', zug); el.removeEventListener('pointerup', ende); el.removeEventListener('pointercancel', ende);
+      el.classList.remove('aktiv');
+      if (bewegt) meldungen();
+    }
+    el.addEventListener('pointermove', zug); el.addEventListener('pointerup', ende); el.addEventListener('pointercancel', ende);
+  });
+  blatt.addEventListener('focusin', function(ev){ var el = ev.target.closest('.kw-bild'); if (el && +el.dataset.i !== gewaehlt) waehle(+el.dataset.i); });
+  blatt.addEventListener('keydown', function(ev){
+    var el = ev.target.closest && ev.target.closest('.kw-bild'), i = el ? +el.dataset.i : -1, b = bilder[i];
+    if (!b) return;
+    if (ev.key === 'Escape'){ waehle(-1); el.blur(); return; }
+    var weit = ev.shiftKey ? 10 : 2, dx = 0, dy = 0, k = 1;
+    if (ev.key === 'ArrowLeft') dx = -weit; else if (ev.key === 'ArrowRight') dx = weit;
+    else if (ev.key === 'ArrowUp') dy = -weit; else if (ev.key === 'ArrowDown') dy = weit;
+    else if (ev.key === '+' || ev.key === '=') k = 1.05; else if (ev.key === '-' || ev.key === '_') k = 1 / 1.05;
+    else return;
+    ev.preventDefault();
+    var l = lageVon(b);
+    l.x = klemm(l.x + dx, 0, SEITE_B); l.y = klemm(l.y + dy, 0, SEITE_H); l.w = breiteKlemm(b, l.w * k);
+    anwenden(i); meldungenBald();
+  });
+  // ausserhalb von Blatt und Bildleiste klicken: Auswahl aufheben
+  function aussen(ev){ if (gewaehlt >= 0 && !blatt.contains(ev.target) && !$('#kwBildLeiste').contains(ev.target)) waehle(-1); }
+  document.addEventListener('pointerdown', aussen);
+  $('#kwBildGroesse').addEventListener('input', function(){
+    var b = bilder[gewaehlt]; if (!b) return;
+    var l = lageVon(b), ar = b.b / b.h, L = +this.value;
+    l.w = breiteKlemm(b, ar >= 1 ? L : L * ar); anwenden(gewaehlt); meldungenBald();
+  });
+  $('#kwBildDreh').addEventListener('input', function(){
+    var b = bilder[gewaehlt]; if (!b) return;
+    lageVon(b).d = +this.value; anwenden(gewaehlt); meldungenBald();
+  });
+  $('#kwBildGerade').addEventListener('click', function(){ var b = bilder[gewaehlt]; if (!b) return; lageVon(b).d = 0; anwenden(gewaehlt); meldungen(); });
+  $('#kwBildWeg').addEventListener('click', function(){ entfernen(gewaehlt); });
+  $('#kwBildFertig').addEventListener('click', function(){ waehle(-1); });
+  $('#kwBilderAuto').addEventListener('click', function(){ bilder.forEach(function(b){ b.lage = null; b.z = 0; }); oben = 0; waehle(-1); seiten(); });
 
   /* ---------- Werkzeuge, PDF ---------- */
   $('#kwNeu').addEventListener('click', function(){ st.seed = Math.floor(Math.random() * 1e9) + 1; speichern(); erzeugen(); });
@@ -459,7 +679,12 @@ function starte(bereich){
   $('#kwHerunterladen').addEventListener('click', function(){
     if (!raetsel || !speicherOrt) return;
     var bl = [$('#kwBlatt')].concat(st.opt.mitLoesung ? [$('#kwLoesung')] : []);
-    var inhalt = bl.map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); k.classList.remove('zeige-loesung'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
+    var inhalt = bl.map(function(b, i){
+      var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); k.classList.remove('zeige-loesung'); if (i) k.classList.add('neue-seite');
+      [].forEach.call(k.querySelectorAll('.nur-bildschirm'), function(x){ x.remove(); });   // Griffe der Bilder
+      [].forEach.call(k.querySelectorAll('.kw-bild'), function(x){ x.classList.remove('gewaehlt', 'aktiv'); ['tabindex', 'role', 'aria-label'].forEach(function(a){ x.removeAttribute(a); }); });
+      return k.outerHTML;
+    }).join('');
     speicherOrt.save({ filename:Labor.pdfName('Kreuzwortraetsel', st.titel).replace(/\.pdf$/, '.html'), data:Labor.blattDatei('Kreuzworträtsel', inhalt, '.kw-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
       meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
@@ -469,7 +694,7 @@ function starte(bereich){
   erzeugen();
   // mit geladener Schrift neu messen (die Hinweise werden dann etwas anders breit)
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ if (!aus) seiten(); });
-  return function stopp(){ aus = true; if (timer) speichernJetzt(); clearTimeout(warte); if (beobachter) beobachter.disconnect(); else window.removeEventListener('resize', massstab);
+  return function stopp(){ aus = true; if (timer) speichernJetzt(); clearTimeout(warte); clearTimeout(meldungZeit); document.removeEventListener('pointerdown', aussen); if (beobachter) beobachter.disconnect(); else window.removeEventListener('resize', massstab);
     window.removeEventListener('beforeprint', druckVorbereiten); document.body.classList.remove('mit-loesung'); };
 }
 })();

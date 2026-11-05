@@ -206,6 +206,26 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input[type=checkbox]:
 .abschnitt{display:grid;gap:18px}
 .abschnitt-kopf h2{font-family:var(--display);font-weight:600;font-size:1.7rem;letter-spacing:-.01em;margin:0;color:var(--ink)}
 .abschnitt-kopf p{margin:4px 0 0;color:var(--muted);max-width:62ch}
+.abschnitt-kopf.mit-suche{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 28px}
+.abschnitt-kopf.mit-suche > div:first-child{min-width:0;flex:1 1 360px}
+/* Suche nach Generatoren (Startseite) */
+.suche{position:relative;flex:0 1 300px;min-width:min(100%,220px)}
+.suche-lupe{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.suche input{display:block;width:100%;height:42px;padding:0 40px 0 40px;border:1px solid var(--line-2);border-radius:999px;background:var(--card);
+  font:inherit;font-size:.98rem;color:var(--text);box-shadow:var(--schatten);transition:border-color .15s,box-shadow .15s;-webkit-appearance:none;appearance:none}
+.suche input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none;display:none}
+.suche input:hover{border-color:var(--accent-line)}
+.suche input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.suche:focus-within .suche-lupe{color:var(--accent-2)}
+.suche-weg{position:absolute;right:7px;top:50%;transform:translateY(-50%);width:28px;height:28px;border:0;border-radius:50%;background:transparent;color:var(--muted);
+  display:grid;place-items:center;cursor:pointer;padding:0}
+.suche-weg[hidden]{display:none}
+.suche-weg:hover{background:#F3EEE9;color:var(--text)}
+.suche-weg:focus-visible{outline:2px solid var(--accent-2);outline-offset:1px}
+.raetsel-karte[hidden]{display:none}
+.suche-leer{margin:0;padding:18px 20px;border:1px dashed var(--line-2);border-radius:14px;color:var(--muted)}
+.suche-leer[hidden]{display:none}
+@media (max-width:640px){ .suche{flex:1 1 100%} }
 .raetsel-karten{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr));grid-auto-rows:1fr;gap:16px;align-items:stretch}   /* alle Karten gleich gross */
 .raetsel-karte{display:flex;flex-direction:column;gap:12px;min-width:0;padding:20px;background:var(--card);border:1px solid var(--line);border-radius:14px;
   box-shadow:var(--schatten);color:var(--text);text-decoration:none;transition:border-color .15s,transform .15s,box-shadow .15s}

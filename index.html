@@ -41,11 +41,21 @@
     </section>
 
     <section class="abschnitt" id="raetselListe" aria-labelledby="listeTitel">
-      <div class="abschnitt-kopf">
-        <h2 id="listeTitel">Rätsel im Labor</h2>
-        <p>Das Labor wächst Schritt für Schritt. Diese Generatoren sind schon bereit.</p>
+      <div class="abschnitt-kopf mit-suche">
+        <div>
+          <h2 id="listeTitel">Rätsel im Labor</h2>
+          <p>Das Labor wächst Schritt für Schritt. Diese Generatoren sind schon bereit.</p>
+        </div>
+        <div class="suche" role="search">
+          <label class="vh" for="sucheFeld">Generator suchen</label>
+          <svg class="suche-lupe" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+          <input type="search" id="sucheFeld" autocomplete="off" spellcheck="false" enterkeyhint="go" aria-controls="raetselKarten" aria-describedby="sucheTreffer">
+          <button type="button" class="suche-weg" id="sucheWeg" aria-label="Suche leeren" hidden><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+        </div>
       </div>
+      <p class="vh" id="sucheTreffer" aria-live="polite"></p>
       <div class="raetsel-karten" id="raetselKarten"></div>
+      <p class="suche-leer" id="sucheLeer" hidden>Kein Generator gefunden. Versuch es mit einem anderen Wort.</p>
     </section>
 
     <section class="abschnitt" aria-labelledby="schritteTitel">

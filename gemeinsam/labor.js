@@ -61,7 +61,7 @@ var Labor = (function(){
   function baueStartseite(){
     var karten = '';
     liste.forEach(function(r){
-      karten += '<a class="raetsel-karte" href="#' + r.id + '"><span class="sym" aria-hidden="true">' + r.symbol + '</span>' +
+      karten += '<a class="raetsel-karte" href="#' + r.id + '" data-suche="' + esc(titelSuche(r.titel)) + '"><span class="sym" aria-hidden="true">' + r.symbol + '</span>' +
         '<h3>' + esc(r.titel) + '</h3><p>' + esc(r.beschreibung) + '</p>' +
         (r.merkmale && r.merkmale.length ? '<ul class="merkmale">' + r.merkmale.map(function(m){ return '<li>' + esc(m) + '</li>'; }).join('') + '</ul>' : '') +
         '<span class="oeffnen">Öffnen →</span></a>';
@@ -69,6 +69,37 @@ var Labor = (function(){
     karten += '<div class="raetsel-karte bald"><span class="sym" aria-hidden="true">' + PLUS + '</span><h3>Weitere Generatoren</h3>' +
       '<p>Neue Rätselarten kommen Schritt für Schritt dazu. Sie erscheinen dann hier und im Menü.</p></div>';
     $('#raetselKarten').innerHTML = karten;
+  }
+  /* Suche auf der Startseite: nach dem Titel des Generators. Mit jedem Buchstaben bleiben weniger Karten übrig.
+     Gross/klein, Umlaute (ä = a = ae), ß, Leerzeichen und Bindestriche spielen keine Rolle. */
+  function titelSuche(t){
+    return String(t || '').toLowerCase().replace(/ß/g, 'ss').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/([aou])e/g, '$1').replace(/[^a-z0-9]/g, '');
+  }
+  function sucheFiltern(){
+    var feld = $('#sucheFeld'), q = titelSuche(feld.value), n = 0;
+    [].forEach.call(document.querySelectorAll('#raetselKarten .raetsel-karte'), function(k){
+      var passt = k.hasAttribute('data-suche') ? !q || k.getAttribute('data-suche').indexOf(q) >= 0 : !q;   // «Weitere Generatoren» nur ohne Suche
+      k.hidden = !passt;
+      if (passt && k.hasAttribute('data-suche')) n++;
+    });
+    $('#sucheWeg').hidden = !feld.value;
+    $('#sucheLeer').hidden = n > 0;
+    $('#sucheTreffer').textContent = q ? (n ? n + (n === 1 ? ' Generator gefunden' : ' Generatoren gefunden') : 'Kein Generator gefunden') : '';
+  }
+  function sucheEinrichten(){
+    var feld = $('#sucheFeld');
+    if (!feld) return;
+    feld.value = '';
+    feld.addEventListener('input', sucheFiltern);
+    feld.addEventListener('keydown', function(e){
+      if (e.key === 'Enter'){   // Eingabetaste: ersten Treffer öffnen
+        var k = document.querySelector('#raetselKarten a.raetsel-karte:not([hidden])');
+        if (k && feld.value.trim()){ e.preventDefault(); location.hash = k.getAttribute('href'); }
+      } else if (e.key === 'Escape' && feld.value){ e.preventDefault(); feld.value = ''; sucheFiltern(); }
+    });
+    $('#sucheWeg').addEventListener('click', function(){ feld.value = ''; sucheFiltern(); feld.focus(); });
+    sucheFiltern();
   }
   /* ---------- Wechsel zwischen Startseite und Generatoren ---------- */
   function ladeCss(r, fertig){
@@ -145,7 +176,7 @@ var Labor = (function(){
   function start(){
     frischStarten();
     knopf = $('#menueKnopf'); menue = $('#menue');
-    baueMenue(); baueStartseite();
+    baueMenue(); baueStartseite(); sucheEinrichten();
     knopf.addEventListener('click', function(e){ e.stopPropagation(); if (menue.hidden) menueAuf(); else menueZu(true); });
     document.addEventListener('click', function(e){ if (!menue.hidden && !menue.contains(e.target) && !knopf.contains(e.target)) menueZu(false); });
     document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !menue.hidden) menueZu(true); });
