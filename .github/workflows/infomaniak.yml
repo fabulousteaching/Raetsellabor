@@ -7,8 +7,6 @@
 #   FTP_ORDNER     Ordner der Website auf dem Server, mit «/» am Ende: /sites/raetsellabor.fabulousteaching.ch/
 #                  (steht im Manager auf der Übersicht der Website)
 #   KI_SCHLUESSEL  API-Schlüssel von Mistral (console.mistral.ai) für die KI-Wortvorschläge
-#   BASISSCHRIFT   die Deutschschweizer Basisschrift als WOFF2-Datei in Base64 (© D-EDK; auf der Website mit Zustimmung
-#                  der Dienststelle Volksschulbildung Kanton Luzern). Nicht im Repository, weil dieses öffentlich ist.
 # Hochgeladen werden nur geänderte Dateien. Von Hand starten: Reiter «Actions» → «Auf Infomaniak hochladen» → «Run workflow».
 name: Auf Infomaniak hochladen
 
@@ -35,18 +33,6 @@ jobs:
           s=$(printf '%s' "$KI_SCHLUESSEL" | base64 -w0)
           printf "<?php\n// Beim Hochladen aus dem GitHub-Secret erzeugt. Nicht ins Repository!\nreturn ['schluessel' => base64_decode('%s')];\n" "$s" > api/geheim.php
           php -l api/geheim.php
-
-      - name: Basisschrift für den Server bereitlegen (gemeinsam/schriften/, nicht im Repository)
-        env:
-          BASISSCHRIFT: ${{ secrets.BASISSCHRIFT }}
-        run: |
-          if [ -n "$BASISSCHRIFT" ]; then
-            mkdir -p gemeinsam/schriften
-            printf '%s' "$BASISSCHRIFT" | tr -d ' \r\n' | base64 -d > gemeinsam/schriften/DCH-Basisschrift.woff2
-            head -c 4 gemeinsam/schriften/DCH-Basisschrift.woff2 | grep -q wOF2 && ls -l gemeinsam/schriften/
-          else
-            echo "Secret BASISSCHRIFT fehlt – die Basisschrift ist auf der Website nicht wählbar."
-          fi
 
       - name: Versionsnummer an Skripte und Stile hängen (damit kein Browser eine alte Version aus dem Cache nimmt)
         run: |

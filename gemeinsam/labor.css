@@ -3,9 +3,8 @@
    Markierfarben aus den Flüssigkeiten im Logo (Gelb, Grün, Blau, Rot). Schrift: Fredoka und Inter.
    Aufbau: helle Kopfleiste mit Menü oben rechts; darunter die Startseite oder genau ein Generator.
    Bewusst nur ein helles Erscheinungsbild (Arbeitsblätter zum Drucken). */
-/* Deutschschweizer Basisschrift (DCH-Basisschrift, unverbunden, © D-EDK) – mit schriftlicher Zustimmung der Dienststelle
-   Volksschulbildung Kanton Luzern auf diesem Server, nur für die Arbeitsblätter */
-@font-face{font-family:'DCH Basisschrift';src:url(schriften/DCH-Basisschrift.woff2) format('woff2');font-display:swap}
+/* Deutschschweizer Basisschrift: nur vom Computer (installiert), nicht vom Server – siehe Schriftwahl in labor.js */
+@font-face{font-family:'DCH Basisschrift';src:local('DCH-Basisschrift'),local('DCHBasisschrift'),local('DCHBasisschrift Regular');font-display:swap}
 :root{
   --bg:#F8F5F1; --card:#fff; --line:#EAE3DC; --line-2:#D8CEC4; --text:#221C18; --ink:#000; --muted:#6E655E; --muted-2:#A0968E;
   /* Orange aus dem Fabulous-Teaching-Logo: Flächen in --accent (Schrift darauf dunkel: --auf-akzent), Schrift in --accent-2 */
