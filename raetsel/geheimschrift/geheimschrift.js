@@ -299,17 +299,80 @@ function kreisInnen(teile){
   return '<g stroke="' + TINTE + '" stroke-width="7.6">' + h + '</g>';
 }
 function kreisSvg(teile, klasse){ return '<svg class="' + (klasse || 'gs-kreis') + '" viewBox="0 0 100 100" aria-hidden="true">' + kreisInnen(teile) + '</svg>'; }
-/* Ausgeschnittene Zeichen der Vorlagen: Bücher und Bärte als Bild (gleich grosse Felder), Altlatein und Runen nachgezeichnet
-   als SVG (gleiche Höhe und Grundlinie, eigene Breite) */
+/* Ausgeschnittene Zeichen der Vorlagen: Bücher und Bärte als Bild (gleich grosse Felder) */
 var BILDSAETZE = {
   buecher:{ endung:'webp', h:236, b:232, klasse:'gs-buch' },
-  baerte:{ endung:'webp', h:234, b:174, klasse:'gs-bart' },
-  altlatein:{ endung:'svg', h:272, klasse:'gs-alt', b:{ a:156, b:160, c:136, d:164, e:144, f:144, g:136, h:160, i:56, j:56, k:152, l:144, m:236, n:152, o:220, p:144, q:188,
-    r:160, s:156, t:180, u:204, v:204, w:200, x:236, y:56, z:160 } },
-  runen:{ endung:'svg', h:260, klasse:'gs-rune', b:{ a:188, b:200, c:244, d:368, e:168, f:228, g:232, h:184, i:132, j:132, k:232, l:200, m:284, n:212, o:172, p:196,
-    q:224, r:188, s:232, t:204, u:248, v:248, w:248, x:252, y:352, z:236 } }
+  baerte:{ endung:'webp', h:234, b:174, klasse:'gs-bart' }
 };
+/* Altlatein und Runen: selbst neu gezeichnet als Linien, mit dem Aufbau der Zeichen aus den Vorlagen (welche Striche, wo,
+   in welchem Winkel, Bögen, Punkte und Querbalken) – ohne Teile der Vorlagen zu übernehmen. Je Zeichen: [Breite, Pfad] oder
+   [Breite, [[Strichstärke, Pfad], …], [[x, y, Radius] Punkte]]; alle Zeichen gleich hoch (h) mit gemeinsamer Grundlinie. */
+var STRICHZEICHEN = {
+  altlatein:{ h:68, sw:6.2, klasse:'gs-alt', z:{
+    a:[39, 'M32.5 4.5V59M6 59V23Q9 11 22 8L31 7.2M6 31L32.5 44'],
+    b:[40, 'M32 5V59M32 7.5L7 19L32 30.5L5 42L32 57'],
+    c:[34, 'M5 6.5Q27 13 28 34Q27 50 5 60'],
+    d:[41, 'M32.5 5V59M31 7C15 16 6 26 6 38C6 46 9 52 15 57'],
+    e:[36, 'M28 5V59M28 8L5 15.5M28 27L5 34.5M28 45L5 52.5'],
+    f:[36, 'M27.5 5V59M27.5 8L4.5 15.5M27.5 34L4.5 42'],
+    g:[34, 'M5 6.5Q27 13 28 34Q27 50 5 60'],
+    h:[40, 'M6 8H33V56H6ZM6 30H33'],
+    i:[14, 'M7 5V59'],
+    j:[14, 'M7 5V59'],
+    k:[38, 'M28.5 5V59M5 16L27 33M5 46L27 36'],
+    l:[36, 'M28 5V59M5.5 44.5L27 56.5'],
+    m:[59, 'M50 59V8L35 26L25.5 8L13 25.5L5 7'],
+    n:[38, 'M31 59V8L15 25.5L6 7'],
+    o:[55, 'M20 8H35C44 8 48.5 16 48.5 26V40C48.5 50 44 56 35 56H20C11 56 6.5 50 6.5 40V26C6.5 16 11 8 20 8Z'],
+    p:[36, 'M28.5 5V59M28 8L5.5 21'],
+    q:[47, 'M23.5 9C33 9 41 15.5 41 24.5C41 33.5 33 40 23.5 40C14 40 6 33.5 6 24.5C6 15.5 14 9 23.5 9ZM23 40V59'],
+    r:[40, 'M32.5 5V59M32 8C14 9 6 20 6 32C6 46 14 56 32 56'],
+    s:[39, 'M6 8.5L24 16.5L10 38.5L35.5 54.5'],
+    t:[45, 'M6 8L21 12L41.5 20.5M21 12V60.5'],
+    u:[51, 'M8 6L24.5 33L41.5 6M24.5 31V59.5'],
+    v:[51, 'M8 6L24.5 33L41.5 6M24.5 31V59.5'],
+    w:[50, 'M8 6L24.5 33L41.5 6M24.5 31V59.5'],
+    x:[59, 'M8 6L49 57.5M51 6L6.5 57.5'],
+    y:[14, 'M7 5V59'],
+    z:[40, 'M7 18.5L32 8M20 13V56.5M5.5 60.5L35 50.5']
+  } },
+  runen:{ h:66, klasse:'gs-rune', z:{
+    a:[47, [[8, 'M29.5 7V58'], [5, 'M18 7.5H44M15 57.5H45'], [6, 'M28 29L6 45.5']]],
+    b:[50, [[8, 'M20 9V60'], [5, 'M5 9.5H32M3 59H34'], [7, 'M20 10H32C40.5 10 44 15 43.5 21C43 27 37.5 30 28 30H20M20 30H35C42.5 30 46.5 36 46 43.5C45.5 52 40 59 31 59H20']]],
+    c:[61, [[8, 'M20.5 9V60'], [5, 'M4 9H32M5 59.5H34M34 8.5H59'], [6, 'M22 38L50 9']]],
+    d:[92, [[8, 'M28 60V10M56 9V59'], [6, 'M29 10L4 41.5H47'], [5, 'M22 58.5H33M43 9H66M45 58.5H70'], [7, 'M57 24C62 18 70 16 76 18C84 21 88 30 87.5 37C87 46 80 51 72 51C66 51 61 49 57 47']]],
+    e:[42, [[8, 'M21 5V59'], [5, 'M16 6.5H32M7 57.5H34'], [6, 'M3 30H39']]],
+    f:[57, [[8, 'M20 7V60'], [5, 'M3 7H38M6 58.5H34'], [6, 'M22 26L38 6.5M23 41L53 5']]],
+    g:[58, [[8, 'M17 8V60'], [5, 'M3 8.5H33M3 58.5H33'], [6, 'M20 32C30 28 36 20 40 14C43 9 46.5 7 49.5 8C52 9 53.5 11.5 53.5 15']], [[28.5, 17, 4.2]]],
+    h:[46, [[8, 'M21 6V59'], [5, 'M13 7H34M10 58.5H36'], [6, 'M5 19.5L39.5 47M39 14.5L5.5 44']]],
+    i:[33, [[9, 'M16.5 10V59'], [5, 'M3 11H30M3 58.5H30']]],
+    j:[33, [[9, 'M16.5 10V59'], [5, 'M3 11H30M3 58.5H30']]],
+    k:[58, [[8.5, 'M17 8V60'], [5, 'M3 9H27M3 58.5H32M33 9H55'], [6, 'M20 33L42 10.5']]],
+    l:[50, [[8, 'M17.5 5V59'], [5, 'M3 57.5H34'], [6, 'M19 8L44.5 37']]],
+    m:[71, [[8, 'M36 9V59'], [5, 'M4 8.5H24M28 8.5H67M20 58H50'], [7, 'M18 10C18 22 22 30 34 34M58 10C58 22 52 30 40 34']]],
+    n:[53, [[8, 'M17.5 8V58'], [5, 'M3 9H30M4 57H30'], [6, 'M20 24L47 55']]],
+    o:[43, [[8, 'M29 9V58'], [5, 'M17 9H41M13 58H39'], [6, 'M27 24L4.5 38.5M27 37L8 49']]],
+    p:[49, [[8, 'M16 8V58'], [5, 'M3 9H28M3 58H27'], [7, 'M18 9H33C40 9 43 14 43 19C43 25 38 28 30 28H18M30 28C38 29 43 35 43 42C43 47 40 51 37 52.5']], [[28, 47, 4.6]]],
+    q:[56, [[8, 'M16.5 8V58'], [5, 'M4 8H52M4 57H30'], [7, 'M44 9V22C44 32 37 37 28 37H19']]],
+    r:[47, [[8, 'M17.5 9V58'], [5, 'M3 10H34M3 57H28'], [7, 'M18 11H33C39 11 42 15 42 20C42 26 38 30 31 30H19M31 30C38 33 41 38 41 44C41 49 39 52 37 54']]],
+    s:[58, [[7.5, 'M17 10V47.5L42.5 23V59'], [5, 'M1 10H31M30 58H55']]],
+    t:[51, [[8, 'M25 13V58'], [6, 'M4 36L25 13L46 32.5'], [5, 'M13 57H37']]],
+    u:[62, [[7.5, 'M17.5 59V10L46 32V59'], [5, 'M3 57H29M33 57H58']]],
+    v:[62, [[7.5, 'M17.5 59V10L46 32V59'], [5, 'M3 57H29M33 57H58']]],
+    w:[62, [[7.5, 'M17.5 59V10L46 32V59'], [5, 'M3 57H29M33 57H58']]],
+    x:[63, [[8, 'M17 11V58'], [5, 'M4 11H30M4 58H32'], [6, 'M20 33L44 10.5M21 49L59 9.5']]],
+    y:[88, [[8, 'M26 10V58'], [7.5, 'M52.5 10V41.5L74 23V58'], [5, 'M16 10H37M15 58H37M45 9H66M60 58H86'], [6, 'M4.5 16.5L44.5 47.5M42.5 15.5L5 44.5']]],
+    z:[59, [[7.5, 'M17 58V9L46 31.5V58'], [5, 'M3 58H29M31 58H56']]]
+  } }
+};
+function strichHtml(satz, name, zusatz){
+  var s = STRICHZEICHEN[satz], z = s.z[name], striche = typeof z[1] === 'string' ? [[s.sw, z[1]]] : z[1];
+  return '<svg class="' + s.klasse + (zusatz ? ' ' + s.klasse + zusatz : '') + '" viewBox="0 0 ' + z[0] + ' ' + s.h + '" style="aspect-ratio:' + z[0] + '/' + s.h + '" aria-hidden="true">' +
+    '<g fill="none" stroke="' + TINTE + '" stroke-linejoin="round">' + striche.map(function(t){ return '<path d="' + t[1] + '" stroke-width="' + t[0] + '"/>'; }).join('') + '</g>' +
+    (z[2] || []).map(function(p){ return '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="' + p[2] + '" fill="' + TINTE + '"/>'; }).join('') + '</svg>';
+}
 function bildHtml(satz, name, zusatz){
+  if (STRICHZEICHEN[satz]) return strichHtml(satz, name, zusatz);
   var s = BILDSAETZE[satz], b = typeof s.b === 'number' ? s.b : s.b[name];
   return '<img class="' + s.klasse + (zusatz ? ' ' + s.klasse + zusatz : '') + '" src="raetsel/geheimschrift/' + satz + '/' + name + '.' + s.endung + '" width="' + b + '" height="' + s.h +
     '" style="aspect-ratio:' + b + '/' + s.h + '" alt="">';
