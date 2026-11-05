@@ -3,6 +3,8 @@
    Markierfarben aus den Flüssigkeiten im Logo (Gelb, Grün, Blau, Rot). Schrift: Fredoka und Inter.
    Aufbau: helle Kopfleiste mit Menü oben rechts; darunter die Startseite oder genau ein Generator.
    Bewusst nur ein helles Erscheinungsbild (Arbeitsblätter zum Drucken). */
+/* Deutschschweizer Basisschrift: nur vom Computer (installiert), nicht vom Server – siehe Schriftwahl in labor.js */
+@font-face{font-family:'DCH Basisschrift';src:local('DCH-Basisschrift'),local('DCHBasisschrift'),local('DCHBasisschrift Regular');font-display:swap}
 :root{
   --bg:#F8F5F1; --card:#fff; --line:#EAE3DC; --line-2:#D8CEC4; --text:#221C18; --ink:#000; --muted:#6E655E; --muted-2:#A0968E;
   /* Orange aus dem Fabulous-Teaching-Logo: Flächen in --accent (Schrift darauf dunkel: --auf-akzent), Schrift in --accent-2 */
@@ -124,9 +126,12 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input[type=checkbox]:
 .schrift-liste li:hover,.schrift-liste li[aria-selected="true"]{background:var(--accent-soft)}
 .schrift-liste li.gewaehlt b::after{content:" ✓";font-family:var(--font);font-size:.85rem;color:var(--accent-2)}
 .schrift-liste li.leer{cursor:default;color:var(--muted);font-size:.86rem}
-.schrift-meldung{position:absolute;top:calc(100% + 4px);left:0;z-index:41;width:280px;max-width:calc(100vw - 32px);padding:8px 11px;border-radius:10px;background:#1C1714;color:#fff;font-size:.82rem;line-height:1.35;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.schrift-meldung{position:absolute;top:calc(100% + 4px);left:0;z-index:41;width:300px;max-width:calc(100vw - 32px);padding:8px 11px;border-radius:10px;background:#1C1714;color:#fff;font-size:.82rem;line-height:1.35;box-shadow:0 8px 24px rgba(0,0,0,.2)}
 .schrift-wahl.rechts .schrift-meldung{left:auto;right:0}
 .schrift-meldung[hidden]{display:none}
+.schrift-meldung span{display:block}
+.schrift-meldung .schrift-meldung-knoepfe{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.schrift-meldung b{font-weight:700}
 @media (max-width:640px){ .schrift-wahl .schrift-feld{font-size:16px} }
 
 .meldung{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:12px;box-shadow:var(--schatten);padding:12px 16px;margin-bottom:14px;font-size:.92rem}

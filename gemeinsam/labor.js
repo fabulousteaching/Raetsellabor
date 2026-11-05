@@ -209,10 +209,17 @@ var Labor = (function(){
      Die Wahl gilt für alle Generatoren und bleibt gespeichert. Sie setzt drei CSS-Variablen, die die Blätter verwenden:
      --blatt-schrift (Text, Standard Inter), --blatt-buchstaben (Rätselbuchstaben, Standard Andika), --blatt-display
      (Zierschrift, Standard Fredoka). Schriften kommen von Google Fonts und werden erst geladen, wenn man sie braucht.
-     Im Suchfeld kann man auch eine beliebige andere Schrift von Google Fonts eintippen. */
+     Im Suchfeld kann man auch eine beliebige andere Schrift von Google Fonts eintippen.
+     Ausnahme: die Deutschschweizer Basisschrift (DCH-Basisschrift, unverbunden). Sie ist urheberrechtlich geschützt –
+     Lehrpersonen dürfen sie gratis für Unterrichtsdokumente nutzen, verbreitet werden darf sie nur mit schriftlicher
+     Zustimmung (Dienststelle Volksschulbildung Kanton Luzern). Darum liegt die Schriftdatei nicht auf dem Server: Ist sie
+     auf dem Computer installiert, kommt sie von dort (@font-face mit local() in labor.css). Sonst wählt man die Datei
+     einmal aus; sie wird nur in diesem Browser gespeichert. */
+  var BASIS = 'DCH Basisschrift', BASIS_DATEI = 'DCH Basisschrift Datei', BASIS_SPEICHER = 'labor-basisschrift-datei';
   var SCHRIFTEN = [
     { id:'standard', name:'Standard', info:'Inter, Rätselbuchstaben in Andika' },
-    { id:'basisschrift', name:'Basisschrift', info:'schräge Schulschrift, ähnlich der Deutschschweizer Basisschrift', familie:'Playwrite DK Uloopet', gf:'Playwrite+DK+Uloopet:wght@100..400' },
+    { id:'basisschrift', name:'Basisschrift', info:'Deutschschweizer Basisschrift, unverbunden (DCH-Basisschrift vom Computer)', familie:BASIS, lokal:true,
+      stapel:"'" + BASIS + "','" + BASIS_DATEI + "',Andika,system-ui,sans-serif" },
     { id:'grundschrift', name:'Grundschrift', info:'aufrechte Schulschrift, unverbunden', familie:'Playwrite DE Grund', gf:'Playwrite+DE+Grund:wght@100..400' },
     { id:'andika', name:'Andika', info:'klar unterscheidbare Buchstaben, für Leseanfänger', familie:'Andika', gf:'Andika:wght@400;700' },
     { id:'atkinson', name:'Atkinson Hyperlegible', info:'besonders gut lesbar, auch bei Sehschwäche', familie:'Atkinson Hyperlegible', gf:'Atkinson+Hyperlegible:wght@400;700' },
@@ -228,6 +235,7 @@ var Labor = (function(){
   var schriftNachher = null, schriftBereich = null, schriftZaehler = 0;
   function gfName(f){ return encodeURIComponent(f.trim()).replace(/%20/g, '+'); }
   function schriftStapel(f){ return "'" + String(f).replace(/['"\\;{}<>]/g, '') + "',Andika,system-ui,sans-serif"; }
+  function stapelVon(s){ return s.stapel || schriftStapel(s.familie); }
   function googleSchrift(f){ return { id:'google', name:f, info:'von Google Fonts', familie:f, gf:gfName(f) }; }
   function aktuelleSchrift(){
     var g = schriftGewaehlt;
@@ -246,7 +254,24 @@ var Labor = (function(){
     });
     return schriftLinks[href];
   }
+  // Basisschrift aus einer selbst gewählten Datei (im Browser gespeichert) → Promise<true|false>
+  var basisDatei = null;
+  function basisDateiLaden(daten){
+    if (!daten){ try { daten = localStorage.getItem(BASIS_SPEICHER); } catch(e){} }
+    if (!daten || !window.FontFace || !document.fonts) return Promise.resolve(false);
+    if (basisDatei && basisDatei.daten === daten) return basisDatei.p;
+    var bytes; try { bytes = Uint8Array.from(atob(daten), function(c){ return c.charCodeAt(0); }); } catch(e){ return Promise.resolve(false); }
+    var ff = new FontFace(BASIS_DATEI, bytes.buffer);
+    basisDatei = { daten:daten, p:ff.load().then(function(f){ document.fonts.add(f); return true; }, function(){ return false; }) };
+    return basisDatei.p;
+  }
+  function basisInstalliert(){
+    if (!document.fonts || !document.fonts.load) return Promise.resolve(false);
+    return document.fonts.load("20px '" + BASIS + "'").then(function(r){ return !!(r && r.length && r[0].status === 'loaded'); }, function(){ return false; });
+  }
+  function basisFehlt(){ var e = new Error('Die Basisschrift ist auf diesem Computer nicht installiert'); e.code = 'basisFehlt'; return e; }
   function schriftLaden(s){
+    if (s.lokal) return basisInstalliert().then(function(da){ return da || basisDateiLaden(); }).then(function(ok){ if (!ok) throw basisFehlt(); });
     return schriftLink(s).then(function(){
       if (!s.familie || !document.fonts || !document.fonts.load) return;
       var f = "'" + s.familie + "'";
@@ -255,10 +280,10 @@ var Labor = (function(){
   }
   function schriftSetzen(s){
     var r = document.documentElement.style;
-    ['--blatt-schrift', '--blatt-buchstaben', '--blatt-display'].forEach(function(k){ if (s.familie) r.setProperty(k, schriftStapel(s.familie)); else r.removeProperty(k); });
+    ['--blatt-schrift', '--blatt-buchstaben', '--blatt-display'].forEach(function(k){ if (s.familie) r.setProperty(k, stapelVon(s)); else r.removeProperty(k); });
   }
   // Schrift für Messungen in Zeichenflächen (z. B. Canvas): 'buchstaben' (Standard Andika) oder 'text' (Standard Inter)
-  function blattSchrift(art){ var s = aktuelleSchrift(); return s.familie ? schriftStapel(s.familie) : art === 'text' ? "'Inter',system-ui,sans-serif" : "'Andika',Arial,sans-serif"; }
+  function blattSchrift(art){ var s = aktuelleSchrift(); return s.familie ? stapelVon(s) : art === 'text' ? "'Inter',system-ui,sans-serif" : "'Andika',Arial,sans-serif"; }
   function schriftNeuZeichnen(){
     [].forEach.call(document.querySelectorAll('.schrift-feld'), schriftAnzeigen);
     if (schriftNachher && schriftBereich && schriftBereich.isConnected) { try { schriftNachher(); } catch(e){} }
@@ -273,7 +298,8 @@ var Labor = (function(){
   // Beim Start: gewählte Schrift setzen und laden; danach das Blatt neu zeichnen (neu messen)
   (function(){
     var s = aktuelleSchrift(); schriftSetzen(s);
-    if (s.gf) schriftLaden(s).then(schriftNeuZeichnen, function(){ schriftSetzen(SCHRIFTEN[0]); schriftNeuZeichnen(); });
+    // Fehlt die Schrift (z. B. Basisschrift auf einem anderen Computer), gilt hier Standard – gespeichert bleibt die Wahl
+    if (s.gf || s.lokal) schriftLaden(s).then(schriftNeuZeichnen, function(){ schriftGewaehlt = null; schriftSetzen(SCHRIFTEN[0]); schriftNeuZeichnen(); });
   })();
   function schriftWahlHtml(){
     var id = 'schriftListe' + (++schriftZaehler);
@@ -285,7 +311,7 @@ var Labor = (function(){
   function schriftAnzeigen(feld){
     if (feld === document.activeElement) return;
     var s = aktuelleSchrift();
-    feld.value = s.name; feld.style.fontFamily = s.familie ? schriftStapel(s.familie) : '';
+    feld.value = s.name; feld.style.fontFamily = s.familie ? stapelVon(s) : '';
   }
   function suchText(t){ return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
   function grossAnfang(t){ return t.replace(/(^|\s)(\S)/g, function(_, a, b){ return a + b.toUpperCase(); }); }
@@ -297,6 +323,32 @@ var Labor = (function(){
     var treffer = [], aktiv = -1, offen = false, getippt = false, meldungZeit = 0;
     schriftAnzeigen(feld);
     function melden(t){ meldung.textContent = t; meldung.hidden = false; clearTimeout(meldungZeit); meldungZeit = setTimeout(function(){ meldung.hidden = true; }, 4000); }
+    // Basisschrift nicht installiert: Datei einmal auswählen (bleibt nur in diesem Browser)
+    function basisAnbieten(text){
+      clearTimeout(meldungZeit);
+      meldung.innerHTML = '<span>' + esc(text || 'Die Deutschschweizer Basisschrift ist auf diesem Computer nicht installiert.') + ' Wähle die Schriftdatei <b>DCH-Basisschrift.ttf</b> oder <b>.otf</b> einmal aus – sie bleibt nur in diesem Browser. ' +
+        'Oder installiere die Schrift auf dem Computer (gratis für Lehrpersonen).</span>' +
+        '<span class="schrift-meldung-knoepfe"><label class="btn klein primary">Schriftdatei wählen …<input type="file" class="vh" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf"></label>' +
+        '<button type="button" class="btn klein">Schliessen</button></span>';
+      meldung.hidden = false;
+      meldung.querySelector('button').addEventListener('click', function(){ meldung.hidden = true; });
+      meldung.querySelector('input').addEventListener('change', function(){
+        var datei = this.files && this.files[0]; if (!datei) return;
+        var lesen = new FileReader();
+        lesen.onload = function(){
+          var b = new Uint8Array(lesen.result), t = '';
+          for (var i = 0; i < b.length; i += 0x8000) t += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000));
+          var daten = btoa(t);
+          basisDateiLaden(daten).then(function(ok){
+            if (!ok){ basisAnbieten('Diese Datei ist keine lesbare Schrift.'); return; }
+            try { localStorage.setItem(BASIS_SPEICHER, daten); } catch(e){}
+            meldung.hidden = true;
+            schriftWaehlen(SCHRIFTEN.filter(function(x){ return x.lokal; })[0]).then(function(){ schriftAnzeigen(feld); });
+          });
+        };
+        lesen.readAsArrayBuffer(datei);
+      });
+    }
     function bauen(){
       var q = getippt ? feld.value.trim() : '', n = suchText(q), akt = aktuelleSchrift();   // vor dem Tippen: alle Schriften
       treffer = SCHRIFTEN.filter(function(s){ return !n || suchText(s.name + ' ' + s.info + ' ' + (s.familie || '')).indexOf(n) >= 0; });
@@ -306,14 +358,14 @@ var Labor = (function(){
       liste.innerHTML = treffer.length ? treffer.map(function(s, i){
         var gewaehlt = s.id === akt.id && (s.id !== 'google' || s.familie === akt.familie);
         return '<li role="option" id="' + liste.id + '-' + i + '" data-i="' + i + '" aria-selected="' + (i === aktiv) + '"' + (gewaehlt ? ' class="gewaehlt"' : '') + '>' +
-          '<b' + (s.familie && !s.suche ? ' style="font-family:' + esc(schriftStapel(s.familie)) + '"' : '') + '>' + esc(s.suche ? '«' + s.name + '»' : s.name) + '</b>' +
+          '<b' + (s.familie && !s.suche ? ' style="font-family:' + esc(stapelVon(s)) + '"' : '') + '>' + esc(s.suche ? '«' + s.name + '»' : s.name) + '</b>' +
           '<small>' + esc(s.info) + '</small></li>';
       }).join('') : '<li class="leer">Keine passende Schrift</li>';
       feld.setAttribute('aria-activedescendant', aktiv >= 0 ? liste.id + '-' + aktiv : '');
       var a = liste.querySelector('[aria-selected="true"]'); if (a && a.scrollIntoView) a.scrollIntoView({ block:'nearest' });
     }
     function oeffnen(){
-      if (!vorschauGeladen){ vorschauGeladen = true; SCHRIFTEN.forEach(function(s){ schriftLink(s).catch(function(){}); }); }
+      if (!vorschauGeladen){ vorschauGeladen = true; SCHRIFTEN.forEach(function(s){ schriftLink(s).catch(function(){}); }); basisInstalliert().then(function(da){ if (!da) basisDateiLaden(); }); }
       offen = true; getippt = false; liste.hidden = false; feld.setAttribute('aria-expanded', 'true');
       var r = wrap.getBoundingClientRect(); wrap.classList.toggle('rechts', r.left + 300 > window.innerWidth);
       bauen();
@@ -326,7 +378,8 @@ var Labor = (function(){
       var versuche = s.suche ? [s.familie, grossAnfang(s.familie)].filter(function(f, i, a){ return a.indexOf(f) === i; }) : [null];
       (function versuch(k){
         var x = versuche[k] === null ? s : googleSchrift(versuche[k]);
-        schriftWaehlen(x).then(function(){ schriftAnzeigen(feld); }, function(){
+        schriftWaehlen(x).then(function(){ schriftAnzeigen(feld); }, function(e){
+          if (e && e.code === 'basisFehlt'){ schriftAnzeigen(feld); basisAnbieten(); return; }
           if (k + 1 < versuche.length) return versuch(k + 1);
           schriftAnzeigen(feld); melden(s.suche ? '«' + s.familie + '» gibt es bei Google Fonts nicht. Schreibweise prüfen, z. B. «Open Sans».' : 'Die Schrift konnte nicht geladen werden. Bitte später nochmals versuchen.');
         });
@@ -402,11 +455,17 @@ var Labor = (function(){
   }
   function schriftCssFuer(familien){
     if (!familien.length) return Promise.resolve('');
+    var basis = '';
+    if (familien.indexOf(BASIS.toLowerCase()) >= 0){
+      var daten = ''; try { daten = localStorage.getItem(BASIS_SPEICHER) || ''; } catch(e){}
+      basis = "@font-face{font-family:'" + BASIS + "';src:local('DCH-Basisschrift'),local('DCHBasisschrift')" + (daten ? ",url(data:font/otf;base64," + daten + ")" : '') + "}\n";
+    }
+    if (basis && familien.length === 1) return Promise.resolve(basis);
     var p = schriftBloecke();
     return p.then(function(bloecke){
       var passend = bloecke.filter(function(b){ return familien.indexOf(b.familie) >= 0; });
       return Promise.all(passend.map(function(b){ return p.alsDaten(b.url).then(function(d){ return d ? b.css.replace(b.url, d) : ''; }); }));
-    }).then(function(t){ return t.join('\n'); }).catch(function(){ return ''; });
+    }).then(function(t){ return basis + t.join('\n'); }).catch(function(){ return basis; });
   }
   var SVG_STILE = ['display', 'visibility', 'opacity', 'fill', 'fill-opacity', 'fill-rule', 'stroke', 'stroke-width', 'stroke-opacity', 'stroke-linecap',
     'stroke-linejoin', 'stroke-dasharray', 'font-family', 'font-size', 'font-weight', 'font-style', 'text-anchor', 'dominant-baseline', 'letter-spacing', 'paint-order'];
@@ -429,6 +488,17 @@ var Labor = (function(){
       [].forEach.call(regeln, function(r){ if (r.media && /\bprint\b/.test(r.media.mediaText)) [].forEach.call(r.cssRules, function(x){ if (x.type === 1) neu.push(x.cssText); }); });
       neu.forEach(function(t){ try { sh.insertRule(t, sh.cssRules.length); } catch(e){} });
     });
+    // Basisschrift aus einer gewählten Datei: in der Kopie fehlt sie sonst (Text würde mit falschen Abständen gesetzt)
+    var basisWarten = null;
+    if (aktuelleSchrift().lokal){
+      var daten = ''; try { daten = localStorage.getItem(BASIS_SPEICHER) || ''; } catch(e){}
+      if (daten && doc.fonts && doc.fonts.load){
+        var basisStil = doc.createElement('style');
+        basisStil.textContent = "@font-face{font-family:'" + BASIS_DATEI + "';src:url(data:font/otf;base64," + daten + ")}";
+        doc.head.appendChild(basisStil);
+        basisWarten = doc.fonts.load("20px '" + BASIS_DATEI + "'").catch(function(){});
+      }
+    }
     doc.body.classList.add('mit-loesung');
     [blatt].concat([].slice.call(blatt.querySelectorAll('.zeige-loesung, .geschafft, .veraltet'))).forEach(function(e){ e.classList.remove('zeige-loesung', 'geschafft', 'veraltet'); });
     blatt.removeAttribute('hidden');
@@ -447,6 +517,7 @@ var Labor = (function(){
         svg.insertBefore(stil, svg.firstChild);
       });
     });
+    if (basisWarten) arbeit.push(basisWarten);
     return Promise.all(arbeit);
   }
   function pdfHerunterladen(blaetter, dateiname){

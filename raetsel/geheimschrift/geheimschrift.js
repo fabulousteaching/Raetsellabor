@@ -482,7 +482,7 @@ var VORLAGE = '<div class="gs">' +
       '</div>' +
       '<div class="gs-caesar" id="gsSegment">' +
         '<p class="feld-label">Aufgabe</p><div class="gs-chips" role="radiogroup" aria-label="Aufgabe beim Segment-Code">' +
-          [['anzeige', 'Anzeige lesen'], ['ausmalen', 'Segmente ausmalen']].map(function(a){ return '<label><input type="radio" name="gsSegArt" value="' + a[0] + '"><span>' + a[1] + '</span></label>'; }).join('') + '</div>' +
+          [['ausmalen', 'Segmente ausmalen'], ['anzeige', 'Anzeige lesen']].map(function(a){ return '<label><input type="radio" name="gsSegArt" value="' + a[0] + '"><span>' + a[1] + '</span></label>'; }).join('') + '</div>' +
         '<p class="hinweis">Beim Ausmalen stehen über jeder leeren Anzeige die Namen der Segmente (z. B. «a b c d g2 i l»); wer sie anmalt, sieht den Buchstaben.</p>' +
       '</div>' +
     '</div>' +
@@ -550,7 +550,7 @@ window.addEventListener('hashchange', alterLink);
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false;
   var TAB = 'geheimschrift-eingaben', OPT = 'geheimschrift-einstellungen';
-  var STANDARD = { art:'caesar', verschiebung:3, scheibe:true, segArt:'anzeige', groesse:'mittel', linien:true, mitLoesung:true, mitSchluessel:true, titelAn:true, anleitungAn:true };
+  var STANDARD = { art:'caesar', verschiebung:3, scheibe:true, segArt:'ausmalen', groesse:'mittel', linien:true, mitLoesung:true, mitSchluessel:true, titelAn:true, anleitungAn:true };
   var st = { text:'', titel:'', opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
   try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.text = String(e.text || ''); st.titel = String(e.titel || ''); } } catch(x){}
