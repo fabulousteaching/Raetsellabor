@@ -168,6 +168,15 @@ Dreieckige Spielsteine, die so aneinandergelegt werden, dass aufeinandertreffend
 - **Aussenkanten:** leer (leichter, Randteile erkennbar) oder mit Ablenkern (Aufgaben/Lösungen, die nirgends passen).
 - **Blatt:** Schnittbogen – die Teile liegen in der Form, aber vertauscht und gedreht: Man schneidet entlang gemeinsamer Linien, und der Bogen verrät die Lösung nicht. Dazu das Lösungsblatt (fertige Figur). Ecken farbig (Farbe wählbar), Titel und Anleitung wählbar, PDF. Die Schrift passt sich pro Teil an: alle drei Texte gleich gross, so gross wie möglich, ohne sich in den Ecken zu berühren; lange Begriffe auch zweizeilig. «Verwendete Paare» listet alle Paare zum Kontrollieren.
 
+### Fleissner-Schablone
+
+Ein eigener Text wird durch die Löcher einer Drehschablone in ein Quadrat geschrieben: Zeile für Zeile durch die Löcher, dann die Schablone eine Vierteldrehung im Uhrzeigersinn drehen, viermal. Lesen kann den Text nur, wer die passende Schablone hat – darum gehört sie immer dazu.
+
+- **Grössen:** 4 × 4 (16 Buchstaben) und 6 × 6 (36) mit genau den Lochmustern aus dem Excel-Generator von Jasmine Filippi (myEscapeBox) – passend zu den Holzschablonen; geprüft: gleiche Anordnung wie im Excel. 8 × 8 (64) mit eigenem, festem Muster (keine zwei Löcher nebeneinander), nur zum Ausschneiden.
+- **Originalgrösse:** Feldgrösse in Millimetern (Standard 13 mm wie im Excel, 8–20 mm). Die Blätter sind genau 703 Pixel breit, das PDF legt sie auf 186 mm – so stimmen die Millimeter (geprüft: 4 × 13 mm = 52,0 mm im PDF). Raster und Schablone sind SVG-Grafiken mit Breite und Höhe als Attribute in mm. Auf dem Schablonenblatt steht eine Kontrolllinie zum Nachmessen; beim Drucken «Tatsächliche Grösse» wählen.
+- **Text:** Grossbuchstaben, Ä/Ö/Ü bleiben ein Feld, ß → SS, Ziffern bleiben, Leer- und Satzzeichen fallen weg. Zähler; freie Felder mit Zufallsbuchstaben (neu würfelbar) oder X; ist der Text zu lang, kommt ein Hinweis mit der passenden Grösse.
+- **Blätter:** Arbeitsblatt (Buchstabenfeld, Anleitung, auf Wunsch Kästchen für die Lösung in vier Reihen – eine je Stellung), Lösungsblatt (Buchstaben farbig nach Stellung 1–4, aufgefüllte grau), Schablone zum Ausschneiden (graue Löcher, Rand mit den Ziffern 1–4: die Ziffer oben zeigt die Stellung, jeweils aufrecht lesbar). Schablone auch einzeln als PDF.
+
 ## Aufbau
 
 ```
@@ -196,6 +205,7 @@ raetsel/puzzle/                 der Generator «Puzzle»
   puzzle.js                     Oberfläche: Bild, Schwierigkeit, QR-Code
 raetsel/geheimschrift/          der Generator «Geheimschriften» (Kern: Verschlüsseln; Zeichen, Schlüssel, Caesar-Scheibe)
 raetsel/kreuzwort/              der Generator «Kreuzworträtsel» (Kern: Anordnen, freie Flächen für Bilder; Seite, Bilder, Lösung)
+raetsel/fleissner/              der Generator «Fleissner-Schablone» (Kern: Lochmuster, Drehen, Verschlüsseln; Raster und Schablone in mm)
 raetsel/triomino/               der Generator «Triomino» (Kern: Formen, Kanten, Aufgaben, Belegung; Zeichnen mit Schriftanpassung)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)
