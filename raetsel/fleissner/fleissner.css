@@ -75,12 +75,13 @@
 .fl-mass::after{right:0}
 /* «Lösung zeigen» am Bildschirm: Kästchen mit Buchstaben */
 .fl-schablone .fl-mitte{margin:10px 0 18px}
+.fl-dank{margin:28px 0 0;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:.86rem}
 
 /* ---------- Drucken (gilt auch für das PDF) ---------- */
 @media print{
   @page{size:A4;margin:12mm}
   html,body{background:#fff!important}
-  .fl-kopf,.fl-eingabe,.fl-werkzeug,.fl-teil-titel,#flMeldung,.nur-bildschirm{display:none!important}
+  .fl-kopf,.fl-eingabe,.fl-werkzeug,.fl-teil-titel,#flMeldung,.fl-dank,.nur-bildschirm{display:none!important}
   .fl{padding:0;max-width:none}
   .fl-layout,.fl-ausgabe{display:block}
   .fl-rahmen{overflow:visible;padding:0}

@@ -28,6 +28,7 @@
 .kt-unter[hidden]{display:none}
 .kt-unter .feld-label:first-child{margin-top:0}
 .kt-reihen span{padding:5px 11px;min-width:44px;text-align:center}
+.kt-chips[hidden]{display:none}
 .kt-paare{position:relative}
 .kt-vorschlag{margin:0 0 10px}
 .kt-vorschlag[hidden]{display:none}

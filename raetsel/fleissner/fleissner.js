@@ -122,8 +122,6 @@ var VORLAGE = '<div class="fl">' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Schablone</h2></div></div>' +
       '<div class="fl-chips" role="radiogroup" aria-label="Grösse der Schablone">' +
         GROESSEN.map(function(g){ return '<label><input type="radio" name="flGroesse" value="' + g[0] + '"><span><b>' + g[1] + '</b><small>' + (g[0] * g[0]) + ' Buchstaben</small></span></label>'; }).join('') + '</div>' +
-      '<p class="hinweis" id="flGroesseInfo"></p>' +
-      '<p class="hinweis">Feldgrösse fest wie im Excel-Generator (13 mm), passend zur Holzschablone. Beim Drucken «Tatsächliche Grösse» bzw. 100 % wählen.</p>' +
     '</div>' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Geheimer Text</h2><p>Leerzeichen und Satzzeichen fallen weg, ß wird zu SS.</p></div></div>' +
       '<label class="vh" for="flText">Geheimer Text</label><textarea id="flText" rows="4" maxlength="200" autocomplete="off" spellcheck="false"></textarea>' +
@@ -161,7 +159,8 @@ var VORLAGE = '<div class="fl">' +
       '</div>' +
       '<div class="fl-rahmen"><article class="fl-blatt fl-schablone" id="flSchablone"></article></div>' +
     '</div>' +
-  '</section></div></div>';
+  '</section></div>' +
+  '<p class="fl-dank">Der Code für diesen Generator stammt von Jasmine Filippi (Excel-Generator, grafisch angepasst von myEscapeBox). Herzlichen Dank!</p></div>';
 
 var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
   '<rect x="3" y="3" width="15" height="15" rx="1.5"/><rect x="6.5" y="6.5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="11.5" y="11.5" width="3" height="3" fill="currentColor" stroke="none"/>' +
@@ -227,8 +226,6 @@ function starte(bereich){
   }
   function zeichnen(){
     var o = st.opt, n = o.n, f = FELD;
-    var gi = GROESSEN.filter(function(x){ return x[0] === n; })[0];
-    $('#flGroesseInfo').textContent = 'Lochmuster wie im Excel-Generator von Jasmine Filippi (myEscapeBox) – passend zur ' + gi[2] + '.';
     g = Kern.verschluesseln(st.text, n, o.fuell, Kern.zufall(st.seed));
     var anzahl = Kern.zeichen(st.text).length, felder = n * n;
     $('#flZaehler').innerHTML = !anzahl ? '' : '<p class="fl-zaehler-haupt ' + (g.zuLang ? 'fehlt' : 'ok') + '"><b>' + anzahl + '</b> von ' + felder + ' Feldern' +

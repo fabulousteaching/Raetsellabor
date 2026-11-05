@@ -127,11 +127,12 @@ var Kern = (function(){
   }
   // Dezimalzahlen: Bruch mit Nenner 10, 100, 1000 ↔ Dezimalzahl (7/100 ↔ 0.07)
   function dezimalText(z, k, sep){ var t = String(z); while (t.length < k + 1) t = '0' + t; return t.slice(0, -k) + sep + t.slice(-k); }
-  function dezimal(stufe, sep, anzahl, rnd){
+  // art: 'echt' (kleiner als 1: 7/100 = 0.07), 'unecht' (grösser als 1: 145/100 = 1.45) oder 'beides'
+  function dezimal(stufe, sep, art, anzahl, rnd){
     var kand = [];
     for (var k = 1; k <= stufe; k++){
-      var N = Math.pow(10, k), bis = k === 1 ? 19 : k === 2 ? 199 : 1999;
-      for (var z = 1; z <= bis; z++) if (z % 10) kand.push({ a:z + '/' + N, b:dezimalText(z, k, sep), w:z / N });
+      var N = Math.pow(10, k), von = art === 'unecht' ? N + 1 : 1, bis = art === 'echt' ? N - 1 : 3 * N - 1;
+      for (var z = von; z <= bis; z++) if (z % 10 && z !== N) kand.push({ a:z + '/' + N, b:dezimalText(z, k, sep), w:z / N });
     }
     return auswaehlen(kand, anzahl, rnd);
   }
@@ -140,15 +141,14 @@ var Kern = (function(){
     'fünfzehn', 'sechzehn', 'siebzehn', 'achtzehn', 'neunzehn', 'zwanzig', 'einundzwanzig', 'zweiundzwanzig', 'dreiundzwanzig'];
   var NENNER = { 2:'Halbe', 3:'Drittel', 4:'Viertel', 5:'Fünftel', 6:'Sechstel', 7:'Siebtel', 8:'Achtel', 9:'Neuntel', 10:'Zehntel', 11:'Elftel', 12:'Zwölftel' };
   function bruchWort(z, n){ return n === 2 ? (z === 1 ? 'ein Halb' : ZAHLWORT[z] + ' Halbe') : ZAHLWORT[z] + ' ' + NENNER[n]; }
-  function brueche(max, anzahl, rnd){
-    var echt = [], unecht = [], n, z;
-    for (n = 2; n <= max; n++){ for (z = 1; z < n; z++) echt.push({ a:bruchWort(z, n), b:z + '/' + n, w:z / n }); for (z = n + 1; z < 2 * n; z++) unecht.push({ a:bruchWort(z, n), b:z + '/' + n, w:z / n }); }
-    var aus = auswaehlen(echt, anzahl, rnd);
-    if (aus.length < anzahl){
-      var werte = {}; aus.forEach(function(p){ var t = p.b.split('/'); werte[(Math.round(t[0] / t[1] * 1e6) / 1e6).toString()] = true; });
-      auswaehlen(unecht.filter(function(k){ return !werte[(Math.round(k.w * 1e6) / 1e6).toString()]; }), anzahl - aus.length, rnd).forEach(function(p){ aus.push(p); });
+  // art: 'echt' (z. B. drei Fünftel), 'unecht' (z. B. sieben Fünftel; keine ganzen Zahlen) oder 'beides'
+  function brueche(max, art, anzahl, rnd){
+    var kand = [], n, z;
+    for (n = 2; n <= max; n++){
+      if (art !== 'unecht') for (z = 1; z < n; z++) kand.push({ a:bruchWort(z, n), b:z + '/' + n, w:z / n });
+      if (art !== 'echt') for (z = n + 1; z < 2 * n; z++) kand.push({ a:bruchWort(z, n), b:z + '/' + n, w:z / n });
     }
-    return aus;
+    return auswaehlen(kand, anzahl, rnd);
   }
 
   /* Deutsch: eingebaute Vorschläge. Reimwörter: jedes Paar aus einer anderen Reimfamilie (kein Wort reimt sich auf ein
@@ -261,16 +261,45 @@ function chips(name, liste){ return liste.map(function(x){ return '<label><input
 /* ---------- Zeichnen ---------- */
 var messer = document.createElement('canvas').getContext('2d');
 function breite(t, gr, label){ messer.font = (label ? 'italic 600 ' : '600 ') + gr + 'px ' + Labor.blattSchrift('text'); return messer.measureText(t).width; }
+// Bruch übereinander: Zähler, Bruchstrich, Nenner (Mitte bei y)
+var BRUCH = /^(\d+)\/(\d+)$/;
+function bruchSvg(x, y, gr, t){
+  var m = BRUCH.exec(t), w = Math.max(breite(m[1], gr), breite(m[2], gr)) + gr * 0.35;
+  return '<text x="' + x.toFixed(1) + '" y="' + (y - 0.6 * gr).toFixed(1) + '" font-size="' + gr.toFixed(1) + '">' + m[1] + '</text>' +
+    '<path d="M' + (x - w / 2).toFixed(1) + ' ' + y.toFixed(1) + 'H' + (x + w / 2).toFixed(1) + '" stroke="' + TINTE + '" stroke-width="' + Math.max(1.2, gr * 0.09).toFixed(1) + '"/>' +
+    '<text x="' + x.toFixed(1) + '" y="' + (y + 0.66 * gr).toFixed(1) + '" font-size="' + gr.toFixed(1) + '">' + m[2] + '</text>';
+}
+function mitBruch(r){ return r.woerter.some(function(l){ return l.some(function(z){ return !z.label && BRUCH.test(z.t); }); }) || r.ablenker.some(function(l){ return l.some(function(t){ return BRUCH.test(t); }); }); }
 // Kreis mit 2 oder 3 Zeilen; Schrift so gross, wie es in die jeweilige Zeile passt
 function kreisSvg(x, y, r, zeilen){
   var n = zeilen.length, h = '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r.toFixed(1) + '" fill="#fff" stroke="' + TINTE + '" stroke-width="1.6"/>';
   var mitten = n === 3 ? [-0.62, 0, 0.62] : n === 2 ? [-0.42, 0.42] : [0];
   var trenn = n === 3 ? [-0.31, 0.31] : n === 2 ? [0] : [];
+  // Platz in der Breite auf Höhe yy (relativ zur Mitte), mit etwas Rand
+  function platz(yy){ var a = Math.min(r, Math.abs(yy)); return 2 * Math.sqrt(Math.max(0, r * r - a * a)) - 8; }
+  var zweiGr = Math.min(n === 3 ? 0.22 * r : 0.27 * r, 15);   // Schrift für Brüche und zweizeilige Wörter
   trenn.forEach(function(t){ var yy = t * r, w = Math.sqrt(r * r - yy * yy); h += '<path d="M' + (x - w).toFixed(1) + ' ' + (y + yy).toFixed(1) + 'H' + (x + w).toFixed(1) + '" stroke="' + TINTE + '" stroke-width="0.9"/>'; });
   zeilen.forEach(function(z, i){
-    var m = mitten[i] * r, rand = Math.abs(m) + (n === 3 ? 0.18 : 0.24) * r, platz = 2 * Math.sqrt(Math.max(0, r * r - rand * rand)) - 8;
-    var gr = Math.min(n === 3 ? 0.3 * r : 0.33 * r, 16);
-    var b = breite(z.t, gr, z.label); if (b > platz) gr = Math.max(7, gr * platz / b);
+    var m = mitten[i] * r;
+    if (!z.label && BRUCH.test(z.t)){ h += bruchSvg(x, y + m, zweiGr, z.t); return; }
+    var gr0 = Math.min(n === 3 ? 0.3 * r : 0.33 * r, 16), aussen = Math.abs(m) + (n === 3 ? 0.18 : 0.24) * r;
+    var b = breite(z.t, gr0, z.label), gr = b > platz(aussen) ? gr0 * platz(aussen) / b : gr0;
+    // Zu klein und mehrere Wörter: auf zwei Zeilen umbrechen (Trennung, bei der die längere Zeile am kürzesten ist)
+    var teile = z.t.split(' ');
+    if (!z.label && gr < gr0 * 0.8 && teile.length > 1){
+      var bester = null;
+      for (var k = 1; k < teile.length; k++){
+        var l1 = teile.slice(0, k).join(' '), l2 = teile.slice(k).join(' '), w = Math.max(breite(l1, zweiGr), breite(l2, zweiGr));
+        if (!bester || w < bester.w) bester = { l1:l1, l2:l2, w:w };
+      }
+      var g2 = Math.min(zweiGr, zweiGr * platz(Math.abs(m) + 1.15 * zweiGr) / bester.w);
+      if (g2 > gr){
+        h += '<text x="' + x.toFixed(1) + '" y="' + (y + m - 0.58 * g2).toFixed(1) + '" font-size="' + g2.toFixed(1) + '">' + esc(bester.l1) + '</text>' +
+          '<text x="' + x.toFixed(1) + '" y="' + (y + m + 0.62 * g2).toFixed(1) + '" font-size="' + g2.toFixed(1) + '">' + esc(bester.l2) + '</text>';
+        return;
+      }
+    }
+    gr = Math.max(7, gr);
     h += '<text x="' + x.toFixed(1) + '" y="' + (y + m).toFixed(1) + '" font-size="' + gr.toFixed(1) + '"' + (z.label ? ' font-style="italic"' : '') + '>' + esc(z.t) + '</text>';
   });
   return h;
@@ -291,7 +320,8 @@ function raetselSvg(r, lage, loesung){
 function lageBerechnen(r, rnd){
   var e = r.form.ecken, minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
   e.forEach(function(p){ minX = Math.min(minX, p[0]); maxX = Math.max(maxX, p[0]); minY = Math.min(minY, p[1]); maxY = Math.max(maxY, p[1]); });
-  var u = Math.min(BLATT_B * 0.64 / (maxX - minX + 1), BLATT_H * 0.86 / (maxY - minY + 1)), rad = Math.min(0.5 * u, 48);
+  // mit Brüchen etwas grössere Kreise, damit Zähler und Nenner übereinander Platz haben
+  var u = Math.min(BLATT_B * 0.64 / (maxX - minX + 1), BLATT_H * 0.86 / (maxY - minY + 1)), rad = mitBruch(r) ? Math.min(0.62 * u, 60) : Math.min(0.5 * u, 48);
   var ox = (BLATT_B - (maxX - minX) * u) / 2 - minX * u, oy = (BLATT_H - (maxY - minY) * u) / 2 - minY * u;
   var ecken = e.map(function(p){ return [ox + p[0] * u, oy + p[1] * u]; });
   var strecken = r.form.kanten.map(function(k){ return [ecken[k[0]], ecken[k[1]]]; });
@@ -316,17 +346,22 @@ var VORLAGE = '<div class="kt">' +
           '<p class="feld-label">Zahlenraum</p><div class="kt-chips">' + chips('ktZr', [['20', 'bis 20'], ['100', 'bis 100'], ['1000', 'bis 1000']]) + '</div>' +
         '</div>' +
         '<div class="kt-unter" data-mathe="einmaleins">' +
+          '<p class="feld-label">Einmaleins</p><div class="kt-chips">' + chips('ktEinmal', [['klein', 'Kleines 1 × 1'], ['gross', 'Grosses 1 × 1']]) + '</div>' +
           '<p class="feld-label">Rechnungen</p><div class="kt-chips">' + kaestchen('ktEOp', [['mal', 'Mal ·'], ['geteilt', 'Geteilt :']]) + '</div>' +
-          '<p class="feld-label">Reihen</p><div class="kt-chips kt-reihen">' + kaestchen('ktReihe', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(function(n){ return [n, n + 'er']; })) + '</div>' +
+          '<p class="feld-label">Reihen</p>' +
+          '<div class="kt-chips kt-reihen" data-einmal="klein">' + kaestchen('ktReihe', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(function(n){ return [n, n + 'er']; })) + '</div>' +
+          '<div class="kt-chips kt-reihen" data-einmal="gross">' + kaestchen('ktReiheG', [11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(function(n){ return [n, n + 'er']; })) + '</div>' +
         '</div>' +
         '<div class="kt-unter" data-mathe="dezimal">' +
           '<p class="feld-label">Brüche</p><div class="kt-chips">' + chips('ktDez', [['1', 'Zehntel'], ['2', 'bis Hundertstel'], ['3', 'bis Tausendstel']]) + '</div>' +
+          '<p class="feld-label">Art</p><div class="kt-chips">' + chips('ktDezArt', [['echt', 'kleiner als 1'], ['unecht', 'grösser als 1'], ['beides', 'beides']]) + '</div>' +
           '<p class="feld-label">Dezimaltrennzeichen</p><div class="kt-chips">' + chips('ktSep', [['.', 'Punkt 0.5'], [',', 'Komma 0,5']]) + '</div>' +
           '<p class="hinweis">z. B. 7/100 und 0.07</p>' +
         '</div>' +
         '<div class="kt-unter" data-mathe="brueche">' +
+          '<p class="feld-label">Brüche</p><div class="kt-chips">' + chips('ktBruchArt', [['echt', 'echte'], ['unecht', 'unechte'], ['beides', 'beides']]) + '</div>' +
           '<p class="feld-label">Nenner</p><div class="kt-chips">' + chips('ktNenner', [['6', 'bis Sechstel'], ['10', 'bis Zehntel'], ['12', 'bis Zwölftel']]) + '</div>' +
-          '<p class="hinweis">z. B. «drei Fünftel» und 3/5</p>' +
+          '<p class="hinweis">z. B. «drei Fünftel» und 3/5 (echt) oder «sieben Fünftel» und 7/5 (unecht)</p>' +
         '</div>' +
         '<p class="hinweis">Alle Ergebnisse sind verschieden – so passt jede Aufgabe nur zu einem einzigen Kreis.</p>' +
       '</div>' +
@@ -379,7 +414,8 @@ function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false;
   var TAB = 'kettenraetsel-eingaben', OPT = 'kettenraetsel-einstellungen';
   var STANDARD = { modus:'buchstabe', zeichen:'M', fach:'deutsch', deutschArt:'reime', matheArt:'plusminus', ops:['plus', 'minus'], zr:'100',
-    eOps:['mal', 'geteilt'], reihen:[2, 3, 4, 5, 6, 7, 8, 9, 10], dez:'2', sep:'.', nenner:'10', ablenker:8, mitLoesung:true, titelAn:true, anleitungAn:true };
+    eOps:['mal', 'geteilt'], einmal:'klein', reihen:[2, 3, 4, 5, 6, 7, 8, 9, 10], reihenGross:[11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+    dez:'2', dezArt:'echt', sep:'.', nenner:'10', bruchArt:'echt', ablenker:8, mitLoesung:true, titelAn:true, anleitungAn:true };
   // zeilen: je Liste (d-reime, d-mehrzahl, d-gegenteile, d-eigene, englisch, franzoesisch); vorschlag: Liste ist unverändert vorgeschlagen
   var st = { titel:'', zeilen:{}, vorschlag:{}, seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
@@ -399,6 +435,7 @@ function starte(bereich){
   st.opt.ops = (st.opt.ops || []).filter(function(x){ return x === 'plus' || x === 'minus'; }); if (!st.opt.ops.length) st.opt.ops = ['plus', 'minus'];   // früher auch Mal/Geteilt
   if (!Array.isArray(st.opt.eOps) || !st.opt.eOps.length) st.opt.eOps = ['mal', 'geteilt'];
   if (!Array.isArray(st.opt.reihen) || !st.opt.reihen.length) st.opt.reihen = STANDARD.reihen.slice();
+  if (!Array.isArray(st.opt.reihenGross) || !st.opt.reihenGross.length) st.opt.reihenGross = STANDARD.reihenGross.slice();
   var timer = 0;
   function speichernJetzt(){ clearTimeout(timer); timer = 0;
     try { sessionStorage.setItem(TAB, JSON.stringify({ titel:st.titel, zeilen:st.zeilen, vorschlag:st.vorschlag, seed:st.seed })); } catch(x){}
@@ -426,7 +463,8 @@ function starte(bereich){
   radios('ktFach', 'fach', fachZeigen);
   radios('ktZr', 'zr'); radios('ktAblenker', 'ablenker');
   radios('ktMathe', 'matheArt', fachZeigen); radios('ktDeutsch', 'deutschArt', fachZeigen);
-  radios('ktDez', 'dez'); radios('ktSep', 'sep'); radios('ktNenner', 'nenner');
+  radios('ktDez', 'dez'); radios('ktSep', 'sep'); radios('ktNenner', 'nenner'); radios('ktDezArt', 'dezArt'); radios('ktBruchArt', 'bruchArt');
+  radios('ktEinmal', 'einmal', fachZeigen);
   // Mehrfachwahl (mindestens eines bleibt gewählt)
   function mehrfach(name, k, zahl){
     [].forEach.call(bereich.querySelectorAll('input[name="' + name + '"]'), function(c){
@@ -439,7 +477,7 @@ function starte(bereich){
       });
     });
   }
-  mehrfach('ktOp', 'ops'); mehrfach('ktEOp', 'eOps'); mehrfach('ktReihe', 'reihen', true);
+  mehrfach('ktOp', 'ops'); mehrfach('ktEOp', 'eOps'); mehrfach('ktReihe', 'reihen', true); mehrfach('ktReiheG', 'reihenGross', true);
   $('#ktTitel').value = st.titel;
   $('#ktTitel').addEventListener('input', function(){ st.titel = this.value; speichern(); zeichnen(); });
   $('#ktMitLoesung').checked = st.opt.mitLoesung;
@@ -478,6 +516,7 @@ function starte(bereich){
   function fachZeigen(){
     [].forEach.call(bereich.querySelectorAll('.kt-teil'), function(d){ d.hidden = d.dataset.fach.split(' ').indexOf(st.opt.fach) < 0; });
     [].forEach.call(bereich.querySelectorAll('.kt-unter'), function(d){ d.hidden = d.dataset.mathe !== st.opt.matheArt; });
+    [].forEach.call(bereich.querySelectorAll('[data-einmal]'), function(d){ d.hidden = d.dataset.einmal !== st.opt.einmal; });
     $('#ktVorschlaege').hidden = !vorschlagbar();
     if (sprache()){ vorschlagen(false); paarliste.zeigen(); }
   }
@@ -487,9 +526,9 @@ function starte(bereich){
   function paare(rnd, bedarf){
     var o = st.opt;
     if (o.fach === 'mathe'){
-      if (o.matheArt === 'einmaleins') return Kern.einmaleins(o.reihen, o.eOps, bedarf, rnd);
-      if (o.matheArt === 'dezimal') return Kern.dezimal(+o.dez, o.sep, bedarf, rnd);
-      if (o.matheArt === 'brueche') return Kern.brueche(+o.nenner, bedarf, rnd);
+      if (o.matheArt === 'einmaleins') return Kern.einmaleins(o.einmal === 'gross' ? o.reihenGross : o.reihen, o.eOps, bedarf, rnd);
+      if (o.matheArt === 'dezimal') return Kern.dezimal(+o.dez, o.sep, o.dezArt, bedarf, rnd);
+      if (o.matheArt === 'brueche') return Kern.brueche(+o.nenner, o.bruchArt, bedarf, rnd);
       return Kern.plusMinus(o.ops, +o.zr, bedarf, rnd);
     }
     return Kern.paareListe((st.zeilen[listeName()] || []).map(function(z){ return [z.a, z.b]; })).paare;
