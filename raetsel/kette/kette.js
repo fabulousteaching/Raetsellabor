@@ -299,99 +299,99 @@ function bruchSvg(x, y, gr, t){
     '<text x="' + x.toFixed(1) + '" y="' + (y + 0.66 * gr).toFixed(1) + '" font-size="' + gr.toFixed(1) + '">' + m[2] + '</text>';
 }
 function mitBruch(r){ return r.woerter.some(function(l){ return l.some(function(z){ return !z.label && BRUCH.test(z.t); }); }) || r.ablenker.some(function(l){ return l.some(function(t){ return BRUCH.test(t); }); }); }
-/* Kreis mit 2 oder 3 Feldern. Jedes Feld zeigt in die Richtung seiner Linie (z.winkel, Bogenmass, 0 = rechts, im
-   Uhrzeigersinn wie im SVG): Die Trennlinien liegen genau zwischen den Richtungen. So verlässt jede Linie den Kreis im
-   Feld ihres Wortes und trifft beim Partner auf dessen Feld. Ohne Richtung (Ablenker): oben und unten.
-   Die Schrift bleibt waagrecht; sie kommt dorthin, wo im Feld am meisten Platz ist, so gross wie es passt. */
-var VOLL = 2 * Math.PI;
-function normWinkel(a){ a %= VOLL; return a < 0 ? a + VOLL : a; }
+// Kreis mit 2 oder 3 waagrechten Feldern (oben → unten); Schrift so gross, wie es in die jeweilige Zeile passt
 function kreisSvg(x, y, r, zeilen){
   var n = zeilen.length, h = '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + r.toFixed(1) + '" fill="#fff" stroke="' + TINTE + '" stroke-width="1.6"/>';
-  var w = zeilen.map(function(z, i){ return normWinkel(typeof z.winkel === 'number' ? z.winkel : n === 2 ? (i ? 0.5 : -0.5) * Math.PI : -Math.PI / 2 + i * VOLL / n); });
-  var ord = w.map(function(_, i){ return i; }).sort(function(a, b){ return w[a] - w[b]; });
-  // Grenze nach dem k-ten Feld (in Winkelreihenfolge): Mitte zum nächsten
-  var grenze = ord.map(function(i, k){ var a = w[i], b = w[ord[(k + 1) % n]]; if (b <= a) b += VOLL; return (a + b) / 2; });
-  grenze.forEach(function(g){ h += '<path d="M' + x.toFixed(1) + ' ' + y.toFixed(1) + 'L' + (x + r * Math.cos(g)).toFixed(1) + ' ' + (y + r * Math.sin(g)).toFixed(1) + '" stroke="' + TINTE + '" stroke-width="0.9"/>'; });
-  var zweiGr = Math.min(n === 3 ? 0.22 * r : 0.27 * r, 15), gr0 = Math.min(n === 3 ? 0.3 * r : 0.33 * r, 16);
-  ord.forEach(function(idx, k){
-    var s0 = grenze[(k + n - 1) % n], s1 = grenze[k];
-    while (s1 <= s0) s1 += VOLL;
-    var z = zeilen[idx], mitte = (s0 + s1) / 2;
-    function drin(px, py){
-      if (px * px + py * py > (r - 3) * (r - 3)) return false;
-      if (normWinkel(Math.atan2(py, px) - s0) > s1 - s0) return false;
-      return [s0, s1].every(function(g){ var ux = Math.cos(g), uy = Math.sin(g), dot = px * ux + py * uy; return (dot > 0 ? Math.abs(px * uy - py * ux) : Math.hypot(px, py)) >= 2.5; });
-    }
-    // waagrechter Platz auf Höhe yy (relativ zur Mitte) rund um cx: [links, rechts]
-    function lauf(yy, cx){
-      var schritt = 1.5, best = null, start = null;
-      for (var xx = -r; xx <= r + schritt; xx += schritt){
-        var ok = xx <= r && drin(xx, yy);
-        if (ok && start === null) start = xx;
-        if (!ok && start !== null){ var l = [start, xx - schritt]; if (!best || (cx >= l[0] && cx <= l[1]) || (!(cx >= best[0] && cx <= best[1]) && l[1] - l[0] > best[1] - best[0])) best = l; start = null; }
-      }
-      return best || [0, 0];
-    }
-    function platz(yc, hh, cx){ var a = lauf(yc - hh, cx), b = lauf(yc, cx), c = lauf(yc + hh, cx); return [Math.max(a[0], b[0], c[0]), Math.min(a[1], b[1], c[1])]; }
-    // beste Stelle im Feld: entlang der Feldmitte verschieden weit vom Mittelpunkt
-    function stelle(hh){
-      var beste = null;
-      [0.3, 0.4, 0.5, 0.6].forEach(function(q){
-        var cx = q * r * Math.cos(mitte), cy = q * r * Math.sin(mitte), pl = platz(cy, hh, cx), b = pl[1] - pl[0];
-        if (!beste || b > beste.b + 2) beste = { x:(pl[0] + pl[1]) / 2, y:cy, b:Math.max(0, b) };
-      });
-      return beste;
-    }
-    if (!z.label && BRUCH.test(z.t)){
-      var bs = stelle(1.1 * zweiGr), m = BRUCH.exec(z.t), bw = Math.max(breite(m[1], zweiGr), breite(m[2], zweiGr)) + 0.35 * zweiGr;
-      h += bruchSvg(x + bs.x, y + bs.y, Math.max(7, Math.min(zweiGr, zweiGr * bs.b / bw)), z.t);
-      return;
-    }
-    var st = stelle(0.42 * gr0), bw0 = breite(z.t, gr0, z.label), gr = bw0 > st.b ? gr0 * st.b / bw0 : gr0;
-    // zu klein und mehrere Wörter: zwei Zeilen (Trennung, bei der die längere Zeile am kürzesten ist)
+  var mitten = n === 3 ? [-0.62, 0, 0.62] : n === 2 ? [-0.42, 0.42] : [0];
+  var trenn = n === 3 ? [-0.31, 0.31] : n === 2 ? [0] : [];
+  // Platz in der Breite auf Höhe yy (relativ zur Mitte), mit etwas Rand
+  function platz(yy){ var a = Math.min(r, Math.abs(yy)); return 2 * Math.sqrt(Math.max(0, r * r - a * a)) - 8; }
+  var zweiGr = Math.min(n === 3 ? 0.22 * r : 0.27 * r, 15);   // Schrift für Brüche und zweizeilige Wörter
+  trenn.forEach(function(t){ var yy = t * r, w = Math.sqrt(r * r - yy * yy); h += '<path d="M' + (x - w).toFixed(1) + ' ' + (y + yy).toFixed(1) + 'H' + (x + w).toFixed(1) + '" stroke="' + TINTE + '" stroke-width="0.9"/>'; });
+  zeilen.forEach(function(z, i){
+    var m = mitten[i] * r;
+    if (!z.label && BRUCH.test(z.t)){ h += bruchSvg(x, y + m, zweiGr, z.t); return; }
+    var gr0 = Math.min(n === 3 ? 0.3 * r : 0.33 * r, 16), aussen = Math.abs(m) + (n === 3 ? 0.18 : 0.24) * r;
+    var b = breite(z.t, gr0, z.label), gr = b > platz(aussen) ? gr0 * platz(aussen) / b : gr0;
+    // Zu klein und mehrere Wörter: auf zwei Zeilen umbrechen (Trennung, bei der die längere Zeile am kürzesten ist)
     var teile = z.t.split(' ');
     if (!z.label && gr < gr0 * 0.8 && teile.length > 1){
       var bester = null;
-      for (var t = 1; t < teile.length; t++){
-        var l1 = teile.slice(0, t).join(' '), l2 = teile.slice(t).join(' '), bb = Math.max(breite(l1, zweiGr), breite(l2, zweiGr));
-        if (!bester || bb < bester.b) bester = { l1:l1, l2:l2, b:bb };
+      for (var k = 1; k < teile.length; k++){
+        var l1 = teile.slice(0, k).join(' '), l2 = teile.slice(k).join(' '), w = Math.max(breite(l1, zweiGr), breite(l2, zweiGr));
+        if (!bester || w < bester.w) bester = { l1:l1, l2:l2, w:w };
       }
-      var st2 = stelle(1.15 * zweiGr), g2 = Math.min(zweiGr, zweiGr * st2.b / bester.b);
+      var g2 = Math.min(zweiGr, zweiGr * platz(Math.abs(m) + 1.15 * zweiGr) / bester.w);
       if (g2 > gr){
-        h += '<text x="' + (x + st2.x).toFixed(1) + '" y="' + (y + st2.y - 0.58 * g2).toFixed(1) + '" font-size="' + g2.toFixed(1) + '">' + esc(bester.l1) + '</text>' +
-          '<text x="' + (x + st2.x).toFixed(1) + '" y="' + (y + st2.y + 0.62 * g2).toFixed(1) + '" font-size="' + g2.toFixed(1) + '">' + esc(bester.l2) + '</text>';
+        h += '<text x="' + x.toFixed(1) + '" y="' + (y + m - 0.58 * g2).toFixed(1) + '" font-size="' + g2.toFixed(1) + '">' + esc(bester.l1) + '</text>' +
+          '<text x="' + x.toFixed(1) + '" y="' + (y + m + 0.62 * g2).toFixed(1) + '" font-size="' + g2.toFixed(1) + '">' + esc(bester.l2) + '</text>';
         return;
       }
     }
     gr = Math.max(7, gr);
-    h += '<text x="' + (x + st.x).toFixed(1) + '" y="' + (y + st.y).toFixed(1) + '" font-size="' + gr.toFixed(1) + '"' + (z.label ? ' font-style="italic"' : '') + '>' + esc(z.t) + '</text>';
+    h += '<text x="' + x.toFixed(1) + '" y="' + (y + m).toFixed(1) + '" font-size="' + gr.toFixed(1) + '"' + (z.label ? ' font-style="italic"' : '') + '>' + esc(z.t) + '</text>';
   });
   return h;
 }
-// Ganzes Rätsel (Form in die Mitte, Ablenker drumherum); loesung: Linien zeichnen
+/* Welches Wort in welches Feld? Die Trennlinien sind immer waagrecht. Jedes Wort kommt in das Feld, das seiner Linie am
+   nächsten liegt: Linie nach oben → oberes Feld, nach unten → unteres Feld, waagrecht → mittleres Feld (bei drei Feldern).
+   Felder als Bogen am Kreisrand (Grad, 0 = rechts, 90 = unten wie im SVG). Gehen zwei Linien in dieselbe Richtung (z. B. unten
+   beim V), beginnt eine Linie am seitlichen Rand ihres Feldes – an der naheliegenden Kreisseite, nie auf der gegenüberliegenden. */
+var VOLL = 2 * Math.PI, GRAD = Math.PI / 180;
+function normWinkel(a){ a %= VOLL; return a < 0 ? a + VOLL : a; }
+var FELDBOGEN = {
+  2:[[[180, 360]], [[0, 180]]],
+  3:[[[199.5, 340.5]], [[340.5, 379.5], [160.5, 199.5]], [[19.5, 160.5]]]
+};
+function bogenAbstand(a, b){ var s = b[0] * GRAD, e = b[1] * GRAD, x = normWinkel(a - s); if (x <= e - s) return 0; return Math.min(normWinkel(s - a), normWinkel(a - e)); }
+// Punkt im Bogen (mit Rand rand Grad), der dem Winkel a am nächsten liegt
+function inBogen(a, boegen, rand){
+  var best = null;
+  boegen.forEach(function(b){
+    var s = (b[0] + rand) * GRAD, e = (b[1] - rand) * GRAD, w;
+    if (e < s){ s = e = (b[0] + b[1]) / 2 * GRAD; }
+    w = normWinkel(a - s) <= e - s ? a : (normWinkel(s - a) < normWinkel(a - e) ? s : e);
+    var d = Math.min(normWinkel(w - a), normWinkel(a - w));
+    if (!best || d < best.d) best = { w:w, d:d };
+  });
+  return best.w;
+}
+// Reihenfolge der Felder (oben → unten) für einen Kreis der Form; liefert auch den Ansatzwinkel jeder Linie
+function felderOrdnen(items){
+  var n = items.length, boegen = FELDBOGEN[n], best = null;
+  (function probiere(rest, folge){
+    if (!rest.length){
+      var kosten = 0;
+      folge.forEach(function(z, f){ if (!z.label) kosten += boegen[f].reduce(function(m, b){ return Math.min(m, bogenAbstand(z.winkel, b)); }, Infinity); });
+      if (!best || kosten < best.kosten - 1e-9) best = { kosten:kosten, folge:folge.slice() };
+      return;
+    }
+    rest.forEach(function(z, k){ probiere(rest.slice(0, k).concat(rest.slice(k + 1)), folge.concat([z])); });
+  })(items, []);
+  best.folge.forEach(function(z, f){ if (!z.label) z.ansatz = inBogen(z.winkel, boegen[f], n === 3 && f === 1 ? 6 : 12); });
+  return best.folge;
+}
+// Ganzes Rätsel (Form in die Mitte, Ablenker drumherum); loesung: Linien zeichnen (vom Feld des Wortes zum Feld des Partners)
 function raetselSvg(r, lage, loesung){
-  var h = '';
-  if (loesung) r.form.kanten.forEach(function(k){
-    var a = lage.ecken[k[0]], b = lage.ecken[k[1]];
-    h += '<path d="M' + a[0].toFixed(1) + ' ' + a[1].toFixed(1) + 'L' + b[0].toFixed(1) + ' ' + b[1].toFixed(1) + '" stroke="' + LINIE + '" stroke-width="5" stroke-linecap="round"/>';
-  });
+  var kreise = '', ansatz = {};
   lage.ecken.forEach(function(p, i){
-    var felder = r.woerter[i].map(function(z){ return { t:z.t, label:z.label, kante:z.kante }; }), winkel = [];
-    felder.forEach(function(z){
-      if (z.label) return;
-      var k = r.form.kanten[z.kante], q = lage.ecken[k[0] === i ? k[1] : k[0]];
-      z.winkel = Math.atan2(q[1] - p[1], q[0] - p[0]); winkel.push(normWinkel(z.winkel));
+    var felder = r.woerter[i].map(function(z){
+      var f = { t:z.t, label:z.label, kante:z.kante };
+      if (!z.label){ var k = r.form.kanten[z.kante], q = lage.ecken[k[0] === i ? k[1] : k[0]]; f.winkel = normWinkel(Math.atan2(q[1] - p[1], q[0] - p[0])); }
+      return f;
     });
-    // START/ENDE in die grösste Lücke zwischen den Linien (bei einer Linie: gegenüber)
-    winkel.sort(function(a, b){ return a - b; });
-    var luecke = { g:-1, m:0 };
-    winkel.forEach(function(a, k){ var b = k + 1 < winkel.length ? winkel[k + 1] : winkel[0] + VOLL; if (b - a > luecke.g) luecke = { g:b - a, m:(a + b) / 2 }; });
-    felder.forEach(function(z){ if (z.label) z.winkel = luecke.m; });
-    h += kreisSvg(p[0], p[1], lage.r, felder);
+    felder = felderOrdnen(felder);
+    felder.forEach(function(z){ if (!z.label) ansatz[i + '|' + z.kante] = [p[0] + lage.r * Math.cos(z.ansatz), p[1] + lage.r * Math.sin(z.ansatz)]; });
+    kreise += kreisSvg(p[0], p[1], lage.r, felder);
   });
-  lage.ablenker.forEach(function(p, i){ h += kreisSvg(p[0], p[1], lage.r, r.ablenker[i].map(function(t){ return { t:t }; })); });
+  lage.ablenker.forEach(function(p, i){ kreise += kreisSvg(p[0], p[1], lage.r, r.ablenker[i].map(function(t){ return { t:t }; })); });
+  var linien = '';
+  if (loesung) r.form.kanten.forEach(function(k, nr){
+    var a = ansatz[k[0] + '|' + nr], b = ansatz[k[1] + '|' + nr];
+    linien += '<path d="M' + a[0].toFixed(1) + ' ' + a[1].toFixed(1) + 'L' + b[0].toFixed(1) + ' ' + b[1].toFixed(1) + '" stroke="' + LINIE + '" stroke-width="5" stroke-linecap="round"/>';
+  });
   return '<svg class="kt-svg" viewBox="0 0 ' + BLATT_B + ' ' + BLATT_H + '" width="' + BLATT_B + '" height="' + BLATT_H + '" role="img" aria-label="Kreise zum Verbinden">' +
-    '<g style="font-family:var(--blatt-schrift)" font-weight="600" fill="' + TINTE + '" text-anchor="middle" dominant-baseline="central">' + h + '</g></svg>';
+    '<g style="font-family:var(--blatt-schrift)" font-weight="600" fill="' + TINTE + '" text-anchor="middle" dominant-baseline="central">' + linien + kreise + '</g></svg>';
 }
 // Lage: Form mittig, Kreisradius aus dem Massstab; Ablenker dazwischen und drumherum
 function lageBerechnen(r, rnd){
