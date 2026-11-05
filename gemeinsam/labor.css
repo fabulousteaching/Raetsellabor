@@ -144,6 +144,23 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input[type=checkbox]:
 .lade{display:inline-block;width:1em;height:1em;border-radius:50%;border:2px solid var(--line-2);border-top-color:var(--accent);animation:dreh .8s linear infinite;vertical-align:-.15em;margin-right:.45em}
 @keyframes dreh{to{transform:rotate(360deg)}}
 
+/* ---------- Baustein «Paarliste» (gemeinsam/paarliste.js): Wortpaare in Zeilen ---------- */
+.pl-kopf,.pl-zeile{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 28px;gap:6px;align-items:center}
+.pl-kopf{margin-bottom:4px;font-size:.76rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.pl-zeilen{display:grid;gap:6px;margin-bottom:8px}
+.pl-zeile input{width:100%;min-width:0;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:7px 9px;font-size:.95rem;transition:border-color .15s,box-shadow .15s,background-color .15s}
+.pl-zeile input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.pl-zeile input.pl-auto,.pl-auto-muster{background:#FFF1E2;border-color:var(--accent-line)}
+.pl-auto-muster{padding:0 4px;border:1px solid var(--accent-line);border-radius:4px}
+.pl-zeile input.pl-laedt{padding-right:30px;background:var(--card) no-repeat right 9px center/14px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='none' stroke='%23F7CBA3' stroke-width='2'/%3E%3Cpath d='M8 2a6 6 0 0 1 6 6' fill='none' stroke='%23F28C38' stroke-width='2' stroke-linecap='round'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 8 8' to='360 8 8' dur='.8s' repeatCount='indefinite'/%3E%3C/path%3E%3C/svg%3E")}
+.pl-x{width:28px;height:28px;border:0;border-radius:50%;background:transparent;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;padding:0}
+.pl-x:hover{background:#F3EEE9;color:var(--err)}
+.pl-zeile.pl-neu input{border-style:dashed;background:#FBF8F5}
+.pl-zeile.pl-neu .pl-x{visibility:hidden}
+.pl-meldung{margin:6px 0 0;padding:7px 10px;border-radius:8px;background:var(--warn-soft);color:var(--warn);font-size:.84rem}
+.pl-meldung[hidden]{display:none}
+.pl-hilfe{margin:-2px 0 6px}
+
 /* ---------- Baustein «Thema und Wörter» (gemeinsam/wortwahl.js) ---------- */
 .vorschlaege{margin-top:14px;border:1px solid var(--accent-line);background:#FFF8F1;border-radius:12px;padding:12px}
 .vorschlaege-kopf{display:flex;align-items:center;justify-content:space-between;gap:4px 8px;flex-wrap:wrap;margin-bottom:10px}

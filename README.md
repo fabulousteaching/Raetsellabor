@@ -32,7 +32,8 @@ Einstellungen: Wörter dürfen sich überlappen, Ziffern unterschiedlich gross o
 Wortvorschläge (gleich bei allen Generatoren mit Wörtern, `gemeinsam/wortwahl.js`):
 
 - **Wortarten wählen:** Unter dem Thema lässt sich ankreuzen, was vorgeschlagen wird: *Nomen*, *Verben*, *Adjektive* – einzeln oder kombiniert (mindestens eine). Bei mehreren Wortarten sind die Vorschläge nach Wortart gruppiert. Nomen werden gross geschrieben, Verben (Grundform) und Adjektive klein. Die Wahl gilt für alle Generatoren, bis die Seite neu geladen wird; wer sie ändert, bekommt gleich neue Vorschläge.
-- **Die Vorschläge kommen von einer KI: Mistral** (Mistral AI, Paris, Server in Europa) – über den eigenen Server `api/woerter.php`. Der Schlüssel liegt nur dort; alle können die Seite benutzen, ohne etwas einzutragen. Mistral ist im Tarif «Experiment» kostenlos (Anmeldung mit Telefonnummer; im Gratis-Tarif darf Mistral die Anfragen zum Verbessern der Modelle verwenden – übermittelt werden nur Thema und Wortarten).
+- **Die Vorschläge kommen von einer KI: Mistral** (Mistral AI, Paris, Server in Europa) – über den eigenen Server `gemeinsam/paarliste.js          Baustein «Paarliste»: Wortpaare in Zeilen, mit automatischer Übersetzung (Triomino, Kettenrätsel)
+api/woerter.php`. Der Schlüssel liegt nur dort; alle können die Seite benutzen, ohne etwas einzutragen. Mistral ist im Tarif «Experiment» kostenlos (Anmeldung mit Telefonnummer; im Gratis-Tarif darf Mistral die Anfragen zum Verbessern der Modelle verwenden – übermittelt werden nur Thema und Wortarten).
 - **Auftrag an die KI:** nur Wörter, die Kinder von 8 bis 14 Jahren sicher kennen und verstehen (einfache, alltagsnahe Wörter aus dem Grundwortschatz, keine Fachbegriffe, Fremdwörter oder seltenen Wörter), eng zum Thema, ohne Namen.
 - Jede Antwort wird geprüft: einzelne Wörter, ß → ss, nichts doppelt und kein Wort, das das Suchwort enthält (bei «Film» also kein «Spielfilm», kein «filmen»). «Andere Vorschläge» zeigt zuerst die restlichen Wörter und fragt dann nochmals nach, ohne die schon gezeigten.
 - **Schutz auf dem Server:** nur Anfragen von der eigenen Seite, höchstens 60 pro Stunde und Netz und 1000 pro Tag; gleiche Themen und Wortarten kommen 30 Tage aus dem Zwischenspeicher. Gespeichert werden nur Zähler (IP-Adresse verschlüsselt) und Wortlisten (`api/daten/`).
@@ -177,6 +178,17 @@ Ein eigener Text wird durch die Löcher einer Drehschablone in ein Quadrat gesch
 - **Text:** Grossbuchstaben, Ä/Ö/Ü bleiben ein Feld, ß → SS, Ziffern bleiben, Leer- und Satzzeichen fallen weg. Zähler; freie Felder mit Zufallsbuchstaben (neu würfelbar) oder X; ist der Text zu lang, kommt ein Hinweis mit der passenden Grösse.
 - **Blätter:** Arbeitsblatt (Buchstabenfeld, Anleitung, auf Wunsch Kästchen für die Lösung in vier Reihen – eine je Stellung), Lösungsblatt (Buchstaben farbig nach Stellung 1–4, aufgefüllte grau), Schablone zum Ausschneiden (graue Löcher, Rand mit den Ziffern 1–4: die Ziffer oben zeigt die Stellung, jeweils aufrecht lesbar). Schablone auch einzeln als PDF.
 
+### Kettenrätsel
+
+(Verbinde-Rätsel) Kreise mit Wörtern oder Rechnungen. Wer bei START beginnt und jedes Wort mit seinem Partner in einem anderen Kreis verbindet, zeichnet einen Buchstaben oder eine Zahl.
+
+- **Ablauf:** zuerst Buchstabe oder Zahl wählen, dann das Zeichen (A–Z oder 0–9), dann das Fach, dann die Paare.
+- **Formen:** alle 26 Buchstaben und 10 Ziffern im Raster 4 × 6, geprüft (Kreise mindestens 1,4 Einheiten auseinander, keine Linie nahe an einem fremden Kreis). Jede Linie ist ein Paar; jeder Kreis der Form hat ein Wort je Linie (bei Verzweigungen wie A, B, E, K drei Wörter). Erster Punkt = START, Strichenden = ENDE; X hat zwei Teile, also zweimal START.
+- **Eindeutig:** Jedes Wort auf dem Blatt passt zu höchstens einem anderen. Ablenker-Kreise bekommen von übrigen Paaren nur je ein Wort – ihr Partner steht nirgends. Mathe: lauter verschiedene Ergebnisse (Plus, Minus, Mal, Geteilt; bis 20, 100, 1000). Getestet mit allen Zeichen und vielen Zufallsständen. Bei eigenen Wörtern kann das Programm nur gleiche Wörter erkennen – dass kein Wort *inhaltlich* zu einem zweiten passt (z. B. ein weiteres Reimwort), muss man selbst beachten.
+- **Fächer:** Mathe (erzeugt), Deutsch (eigene Paare, z. B. Reimwörter, Einzahl–Mehrzahl, Gegenteile), Englisch und Französisch (eigene Paare mit automatischer Übersetzung). Ablenker-Kreise: keine, wenige, einige, viele; sie werden zufällig verteilt, nie auf eine Linie. «Neu anordnen» mischt neu.
+- **Blatt:** A4 (Zeichenfläche 639 × 800 Pixel), Antwortlinie, «Lösung zeigen» (Linien und Lösung), Lösungsblatt, PDF.
+- Die Paar-Eingabe (Zeilen, Einfügen, automatische Übersetzung) ist der gemeinsame Baustein `gemeinsam/paarliste.js`, den auch das Triomino nutzt.
+
 ## Aufbau
 
 ```
@@ -206,6 +218,7 @@ raetsel/puzzle/                 der Generator «Puzzle»
 raetsel/geheimschrift/          der Generator «Geheimschriften» (Kern: Verschlüsseln; Zeichen, Schlüssel, Caesar-Scheibe)
 raetsel/kreuzwort/              der Generator «Kreuzworträtsel» (Kern: Anordnen, freie Flächen für Bilder; Seite, Bilder, Lösung)
 raetsel/fleissner/              der Generator «Fleissner-Schablone» (Kern: Lochmuster, Drehen, Verschlüsseln; Raster und Schablone in mm)
+raetsel/kette/                  der Generator «Kettenrätsel» (Kern: Formen A–Z und 0–9, Paare belegen, Eindeutigkeit, Ablenker verteilen)
 raetsel/triomino/               der Generator «Triomino» (Kern: Formen, Kanten, Aufgaben, Belegung; Zeichnen mit Schriftanpassung)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)

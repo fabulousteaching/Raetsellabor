@@ -33,20 +33,6 @@
 .tr-unter{margin-top:2px;padding:12px 12px 2px;border-radius:10px;background:#FBF8F5}
 .tr-unter + .tr-unter:not([hidden]){margin-top:8px}
 .tr-teil .hinweis{margin:-4px 0 6px}
-.tr-zeilen-kopf,.tr-zeile{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 28px;gap:6px;align-items:center}
-.tr-zeilen-kopf{margin-bottom:4px;font-size:.76rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
-.tr-zeilen{display:grid;gap:6px;margin-bottom:8px}
-.tr-zeile input{width:100%;min-width:0;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:7px 9px;font-size:.95rem;transition:border-color .15s,box-shadow .15s,background-color .15s}
-.tr-zeile input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
-.tr-zeile input.tr-auto,.tr-auto-muster{background:#FFF1E2;border-color:var(--accent-line)}
-.tr-auto-muster{padding:0 4px;border:1px solid var(--accent-line);border-radius:4px}
-.tr-zeile input.tr-laedt{padding-right:30px;background:var(--card) no-repeat right 9px center/14px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='none' stroke='%23F7CBA3' stroke-width='2'/%3E%3Cpath d='M8 2a6 6 0 0 1 6 6' fill='none' stroke='%23F28C38' stroke-width='2' stroke-linecap='round'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 8 8' to='360 8 8' dur='.8s' repeatCount='indefinite'/%3E%3C/path%3E%3C/svg%3E")}
-.tr-x{width:28px;height:28px;border:0;border-radius:50%;background:transparent;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;padding:0}
-.tr-x:hover{background:#F3EEE9;color:var(--err)}
-.tr-zeile.tr-neu input{border-style:dashed;background:#FBF8F5}
-.tr-zeile.tr-neu .tr-x{visibility:hidden}
-.tr-ue-meldung{margin:6px 0 0;padding:7px 10px;border-radius:8px;background:var(--warn-soft);color:var(--warn);font-size:.84rem}
-.tr-ue-meldung[hidden]{display:none}
 .tr code{font-size:.85em;background:#F3EEE9;border-radius:4px;padding:1px 4px}
 .tr-zaehler{margin-top:10px;font-size:.88rem}
 .tr-zaehler p{margin:6px 0 0}
