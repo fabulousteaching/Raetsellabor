@@ -30,6 +30,9 @@ var Kern = (function(){
   function zeichen(text){ return String(text || '').replace(/ß/g, 'SS').toUpperCase().replace(/[^0-9A-ZÄÖÜ]/g, '').split(''); }
   // Eingabe → Wort: Buchstaben und Ziffern der Reihe nach; Leerzeichen bleiben als Lücke (' ') zwischen zwei Wörtern
   function wort(text){ return String(text || '').replace(/ß/g, 'SS').toUpperCase().replace(/[^0-9A-ZÄÖÜ ]/g, '').replace(/\s+/g, ' ').trim().split(''); }
+  var SAETZE = ['Ich kann das Rätsel lösen.', 'Heute ist ein schöner Tag.', 'Lesen macht Spass.', 'Wir gehen in den Wald.',
+    'Der Hund spielt im Garten.', 'Morgen scheint die Sonne.', 'Du bist ein Rätselprofi!', 'Die Katze schläft auf dem Sofa.'];
+  function zufallsSatz(rnd, ausser){ var l = SAETZE.filter(function(w){ return w !== ausser; }); return l[Math.floor(rnd() * l.length)]; }
   function zufallsWort(rnd, ausser){ var l = WOERTER.filter(function(w){ return w !== ausser; }); return l[Math.floor(rnd() * l.length)]; }
   // n verschiedene zufällige Ziffern oder Buchstaben; «schon» bleibt vorne erhalten
   function zufallsZeichen(art, n, rnd, schon){
@@ -47,13 +50,60 @@ var Kern = (function(){
      → { R, ga, gb (Zeichen reichen radial von ga bis gb), h, rm, r:[Deckel, Scheibe 1 (innen) … Scheibe n (aussen)],
          winkel (Mitte jedes Zeichens, Grad im Uhrzeigersinn ab oben), papier / schirm (Drehung jeder Scheibe),
          punkte[k]:[{ w, r }], ueber (Überlappung unter der nächstkleineren Scheibe) } */
+  /* Satz: waagrechte Zeilen von oben nach unten, um den Deckel in der Mitte herum. breiten: Breite jedes Worts bei
+     Schriftgrösse 100 (mit Strich), leer: Breite eines Leerzeichens bei 100. Gesucht wird die grösste Schrift, bei der
+     alle Wörter Platz haben (Zeilenhöhe 1.25 × Schrift, Zeilen in der Mitte der Scheibe): Jede Zeile reicht so weit, wie
+     der Kreis «aussen» an ihrer engsten Stelle breit ist; wo sie am Deckel («kappe») vorbeiführt, hat sie einen linken
+     und einen rechten Teil. → { f, zeilen:[{ y, teile:[{ woerter:[{ i, x }] }] }] } (x: Anfang des Worts; Mitte = 0, 0) */
+  function satzSetzen(breiten, leer, aussen, kappe){
+    function versuch(f, L, m){
+      var zeilen = [], wi = 0, s = leer * f / 100;
+      for (var j = 0; j < m; j++){
+        var y = (j - (m - 1) / 2) * L, oben = y - L / 2, unten = y + L / 2, weit = Math.max(Math.abs(oben), Math.abs(unten));
+        if (weit >= aussen) return null;
+        var xr = Math.sqrt(aussen * aussen - weit * weit), nah = oben <= 0 && unten >= 0 ? 0 : Math.min(Math.abs(oben), Math.abs(unten));
+        var xk = nah < kappe ? Math.sqrt(kappe * kappe - nah * nah) : 0, zeile = { y:y, teile:[] };
+        (xk ? [[-xr, -xk], [xk, xr]] : [[-xr, xr]]).forEach(function(t){
+          var platz = t[1] - t[0], w = 0, liste = [];
+          while (platz > 0 && wi < breiten.length){
+            var x = w + (liste.length ? s : 0), neu = x + breiten[wi] * f / 100;
+            if (neu > platz) break;
+            liste.push({ i:wi, x:x }); w = neu; wi++;
+          }
+          if (liste.length){ var x0 = (t[0] + t[1]) / 2 - w / 2; liste.forEach(function(e){ e.x += x0; }); zeile.teile.push({ woerter:liste }); }
+        });
+        zeilen.push(zeile);
+      }
+      return wi >= breiten.length ? zeilen : null;
+    }
+    for (var f = Math.floor(aussen * 0.6); f >= 5; f--){
+      var L = f * 1.25, maxZ = Math.floor(2 * aussen / L);
+      for (var m = 1; m <= maxZ; m++){ var z = versuch(f, L, m); if (z) return { f:f, zeilen:z }; }
+    }
+    return null;
+  }
+
   function planen(o){
-    var rnd = zufall(o.seed), mm = PXMM, n = o.ringe, z = o.zeichen;
+    var rnd = zufall(o.seed), mm = PXMM, n = o.ringe, z = o.zeichen || [];
     var R = DURCHMESSER / 2 * mm, gb = R - 4 * mm, luecke = 2.5 * mm, ueber = 1.5 * mm, deckelMin = 14.5 * mm;
     // Wie breit (in Grad, halb) ein Zeichen samt halber Lücke am inneren Ende «innen» ist, wenn die Zeichen h hoch sind
     function halbWinkel(c, innen, h){ return Math.atan((o.breite(c) * h / 2 + luecke / 2) / innen) * 180 / Math.PI; }
-    var ga, winkel, k;
-    if (o.wort){
+    var ga, winkel, k, satz = null, r;
+    if (o.satz){
+      /* Satz: kleiner Deckel (12 mm Radius); die Zeilen bleiben 4 mm vom Rand. Die Ringe teilen den Bereich, den der Text
+         wirklich belegt (bis zur äussersten Wortecke), gleichmässig – so trägt auch die grösste Scheibe genug davon. */
+      var kap = 12 * mm, aussenText = kap + 6 * mm;
+      satz = satzSetzen(o.satz.breiten, o.satz.leer, gb, kap + 2 * mm);
+      if (satz) satz.zeilen.forEach(function(z){ z.teile.forEach(function(t){ t.woerter.forEach(function(w){
+        var x1 = w.x + o.satz.breiten[w.i] * satz.f / 100, y1 = Math.abs(z.y) + 0.42 * satz.f;
+        aussenText = Math.max(aussenText, Math.hypot(Math.max(Math.abs(w.x), Math.abs(x1)), y1));
+      }); }); });
+      aussenText = Math.min(aussenText, gb);
+      r = [kap];
+      for (k = 1; k < n; k++) r.push(kap + (aussenText - kap) * k / n);
+      r.push(R);
+      ga = kap; winkel = [];
+    } else if (o.wort){
       /* Wort: Die Buchstaben stehen nebeneinander (innen 2.5 mm Abstand) und lesen sich im Uhrzeigersinn. Zusammen
          nehmen sie höchstens 300° ein – die Lücke zeigt, wo das Wort beginnt. Die Buchstaben sind so gross wie möglich:
          das kleinste ga (Bisektion), bei dem das Wort noch in 300° passt. In der Lösung steht das Wort oben in der Mitte. */
@@ -75,9 +125,12 @@ var Kern = (function(){
       var schritt = 360 / m, start = rnd() * 360;
       winkel = z.map(function(_, j){ return norm(start + j * schritt + (rnd() * 2 - 1) * 0.1 * schritt); });
     }
-    var h = gb - ga, r = [ga - ueber];   // der Deckel deckt die Mitte bis kurz vor die Zeichen
-    for (k = 1; k < n; k++) r.push(ga + h * k / n);
-    r.push(R);
+    var h = gb - ga;
+    if (!r){
+      r = [ga - ueber];   // der Deckel deckt die Mitte bis kurz vor die Zeichen
+      for (k = 1; k < n; k++) r.push(ga + h * k / n);
+      r.push(R);
+    }
     function versatz(){ return r.slice(1).map(function(){ return Math.round(30 + rnd() * 300); }); }
     var papier = versatz(), schirm = versatz();
     schirm[n - 1] = 0;   // am Bildschirm: die äusserste Scheibe steht still, die anderen sind verdreht
@@ -90,7 +143,7 @@ var Kern = (function(){
       punkte.push(liste);
     }
     return { mm:mm, R:R, ga:ga, gb:gb, h:h, rm:(ga + gb) / 2, r:r, ringe:n, ueber:ueber, winkel:winkel, zeichen:z.slice(),
-      wort:!!o.wort, papier:papier, schirm:schirm, punkte:punkte, ringBreite:h / n };
+      wort:!!o.wort, satz:satz, papier:papier, schirm:schirm, punkte:punkte, ringBreite:o.satz ? ((n > 1 ? r[n - 1] : R) - r[0]) / Math.max(1, n - 1) : h / n };
   }
 
   /* Kreise auf Seiten verteilen. teile: [{ id, d }] (Durchmesser). Der grösste zuerst; jeder Kreis kommt an die oberste,
@@ -138,7 +191,7 @@ var Kern = (function(){
   }
   return { PXMM:PXMM, DURCHMESSER:DURCHMESSER, zufall:zufall, mischen:mischen, norm:norm, abstand:abstand, zeichen:zeichen, wort:wort,
     zufallsWort:zufallsWort, zufallsZeichen:zufallsZeichen, gegenstuecke:gegenstuecke, planen:planen, packen:packen, verteilen:verteilen,
-    ZIFFERN:ZIFFERN, BUCHSTABEN:BUCHSTABEN, WOERTER:WOERTER };
+    satzSetzen:satzSetzen, zufallsSatz:zufallsSatz, ZIFFERN:ZIFFERN, BUCHSTABEN:BUCHSTABEN, WOERTER:WOERTER };
 })();
 /* KERN-ENDE */
 
@@ -147,7 +200,7 @@ var TINTE = '#1C1714', GRAU = '#8A8079', PFEIL = '#E46F12';
 var BUNT = ['#D7263D', '#1B6CA8', '#2E8B57', '#E4801C', '#7B3FA0', '#C2185B', '#00838F', '#9A7400'];
 var SEITE_B = 703, SEITE_H = 1031, RAND = 30;   // Seite (Pixel) und Rand ringsum (8 mm; dazu kommen beim Drucken 12 mm)
 var LUFT_KLEIN = 6 * Kern.PXMM, LUFT_GROSS = 25 * Kern.PXMM;   // Abstand zwischen den Kreisen: mindestens 6 mm, so viel wie möglich bis 25 mm
-var STRICH = 0.05;   // zusätzlicher Strich um die Zeichen (Anteil der Schriftgrösse) – macht sie kräftig wie Filzstift
+var STRICH = 0.05, STRICH_SATZ = 0.03;   // zusätzlicher Strich um die Zeichen (Anteil der Schriftgrösse) – macht sie kräftig wie Filzstift
 function esc(t){ return Labor.esc(t); }
 function chips(name, liste){ return liste.map(function(x){ return '<label><input type="radio" name="' + name + '" value="' + x[0] + '"><span>' + x[1] + '</span></label>'; }).join(''); }
 function f1(x){ return (Math.round(x * 100) / 100).toString(); }
@@ -177,8 +230,12 @@ function zeichenSvg(G, c, w, farbe){
 function ringInhalt(G, k, id){
   var P = G.P, innen = P.r[k - 1] - P.ueber;
   var t = '<defs><clipPath id="' + id + '"><path clip-rule="evenodd" d="' + ringPfad(P.r[k] - 0.4, innen) + '"/></clipPath></defs>' +
-    '<g clip-path="url(#' + id + ')"><g font-size="' + f1(G.f) + '" font-weight="700" fill="' + TINTE + '" stroke="' + TINTE + '" stroke-width="' + f1(G.f * STRICH) + '" stroke-linejoin="round" style="font-family:var(--blatt-buchstaben)">';
-  P.zeichen.forEach(function(c, j){ if (c !== ' ') t += zeichenSvg(G, c, P.winkel[j], G.farben[j]); });
+    '<g clip-path="url(#' + id + ')"><g font-size="' + f1(G.f) + '" font-weight="700" fill="' + TINTE + '" stroke="' + TINTE + '" stroke-width="' + f1(G.f * (P.satz ? STRICH_SATZ : STRICH)) + '" stroke-linejoin="round" style="font-family:var(--blatt-buchstaben)">';
+  if (P.satz) P.satz.zeilen.forEach(function(z){ z.teile.forEach(function(teil){ teil.woerter.forEach(function(w){
+    var farbe = G.farben[w.i];
+    t += '<text x="' + f1(w.x) + '" y="' + f1(z.y) + '" dominant-baseline="central"' + (farbe ? ' fill="' + farbe + '" stroke="' + farbe + '"' : '') + '>' + esc(G.woerter[w.i]) + '</text>';
+  }); }); });
+  else P.zeichen.forEach(function(c, j){ if (c !== ' ') t += zeichenSvg(G, c, P.winkel[j], G.farben[j]); });
   t += '</g></g>';
   var pr = 0.75 * P.mm;
   P.punkte[k - 1].forEach(function(p){ var a = p.w * Math.PI / 180; t += '<circle cx="' + f1(p.r * Math.sin(a)) + '" cy="' + f1(-p.r * Math.cos(a)) + '" r="' + f1(pr) + '" fill="' + TINTE + '"/>'; });
@@ -188,22 +245,21 @@ function loch(P){
   var r = 2 * P.mm, k = 3.5 * P.mm;
   return '<circle r="' + f1(r) + '" fill="none" stroke="' + GRAU + '" stroke-width="0.8"/><path d="M' + f1(-k) + ' 0H' + f1(k) + 'M0 ' + f1(-k) + 'V' + f1(k) + '" stroke="' + GRAU + '" stroke-width="0.6"/>';
 }
-// Deckel: der kleinste Kreis zuoberst, mit einem Drehpfeil
-function deckel(P, rand){
+// Deckel: der kleinste Kreis zuoberst, auf Wunsch mit einem Drehpfeil
+function deckel(P, rand, pfeil){
   var r0 = P.r[0], ra = r0 * 0.62, a0 = -100, a1 = 135, L = Math.max(5, ra * 0.34);
   function pt(r, w){ var a = w * Math.PI / 180; return [r * Math.sin(a), -r * Math.cos(a)]; }
   var s = pt(ra, a0), e = pt(ra, a1), b = a1 * Math.PI / 180, tx = Math.cos(b), ty = Math.sin(b), nx = Math.sin(b), ny = -Math.cos(b);
   var spitze = [e[0] + tx * L, e[1] + ty * L], l = [e[0] + nx * L * 0.62, e[1] + ny * L * 0.62], q = [e[0] - nx * L * 0.62, e[1] - ny * L * 0.62];
-  return '<circle r="' + f1(r0) + '" fill="#fff" stroke="' + (rand || TINTE) + '" stroke-width="' + (rand ? 0.8 : 1) + '"/>' +
+  return '<circle r="' + f1(r0) + '" fill="#fff" stroke="' + (rand || TINTE) + '" stroke-width="' + (rand ? 0.8 : 1) + '"/>' + (pfeil === false ? '' :
     '<path d="M' + f1(s[0]) + ' ' + f1(s[1]) + 'A' + f1(ra) + ' ' + f1(ra) + ' 0 1 1 ' + f1(e[0]) + ' ' + f1(e[1]) + '" fill="none" stroke="' + PFEIL + '" stroke-width="' + f1(Math.max(1.6, r0 * 0.05)) + '" stroke-linecap="round"/>' +
-    '<path d="M' + f1(spitze[0]) + ' ' + f1(spitze[1]) + 'L' + f1(l[0]) + ' ' + f1(l[1]) + 'L' + f1(q[0]) + ' ' + f1(q[1]) + 'Z" fill="' + PFEIL + '"/>' + loch(P);
+    '<path d="M' + f1(spitze[0]) + ' ' + f1(spitze[1]) + 'L' + f1(l[0]) + ' ' + f1(l[1]) + 'L' + f1(q[0]) + ' ' + f1(q[1]) + 'Z" fill="' + PFEIL + '"/>') + loch(P);
 }
-// Eine Scheibe zum Ausschneiden (Blatt): Schnittlinie, Stück, gestrichelt der Platz der nächstkleineren Scheibe, Nummer
+// Eine Scheibe zum Ausschneiden (Blatt): Schnittlinie, Stück, gestrichelt der Platz der nächstkleineren Scheibe, Mitte
 function scheibeBlatt(G, k, id){
-  var P = G.P, n = P.ringe, unten = n - k + 1, innen = P.r[k - 1], fs = Math.max(9, Math.min(13, innen * 0.16));
+  var P = G.P, innen = P.r[k - 1];
   return '<circle r="' + f1(P.r[k]) + '" fill="#fff" stroke="' + TINTE + '" stroke-width="1"/>' + ringInhalt(G, k, id) +
-    '<circle r="' + f1(innen) + '" fill="none" stroke="' + GRAU + '" stroke-width="0.7" stroke-dasharray="3 3"/>' +
-    '<text y="' + f1(-innen * 0.5) + '" text-anchor="middle" dominant-baseline="central" font-size="' + f1(fs) + '" fill="' + GRAU + '" style="font-family:var(--blatt-schrift)">' + (unten === 1 ? '1 · zuunterst' : unten) + '</text>' + loch(P);
+    '<circle r="' + f1(innen) + '" fill="none" stroke="' + GRAU + '" stroke-width="0.7" stroke-dasharray="3 3"/>' + loch(P);
 }
 /* Zusammengesetzte Scheiben (Bildschirm und Lösungsblatt): von unten (äusserste) nach oben, jede um ihren Versatz gedreht.
    spiel: am Bildschirm drehbar (anwählbar mit der Tastatur). */
@@ -214,7 +270,7 @@ function stapelSvg(G, versatz, praefix, spiel){
     t += '<g class="dr-ring" data-k="' + k + '"' + ' transform="rotate(' + f1(d) + ')"' + (spiel ? ' tabindex="0" role="slider" aria-label="Scheibe ' + (n - k + 1) + ' von unten drehen" aria-valuemin="0" aria-valuemax="359" aria-valuenow="' + Math.round(Kern.norm(d)) + '"' : '') + '>' +
       '<circle class="dr-rand" r="' + f1(P.r[k]) + '" fill="#fff" stroke="#9C9089" stroke-width="0.8"/>' + ringInhalt(G, k, praefix + k) + '</g>';
   }
-  t += '<g class="dr-deckel">' + deckel(P, '#9C9089') + '</g>';
+  t += '<g class="dr-deckel">' + deckel(P, '#9C9089', G.pfeil) + '</g>';
   return '<svg class="dr-stapel" viewBox="' + f1(-R - 3) + ' ' + f1(-R - 3) + ' ' + f1(2 * R + 6) + ' ' + f1(2 * R + 6) + '" role="img" aria-label="Drehscheiben">' + t + '</svg>';
 }
 
@@ -223,19 +279,21 @@ var VORLAGE = '<div class="dr">' +
     '<p>Konzentrische Scheiben zum Ausschneiden: Jede Scheibe trägt nur ein Stück der Zahlen, Buchstaben oder des Worts. Wer die Scheiben richtig dreht, sieht die Zeichen.</p></header>' +
   '<div class="dr-layout"><section class="dr-eingabe" aria-label="Eingaben">' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Zeichen</h2><p>Was soll auf den Scheiben erscheinen?</p></div></div>' +
-      '<div class="dr-chips" role="radiogroup" aria-label="Art">' + chips('drArt', [['ziffern', 'Zahlen'], ['buchstaben', 'Buchstaben'], ['wort', 'Wort']]) + '</div>' +
+      '<div class="dr-chips" role="radiogroup" aria-label="Art">' + chips('drArt', [['ziffern', 'Zahlen'], ['buchstaben', 'Buchstaben'], ['wort', 'Wort'], ['satz', 'Satz']]) + '</div>' +
       '<label class="feld-label" for="drZeichen" id="drFeldName">Zeichen</label>' +
       '<div class="dr-zeichen-zeile"><input type="text" id="drZeichen" maxlength="40" autocomplete="off" spellcheck="false">' +
         '<button type="button" class="btn klein" id="drZufall" title="Andere zufällig wählen">Andere</button></div>' +
       '<div id="drAnzahlTeil"><p class="feld-label">Anzahl</p><div class="dr-chips dr-anzahl" role="radiogroup" aria-label="Anzahl Zeichen">' + chips('drAnzahl', [1, 2, 3, 4, 5, 6, 7, 8].map(function(n){ return [n, n]; })) + '</div>' +
         '<p class="hinweis">Du kannst die Zeichen auch selbst eintippen, z. B. «3 5 8» (höchstens 8). Sie stehen rundum verteilt. Mit «Anzahl» kommen zufällige dazu oder fallen weg.</p></div>' +
       '<p class="hinweis" id="drWortHinweis" hidden>Ein Wort mit bis zu 12 Buchstaben. Die Buchstaben stehen nebeneinander und lesen sich im Uhrzeigersinn.</p>' +
+      '<p class="hinweis" id="drSatzHinweis" hidden>Ein Satz mit bis zu 80 Zeichen. Er steht in Zeilen von oben nach unten auf der Scheibe, so gross wie möglich.</p>' +
       '<div class="dr-zaehler" id="drZaehler" aria-live="polite"></div>' +
       '<p class="feld-label">Farben</p><div class="dr-farben" id="drFarben"></div>' +
       '<div class="dr-farb-knoepfe"><button type="button" class="btn klein" id="drSchwarz">Alle schwarz</button><button type="button" class="btn klein" id="drBunt">Bunt</button></div>' +
     '</div>' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Kreise</h2></div></div>' +
       '<p class="feld-label">Anzahl Kreise (mit Deckel)</p><div class="dr-chips" role="radiogroup" aria-label="Anzahl Kreise mit Deckel">' + chips('drRinge', [[2, '3 · leicht'], [3, '4'], [4, '5'], [5, '6 · schwer']]) + '</div>' +
+      '<label class="opt"><input type="checkbox" id="drPfeil"><span>Drehpfeil auf dem Deckel</span></label>' +
       '<label class="opt"><input type="checkbox" id="drPunkte"><span>Punkte als Ablenkung</span></label>' +
     '</div>' +
   '</section>' +
@@ -278,19 +336,22 @@ function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false;
   var TAB = 'drehscheiben-eingaben', OPT = 'drehscheiben-einstellungen';
   // ringe: Scheiben mit Zeichen (dazu kommt der Deckel → 3 bis 6 Kreise)
-  var STANDARD = { art:'ziffern', anzahl:4, ringe:4, punkte:false, mitLoesung:true, titelAn:true, anleitungAn:true };
+  var STANDARD = { art:'ziffern', anzahl:4, ringe:4, pfeil:true, punkte:false, mitLoesung:true, titelAn:true, anleitungAn:true };
   // farben: je Stelle (Zeichen bzw. Buchstabe im Wort) eine Farbe; leer = schwarz
-  var st = { zeichen:'', wortText:'', farben:[], seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
+  // farbenSatz: je Wort des Satzes eine Farbe
+  var st = { zeichen:'', wortText:'', satzText:'', farben:[], farbenSatz:[], seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
-  try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.zeichen = String(e.zeichen || ''); st.wortText = String(e.wortText || ''); st.seed = +e.seed || st.seed;
-    if (Array.isArray(e.farben)) st.farben = e.farben.map(function(f){ return /^#[0-9a-f]{6}$/i.test(f) ? f : ''; }); } } catch(x){}
+  function farbenLesen(l){ return Array.isArray(l) ? l.map(function(f){ return /^#[0-9a-f]{6}$/i.test(f) ? f : ''; }) : []; }
+  try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.zeichen = String(e.zeichen || ''); st.wortText = String(e.wortText || ''); st.satzText = String(e.satzText || ''); st.seed = +e.seed || st.seed;
+    st.farben = farbenLesen(e.farben); st.farbenSatz = farbenLesen(e.farbenSatz); } } catch(x){}
   if ([2, 3, 4, 5].indexOf(+st.opt.ringe) < 0) st.opt.ringe = 4;
-  if (['ziffern', 'buchstaben', 'wort'].indexOf(st.opt.art) < 0) st.opt.art = 'ziffern';
+  if (['ziffern', 'buchstaben', 'wort', 'satz'].indexOf(st.opt.art) < 0) st.opt.art = 'ziffern';
   if (!Kern.zeichen(st.zeichen).length) st.zeichen = Kern.zufallsZeichen(st.opt.art === 'buchstaben' ? 'buchstaben' : 'ziffern', st.opt.anzahl, Kern.zufall(st.seed + 7)).join(' ');
   if (!Kern.wort(st.wortText).length) st.wortText = Kern.zufallsWort(Kern.zufall(st.seed + 11));
+  if (!st.satzText.trim()) st.satzText = Kern.zufallsSatz(Kern.zufall(st.seed + 13));
   var timer = 0;
   function speichernJetzt(){ clearTimeout(timer); timer = 0;
-    try { sessionStorage.setItem(TAB, JSON.stringify({ zeichen:st.zeichen, wortText:st.wortText, farben:st.farben, seed:st.seed })); } catch(x){}
+    try { sessionStorage.setItem(TAB, JSON.stringify({ zeichen:st.zeichen, wortText:st.wortText, satzText:st.satzText, farben:st.farben, farbenSatz:st.farbenSatz, seed:st.seed })); } catch(x){}
     try { localStorage.setItem(OPT, JSON.stringify(st.opt)); } catch(x){} }
   function speichern(){ clearTimeout(timer); timer = setTimeout(speichernJetzt, 200); }
   function meldung(art, html){ $('#drMeldung').innerHTML = html ? '<div class="meldung ' + art + '">' + html + '</div>' : ''; }
@@ -305,6 +366,9 @@ function starte(bereich){
     });
   }
   function istWort(){ return st.opt.art === 'wort'; }
+  function istSatz(){ return st.opt.art === 'satz'; }
+  function satzWoerter(){ return st.satzText.replace(/\s+/g, ' ').trim().slice(0, 80).split(' ').filter(Boolean); }
+  function farbListe(){ return istSatz() ? st.farbenSatz : st.farben; }
   function liste(){ return Kern.zeichen(st.zeichen).slice(0, 8); }
   function feldSetzen(z){ st.zeichen = z.join(' '); $('#drZeichen').value = st.zeichen; speichern(); }
   function wortSetzen(w){ st.wortText = w; $('#drZeichen').value = w; speichern(); }
@@ -315,15 +379,16 @@ function starte(bereich){
   }
   // Zahlen/Buchstaben: Anzahl zeigen; Wort: eigenes Feld (beide Eingaben bleiben erhalten, wenn man wechselt)
   function artZeigen(){
-    var w = istWort();
-    $('#drAnzahlTeil').hidden = w; $('#drWortHinweis').hidden = !w;
-    $('#drFeldName').textContent = w ? 'Wort' : 'Zeichen';
-    $('#drZeichen').value = w ? st.wortText : st.zeichen;
-    if (!w) anzahlZeigen();
+    var w = istWort(), sa = istSatz(), f = $('#drZeichen');
+    $('#drAnzahlTeil').hidden = w || sa; $('#drWortHinweis').hidden = !w; $('#drSatzHinweis').hidden = !sa;
+    $('#drFeldName').textContent = w ? 'Wort' : sa ? 'Satz' : 'Zeichen';
+    f.maxLength = sa ? 80 : 40; f.classList.toggle('dr-satz-feld', sa);
+    f.value = w ? st.wortText : sa ? st.satzText : st.zeichen;
+    if (!w && !sa) anzahlZeigen();
   }
   // Wechsel zu Zahlen oder Buchstaben: passende Zeichen von vorher bleiben, sonst kommen zufällige
   radios('drArt', 'art', function(){
-    if (!istWort()){
+    if (!istWort() && !istSatz()){
       var z = Kern.zeichen(st.zeichen), ziffern = st.opt.art === 'ziffern';
       if (!z.length || !z.every(function(c){ return /\d/.test(c) === ziffern; })) feldSetzen(Kern.zufallsZeichen(st.opt.art, st.opt.anzahl, Kern.zufall(Date.now())));
     }
@@ -332,36 +397,43 @@ function starte(bereich){
   radios('drAnzahl', 'anzahl', function(){ feldSetzen(Kern.zufallsZeichen(st.opt.art, st.opt.anzahl, Kern.zufall(Date.now()), liste())); });
   radios('drRinge', 'ringe');
   artZeigen();
-  $('#drZeichen').addEventListener('input', function(){ if (istWort()) st.wortText = this.value; else { st.zeichen = this.value; anzahlZeigen(); } speichern(); baldZeichnen(); });
+  $('#drZeichen').addEventListener('input', function(){ if (istWort()) st.wortText = this.value; else if (istSatz()) st.satzText = this.value; else { st.zeichen = this.value; anzahlZeigen(); } speichern(); baldZeichnen(); });
   $('#drZufall').addEventListener('click', function(){
     if (istWort()) wortSetzen(Kern.zufallsWort(Kern.zufall(Date.now()), Kern.wort(st.wortText).join('')));
+    else if (istSatz()){ st.satzText = Kern.zufallsSatz(Kern.zufall(Date.now()), st.satzText.trim()); $('#drZeichen').value = st.satzText; speichern(); }
     else { feldSetzen(Kern.zufallsZeichen(st.opt.art, st.opt.anzahl, Kern.zufall(Date.now()))); anzahlZeigen(); }
     zeichnen();
   });
   /* Farben: für jedes Zeichen ein Farbfeld. Neu aufgebaut wird die Reihe nur, wenn sich die Zeichen ändern – sonst
      würde ein offener Farbwähler beim Ziehen zugehen. */
   var farbSchluessel = null;
+  // z: die Einheiten mit je einer Farbe – Zeichen (Zahlen, Buchstaben, Wort) oder beim Satz die Wörter
   function farbenZeigen(z){
-    var schluessel = z.join('\u0001');
+    var schluessel = st.opt.art + '\u0002' + z.join('\u0001'), fl = farbListe();
     if (schluessel === farbSchluessel) return;
     farbSchluessel = schluessel;
     $('#drFarben').innerHTML = z.map(function(c, i){
-      return c === ' ' ? '' : '<label class="dr-farbe" title="Farbe für «' + esc(c) + '»"><input type="color" data-i="' + i + '" value="' + (st.farben[i] || TINTE) + '" aria-label="Farbe für ' + esc(c) + ' (Stelle ' + (i + 1) + ')"><span style="color:' + (st.farben[i] || TINTE) + '">' + esc(c) + '</span></label>';
+      return c === ' ' ? '' : '<label class="dr-farbe" title="Farbe für «' + esc(c) + '»"><input type="color" data-i="' + i + '" value="' + (fl[i] || TINTE) + '" aria-label="Farbe für ' + esc(c) + ' (' + (istSatz() ? 'Wort ' : 'Stelle ') + (i + 1) + ')"><span style="color:' + (fl[i] || TINTE) + '">' + esc(c) + '</span></label>';
     }).join('');
   }
   $('#drFarben').addEventListener('input', function(ev){
     var f = ev.target.closest('input[type=color]'); if (!f) return;
-    var i = +f.dataset.i; st.farben[i] = f.value.toLowerCase() === TINTE.toLowerCase() ? '' : f.value;
+    var i = +f.dataset.i; farbListe()[i] = f.value.toLowerCase() === TINTE.toLowerCase() ? '' : f.value;
     f.nextSibling.style.color = f.value; speichern(); baldZeichnen();
   });
-  function farbenSetzen(fn){ farbSchluessel = null; var n = Math.max(12, st.farben.length); st.farben = []; for (var i = 0; i < n; i++) st.farben.push(fn(i)); speichern(); zeichnen(); }
+  function farbenSetzen(fn){
+    farbSchluessel = null; var n = Math.max(20, farbListe().length), neu = [];
+    for (var i = 0; i < n; i++) neu.push(fn(i));
+    if (istSatz()) st.farbenSatz = neu; else st.farben = neu;
+    speichern(); zeichnen();
+  }
   $('#drSchwarz').addEventListener('click', function(){ farbenSetzen(function(){ return ''; }); });
   $('#drBunt').addEventListener('click', function(){
-    var z = istWort() ? Kern.wort(st.wortText) : Kern.zeichen(st.zeichen), stelle = [], k = 0;
+    var z = istSatz() ? satzWoerter() : istWort() ? Kern.wort(st.wortText) : Kern.zeichen(st.zeichen), stelle = [], k = 0;
     z.forEach(function(c, i){ if (c !== ' ') stelle[i] = BUNT[k++ % BUNT.length]; });   // Lücken im Wort überspringen
     farbenSetzen(function(i){ return stelle[i] || ''; });
   });
-  [['#drPunkte', 'punkte'], ['#drMitLoesung', 'mitLoesung']].forEach(function(x){
+  [['#drPfeil', 'pfeil'], ['#drPunkte', 'punkte'], ['#drMitLoesung', 'mitLoesung']].forEach(function(x){
     $(x[0]).checked = !!st.opt[x[1]];
     $(x[0]).addEventListener('change', function(){ st.opt[x[1]] = this.checked; speichern(); if (x[1] !== 'mitLoesung') zeichnen(); });
   });
@@ -372,25 +444,29 @@ function starte(bereich){
   var G = null, spielVersatz = [], zaehlerId = 0;
   // Bezeichnung der versteckten Zeichen: [Einzahl, Mehrzahl]
   function namen(z){
+    if (istSatz()) return ['Satz', 'Sätze'];
     if (istWort()) return ['Wort', 'Wörter'];
     var ziffern = z.every(function(c){ return /\d/.test(c); }), buchst = z.every(function(c){ return !/\d/.test(c); });
     return ziffern ? ['Zahl', 'Zahlen'] : buchst ? ['Buchstabe', 'Buchstaben'] : ['Zeichen', 'Zeichen'];
   }
-  function anzahlVersteckt(z){ return istWort() ? z.join('').split(' ').length : z.length; }
+  function anzahlVersteckt(z){ return istSatz() ? 1 : istWort() ? z.join('').split(' ').length : z.length; }
   function frage(z){
     var w = namen(z), eins = anzahlVersteckt(z) === 1;
+    if (istSatz()) return 'Wie heisst der Satz?';
     return eins ? (w[0] === 'Buchstabe' ? 'Welcher Buchstabe' : w[0] === 'Zahl' ? 'Welche Zahl' : w[0] === 'Wort' ? 'Welches Wort' : 'Welches Zeichen') + ' erscheint?' : 'Welche ' + w[1] + ' erscheinen?';
   }
   function anleitung(z){
-    var w = namen(z), n = anzahlVersteckt(z);
-    return 'Schneide die Kreise aus und stich in der Mitte ein kleines Loch. Lege sie der Grösse nach aufeinander – den grössten zuunterst, den Deckel mit dem Pfeil zuoberst – und stecke eine Musterklammer durch die Mitte. ' +
-      'Drehe die Scheiben, bis die Stücke zusammenpassen. ' +
+    var w = namen(z), n = anzahlVersteckt(z), anfang = 'Schneide die Kreise aus und stich in der Mitte ein kleines Loch. Lege sie der Grösse nach aufeinander – den grössten zuunterst, den ' +
+      (st.opt.pfeil ? 'Deckel mit dem Pfeil' : 'kleinsten Kreis') + ' zuoberst – und stecke eine Musterklammer durch die Mitte. Drehe die Scheiben, bis die Stücke zusammenpassen. ';
+    if (istSatz()) return anfang + 'Es ist ein Satz versteckt. Er steht in Zeilen von oben nach unten. ' + frage(z);
+    return anfang +
       (n === 1 ? 'Es ist ' + (w[0] === 'Zahl' ? 'eine Zahl' : w[0] === 'Buchstabe' ? 'ein Buchstabe' : w[0] === 'Wort' ? 'ein Wort' : 'ein Zeichen') + ' versteckt' : 'Es sind ' + n + ' ' + w[1] + ' versteckt') +
       ', mit dem Kopf nach aussen' + (istWort() ? '; ' + (n === 1 ? 'es läuft' : 'sie laufen') + ' im Uhrzeigersinn. ' : '. ') + frage(z);
   }
   function titel(){ return 'Drehscheiben'; }
   function zeichnen(){
     if (aus) return;
+    if (istSatz()){ satzZeichnen(); return; }
     var o = st.opt, wortArt = istWort(), alle = wortArt ? Kern.wort(st.wortText) : Kern.zeichen(st.zeichen), max = wortArt ? 12 : 8, z = alle.slice(0, max);
     while (z.length && z[z.length - 1] === ' ') z.pop();
     var h = '';
@@ -411,13 +487,42 @@ function starte(bereich){
     z.forEach(function(c){ if (c !== ' ' && !M[c]){ M[c] = metrik(c); hoch = Math.max(hoch, M[c].a + M[c].d); } });
     function breite(c){ return c === ' ' ? 0.35 : ((M[c].l + M[c].r) / 100 + STRICH) / (hoch / 100 + STRICH); }
     var P = Kern.planen({ zeichen:z, wort:wortArt, breite:breite, ringe:o.ringe, punkte:o.punkte, seed:st.seed });
-    G = { P:P, metrik:M, f:P.h / (hoch / 100 + STRICH), farben:z.map(function(_, i){ return st.farben[i] || ''; }) };
+    G = { P:P, metrik:M, f:P.h / (hoch / 100 + STRICH), farben:z.map(function(_, i){ return st.farben[i] || ''; }), pfeil:o.pfeil };
     var mm = P.mm, schmal = P.ringBreite < 4.5 * mm;
     meldung(schmal ? 'warnung' : '', schmal ? '<p>Die Ringe sind nur ' + f1(Math.round(P.ringBreite / mm * 10) / 10) + ' mm breit – das ist schwierig zum Ausschneiden. ' + (wortArt ? 'Ein kürzeres Wort' : 'Weniger Zeichen') + ' oder weniger Kreise helfen.</p>' : '');
     seitenZeichnen(z);
     spielVersatz = P.schirm.slice();
     spielZeichnen();
     loesungZeichnen(z);
+  }
+
+  // Satz: Wörter messen, Zeilen setzen (Kern.satzSetzen), dann wie bei den Zeichen weiter
+  function satzZeichnen(){
+    var o = st.opt, roh = st.satzText.replace(/\s+/g, ' ').trim(), woerter = satzWoerter();
+    $('#drZaehler').innerHTML = woerter.length ? '<p class="dr-zaehler-haupt ok">Satz mit <b>' + woerter.length + '</b> ' + (woerter.length === 1 ? 'Wort' : 'Wörtern') + '</p>' +
+      (roh.length > 80 ? '<p class="warnung">Höchstens 80 Zeichen – der Rest fällt weg.</p>' : '') : '';
+    if (!woerter.length){
+      G = null; farbenZeigen([]); $('#drInhalt').hidden = true; ['#drZeigeLoesung', '#drNeu', '#drPdf', '#drHerunterladen'].forEach(function(s){ $(s).disabled = true; });
+      meldung('info', '<p>Gib links den Satz ein, der auf den Scheiben erscheinen soll.</p>');
+      return;
+    }
+    $('#drInhalt').hidden = false; ['#drZeigeLoesung', '#drNeu', '#drPdf', '#drHerunterladen'].forEach(function(s){ $(s).disabled = false; });
+    farbenZeigen(woerter);
+    messer.font = '700 100px ' + Labor.blattSchrift('buchstaben');
+    var leer = messer.measureText(' ').width, breiten = woerter.map(function(w){ return messer.measureText(w).width + STRICH_SATZ * 100; });
+    var P = Kern.planen({ satz:{ breiten:breiten, leer:leer }, ringe:o.ringe, punkte:o.punkte, seed:st.seed });
+    if (!P.satz){
+      G = null; $('#drInhalt').hidden = true;
+      meldung('warnung', '<p>Dieser Satz passt nicht auf die Scheibe – ein Wort ist zu lang. Ein kürzerer Satz hilft.</p>');
+      return;
+    }
+    G = { P:P, f:P.satz.f, woerter:woerter, farben:woerter.map(function(_, i){ return st.farbenSatz[i] || ''; }), pfeil:o.pfeil };
+    var mm = P.mm, klein = P.satz.f < 4.5 * mm;   // Schriftgrösse 4.5 mm: Grossbuchstaben gut 3 mm hoch
+    meldung(klein ? 'warnung' : '', klein ? '<p>Der Satz ist lang – die Schrift wird klein. Ein kürzerer Satz hilft.</p>' : '');
+    seitenZeichnen(woerter);
+    spielVersatz = P.schirm.slice();
+    spielZeichnen();
+    loesungZeichnen(woerter);
   }
 
   /* ---------- Blatt: Scheiben in Originalgrösse auf A4-Seiten ---------- */
@@ -428,6 +533,7 @@ function starte(bereich){
   var NOTIZ = '<p class="dr-notiz">In Originalgrösse (100 %) drucken – dann misst der grösste Kreis genau 12 cm.</p>';
   function loesungText(z){
     var w = namen(z), eins = anzahlVersteckt(z) === 1;
+    if (istSatz()) return '<p class="dr-antwort dr-antwort-satz">Der Satz: <span class="dr-linie">' + esc(z.join(' ')) + '</span></p>';
     return '<p class="dr-antwort">' + (eins ? (w[0] === 'Wort' ? 'Das Wort' : w[0] === 'Zahl' ? 'Die Zahl' : w[0] === 'Buchstabe' ? 'Der Buchstabe' : 'Das Zeichen') : 'Die ' + w[1]) + ': ' +
       '<span class="dr-linie">' + esc(istWort() ? z.join('') : z.join(' ')) + '</span></p>';
   }
@@ -447,7 +553,7 @@ function starte(bereich){
       var hoehe = s ? H : H1, inhalt = '';
       pk.lage.filter(function(l){ return l.seite === s; }).forEach(function(l){
         var dreh = l.id ? P.papier[l.id - 1] : Math.round(Kern.zufall(st.seed + 3)() * 360);
-        inhalt += '<g transform="translate(' + f1(l.x) + ' ' + f1(l.y) + ') rotate(' + dreh + ')">' + (l.id ? scheibeBlatt(G, l.id, 'drb' + nr + '-' + l.id) : deckel(P)) + '</g>';
+        inhalt += '<g transform="translate(' + f1(l.x) + ' ' + f1(l.y) + ') rotate(' + dreh + ')">' + (l.id ? scheibeBlatt(G, l.id, 'drb' + nr + '-' + l.id) : deckel(P, null, G.pfeil)) + '</g>';
       });
       html += '<div class="dr-seite-platz"><article class="dr-blatt dr-seite' + (s ? ' neue-seite' : '') + '" aria-label="Seite ' + (s + 1) + '">' +
         (s ? '' : '<div class="dr-kopf">' + kopfHtml(z) + '</div>') +

@@ -45,6 +45,10 @@
 .dr-farbe input::-moz-color-swatch{border:1px solid rgba(0,0,0,.15);border-radius:50%}
 .dr-farbe span{font-family:var(--blatt-buchstaben);font-weight:700;font-size:1.05rem;min-width:.8em;text-align:center}
 .dr-farb-knoepfe{display:flex;gap:6px;margin-top:8px}
+.dr-farbe span{max-width:9em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dr-zeichen-zeile input.dr-satz-feld{font-size:1rem;letter-spacing:0;font-weight:600}
+.dr-antwort-satz{flex-wrap:wrap}
+.dr-antwort-satz .dr-linie{max-width:none;letter-spacing:0;font-size:1.15rem}
 
 /* ---------- Ausgabe ---------- */
 .dr-ausgabe{min-width:0}
