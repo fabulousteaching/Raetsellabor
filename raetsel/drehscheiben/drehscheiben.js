@@ -54,33 +54,46 @@ var Kern = (function(){
      Schriftgrösse 100 (mit Strich), leer: Breite eines Leerzeichens bei 100. Gesucht wird die grösste Schrift, bei der
      alle Wörter Platz haben (Zeilenhöhe 1.25 × Schrift, Zeilen in der Mitte der Scheibe): Jede Zeile reicht so weit, wie
      der Kreis «aussen» an ihrer engsten Stelle breit ist; wo sie am Deckel («kappe») vorbeiführt, hat sie einen linken
-     und einen rechten Teil. → { f, zeilen:[{ y, teile:[{ woerter:[{ i, x }] }] }] } (x: Anfang des Worts; Mitte = 0, 0) */
-  function satzSetzen(breiten, leer, aussen, kappe){
-    function versuch(f, L, m){
+     und einen rechten Teil. → { f, zeilen:[{ y, teile:[{ woerter:[{ i, x }] }] }] } (x: Anfang des Worts; Mitte = 0, 0)
+     Mit rnd («Neu anordnen») wird daraus eine Abwandlung: Schrift 86–100 % der grössten, Zeilen etwas höher oder tiefer,
+     andere Umbrüche (jede Zeile nur zu 72–100 % gefüllt) und Wörter nicht immer genau in der Mitte ihrer Zeile – die
+     Reihenfolge bleibt. */
+  function satzSetzen(breiten, leer, aussen, kappe, rnd){
+    function eins(){ return 1; }
+    function mitte(){ return 0.5; }
+    function versuch(f, L, m, versatz, fuellung, lage){
       var zeilen = [], wi = 0, s = leer * f / 100;
       for (var j = 0; j < m; j++){
-        var y = (j - (m - 1) / 2) * L, oben = y - L / 2, unten = y + L / 2, weit = Math.max(Math.abs(oben), Math.abs(unten));
+        var y = (j - (m - 1) / 2) * L + versatz, oben = y - L / 2, unten = y + L / 2, weit = Math.max(Math.abs(oben), Math.abs(unten));
         if (weit >= aussen) return null;
         var xr = Math.sqrt(aussen * aussen - weit * weit), nah = oben <= 0 && unten >= 0 ? 0 : Math.min(Math.abs(oben), Math.abs(unten));
         var xk = nah < kappe ? Math.sqrt(kappe * kappe - nah * nah) : 0, zeile = { y:y, teile:[] };
         (xk ? [[-xr, -xk], [xk, xr]] : [[-xr, xr]]).forEach(function(t){
-          var platz = t[1] - t[0], w = 0, liste = [];
+          var platz = t[1] - t[0], voll = platz * fuellung(j), w = 0, liste = [];
           while (platz > 0 && wi < breiten.length){
             var x = w + (liste.length ? s : 0), neu = x + breiten[wi] * f / 100;
-            if (neu > platz) break;
+            if (neu > (liste.length ? voll : platz)) break;   // das erste Wort darf die ganze Breite nutzen
             liste.push({ i:wi, x:x }); w = neu; wi++;
           }
-          if (liste.length){ var x0 = (t[0] + t[1]) / 2 - w / 2; liste.forEach(function(e){ e.x += x0; }); zeile.teile.push({ woerter:liste }); }
+          if (liste.length){ var x0 = t[0] + (platz - w) * lage(); liste.forEach(function(e){ e.x += x0; }); zeile.teile.push({ woerter:liste }); }
         });
         zeilen.push(zeile);
       }
       return wi >= breiten.length ? zeilen : null;
     }
-    for (var f = Math.floor(aussen * 0.6); f >= 5; f--){
+    var beste = null;
+    for (var f = Math.floor(aussen * 0.6); f >= 5 && !beste; f--){
       var L = f * 1.25, maxZ = Math.floor(2 * aussen / L);
-      for (var m = 1; m <= maxZ; m++){ var z = versuch(f, L, m); if (z) return { f:f, zeilen:z }; }
+      for (var m = 1; m <= maxZ && !beste; m++){ var z = versuch(f, L, m, 0, eins, mitte); if (z) beste = { f:f, zeilen:z }; }
     }
-    return null;
+    if (!beste || !rnd) return beste;
+    for (var t = 0; t < 60; t++){
+      var f2 = Math.max(5, Math.round(beste.f * (0.86 + 0.14 * rnd()))), L2 = f2 * 1.25, versatz = (rnd() - 0.5) * 0.8 * L2, fuell = [];
+      var fuellung = function(j){ return fuell[j] || (fuell[j] = 0.72 + 0.28 * rnd()); };
+      var lage = function(){ return 0.3 + 0.4 * rnd(); };
+      for (var m2 = 1; m2 <= Math.floor(2 * aussen / L2); m2++){ var z2 = versuch(f2, L2, m2, versatz, fuellung, lage); if (z2) return { f:f2, zeilen:z2 }; }
+    }
+    return beste;
   }
 
   function planen(o){
@@ -93,7 +106,7 @@ var Kern = (function(){
       /* Satz: kleiner Deckel (12 mm Radius); die Zeilen bleiben 4 mm vom Rand. Die Ringe teilen den Bereich, den der Text
          wirklich belegt (bis zur äussersten Wortecke), gleichmässig – so trägt auch die grösste Scheibe genug davon. */
       var kap = 12 * mm, aussenText = kap + 6 * mm;
-      satz = satzSetzen(o.satz.breiten, o.satz.leer, gb, kap + 2 * mm);
+      satz = satzSetzen(o.satz.breiten, o.satz.leer, gb, kap + 2 * mm, rnd);
       if (satz) satz.zeilen.forEach(function(z){ z.teile.forEach(function(t){ t.woerter.forEach(function(w){
         var x1 = w.x + o.satz.breiten[w.i] * satz.f / 100, y1 = Math.abs(z.y) + 0.42 * satz.f;
         aussenText = Math.max(aussenText, Math.hypot(Math.max(Math.abs(w.x), Math.abs(x1)), y1));
@@ -106,15 +119,18 @@ var Kern = (function(){
     } else if (o.wort){
       /* Wort: Die Buchstaben stehen nebeneinander (innen 2.5 mm Abstand) und lesen sich im Uhrzeigersinn. Zusammen
          nehmen sie höchstens 300° ein – die Lücke zeigt, wo das Wort beginnt. Die Buchstaben sind so gross wie möglich:
-         das kleinste ga (Bisektion), bei dem das Wort noch in 300° passt. In der Lösung steht das Wort oben in der Mitte. */
-      var umfang = function(g){ var h = gb - g; return z.reduce(function(s, c){ return s + 2 * halbWinkel(c, g, h); }, 0); };
+         das kleinste ga (Bisektion), bei dem das Wort noch in 300° passt. In der Lösung steht das Wort oben, je nach
+         Anordnung («Neu anordnen») bis 20° daneben und mit etwas mehr oder weniger Abstand zwischen den Buchstaben. */
+      var weiter = 1 + 0.8 * rnd(), dreh = (rnd() - 0.5) * 40;
+      var halbW = function(c, innen, h){ return Math.atan((o.breite(c) * h / 2 + luecke * weiter / 2) / innen) * 180 / Math.PI; };
+      var umfang = function(g){ var h = gb - g; return z.reduce(function(s, c){ return s + 2 * halbW(c, g, h); }, 0); };
       var lo = deckelMin, hi = gb - 6 * mm;
       if (umfang(lo) <= 300) ga = lo;
       else { for (var i = 0; i < 40; i++){ var mitte = (lo + hi) / 2; if (umfang(mitte) <= 300) hi = mitte; else lo = mitte; } ga = hi; }
       var hw = gb - ga, w = 0;
-      winkel = z.map(function(c, j){ var b = halbWinkel(c, ga, hw); if (j) w += b; var x = w; w += b; return x; });
+      winkel = z.map(function(c, j){ var b = halbW(c, ga, hw); if (j) w += b; var x = w; w += b; return x; });
       var mitteW = (winkel[0] + winkel[winkel.length - 1]) / 2;
-      winkel = winkel.map(function(x){ return norm(x - mitteW); });
+      winkel = winkel.map(function(x){ return norm(x - mitteW + dreh); });
     } else {
       /* Einzelne Zeichen, rundum verteilt (gleichmässig mit ±10 % Spiel). Sie sollen so gross wie möglich sein, dürfen
          sich aber innen (wo es eng wird) nicht berühren: Der kleinste Winkel zwischen zwei Mitten ist 0.8 · 360°/m; am
@@ -301,7 +317,7 @@ var VORLAGE = '<div class="dr">' +
     '<div id="drMeldung" aria-live="polite"></div>' +
     '<div class="dr-werkzeug">' +
       '<button type="button" class="btn klein" id="drZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
-      '<button type="button" class="btn klein" id="drNeu" title="Zeichen anders verteilen, Scheiben neu verdrehen">Neu mischen</button>' +
+      '<button type="button" class="btn klein" id="drNeu" title="Gleicher Inhalt in gleicher Reihenfolge, etwas anders auf der Scheibe angeordnet">Neu anordnen</button>' +
       '<span class="abstand"></span>' + Labor.blattSchalterHtml() +
       '<label><input type="checkbox" id="drMitLoesung"> mit Lösungsblatt</label>' +
       '<button type="button" class="btn klein primary" id="drPdf">PDF herunterladen</button>' +
