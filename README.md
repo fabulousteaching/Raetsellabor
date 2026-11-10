@@ -196,6 +196,16 @@ Ein eigener Text wird durch die Löcher einer Drehschablone in ein Quadrat gesch
 - **Blatt:** A4 (Zeichenfläche 639 × 800 Pixel), Antwortlinie, «Lösung zeigen» (Linien und Lösung), Lösungsblatt, PDF.
 - Die Paar-Eingabe (Zeilen, Einfügen, automatische Übersetzung) ist der gemeinsame Baustein `gemeinsam/paarliste.js`, den auch das Triomino nutzt.
 
+### Drehscheiben
+
+Konzentrische Scheiben zum Ausschneiden (wie gebastelte Drehscheiben mit Musterklammer): Die Zahlen oder Buchstaben stehen im Kreis, mit dem Kopf nach aussen, und reichen über alle Ringe. Jede Scheibe trägt nur ihr Stück – wer die Scheiben richtig dreht, sieht die Zeichen.
+
+- **Zeichen:** Zahlen oder Buchstaben, 1 bis 8, zufällig («Andere») oder selbst eingetippt («3 5 8», «HUND»; auch Ä, Ö, Ü). «Anzahl» ergänzt zufällige Zeichen oder lässt welche weg. Zufällig kommen nie 6 und 9 oder M und W zusammen (auf dem Kopf gleich); bei eigenen Zeichen gibt es einen Hinweis.
+- **Scheiben:** 2 (leicht) bis 5 (schwer) Scheiben mit Zeichen und ein Deckel mit Drehpfeil; grösste Scheibe 10, 12, 15 oder 18 cm. Die Zeichen sind so gross wie möglich, ohne sich innen zu berühren (je mehr Zeichen, desto kleiner und weiter aussen; der Deckel wird entsprechend grösser). Die Ringe teilen die Höhe der Zeichen gleichmässig. Unter der nächstkleineren Scheibe reicht jedes Stück 1.5 mm weiter, damit beim Ausschneiden keine Lücken entstehen. Bei Ringen unter 4.5 mm kommt ein Hinweis.
+- **Ablenkung:** *Stücke anderer Zeichen* (keine, einige, viele) in den Lücken jedes Rings – nie eines der gesuchten Zeichen und auf jedem Ring andere, so ergibt sich nie ein falsches ganzes Zeichen. Dazu auf Wunsch *Punkte*.
+- **Blatt:** Die Scheiben in Originalgrösse (1 mm = 703/186 Pixel wie im PDF; Seite 703 × 1031 Pixel, damit das PDF nicht verkleinert), mit Schnittlinie, Mittelpunkt, gestricheltem Platz der nächstkleineren Scheibe und Nummer (1 = zuunterst). Verteilt werden sie so dicht wie möglich: Jede Scheibe kommt an die oberste, dann linkeste freie Stelle (kleine rutschen in die Ecken neben den grossen), erst dann beginnt eine neue Seite – 12 cm mit 4 Zeichen und 4 Scheiben passt auf eine Seite. Titel, Bastelanleitung und Antwortlinie wählbar; Lösungsblatt mit den richtig gedrehten Scheiben; PDF.
+- **Am Bildschirm drehen:** Die Scheiben liegen verdreht aufeinander und lassen sich mit Maus, Finger oder Tastatur (Tabulator, Pfeiltasten) drehen; nahe an der richtigen Stellung rasten sie ein, und am Schluss kommt «Geschafft!». «Lösung zeigen» dreht alle an ihren Platz, «Neu mischen» verteilt Zeichen, Ablenkung und Drehung neu.
+
 ## Aufbau
 
 ```
@@ -226,6 +236,7 @@ raetsel/geheimschrift/          der Generator «Geheimschriften» (Kern: Verschl
 raetsel/kreuzwort/              der Generator «Kreuzworträtsel» (Kern: Anordnen, freie Flächen für Bilder; Seite, Bilder, Lösung)
 raetsel/fleissner/              der Generator «Fleissner-Schablone» (Kern: Lochmuster, Drehen, Verschlüsseln; Raster und Schablone in mm)
 raetsel/kette/                  der Generator «Kettenrätsel» (Kern: Formen A–Z und 0–9, Paare belegen, Eindeutigkeit, Ablenker verteilen)
+raetsel/drehscheiben/           der Generator «Drehscheiben» (Kern: Grösse der Zeichen und Ringe, Ablenker, Scheiben auf Seiten verteilen)
 raetsel/triomino/               der Generator «Triomino» (Kern: Formen, Kanten, Aufgaben, Belegung; Zeichnen mit Schriftanpassung)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)
@@ -244,7 +255,7 @@ api/puzzle.php                  Server-Teil (PHP): speichert Puzzles für QR-Cod
 - Beim Hochladen hängt der GitHub-Workflow eine Versionsnummer an alle Skripte und Stile (`…/labor.js?v=1a2b3c4d`, auch für die Stile der Generatoren). Nach jeder Änderung lädt der Browser so sicher die neuen Dateien.
 - Ist die Seite schon offen, wenn eine neue Version hochgeladen wird (das Labor wechselt zwischen den Generatoren ohne Neuladen), merkt sie das: Der Workflow schreibt die Versionsnummer in `version.txt`, die Seite fragt sie ab, wenn man zu ihr zurückkehrt und alle 10 Minuten. Bei einer neuen Version erscheint ein Hinweis «Neu laden», und der nächste Wechsel zu einem Generator lädt die Seite von selbst neu.
 
-Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und den mitgelieferten Bibliotheken in `gemeinsam/extern/` keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code`, `…/#labyrinth`, `…/#emoji-rechnen`, `…/#text-spiegeln`, `…/#puzzle`, `…/#geheimschrift`, `…/#triomino` oder `…/#kreuzwort` öffnet direkt einen Generator, `…/#start` die Startseite.
+Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und den mitgelieferten Bibliotheken in `gemeinsam/extern/` keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code`, `…/#labyrinth`, `…/#emoji-rechnen`, `…/#text-spiegeln`, `…/#puzzle`, `…/#geheimschrift`, `…/#triomino`, `…/#kreuzwort`, `…/#fleissner`, `…/#kettenraetsel` oder `…/#drehscheiben` öffnet direkt einen Generator, `…/#start` die Startseite.
 
 ## Einen neuen Generator hinzufügen
 

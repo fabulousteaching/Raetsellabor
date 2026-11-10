@@ -1,0 +1,91 @@
+/* Rätsellabor · Drehscheiben – nur aktiv, solange dieser Generator offen ist.
+   Gemeinsame Bausteine (Karten, Knöpfe, Eingabefelder, Meldungen) stehen in gemeinsam/labor.css.
+   Jede Seite ist 703 × 1031 Pixel gross (A4 ohne 12 mm Rand, wie im PDF: 1 mm = 703/186 Pixel; 1031 statt 1032, damit das PDF nicht verkleinert) und wird am Bildschirm eingepasst. */
+.dr{max-width:1440px;margin:0 auto;padding-block:22px 48px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.dr-kopf-seite{display:grid;gap:4px;margin:0 0 20px}
+.dr-kopf-seite h1{font-family:var(--display);font-weight:600;font-size:clamp(1.7rem,3vw,2.2rem);letter-spacing:-.01em;line-height:1.1;margin:0;color:var(--ink)}
+.dr-kopf-seite h1:focus{outline:none}
+.dr-kopf-seite p:last-child{margin:2px 0 0;color:var(--muted);max-width:70ch}
+.dr-layout{display:grid;grid-template-columns:minmax(300px,400px) minmax(0,1fr);gap:24px;align-items:start}
+.dr-eingabe{display:grid;gap:16px;min-width:0}
+@media (min-width:961px){ .dr-eingabe{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--kopf-h) + 16px);max-height:calc(100vh - var(--kopf-h) - 32px);overflow:auto;padding:2px 4px 2px 2px;scrollbar-width:thin} }
+@media (max-width:960px){ .dr-layout{grid-template-columns:minmax(0,1fr);gap:18px} }
+@media (max-width:640px){ .dr{padding-block:18px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))} }
+
+/* ---------- Eingaben ---------- */
+.dr-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.dr-chips label{position:relative;cursor:pointer}
+.dr-chips input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.dr-chips span{display:inline-block;padding:6px 14px;border:1px solid var(--line-2);border-radius:999px;background:#fff;font-size:.88rem;font-weight:600;color:var(--muted);transition:border-color .15s,background .15s,color .15s}
+.dr-anzahl span{padding:6px 0;min-width:38px;text-align:center}
+.dr-chips label:hover span{border-color:var(--accent-line)}
+.dr-chips input:checked + span{background:var(--accent);border-color:var(--accent);color:var(--auf-akzent)}
+.dr-chips input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+.dr .feld-label{display:block;margin-top:10px}
+.dr-zeichen-zeile{display:flex;gap:8px;align-items:center}
+.dr-zeichen-zeile input{flex:1;min-width:0;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:8px 11px;font-size:1.15rem;font-weight:700;letter-spacing:.08em;transition:border-color .15s,box-shadow .15s}
+.dr-zeichen-zeile input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.dr .opt{display:flex;align-items:flex-start;gap:10px;margin:12px 0 0;font-size:.9rem}
+.dr .opt input[type=checkbox]{width:16px;height:16px;margin:3px 0 0;accent-color:var(--accent);flex:none}
+.dr .opt-raster{display:grid;grid-template-columns:1fr;gap:6px;font-size:.9rem;margin-top:12px}
+.dr-zaehler{margin-top:8px;font-size:.88rem}
+.dr-zaehler p{margin:6px 0 0}
+.dr-zaehler-haupt{padding:8px 11px;border-radius:9px;margin:0!important}
+.dr-zaehler-haupt.ok{background:var(--ok-soft);color:var(--ok)}
+.dr-zaehler .warnung{color:var(--accent-2)}
+#drMass{margin-top:12px}
+
+/* ---------- Ausgabe ---------- */
+.dr-ausgabe{min-width:0}
+.dr-inhalt{display:grid;gap:14px;min-width:0}
+.dr-inhalt[hidden]{display:none}
+.dr-werkzeug{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.dr-werkzeug .abstand{flex:1}
+.dr-werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
+.dr-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+/* Am Bildschirm drehen */
+.dr-spiel{display:grid;grid-template-columns:minmax(0,1fr);justify-items:center;gap:8px}
+.dr-spiel-kopf{justify-self:stretch}
+.dr-spiel-kopf h2{font-family:var(--display);font-weight:600;font-size:1.2rem;margin:0;color:var(--ink)}
+.dr-spiel-kopf p{margin:2px 0 0;color:var(--muted);font-size:.9rem}
+.dr-spiel-kopf b{color:var(--ok)}
+.dr-spielfeld{width:min(100%,460px);aspect-ratio:1;touch-action:none;user-select:none;-webkit-user-select:none}
+.dr-spielfeld svg{display:block;width:100%;height:100%;overflow:visible}
+.dr-spielfeld .dr-ring{cursor:grab}
+.dr-spielfeld .dr-ring:focus{outline:none}
+.dr-spielfeld .dr-ring:focus-visible > .dr-rand{stroke:var(--accent);stroke-width:3}
+.dr-spielfeld.geloest .dr-ring > .dr-rand{stroke:var(--ok);stroke-width:1.6}
+.dr-seiten-info{margin:4px 0 0;font-size:.88rem;color:var(--muted)}
+/* Seiten: immer 703 × 1031 Pixel, am Bildschirm verkleinert (Massstab in drehscheiben.js) */
+.dr-seiten{display:grid;gap:18px;min-width:0}
+.dr-seite-platz{position:relative;width:100%}
+.dr-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C1714}
+.dr-seite{height:1031px;padding:8px;display:flex;flex-direction:column;align-items:center;transform-origin:top left;overflow:hidden;
+  outline:1px solid var(--line);box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08)}
+.dr-kopf{align-self:stretch;padding:8px 20px 0;margin-bottom:8px}
+.dr-kopf:empty{display:none}
+.dr-blatt h2{font-size:1.5rem;font-weight:700;margin:0 0 4px;letter-spacing:-.015em;color:#1C1714}
+.dr-anleitung{margin:0;color:#554C45;line-height:1.42;font-size:.92rem}
+.dr-flaeche{display:block;flex:none}
+.dr-antwort{align-self:stretch;margin:auto 20px 4px;padding-top:14px;font-weight:700;font-size:1.02rem;display:flex;align-items:flex-end;gap:10px}
+.dr-linie{flex:1;max-width:340px;min-height:1.5em;border-bottom:2px solid #1C1714;color:var(--accent-2);font-size:1.3rem;letter-spacing:.12em;line-height:1.2}
+.dr-loesungs-rahmen{display:none}
+.dr-loesungsblatt{padding:18px 32px 24px}
+.dr-loesungsblatt .dr-anleitung{margin-bottom:6px}
+.dr-loesung-bild{margin:14px auto 6px}
+.dr-loesung-bild svg{display:block}
+.dr-loesungsblatt .dr-antwort{margin:14px 0 0}
+
+/* ---------- Drucken (gilt auch für das PDF) ---------- */
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#fff!important}
+  .dr-kopf-seite,.dr-eingabe,.dr-werkzeug,.dr-spiel,.dr-seiten-info,#drMeldung,.nur-bildschirm{display:none!important}
+  .dr{padding:0;max-width:none}
+  .dr-layout,.dr-inhalt,.dr-seiten{display:block}
+  .dr-seite-platz{height:auto!important}
+  .dr-seite{transform:none!important;margin-left:0!important;outline:0;box-shadow:none}
+  .dr-seite-platz + .dr-seite-platz .dr-seite{break-before:page}
+  #drSeiten .dr-linie{color:transparent}
+  body.mit-loesung .dr-loesungs-rahmen{display:block;break-before:page}
+}
