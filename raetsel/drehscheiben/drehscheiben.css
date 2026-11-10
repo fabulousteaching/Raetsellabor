@@ -33,7 +33,18 @@
 .dr-zaehler-haupt{padding:8px 11px;border-radius:9px;margin:0!important}
 .dr-zaehler-haupt.ok{background:var(--ok-soft);color:var(--ok)}
 .dr-zaehler .warnung{color:var(--accent-2)}
-#drMass{margin-top:12px}
+/* Farben der Zeichen */
+.dr-farben{display:flex;flex-wrap:wrap;gap:6px}
+.dr-farben:empty{display:none}
+.dr-farbe{display:inline-flex;align-items:center;gap:5px;padding:3px 9px 3px 4px;border:1px solid var(--line-2);border-radius:999px;background:#fff;cursor:pointer}
+.dr-farbe:hover{border-color:var(--accent-line)}
+.dr-farbe:focus-within{outline:2px solid var(--accent-2);outline-offset:2px}
+.dr-farbe input{width:26px;height:26px;padding:0;border:0;border-radius:50%;background:none;cursor:pointer;-webkit-appearance:none;appearance:none}
+.dr-farbe input::-webkit-color-swatch-wrapper{padding:0}
+.dr-farbe input::-webkit-color-swatch{border:1px solid rgba(0,0,0,.15);border-radius:50%}
+.dr-farbe input::-moz-color-swatch{border:1px solid rgba(0,0,0,.15);border-radius:50%}
+.dr-farbe span{font-family:var(--blatt-buchstaben);font-weight:700;font-size:1.05rem;min-width:.8em;text-align:center}
+.dr-farb-knoepfe{display:flex;gap:6px;margin-top:8px}
 
 /* ---------- Ausgabe ---------- */
 .dr-ausgabe{min-width:0}
@@ -60,21 +71,21 @@
 .dr-seiten{display:grid;gap:18px;min-width:0}
 .dr-seite-platz{position:relative;width:100%}
 .dr-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C1714}
-.dr-seite{height:1031px;padding:8px;display:flex;flex-direction:column;align-items:center;transform-origin:top left;overflow:hidden;
+.dr-seite{height:1031px;padding:30px;display:flex;flex-direction:column;align-items:center;transform-origin:top left;overflow:hidden;
   outline:1px solid var(--line);box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08)}
-.dr-kopf{align-self:stretch;padding:8px 20px 0;margin-bottom:8px}
+.dr-kopf{align-self:stretch;margin-bottom:14px}
 .dr-kopf:empty{display:none}
 .dr-blatt h2{font-size:1.5rem;font-weight:700;margin:0 0 4px;letter-spacing:-.015em;color:#1C1714}
 .dr-anleitung{margin:0;color:#554C45;line-height:1.42;font-size:.92rem}
 .dr-flaeche{display:block;flex:none}
-.dr-antwort{align-self:stretch;margin:auto 20px 4px;padding-top:14px;font-weight:700;font-size:1.02rem;display:flex;align-items:flex-end;gap:10px}
+.dr-notiz{align-self:stretch;margin:auto 0 0;padding-top:10px;font-size:.78rem;color:#8A8079;text-align:center}
+.dr-antwort{margin:14px 0 0;font-weight:700;font-size:1.02rem;display:flex;align-items:flex-end;gap:10px}
 .dr-linie{flex:1;max-width:340px;min-height:1.5em;border-bottom:2px solid #1C1714;color:var(--accent-2);font-size:1.3rem;letter-spacing:.12em;line-height:1.2}
 .dr-loesungs-rahmen{display:none}
 .dr-loesungsblatt{padding:18px 32px 24px}
 .dr-loesungsblatt .dr-anleitung{margin-bottom:6px}
 .dr-loesung-bild{margin:14px auto 6px}
 .dr-loesung-bild svg{display:block}
-.dr-loesungsblatt .dr-antwort{margin:14px 0 0}
 
 /* ---------- Drucken (gilt auch für das PDF) ---------- */
 @media print{
@@ -86,6 +97,5 @@
   .dr-seite-platz{height:auto!important}
   .dr-seite{transform:none!important;margin-left:0!important;outline:0;box-shadow:none}
   .dr-seite-platz + .dr-seite-platz .dr-seite{break-before:page}
-  #drSeiten .dr-linie{color:transparent}
   body.mit-loesung .dr-loesungs-rahmen{display:block;break-before:page}
 }
