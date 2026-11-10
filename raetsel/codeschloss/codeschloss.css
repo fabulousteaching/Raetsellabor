@@ -17,6 +17,7 @@
 
 /* ---------- Eingaben ---------- */
 .cs .feld-label{display:block;margin-top:4px}
+.cs-chips + .feld-label{margin-top:14px!important}
 .cs-code-zeile{display:flex;gap:8px;align-items:center}
 .cs-code-zeile input{flex:1;min-width:0;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:8px 11px;font-size:1.15rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;transition:border-color .15s,box-shadow .15s}
 .cs-code-zeile input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}

@@ -214,6 +214,7 @@ Ein Feld mit Buchstaben (blau) und Emojis, daneben kleine Kästchen (2 × 2 Feld
 
 - **Code:** 3 bis 6 Buchstaben oder Ziffern (so viele, wie das Thema Farben hat); «Andere» schlägt ein Wort vor.
 - **Emoji-Themen** mit je einem Emoji pro Farbe, das auf allen Geräten deutlich diese Farbe hat: *Früchte* 🍓🍊🍋🍏🫐🍇, *Gemüse* 🍅🥕🌽🥦🍆, *Tiere* 🐞🦊🐥🐸🐳, *Bücher* 📕📙📒📗📘, *Herzen* ❤️🧡💛💚💙💜, *Formen* 🔴🟠🟡🟢🔵🟣. Die übrigen Felder bekommen andere Emojis desselben Themas – nie eines der Ziel-Emojis, so steht jedes genau einmal im Feld.
+- **Kästchen:** 2 × 2 (leicht, wie im Beispiel), 3 × 3 oder 4 × 4 Felder (schwer, Wege bis 4 Felder weit). Grössere Kästchen haben kleinere Felder und Symbole, damit sie gleich viel Platz brauchen; ab 3 × 3 liegen Emoji und Schloss nie direkt nebeneinander.
 - **Feld:** 5 × 5 (leicht), 6 × 6 oder 7 × 7 (schwer), etwa zur Hälfte Emojis. Jedes Kästchen bekommt einen eigenen Weg (Ecken und Seitenmitten, in alle Richtungen); die Kästchen stehen nicht in Code-Reihenfolge. Die Buchstaben des Codes kommen im Feld auch sonst vor, damit sie nichts verraten. Geprüft: jedes Kästchen führt zum richtigen Zeichen.
 - **Blatt:** Feld, Kästchen, Code-Feld mit Farbpunkten und Linien, ein gezeichnetes Zahlenschloss; Titel und Anleitung wählbar. Lösung (am Bildschirm und Lösungsblatt): Ziel-Emojis mit Ring in ihrer Farbe, Ziel-Buchstaben gelb, Buchstabe beim Schloss, Emojis über den Punkten, der Code im Schloss 🥳. PDF.
 - **Am Bildschirm lösen:** je Farbpunkt ein Feld; falsche Zeichen werden rot, beim richtigen Code: «Geschafft! 🥳 Das Schloss ist offen.»

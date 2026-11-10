@@ -35,18 +35,22 @@ var Kern = (function(){
   // Eingabe → Code: Grossbuchstaben (auch Ä, Ö, Ü) und Ziffern; alles andere fällt weg
   function code(text){ return String(text || '').replace(/ß/g, 'SS').toUpperCase().replace(/[^0-9A-ZÄÖÜ]/g, '').split(''); }
   function zufallsWort(rnd, max, ausser){ var l = WOERTER.filter(function(w){ return w.length >= 3 && w.length <= max && w !== ausser; }); return l[Math.floor(rnd() * l.length)]; }
-  // Punkte am Rand eines Kästchens (2 × 2 Felder): Ecken und Seitenmitten, [x, y] von 0 bis 2, y nach unten
-  var PUNKTE = [[0, 0], [1, 0], [2, 0], [0, 1], [2, 1], [0, 2], [1, 2], [2, 2]];
+  // Punkte am Rand eines Kästchens mit gr × gr Feldern (Ecken und Randpunkte), [x, y] von 0 bis gr, y nach unten
+  function punkte(gr){ var l = []; for (var y = 0; y <= gr; y++) for (var x = 0; x <= gr; x++) if (!x || !y || x === gr || y === gr) l.push([x, y]); return l; }
+  var PUNKTE = punkte(2);
 
-  /* Rätsel planen. o: { code:[…], thema, n (Feld n × n), seed }
-     → { n, zellen:[{ typ:'e'|'b', t, ziel }] (Zeile für Zeile), ziele:[{ farbe, emoji, c, e:[x, y], l:[x, y], p, q }],
+  /* Rätsel planen. o: { code:[…], thema, n (Feld n × n), kaestchen (2, 3 oder 4: Kästchen mit so vielen Feldern je Seite), seed }
+     → { n, gr (Kästchengrösse), zellen:[{ typ:'e'|'b', t, ziel }] (Zeile für Zeile), ziele:[{ farbe, emoji, c, e:[x, y], l:[x, y], p, q }],
          reihe (Reihenfolge der Kästchen auf dem Blatt) } – oder null, wenn es nicht aufgeht.
      Für jedes Zeichen: ein Paar Punkte p (Emoji) → q (Schloss) im Kästchen; das Emoji kommt an eine freie Stelle e im
-     Feld, das Zeichen genau um (q − p) daneben. Die Hälfte der übrigen Felder bekommt andere Emojis, der Rest Buchstaben. */
+     Feld, das Zeichen genau um (q − p) daneben. Die Hälfte der übrigen Felder bekommt andere Emojis, der Rest Buchstaben.
+     Bei Kästchen ab 3 × 3 liegen Emoji und Schloss nie direkt nebeneinander (die Symbole würden sich überdecken). */
   function planen(o){
     var rnd = zufall(o.seed), T = thema(o.thema), farben = farbenVon(o.thema), k = o.code.length, n = o.n, ziele = null;
-    var paare = [];
-    PUNKTE.forEach(function(p){ PUNKTE.forEach(function(q){ if (p !== q) paare.push([p, q]); }); });
+    var gr = [2, 3, 4].indexOf(+o.kaestchen) >= 0 ? +o.kaestchen : 2, pkt = punkte(gr), paare = [];
+    pkt.forEach(function(p){ pkt.forEach(function(q){
+      if (p !== q && (gr === 2 || Math.max(Math.abs(p[0] - q[0]), Math.abs(p[1] - q[1])) >= 2)) paare.push([p, q]);
+    }); });
     for (var versuch = 0; versuch < 200 && !ziele; versuch++){
       var belegt = {}, liste = [];
       for (var i = 0; i < k; i++){
@@ -81,10 +85,10 @@ var Kern = (function(){
     });
     var reihe = ziele.map(function(_, i){ return i; });
     for (var m = 0; m < 20; m++){ mischen(reihe, rnd); if (k < 3 || reihe.some(function(x, i){ return x !== i; })) break; }   // nicht in Code-Reihenfolge
-    return { n:n, zellen:zellen, ziele:ziele, reihe:reihe };
+    return { n:n, gr:gr, zellen:zellen, ziele:ziele, reihe:reihe };
   }
   return { zufall:zufall, mischen:mischen, REIHE:REIHE, FARBE:FARBE, THEMEN:THEMEN, WOERTER:WOERTER, thema:thema, farbenVon:farbenVon,
-    code:code, zufallsWort:zufallsWort, PUNKTE:PUNKTE, planen:planen };
+    code:code, zufallsWort:zufallsWort, PUNKTE:PUNKTE, punkte:punkte, planen:planen };
 })();
 /* KERN-ENDE */
 
@@ -104,16 +108,19 @@ function feldHtml(R, loesung){
       : '<span class="cs-z cs-buchstabe' + (ring ? ' cs-ziel' : '') + '">' + esc(z.t) + '</span>';
   }).join('') + '</div>';
 }
-/* Kästchen: 2 × 2 Felder (Feld u Pixel), am Punkt p das Emoji, am Punkt q das Schloss. Die Linien laufen unter den
-   Symbolen durch; ein weisser Kreis hinter jedem Symbol lässt sie dort aus (wie Lücken). Lösung: Buchstabe beim Schloss. */
-function figurHtml(z, loesung){
-  var u = 42, rand = 30, g = 2 * u + 2 * rand;
-  function pos(p){ return 'left:' + (rand + p[0] * u) + 'px;top:' + (rand + p[1] * u) + 'px'; }
+/* Kästchen: gr × gr Felder (Feld u Pixel), am Punkt p das Emoji, am Punkt q das Schloss. Die Linien laufen unter den
+   Symbolen durch; ein weisser Kreis hinter jedem Symbol lässt sie dort aus (wie Lücken). Lösung: Buchstabe beim Schloss.
+   Grössere Kästchen haben kleinere Felder, damit sie gleich viel Platz brauchen. */
+var KAESTCHEN = { 2:{ u:42, rand:30, sym:30 }, 3:{ u:32, rand:24, sym:25 }, 4:{ u:25, rand:24, sym:22 } };
+function figurHtml(z, loesung, gr){
+  var K = KAESTCHEN[gr] || KAESTCHEN[2], u = K.u, rand = K.rand, s = gr * u, g = s + 2 * rand, linien = '';
+  function pos(p){ return 'left:' + (rand + p[0] * u) + 'px;top:' + (rand + p[1] * u) + 'px;font-size:' + K.sym + 'px'; }
+  for (var i = 1; i < gr; i++) linien += 'M' + (rand + i * u) + ' ' + rand + 'V' + (rand + s) + 'M' + rand + ' ' + (rand + i * u) + 'H' + (rand + s);
   var svg = '<svg class="cs-linien" width="' + g + '" height="' + g + '" viewBox="0 0 ' + g + ' ' + g + '" aria-hidden="true"><g fill="none" stroke="' + TINTE + '" stroke-width="2" stroke-linecap="square">' +
-    '<rect x="' + rand + '" y="' + rand + '" width="' + 2 * u + '" height="' + 2 * u + '"/><path d="M' + (rand + u) + ' ' + rand + 'V' + (rand + 2 * u) + 'M' + rand + ' ' + (rand + u) + 'H' + (rand + 2 * u) + '"/></g></svg>';
+    '<rect x="' + rand + '" y="' + rand + '" width="' + s + '" height="' + s + '"/><path d="' + linien + '"/></g></svg>';
   // Lösungsbuchstabe neben dem Schloss, zur Mitte des Kästchens hin
-  var lx = Math.sign(1 - z.q[0]), ly = Math.sign(1 - z.q[1]);
-  var l = loesung ? '<span class="cs-figur-l" style="left:' + (rand + z.q[0] * u + lx * 30) + 'px;top:' + (rand + z.q[1] * u + ly * 30) + 'px">' + esc(z.c) + '</span>' : '';
+  var lx = Math.sign(gr / 2 - z.q[0]), ly = Math.sign(gr / 2 - z.q[1]), weg = Math.min(30, u * 0.8);
+  var l = loesung ? '<span class="cs-figur-l" style="left:' + (rand + z.q[0] * u + lx * weg) + 'px;top:' + (rand + z.q[1] * u + ly * weg) + 'px">' + esc(z.c) + '</span>' : '';
   return '<div class="cs-figur" style="width:' + g + 'px;height:' + g + 'px">' + svg +
     '<span class="cs-sym" style="' + pos(z.p) + '">' + z.emoji + '</span><span class="cs-sym" style="' + pos(z.q) + '">🔐</span>' + l + '</div>';
 }
@@ -154,8 +161,10 @@ var VORLAGE = '<div class="cs">' +
         return '<label><input type="radio" name="csThema" value="' + T.id + '"><span><i aria-hidden="true">' + Kern.farbenVon(T.id).map(function(f){ return T.ziel[f]; }).join('') + '</i><b>' + esc(T.name) + '</b></span></label>';
       }).join('') + '</div>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Feld</h2></div></div>' +
-      '<div class="cs-chips" role="radiogroup" aria-label="Grösse des Felds">' + chips('csN', [[5, '5 × 5 · leicht'], [6, '6 × 6'], [7, '7 × 7 · schwer']]) + '</div>' +
+    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Feld und Kästchen</h2></div></div>' +
+      '<p class="feld-label">Feld</p><div class="cs-chips" role="radiogroup" aria-label="Grösse des Felds">' + chips('csN', [[5, '5 × 5 · leicht'], [6, '6 × 6'], [7, '7 × 7 · schwer']]) + '</div>' +
+      '<p class="feld-label">Kästchen</p><div class="cs-chips" role="radiogroup" aria-label="Grösse der Kästchen">' + chips('csKaestchen', [[2, '2 × 2 · leicht'], [3, '3 × 3'], [4, '4 × 4 · schwer']]) + '</div>' +
+      '<p class="hinweis">Grössere Kästchen haben längere Wege (bis 4 Felder weit).</p>' +
     '</div>' +
   '</section>' +
   '<section class="cs-ausgabe" aria-label="Ergebnis">' +
@@ -194,12 +203,13 @@ Labor.registriere({
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false;
   var TAB = 'code-schloss-eingaben', OPT = 'code-schloss-einstellungen';
-  var STANDARD = { thema:'fruechte', n:6, mitLoesung:true, titelAn:true, anleitungAn:true };
+  var STANDARD = { thema:'fruechte', n:6, kaestchen:2, mitLoesung:true, titelAn:true, anleitungAn:true };
   var st = { code:'', seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
   try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.code = String(e.code || ''); st.seed = +e.seed || st.seed; } } catch(x){}
   if (!Kern.THEMEN.some(function(T){ return T.id === st.opt.thema; })) st.opt.thema = 'fruechte';
   if ([5, 6, 7].indexOf(+st.opt.n) < 0) st.opt.n = 6;
+  if ([2, 3, 4].indexOf(+st.opt.kaestchen) < 0) st.opt.kaestchen = 2;
   if (!Kern.code(st.code).length) st.code = Kern.zufallsWort(Kern.zufall(st.seed + 5), 5);
   var timer = 0;
   function speichernJetzt(){ clearTimeout(timer); timer = 0;
@@ -217,7 +227,7 @@ function starte(bereich){
       r.addEventListener('change', function(){ if (!r.checked) return; st.opt[k] = typeof STANDARD[k] === 'number' ? +r.value : r.value; speichern(); zeichnen(); });
     });
   }
-  radios('csThema', 'thema'); radios('csN', 'n');
+  radios('csThema', 'thema'); radios('csN', 'n'); radios('csKaestchen', 'kaestchen');
   $('#csCode').value = st.code;
   $('#csCode').addEventListener('input', function(){ st.code = this.value; speichern(); baldZeichnen(); });
   $('#csZufall').addEventListener('click', function(){
@@ -244,7 +254,7 @@ function starte(bereich){
       (o.anleitungAn && !kopf ? '<p class="cs-anleitung">' + esc(anleitung(z)) + '</p>' : '') +
       '<div class="cs-haupt"><div class="cs-links">' + feldHtml(R, loesung) + codeHtml(R, loesung) +
         '<div class="cs-schloss-platz">' + schlossSvg(z.length, loesung ? z : null) + (loesung ? '<span class="cs-jubel" aria-hidden="true">🥳</span>' : '') + '</div></div>' +
-      '<div class="cs-figuren">' + R.reihe.map(function(i){ return figurHtml(R.ziele[i], loesung); }).join('') + '</div></div>';
+      '<div class="cs-figuren">' + R.reihe.map(function(i){ return figurHtml(R.ziele[i], loesung, R.gr); }).join('') + '</div></div>';
   }
   function zeichnen(){
     if (aus) return;
@@ -259,7 +269,7 @@ function starte(bereich){
       meldung('info', '<p>Gib links den Code ein – 3 bis ' + max + ' Buchstaben oder Ziffern.</p>');
       return;
     }
-    R = Kern.planen({ code:z, thema:o.thema, n:o.n, seed:st.seed });
+    R = Kern.planen({ code:z, thema:o.thema, n:o.n, kaestchen:o.kaestchen, seed:st.seed });
     if (!R){ $('#csInhalt').hidden = true; meldung('warnung', '<p>Das Feld ist zu klein für diesen Code. Wähle ein grösseres Feld.</p>'); return; }
     meldung('', ''); $('#csInhalt').hidden = false;
     var zeige = $('#csZeigeLoesung').getAttribute('aria-pressed') === 'true';
