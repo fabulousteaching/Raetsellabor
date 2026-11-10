@@ -39,7 +39,27 @@ var Kern = (function(){
   function punkte(gr){ var l = []; for (var y = 0; y <= gr; y++) for (var x = 0; x <= gr; x++) if (!x || !y || x === gr || y === gr) l.push([x, y]); return l; }
   var PUNKTE = punkte(2);
 
-  /* Rätsel planen. o: { code:[…], thema, n (Feld n × n), kaestchen (2, 3 oder 4: Kästchen mit so vielen Feldern je Seite), seed }
+  /* Satz im Feld: Liest man die Buchstaben Zeile für Zeile (ohne Emojis), ergeben sie den Satz. Der Code muss sich aus
+     seinen Buchstaben legen lassen, und für die Emojis braucht es mindestens so viele Felder, wie der Code Zeichen hat.
+     → { L (Buchstaben im Satz), maxL (höchstens im Feld), fehlt:[{ c, hat, braucht }] } */
+  function satzPruefen(satz, codeZ, n){
+    var hat = {}, braucht = {};
+    satz.forEach(function(c){ hat[c] = (hat[c] || 0) + 1; });
+    codeZ.forEach(function(c){ braucht[c] = (braucht[c] || 0) + 1; });
+    var fehlt = Object.keys(braucht).filter(function(c){ return (hat[c] || 0) < braucht[c]; }).map(function(c){ return { c:c, hat:hat[c] || 0, braucht:braucht[c] }; });
+    return { L:satz.length, maxL:n * n - codeZ.length, fehlt:fehlt };
+  }
+  var SAETZE = ['Basel liegt am Rhein', 'Heute lösen wir ein Rätsel', 'Das Schloss ist bald offen', 'Alle Kinder lieben Rätsel', 'Die Sonne scheint warm',
+    'Im Garten blühen Blumen', 'Der Tiger schläft im Zoo', 'Wir suchen den geheimen Code', 'Ein Apfel fällt vom Baum', 'Der Pirat findet einen Schatz',
+    'Mein Freund hat einen Hund', 'Die Schule beginnt um acht', 'Der Mond scheint hell', 'Im Haus brennt Licht'];
+  // ein Satz, aus dem sich der Code legen lässt und der ins Feld passt (sonst null)
+  function satzVorschlag(codeZ, n, rnd, ausser){
+    var l = SAETZE.filter(function(t){ var p = satzPruefen(code(t), codeZ, n); return !p.fehlt.length && p.L <= p.maxL && t !== ausser; });
+    return l.length ? l[Math.floor(rnd() * l.length)] : null;
+  }
+
+  /* Rätsel planen. o: { code:[…], thema, n (Feld n × n), kaestchen (2, 3 oder 4: Kästchen mit so vielen Feldern je Seite),
+     satz (auf Wunsch: Buchstaben, die im Feld der Reihe nach stehen sollen), seed }
      → { n, gr (Kästchengrösse), zellen:[{ typ:'e'|'b', t, ziel }] (Zeile für Zeile), ziele:[{ farbe, emoji, c, e:[x, y], l:[x, y], p, q }],
          reihe (Reihenfolge der Kästchen auf dem Blatt) } – oder null, wenn es nicht aufgeht.
      Für jedes Zeichen: ein Paar Punkte p (Emoji) → q (Schloss) im Kästchen; das Emoji kommt an eine freie Stelle e im
@@ -51,6 +71,7 @@ var Kern = (function(){
     pkt.forEach(function(p){ pkt.forEach(function(q){
       if (p !== q && (gr === 2 || Math.max(Math.abs(p[0] - q[0]), Math.abs(p[1] - q[1])) >= 2)) paare.push([p, q]);
     }); });
+    if (o.satz && o.satz.length) return mitSatz(o, rnd, T, farben, paare, gr);
     for (var versuch = 0; versuch < 200 && !ziele; versuch++){
       var belegt = {}, liste = [];
       for (var i = 0; i < k; i++){
@@ -83,12 +104,56 @@ var Kern = (function(){
     frei.forEach(function(pos, i){
       zellen[pos] = i < anzahlEmoji ? { typ:'e', t:andere[i % andere.length], ziel:-1 } : { typ:'b', t:abc[Math.floor(rnd() * abc.length)], ziel:-1 };
     });
-    var reihe = ziele.map(function(_, i){ return i; });
-    for (var m = 0; m < 20; m++){ mischen(reihe, rnd); if (k < 3 || reihe.some(function(x, i){ return x !== i; })) break; }   // nicht in Code-Reihenfolge
-    return { n:n, gr:gr, zellen:zellen, ziele:ziele, reihe:reihe };
+    return { n:n, gr:gr, zellen:zellen, ziele:ziele, reihe:reihenfolge(k, rnd) };
+  }
+  function reihenfolge(k, rnd){   // Kästchen nicht in Code-Reihenfolge
+    var reihe = [];
+    for (var i = 0; i < k; i++) reihe.push(i);
+    for (var m = 0; m < 20; m++){ mischen(reihe, rnd); if (k < 3 || reihe.some(function(x, i){ return x !== i; })) break; }
+    return reihe;
+  }
+  /* Feld mit Satz: Zuerst werden die Emoji-Felder zufällig gewählt (so viele, wie nach dem Satz übrig sind); die übrigen
+     Felder bekommen der Reihe nach die Buchstaben des Satzes. Dann sucht jedes Code-Zeichen einen Buchstaben im Satz, von
+     dem aus ein Kästchen-Weg rückwärts auf ein freies Emoji-Feld führt. Geht das nicht auf, neue Emoji-Felder (bis 400-mal). */
+  function mitSatz(o, rnd, T, farben, paare, gr){
+    var n = o.n, k = o.code.length, L = o.satz.length, M = n * n - L;
+    if (M < k) return null;
+    var alle = [];
+    for (var c = 0; c < n * n; c++) alle.push(c);
+    for (var versuch = 0; versuch < 400; versuch++){
+      var istE = {}, buchst = {}, b = 0, belegt = {}, liste = [];
+      mischen(alle, rnd).slice(0, M).forEach(function(c){ istE[c] = true; });
+      for (c = 0; c < n * n; c++) if (!istE[c]) buchst[c] = o.satz[b++];
+      for (var i = 0; i < k; i++){
+        var kand = [];
+        Object.keys(buchst).forEach(function(cs){
+          var l = +cs;
+          if (buchst[l] !== o.code[i] || belegt[l]) return;
+          paare.forEach(function(pq){
+            var ex = l % n - (pq[1][0] - pq[0][0]), ey = Math.floor(l / n) - (pq[1][1] - pq[0][1]), e = ey * n + ex;
+            if (ex >= 0 && ey >= 0 && ex < n && ey < n && istE[e] && !belegt[e]) kand.push({ pq:pq, l:l, e:e });
+          });
+        });
+        if (!kand.length) break;
+        // Abwechslung: möglichst ein Weg, den noch kein anderes Kästchen hat
+        var neu = kand.filter(function(x){ return !liste.some(function(z){ return z.q[0] - z.p[0] === x.pq[1][0] - x.pq[0][0] && z.q[1] - z.p[1] === x.pq[1][1] - x.pq[0][1]; }); });
+        var w = (neu.length ? neu : kand)[Math.floor(rnd() * (neu.length || kand.length))];
+        belegt[w.l] = belegt[w.e] = true;
+        liste.push({ farbe:farben[i], emoji:T.ziel[farben[i]], c:o.code[i], e:[w.e % n, Math.floor(w.e / n)], l:[w.l % n, Math.floor(w.l / n)], p:w.pq[0], q:w.pq[1] });
+      }
+      if (liste.length < k) continue;
+      var andere = mischen(T.andere.split(' '), rnd), ai = 0, zellen = [];
+      for (c = 0; c < n * n; c++){
+        var ziel = -1;
+        liste.forEach(function(z, j){ if (z.e[1] * n + z.e[0] === c || z.l[1] * n + z.l[0] === c) ziel = j; });
+        zellen.push(istE[c] ? { typ:'e', t:ziel >= 0 ? liste[ziel].emoji : andere[ai++ % andere.length], ziel:ziel } : { typ:'b', t:buchst[c], ziel:ziel });
+      }
+      return { n:n, gr:gr, zellen:zellen, ziele:liste, reihe:reihenfolge(k, rnd), satz:true };
+    }
+    return null;
   }
   return { zufall:zufall, mischen:mischen, REIHE:REIHE, FARBE:FARBE, THEMEN:THEMEN, WOERTER:WOERTER, thema:thema, farbenVon:farbenVon,
-    code:code, zufallsWort:zufallsWort, PUNKTE:PUNKTE, punkte:punkte, planen:planen };
+    code:code, zufallsWort:zufallsWort, PUNKTE:PUNKTE, punkte:punkte, planen:planen, satzPruefen:satzPruefen, satzVorschlag:satzVorschlag, SAETZE:SAETZE };
 })();
 /* KERN-ENDE */
 
@@ -162,6 +227,12 @@ var VORLAGE = '<div class="cs">' +
       }).join('') + '</div>' +
     '</div>' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Feld und Kästchen</h2></div></div>' +
+      '<p class="feld-label">Buchstaben im Feld</p><div class="cs-chips" role="radiogroup" aria-label="Buchstaben im Feld">' + chips('csFeldArt', [['zufall', 'zufällig'], ['satz', 'ein Satz']]) + '</div>' +
+      '<div id="csSatzTeil" hidden><label class="feld-label" for="csSatz">Satz</label>' +
+        '<div class="cs-code-zeile"><input type="text" id="csSatz" class="cs-satz-feld" maxlength="80" autocomplete="off" spellcheck="false">' +
+        '<button type="button" class="btn klein" id="csSatzVorschlag" title="Einen Satz vorschlagen, der zum Code passt">Vorschlag</button></div>' +
+        '<p class="hinweis">Liest man die Buchstaben im Feld der Reihe nach (Zeile für Zeile, Emojis auslassen), ergeben sie diesen Satz. Die Buchstaben des Codes müssen darin vorkommen.</p>' +
+        '<div class="cs-zaehler" id="csSatzInfo" aria-live="polite"></div></div>' +
       '<p class="feld-label">Feld</p><div class="cs-chips" role="radiogroup" aria-label="Grösse des Felds">' + chips('csN', [[5, '5 × 5 · leicht'], [6, '6 × 6'], [7, '7 × 7 · schwer']]) + '</div>' +
       '<p class="feld-label">Kästchen</p><div class="cs-chips" role="radiogroup" aria-label="Grösse der Kästchen">' + chips('csKaestchen', [[2, '2 × 2 · leicht'], [3, '3 × 3'], [4, '4 × 4 · schwer']]) + '</div>' +
       '<p class="hinweis">Grössere Kästchen haben längere Wege (bis 4 Felder weit).</p>' +
@@ -203,17 +274,19 @@ Labor.registriere({
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false;
   var TAB = 'code-schloss-eingaben', OPT = 'code-schloss-einstellungen';
-  var STANDARD = { thema:'fruechte', n:6, kaestchen:2, mitLoesung:true, titelAn:true, anleitungAn:true };
-  var st = { code:'', seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
+  // feldArt: zufällige Buchstaben oder ein Satz (satz: der eingegebene Text)
+  var STANDARD = { thema:'fruechte', n:6, kaestchen:2, feldArt:'zufall', mitLoesung:true, titelAn:true, anleitungAn:true };
+  var st = { code:'', satz:'', seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
-  try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.code = String(e.code || ''); st.seed = +e.seed || st.seed; } } catch(x){}
+  try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.code = String(e.code || ''); st.satz = String(e.satz || ''); st.seed = +e.seed || st.seed; } } catch(x){}
+  if (['zufall', 'satz'].indexOf(st.opt.feldArt) < 0) st.opt.feldArt = 'zufall';
   if (!Kern.THEMEN.some(function(T){ return T.id === st.opt.thema; })) st.opt.thema = 'fruechte';
   if ([5, 6, 7].indexOf(+st.opt.n) < 0) st.opt.n = 6;
   if ([2, 3, 4].indexOf(+st.opt.kaestchen) < 0) st.opt.kaestchen = 2;
   if (!Kern.code(st.code).length) st.code = Kern.zufallsWort(Kern.zufall(st.seed + 5), 5);
   var timer = 0;
   function speichernJetzt(){ clearTimeout(timer); timer = 0;
-    try { sessionStorage.setItem(TAB, JSON.stringify({ code:st.code, seed:st.seed })); } catch(x){}
+    try { sessionStorage.setItem(TAB, JSON.stringify({ code:st.code, satz:st.satz, seed:st.seed })); } catch(x){}
     try { localStorage.setItem(OPT, JSON.stringify(st.opt)); } catch(x){} }
   function speichern(){ clearTimeout(timer); timer = setTimeout(speichernJetzt, 200); }
   function meldung(art, html){ $('#csMeldung').innerHTML = html ? '<div class="meldung ' + art + '">' + html + '</div>' : ''; }
@@ -221,13 +294,27 @@ function starte(bereich){
   function baldZeichnen(){ clearTimeout(warte); warte = setTimeout(zeichnen, 250); }
 
   /* ---------- Eingaben ---------- */
-  function radios(name, k){
+  function radios(name, k, nachher){
     [].forEach.call(bereich.querySelectorAll('input[name="' + name + '"]'), function(r){
       r.checked = r.value === String(st.opt[k]);
-      r.addEventListener('change', function(){ if (!r.checked) return; st.opt[k] = typeof STANDARD[k] === 'number' ? +r.value : r.value; speichern(); zeichnen(); });
+      r.addEventListener('change', function(){ if (!r.checked) return; st.opt[k] = typeof STANDARD[k] === 'number' ? +r.value : r.value; speichern(); if (nachher) nachher(); zeichnen(); });
     });
   }
-  radios('csThema', 'thema'); radios('csN', 'n'); radios('csKaestchen', 'kaestchen');
+  function codeJetzt(){ return Kern.code(st.code).slice(0, Kern.farbenVon(st.opt.thema).length); }
+  // Satz im Feld: beim ersten Mal einen passenden Satz vorschlagen
+  function satzArtZeigen(){
+    var an = st.opt.feldArt === 'satz';
+    $('#csSatzTeil').hidden = !an;
+    if (an && !st.satz.trim()){ st.satz = Kern.satzVorschlag(codeJetzt(), st.opt.n, Kern.zufall(st.seed + 9)) || Kern.SAETZE[0]; $('#csSatz').value = st.satz; speichern(); }
+  }
+  radios('csThema', 'thema'); radios('csN', 'n'); radios('csKaestchen', 'kaestchen'); radios('csFeldArt', 'feldArt', satzArtZeigen);
+  $('#csSatz').value = st.satz; satzArtZeigen();
+  $('#csSatz').addEventListener('input', function(){ st.satz = this.value; speichern(); baldZeichnen(); });
+  $('#csSatzVorschlag').addEventListener('click', function(){
+    var v = Kern.satzVorschlag(codeJetzt(), st.opt.n, Kern.zufall(Date.now()), st.satz.trim());
+    if (v){ st.satz = v; $('#csSatz').value = v; speichern(); zeichnen(); }
+    else meldung('warnung', '<p>Für den Code «' + esc(codeJetzt().join('')) + '» habe ich keinen passenden Satz in meiner Liste – schreib einen eigenen, in dem alle Buchstaben des Codes vorkommen.</p>');
+  });
   $('#csCode').value = st.code;
   $('#csCode').addEventListener('input', function(){ st.code = this.value; speichern(); baldZeichnen(); });
   $('#csZufall').addEventListener('click', function(){
@@ -245,7 +332,8 @@ function starte(bereich){
   function anleitung(z){
     var ziffern = z.every(function(c){ return /\d/.test(c); }), was = ziffern ? 'eine Ziffer' : 'ein Buchstabe';
     return 'Jedes Kästchen zeigt einen Weg. Suche sein Emoji im grossen Feld. Gehe von dort so viele Felder nach oben, unten, links oder rechts wie im Kästchen vom Emoji bis zum Schloss 🔐. ' +
-      'Dort steht ' + was + '. Schreibe ' + (ziffern ? 'sie' : 'ihn') + ' unter den Punkt mit der Farbe des Emojis. Wie heisst der Code?';
+      'Dort steht ' + was + '. Schreibe ' + (ziffern ? 'sie' : 'ihn') + ' unter den Punkt mit der Farbe des Emojis. Wie heisst der Code?' +
+      (R && R.satz ? ' Zum Schluss: Lies alle Buchstaben im Feld der Reihe nach, Zeile für Zeile – sie ergeben einen Satz.' : '');
   }
   function titel(){ return 'Code-Schloss'; }
   function blattHtml(R, z, loesung, kopf){
@@ -254,7 +342,8 @@ function starte(bereich){
       (o.anleitungAn && !kopf ? '<p class="cs-anleitung">' + esc(anleitung(z)) + '</p>' : '') +
       '<div class="cs-haupt"><div class="cs-links">' + feldHtml(R, loesung) + codeHtml(R, loesung) +
         '<div class="cs-schloss-platz">' + schlossSvg(z.length, loesung ? z : null) + (loesung ? '<span class="cs-jubel" aria-hidden="true">🥳</span>' : '') + '</div></div>' +
-      '<div class="cs-figuren">' + R.reihe.map(function(i){ return figurHtml(R.ziele[i], loesung, R.gr); }).join('') + '</div></div>';
+      '<div class="cs-figuren">' + R.reihe.map(function(i){ return figurHtml(R.ziele[i], loesung, R.gr); }).join('') + '</div></div>' +
+      (kopf && R.satz ? '<p class="cs-satz-loesung">Satz im Feld: <b>' + esc(st.satz.trim()) + '</b></p>' : '');
   }
   function zeichnen(){
     if (aus) return;
@@ -269,8 +358,29 @@ function starte(bereich){
       meldung('info', '<p>Gib links den Code ein – 3 bis ' + max + ' Buchstaben oder Ziffern.</p>');
       return;
     }
-    R = Kern.planen({ code:z, thema:o.thema, n:o.n, kaestchen:o.kaestchen, seed:st.seed });
-    if (!R){ $('#csInhalt').hidden = true; meldung('warnung', '<p>Das Feld ist zu klein für diesen Code. Wähle ein grösseres Feld.</p>'); return; }
+    // Satz im Feld: Lässt sich der Code aus seinen Buchstaben legen, und passt er ins Feld?
+    var satzZ = null;
+    if (o.feldArt === 'satz'){
+      satzZ = Kern.code(st.satz);
+      var pr = Kern.satzPruefen(satzZ, z, o.n), passt = [5, 6, 7].filter(function(n){ return satzZ.length <= n * n - z.length; })[0];
+      $('#csSatzInfo').innerHTML = satzZ.length ? '<p class="cs-zaehler-haupt ' + (pr.fehlt.length || pr.L > pr.maxL ? 'fehlt' : 'ok') + '"><b>' + pr.L + '</b> Buchstaben' +
+        (pr.L > pr.maxL ? ' – im Feld ' + o.n + ' × ' + o.n + ' haben höchstens ' + pr.maxL + ' Platz.' : ' · ' + (o.n * o.n - pr.L) + ' Felder für Emojis') + '</p>' +
+        (!pr.fehlt.length && pr.L <= pr.maxL && pr.L < o.n * o.n * 0.35 ? '<p class="warnung">Der Satz ist kurz – im Feld stehen viele Emojis. Ein kleineres Feld passt besser.</p>' : '') : '';
+      var problem = '';
+      if (!satzZ.length) problem = '<p>Gib links den Satz ein, der im Feld stehen soll.</p>';
+      else if (pr.fehlt.length) problem = '<p>Der Code «' + esc(z.join('')) + '» lässt sich aus diesem Satz nicht legen: ' + pr.fehlt.map(function(f){
+          return f.hat ? '«' + esc(f.c) + '» kommt nur ' + f.hat + '-mal vor, der Code braucht es ' + f.braucht + '-mal' : '«' + esc(f.c) + '» kommt im Satz nicht vor';
+        }).join(', ') + '. Ändere den Satz oder den Code' + (Kern.satzVorschlag(z, o.n, Kern.zufall(1)) ? ' – oder nimm einen «Vorschlag»' : '') + '.</p>';
+      else if (pr.L > pr.maxL) problem = '<p>Der Satz hat ' + pr.L + ' Buchstaben – im Feld ' + o.n + ' × ' + o.n + ' haben höchstens ' + pr.maxL + ' Platz, weil es noch ' + z.length + ' Felder für die Emojis braucht. ' +
+        (passt ? 'Wähle das Feld ' + passt + ' × ' + passt + ' oder kürze den Satz.' : 'Kürze den Satz.') + '</p>';
+      if (problem){ R = null; $('#csInhalt').hidden = true; ['#csZeigeLoesung', '#csNeu', '#csPdf', '#csHerunterladen'].forEach(function(s){ $(s).disabled = true; }); meldung(satzZ.length ? 'warnung' : 'info', problem); return; }
+    }
+    R = Kern.planen({ code:z, thema:o.thema, n:o.n, kaestchen:o.kaestchen, satz:satzZ, seed:st.seed });
+    if (!R){
+      $('#csInhalt').hidden = true;
+      meldung('warnung', satzZ ? '<p>Mit diesem Satz finde ich keine Anordnung, bei der alle Wege aufgehen. Versuche ein anderes Feld, kleinere Kästchen oder «Neu mischen».</p>' : '<p>Das Feld ist zu klein für diesen Code. Wähle ein grösseres Feld.</p>');
+      return;
+    }
     meldung('', ''); $('#csInhalt').hidden = false;
     var zeige = $('#csZeigeLoesung').getAttribute('aria-pressed') === 'true';
     $('#csBlatt').innerHTML = blattHtml(R, z, zeige, false);
