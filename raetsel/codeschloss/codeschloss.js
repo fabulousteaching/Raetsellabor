@@ -29,7 +29,6 @@ var Kern = (function(){
     { id:'herzen', name:'Herzen', ziel:{ rot:'❤️', orange:'🧡', gelb:'💛', gruen:'💚', blau:'💙', violett:'💜' }, andere:'🤍 🖤 🤎 💖 💗 💕 💝 💞' },
     { id:'formen', name:'Formen', ziel:{ rot:'🔴', orange:'🟠', gelb:'🟡', gruen:'🟢', blau:'🔵', violett:'🟣' }, andere:'⚫ ⚪ 🟥 🟧 🟨 🟩 🟦 🟪 🔺 🔷 ⭐' }
   ];
-  var WOERTER = ['ZOO', 'OHR', 'UHR', 'BAUM', 'HAUS', 'MOND', 'BALL', 'BASEL', 'APFEL', 'TIGER', 'BLUME', 'SONNE', 'STERN', 'PIRAT', 'SCHULE', 'FREUND', 'ZAUBER', 'DRACHE'];
   function thema(id){ for (var i = 0; i < THEMEN.length; i++) if (THEMEN[i].id === id) return THEMEN[i]; return THEMEN[0]; }
   function farbenVon(id){ var T = thema(id); return REIHE.filter(function(f){ return T.ziel[f]; }); }
   // Eingabe → Code: Grossbuchstaben (auch Ä, Ö, Ü) und Ziffern; alles andere fällt weg
@@ -52,37 +51,89 @@ var Kern = (function(){
   var SAETZE = ['Basel liegt am Rhein', 'Heute lösen wir ein Rätsel', 'Das Schloss ist bald offen', 'Alle Kinder lieben Rätsel', 'Die Sonne scheint warm',
     'Im Garten blühen Blumen', 'Der Tiger schläft im Zoo', 'Wir suchen den geheimen Code', 'Ein Apfel fällt vom Baum', 'Der Pirat findet einen Schatz',
     'Mein Freund hat einen Hund', 'Die Schule beginnt um acht', 'Der Mond scheint hell', 'Im Haus brennt Licht'];
-  /* Sätze zum Thema der Wörter, die «Andere» vorschlägt: Jeder enthält alle Buchstaben des Worts (so oft, wie es sie
-     braucht), aber nicht das Wort selbst, und hat höchstens 30 Buchstaben (geprüft). Für andere Wörter fragt die Seite die KI. */
+  /* Satz-Datenbank: zu jedem Codewort, das «Andere» vorschlägt, 2–5 Sätze zum Thema. Jeder enthält alle Buchstaben des
+     Worts (so oft, wie es sie braucht), aber nicht das Wort selbst (sonst verriete das Feld die Lösung), und hat 8 bis 30
+     Buchstaben – passt also ins Feld 6 × 6; die kürzesten (bis 19–22 Buchstaben) auch ins Feld 5 × 5. Alles geprüft.
+     Für eigene Codewörter werden alle Sätze der Datenbank durchsucht, aus denen sich der Code legen lässt. */
   var THEMA = {
-    ZOO:['Zebras und Robben wohnen dort', 'Zwei Robben spielen und toben', 'Zebras grasen, Affen toben froh'],
-    OHR:['Wir horchen auf jedes Geräusch', 'Leise Worte hört man schlecht', 'Hörst du das Rauschen vom Bach'],
-    UHR:['Der Zeiger dreht sich rundherum', 'Die Stunden gehen schnell vorbei', 'Der Wecker klingelt um halb acht'],
-    BAUM:['Im Wald wachsen hohe Buchen', 'Die Blätter fallen im Herbst um', 'Vögel bauen Nester im Ast'],
-    HAUS:['Unsere Wohnung hat einen Balkon', 'Das Dach schützt uns vor Regen', 'Hinter der Tür wartet unser Hund'],
-    MOND:['Nachts kommen die Sterne hervor', 'Die Nacht kommt, es wird dunkel', 'Hoch oben am dunklen Himmel'],
-    BALL:['Alle laufen zum Tor und jubeln', 'Beim Spielen rollt alles schnell', 'Lea wirft, Ben fängt alles'],
-    BASEL:['Die Fasnacht ist bunt und laut', 'Im Zolli sieht man Bären und Affen', 'Bunte Laternen und schräge Musik'],
-    APFEL:['Pflaumen schmecken sehr fein', 'Wir pflücken Pflaumen im Garten', 'Im Herbst pflücken alle Obst'],
-    TIGER:['Die grosse Katze hat Streifen', 'Im Dschungel jagt eine Raubkatze', 'Gestreift schleicht er durchs Gras'],
-    BLUME:['Im Frühling blüht der Garten bunt', 'Die Rose duftet herrlich im Beet', 'Bunte Tulpen wachsen im Mai'],
-    SONNE:['Die Strahlen wärmen den Sommertag', 'Im Sommer baden wir gern am See', 'Am Morgen wird es hell und schön'],
-    STERN:['In der Nacht funkelt es oben', 'Nachts glitzert es am Himmel', 'Sie leuchten hell in der Nacht'],
-    PIRAT:['Der Kapitän sucht einen Schatz', 'Ein Papagei sitzt auf der Schulter', 'Mit Augenklappe segelt er los, Ahoi'],
-    SCHULE:['Wir lernen lesen und schreiben', 'In der Pause rechnen alle zusammen', 'Im Unterricht lesen wir viel'],
+    ZOO:['Zebras und Robben wohnen dort', 'Zwei Robben spielen und toben', 'Zebras grasen, Affen toben froh', 'Zebras toben froh'],
+    OHR:['Wir horchen auf jedes Geräusch', 'Leise Worte hört man schlecht', 'Hörst du das Rauschen vom Bach', 'Horch, wer ruft da'],
+    UHR:['Der Zeiger dreht sich rundherum', 'Die Stunden gehen schnell vorbei', 'Der Wecker klingelt um halb acht', 'Es ist schon spät, hurra'],
+    EIS:['Im Sommer schleckt man gern Glace', 'Vanille schmeckt am besten', 'Auf dem See friert es im Winter', 'Kalt ist es im Winter'],
+    BUS:['Bitte einsteigen und festhalten', 'Die Fahrt durch die Stadt beginnt', 'Bitte schnell zusteigen'],
+    HUT:['Die Sonne scheint, setz die Mütze auf', 'Auf dem Kopf hat er eine Mütze', 'Im Sommer schützt er gut'],
+    KUH:['Auf der Alp hört man die Glocken', 'Frische Milch kommt vom Bauernhof', 'Im Stall kaut sie Heu'],
+    SEE:['Wir baden im kühlen Wasser', 'Enten schwimmen am Ufer', 'Am Steg liegt ein Ruderboot'],
+    TEE:['Heiss und süss trinkt man ihn gern', 'Mit Honig schmeckt er fein', 'Pfefferminze wärmt gut'],
+    ZUG:['Auf den Schienen geht es zum Bahnhof', 'Im Tunnel wird es ganz dunkel', 'Ganz schnell zur Stadt'],
+    RAD:['Wir fahren mit dem Velo zur Schule', 'Der Reifen braucht mehr Luft', 'Der Sattel ist zu hoch'],
+    BAUM:['Im Wald wachsen hohe Buchen', 'Die Blätter fallen im Herbst um', 'Vögel bauen Nester im Ast', 'Die Wurzeln halten ihn fest im Boden', 'Hohe Buchen im Wald'],
+    HAUS:['Unsere Wohnung hat einen Balkon', 'Das Dach schützt uns vor Regen', 'Hinter der Tür wartet unser Hund', 'Durch das Fenster scheint Licht', 'Das Dach schützt uns'],
+    MOND:['Nachts kommen die Sterne hervor', 'Die Nacht kommt, es wird dunkel', 'Hoch oben am dunklen Himmel', 'Am Himmel leuchtet er rund und gross'],
+    BALL:['Alle laufen zum Tor und jubeln', 'Beim Spielen rollt alles schnell', 'Lea wirft, Ben fängt alles', 'Alle jubeln beim Tor'],
+    BUCH:['Bis zum Schluss bleibt es spannend', 'Bilder und Geschichten zum Lesen', 'Blättern und lesen macht Spass'],
+    HUND:['Er bellt und wedelt mit dem Schwanz', 'Der Dackel holt den Stock zurück', 'Er schnuppert an der Wurst'],
+    MAUS:['Klein und grau huscht sie umher', 'Unter dem Schrank wohnt ein Nager', 'Sie mag Käse und Nüsse'],
+    NEST:['Drei Eier liegen gut versteckt', 'Hoch im Baum wohnen junge Spatzen', 'Die Küken piepsen laut'],
+    BROT:['Der Bäcker backt am frühen Morgen', 'Mit Butter und Konfi schmeckt es', 'Frisch aus dem Ofen, mit Butter'],
+    WALD:['Wir wandern über Laub und Moos', 'Der Wind rauscht in den Blättern', 'Pilze wachsen am Boden'],
+    BERG:['Wir wandern bis zum Gipfel hinauf', 'Oben auf der Alp grasen Kühe', 'Gipfel über den Wolken'],
+    MEER:['Am Strand rauschen die Wellen', 'Fische schwimmen im Wasser', 'Möwen kreisen über dem Strand', 'Wellen am Strand im Sommer'],
+    ROSE:['Sie hat Dornen und duftet so fein', 'Rote Blüten duften im Sommer', 'Pass auf die Dornen auf'],
+    HASE:['Schnell hoppelt er davon', 'Er hat lange Ohren und mag Salat'],
+    KERZE:['Die Flamme flackert im Zimmer', 'Ein warmes Licht flackert im Kranz', 'Es flackert ganz leise'],
+    INSEL:['Palmen wachsen am weissen Strand', 'Rundherum ist nur blaues Wasser', 'Ein Schiff legt an'],
+    LAMPE:['Sie leuchtet hell auf dem Pult', 'Mama knipst das helle Licht an', 'Plötzlich ist es hell, Mama'],
+    BIRNE:['Die gelbe Frucht ist saftig und süss', 'Reife Früchte hängen am Baum', 'Sie hängt reif am Baum'],
+    KATZE:['Das Kätzchen spielt mit Wolle', 'Ein Kater klettert auf den Zaun', 'Mit ihren Krallen kratzt sie am Baum', 'Sie kratzt am Sofa'],
+    PFERD:['Das Fohlen springt über die Weide', 'Auf dem Reitplatz üben wir traben', 'Hufe klappern auf dem Weg'],
+    VOGEL:['Von Ast zu Ast fliegt er singend', 'Mit bunten Federn fliegt er davon', 'Er fliegt davon'],
+    WOLKE:['Weiss und flockig schwebt sie oben', 'Sie sieht aus wie ein lockiges Schaf', 'Sie schwebt locker'],
+    REGEN:['Grosse Tropfen fallen vom Himmel', 'Wir springen in jede Pfütze', 'Nimm den Schirm mit, es giesst'],
+    BIENE:['Sie bringt Nektar in den Stock', 'Sie summt und brummt im Garten', 'Sie bringt Nektar heim'],
+    ZEBRA:['Schwarz weiss gestreift, das bin ich', 'Bei den Giraffen tanzt es im Gras', 'Schwarz und weiss, das bin ich'],
+    FUCHS:['Er ist schlau und frech', 'Frech schleicht er durch den Wald', 'Sein Fell ist rot und buschig'],
+    FISCH:['Er schwimmt flink im Teich', 'Mit Flossen gleitet er durch Bäche', 'Flink schwimmt er davon'],
+    MUSIK:['Wir trommeln und singen im Kreis', 'Im Takt klatschen und singen', 'Wir summen im Takt'],
+    BASEL:['Die Fasnacht ist bunt und laut', 'Im Zolli sieht man Bären und Affen', 'Bunte Laternen und schräge Musik', 'Laute bunte Fasnacht'],
+    APFEL:['Pflaumen schmecken sehr fein', 'Wir pflücken Pflaumen im Garten', 'Im Herbst pflücken alle Obst', 'Pflaumen sind lecker'],
+    TIGER:['Die grosse Katze hat Streifen', 'Im Dschungel jagt eine Raubkatze', 'Gestreift schleicht er durchs Gras', 'Gestreift schleicht er'],
+    BLUME:['Im Frühling blüht der Garten bunt', 'Die Rose duftet herrlich im Beet', 'Bunte Tulpen wachsen im Mai', 'Bunt blüht sie im Mai'],
+    SONNE:['Die Strahlen wärmen den Sommertag', 'Im Sommer baden wir gern am See', 'Am Morgen wird es hell und schön', 'Sie scheint am Morgen'],
+    STERN:['In der Nacht funkelt es oben', 'Nachts glitzert es am Himmel', 'Sie leuchten hell in der Nacht', 'Sie funkeln in der Nacht'],
+    PIRAT:['Der Kapitän sucht einen Schatz', 'Ein Papagei sitzt auf der Schulter', 'Mit Augenklappe segelt er los, Ahoi', 'Ahoi, Kapitän am Ruder'],
+    KUCHEN:['Die Schokolade schmilzt im Mund', 'Mit Schlagrahm und Kirschen, lecker', 'Frisch gebacken und lecker'],
+    GARTEN:['Tomaten wachsen gross und rot', 'Wir graben Beete und pflanzen', 'Tulpen blühen, Gras wächst'],
+    RAKETE:['Sie startet mit lautem Knall', 'Krachend startet sie ins Weltall', 'Sie startet mit Knall'],
+    SCHNEE:['Wir fahren Schlitten am Hang', 'Weisse Flocken tanzen vom Himmel', 'Flocken fallen sacht'],
+    FERIEN:['Wir fahren ans Meer und baden', 'Wir packen den Koffer für die Reise', 'Schulfrei, wir reisen'],
+    SOMMER:['Wir schwimmen im See, so warm ist es', 'Am Morgen ist es schon warm', 'Sonnig und warm am Morgen'],
+    WINTER:['Es schneit, wir fahren Ski', 'Wir trinken heissen Tee am Kamin', 'Es ist kalt, wir frieren'],
+    HERBST:['Bunte Blätter schweben herab', 'Drachen steigen hoch, bei Wind', 'Bunte Blätter schweben'],
+    BANANE:['Am Baum hängt eine ganze Staude', 'Die Schale ist gelb, innen ganz weich', 'Ein Affe nascht gern Obst'],
+    FROSCH:['Im Schilf hockt er und quakt', 'Flink fängt er Mücken, so schnell', 'Im Schilf hockt er'],
+    RITTER:['Mit Schwert und Schild reitet er', 'Er rettet die Prinzessin vom Turm', 'Er reitet zur Burg'],
+    SCHULE:['Wir lernen lesen und schreiben', 'In der Pause rechnen alle zusammen', 'Im Unterricht lesen wir viel', 'Wir schreiben und lesen'],
     FREUND:['Wir helfen uns und teilen gerne', 'Zusammen lachen macht Freude', 'Du hilfst mir immer gern'],
     ZAUBER:['Zwei Tauben flattern aus dem Hut', 'Bravo, der Hase kommt zurück'],
     DRACHE:['Rauch steigt aus der Höhle', 'Feuer und Rauch kommen aus dem Maul', 'Ein Ritter wacht auf der Burg']
   };
-  // passt der Satz zum Code? (Buchstaben reichen, passt ins Feld, enthält das Codewort nicht – sonst verriete das Feld die Lösung)
+  // passt der Satz zum Code? (Buchstaben reichen, passt ins Feld, enthält das Codewort nicht)
   function satzPasst(t, codeZ, n){ var z = code(t), p = satzPruefen(z, codeZ, n); return !p.fehlt.length && p.L <= p.maxL && p.L >= 8 && z.join('').indexOf(codeZ.join('')) < 0; }
   function themenSaetze(codeZ, n){ return (THEMA[codeZ.join('')] || []).filter(function(t){ return satzPasst(t, codeZ, n); }); }
+  // alle Sätze der Datenbank (und der allgemeinen Liste), aus denen sich der Code legen lässt – ohne die zum Thema
+  function andereSaetze(codeZ, n){
+    var eigene = THEMA[codeZ.join('')] || [], alle = [];
+    Object.keys(THEMA).forEach(function(w){ alle = alle.concat(THEMA[w]); });
+    return alle.concat(SAETZE).filter(function(t, i, l){ return l.indexOf(t) === i && eigene.indexOf(t) < 0 && satzPasst(t, codeZ, n); });
+  }
   // ein Satz, aus dem sich der Code legen lässt und der ins Feld passt – zuerst zum Thema, sonst irgendeiner (sonst null)
   function satzVorschlag(codeZ, n, rnd, ausser){
     var l = themenSaetze(codeZ, n).filter(function(t){ return t !== ausser; });
-    if (!l.length) l = SAETZE.filter(function(t){ var p = satzPruefen(code(t), codeZ, n); return !p.fehlt.length && p.L <= p.maxL && t !== ausser; });
+    if (!l.length) l = andereSaetze(codeZ, n).filter(function(t){ return t !== ausser; });
     return l.length ? l[Math.floor(rnd() * l.length)] : null;
   }
+  var WOERTER = Object.keys(THEMA);   // «Andere» schlägt nur Wörter vor, zu denen es Sätze gibt
 
   /* Rätsel planen. o: { code:[…], thema, n (Feld n × n), kaestchen (2, 3 oder 4: Kästchen mit so vielen Feldern je Seite),
      satz (auf Wunsch: Buchstaben, die im Feld der Reihe nach stehen sollen), seed }
@@ -179,7 +230,7 @@ var Kern = (function(){
     return null;
   }
   return { zufall:zufall, mischen:mischen, REIHE:REIHE, FARBE:FARBE, THEMEN:THEMEN, WOERTER:WOERTER, thema:thema, farbenVon:farbenVon,
-    code:code, zufallsWort:zufallsWort, PUNKTE:PUNKTE, punkte:punkte, planen:planen, satzPruefen:satzPruefen, satzVorschlag:satzVorschlag, satzPasst:satzPasst, themenSaetze:themenSaetze, SAETZE:SAETZE, THEMA:THEMA };
+    code:code, zufallsWort:zufallsWort, PUNKTE:PUNKTE, punkte:punkte, planen:planen, satzPruefen:satzPruefen, satzVorschlag:satzVorschlag, satzPasst:satzPasst, themenSaetze:themenSaetze, andereSaetze:andereSaetze, SAETZE:SAETZE, THEMA:THEMA };
 })();
 /* KERN-ENDE */
 
@@ -258,7 +309,7 @@ var VORLAGE = '<div class="cs">' +
         '<div class="cs-code-zeile"><input type="text" id="csSatz" class="cs-satz-feld" maxlength="80" autocomplete="off" spellcheck="false">' +
         '<button type="button" class="btn klein" id="csSatzVorschlag" title="Einen Satz vorschlagen, der zum Code passt">Vorschlag</button></div>' +
         '<div class="cs-satz-liste" id="csSatzListe" aria-live="polite"></div>' +
-        '<p class="hinweis">Liest man die Buchstaben im Feld der Reihe nach (Zeile für Zeile, Emojis auslassen), ergeben sie diesen Satz. Die Buchstaben des Codes müssen darin vorkommen. «Vorschlag» sucht Sätze, die zum Codewort passen.</p>' +
+        '<p class="hinweis">Liest man die Buchstaben im Feld der Reihe nach (Zeile für Zeile, Emojis auslassen), ergeben sie diesen Satz. Die Buchstaben des Codes müssen darin vorkommen. «Vorschlag» bietet Sätze aus der Sammlung an, die zum Codewort passen.</p>' +
         '<div class="cs-zaehler" id="csSatzInfo" aria-live="polite"></div></div>' +
       '<p class="feld-label">Feld</p><div class="cs-chips" role="radiogroup" aria-label="Grösse des Felds">' + chips('csN', [[5, '5 × 5 · leicht'], [6, '6 × 6'], [7, '7 × 7 · schwer']]) + '</div>' +
       '<p class="feld-label">Kästchen</p><div class="cs-chips" role="radiogroup" aria-label="Grösse der Kästchen">' + chips('csKaestchen', [[2, '2 × 2 · leicht'], [3, '3 × 3'], [4, '4 × 4 · schwer']]) + '</div>' +
@@ -342,37 +393,8 @@ function starte(bereich){
   $('#csSatz').value = st.satz; satzArtZeigen();
   $('#csSatz').addEventListener('input', function(){ st.satz = this.value; speichern(); baldZeichnen(); });
   /* ---------- Satz-Vorschläge zum Codewort ----------
-     Für die Wörter von «Andere» gibt es eingebaute Sätze; für eigene Wörter fragt die Seite die KI – auf der Website
-     api/saetze.php (Mistral), im Claude-Artefakt Claude. Gezeigt werden nur Sätze, aus denen sich der Code legen lässt,
-     die ins Feld passen und das Codewort nicht enthalten. */
-  var SATZ_SERVER = 'api/saetze.php', kiWeg = null, kiSpeicher = {};
-  function kiBereit(){
-    if (kiWeg) return kiWeg;
-    if (Labor.imArtefakt()) return (kiWeg = Labor.claude('sample').then(function(ki){ return ki ? { art:'claude', ki:ki } : null; }));
-    if (!/^https?:$/.test(location.protocol) || !window.fetch) return (kiWeg = Promise.resolve(null));
-    kiWeg = fetch(SATZ_SERVER, { cache:'no-store' }).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){ return j && j.bereit ? { art:'server' } : null; }, function(){ return null; });
-    return kiWeg;
-  }
-  function kiAuftrag(wort, max){
-    var anzeige = wort.charAt(0) + wort.slice(1).toLowerCase(), zaehl = {};
-    wort.split('').forEach(function(c){ zaehl[c] = (zaehl[c] || 0) + 1; });
-    return 'Du schreibst Rätsel-Sätze für Arbeitsblätter an Schweizer Primarschulen.\n' +
-      'Schreibe 10 kurze, einfache deutsche Sätze für Kinder von 8 bis 12 Jahren, die thematisch zum Wort «' + anzeige + '» passen.\nRegeln:\n' +
-      '- Schweizer Rechtschreibung: ss statt ß.\n- Jeder Satz hat zwischen 15 und ' + max + ' Buchstaben (Leerzeichen und Satzzeichen zählen nicht).\n' +
-      '- In jedem Satz kommen diese Buchstaben mindestens so oft vor (gross oder klein; ä zählt nicht als a): ' + Object.keys(zaehl).map(function(c){ return c + (zaehl[c] > 1 ? ' (' + zaehl[c] + '-mal)' : ''); }).join(', ') + '.\n' +
-      '- Das Wort «' + anzeige + '» selbst kommt nicht vor, auch nicht als Teil eines längeren Worts.\n- Keine Zahlen und keine Namen echter Personen.\n' +
-      'Antworte nur mit JSON in dieser Form: {"saetze": ["…", "…"]}';
-  }
-  function kiSaetze(w, wort, max){
-    var schl = wort + '|' + max;
-    if (kiSpeicher[schl]) return Promise.resolve(kiSpeicher[schl]);
-    var p = w.art === 'server'
-      ? fetch(SATZ_SERVER, { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ wort:wort, max:max }) }).then(function(r){
-          return r.json().catch(function(){ return {}; }).then(function(j){ if (r.ok && j && Array.isArray(j.saetze)) return j.saetze; var e = new Error('ki'); e.code = (j && j.fehler) || (r.status === 429 ? 'zuViele' : 'ki'); throw e; });
-        })
-      : w.ki.json(kiAuftrag(wort, max), { modelTier:'quick' }).then(function(d){ return d && Array.isArray(d.saetze) ? d.saetze : []; });
-    return p.then(function(l){ l = l.map(function(t){ return String(t || '').replace(/ß/g, 'ss').replace(/\s+/g, ' ').trim(); }).filter(Boolean); kiSpeicher[schl] = l; return l; });
-  }
+     Aus der Satz-Datenbank (Kern.THEMA): zuerst Sätze zum Thema des Codeworts; für eigene Wörter Sätze aus der ganzen
+     Datenbank, aus denen sich der Code legen lässt – sonst schreibt man einen eigenen Satz. */
   function satzWaehlen(t){ st.satz = t; $('#csSatz').value = t; speichern(); listeMarkieren(); zeichnen(); }
   function listeMarkieren(){ [].forEach.call($('#csSatzListe').querySelectorAll('button'), function(b){ b.setAttribute('aria-pressed', b.textContent === st.satz ? 'true' : 'false'); }); }
   function vorschlaegeZeigen(liste, titel){
@@ -380,29 +402,20 @@ function starte(bereich){
     listeMarkieren();
   }
   $('#csSatzListe').addEventListener('click', function(ev){ var b = ev.target.closest('button'); if (b) satzWaehlen(b.textContent); });
-  var knopfText = $('#csSatzVorschlag').textContent;
   $('#csSatzVorschlag').addEventListener('click', function(){
-    var z = codeJetzt(), wort = z.join(''), n = st.opt.n, knopf = this;
-    function ersatz(text){   // ohne Thema: irgendein Satz, aus dem sich der Code legen lässt
-      var v = Kern.satzVorschlag(z, n, Kern.zufall(Date.now()), st.satz.trim());
-      if (v) satzWaehlen(v);
-      meldung(v ? 'info' : 'warnung', '<p>' + esc(text) + (v ? ' Darum ein Satz, aus dem sich der Code legen lässt.' : ' Schreib einen eigenen Satz, in dem alle Buchstaben des Codes vorkommen.') + '</p>');
-    }
+    var z = codeJetzt(), wort = z.join(''), n = st.opt.n;
     if (z.length < 3) return;
     var eigene = Kern.themenSaetze(z, n);
     if (eigene.length){ vorschlaegeZeigen(eigene, 'Sätze zu «' + wort + '» – zum Auswählen anklicken:'); satzWaehlen(eigene[Math.floor(Math.random() * eigene.length)]); return; }
-    if (/\d/.test(wort)) { vorschlaegeZeigen([], ''); ersatz('Zu Zahlen-Codes gibt es keine Sätze zum Thema.'); return; }
-    knopf.disabled = true; knopf.textContent = 'Sucht …';
-    kiBereit().then(function(w){
-      if (!w) return ersatz('Sätze zum Thema schlägt die KI auf raetsellabor.fabulousteaching.ch vor.');
-      return kiSaetze(w, wort, Math.min(45, n * n - z.length)).then(function(l){
-        var ok = l.filter(function(t){ return Kern.satzPasst(t, z, n); });
-        if (!ok.length) return ersatz('Die KI hat keinen Satz gefunden, aus dem sich «' + wort + '» legen lässt.');
-        vorschlaegeZeigen(ok, 'Sätze zu «' + wort + '» – zum Auswählen anklicken:'); satzWaehlen(ok[0]);
-      }, function(e){
-        ersatz(e && (e.code === 'zuViele' || e.code === 'rate_limited') ? 'Gerade zu viele Anfragen an die KI – bitte in einer Minute nochmals.' : 'Die KI war gerade nicht erreichbar.');
-      });
-    }).then(function(){ if (!aus){ knopf.disabled = false; knopf.textContent = knopfText; } });
+    var andere = Kern.mischen(Kern.andereSaetze(z, n), Kern.zufall(Date.now())).slice(0, 8);
+    if (andere.length){
+      vorschlaegeZeigen(andere, 'Diese Sätze enthalten alle Buchstaben von «' + wort + '» – zum Auswählen anklicken:');
+      satzWaehlen(andere[0]);
+      meldung('info', '<p>' + (Kern.THEMA[wort] ? 'Für das Feld ' + n + ' × ' + n + ' sind die Sätze zu «' + esc(wort) + '» zu lang' : 'Zu «' + esc(wort) + '» gibt es noch keine Sätze zum Thema') + ' – darum Sätze, aus denen sich der Code legen lässt. Oder schreib einen eigenen Satz.</p>');
+      return;
+    }
+    vorschlaegeZeigen([], '');
+    meldung('warnung', '<p>Für «' + esc(wort) + '» passt kein Satz aus der Sammlung' + (n < 7 ? ' (in ein grösseres Feld passen längere Sätze)' : '') + '. Schreib einen eigenen Satz, in dem alle Buchstaben des Codes vorkommen.</p>');
   });
   $('#csCode').value = st.code;
   $('#csCode').addEventListener('input', function(){ st.code = this.value; speichern(); vorschlaegeZeigen([], ''); baldZeichnen(); });
