@@ -1,0 +1,106 @@
+/* Rätsellabor · Code-Schloss – nur aktiv, solange dieser Generator offen ist.
+   Gemeinsame Bausteine (Karten, Knöpfe, Eingabefelder, Meldungen) stehen in gemeinsam/labor.css.
+   Das Blatt ist 703 Pixel breit (= 186 mm im PDF). */
+.cs{max-width:1440px;margin:0 auto;padding-block:22px 48px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.cs-kopf{display:grid;gap:4px;margin:0 0 20px}
+.cs-kopf h1{font-family:var(--display);font-weight:600;font-size:clamp(1.7rem,3vw,2.2rem);letter-spacing:-.01em;line-height:1.1;margin:0;color:var(--ink)}
+.cs-kopf h1:focus{outline:none}
+.cs-kopf p:last-child{margin:2px 0 0;color:var(--muted);max-width:70ch}
+.cs-layout{display:grid;grid-template-columns:minmax(300px,400px) minmax(0,1fr);gap:24px;align-items:start}
+.cs-eingabe{display:grid;gap:16px;min-width:0}
+@media (min-width:961px){ .cs-eingabe{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--kopf-h) + 16px);max-height:calc(100vh - var(--kopf-h) - 32px);overflow:auto;padding:2px 4px 2px 2px;scrollbar-width:thin} }
+@media (max-width:960px){ .cs-layout{grid-template-columns:minmax(0,1fr);gap:18px} }
+@media (max-width:640px){ .cs{padding-block:18px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))} }
+
+/* Emojis: die Emoji-Schrift des Geräts (auch im PDF) */
+.cs-emoji,.cs-sym,.cs-stelle-emoji,.cs-themen i,.cs-jubel{font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;font-style:normal}
+
+/* ---------- Eingaben ---------- */
+.cs .feld-label{display:block;margin-top:4px}
+.cs-code-zeile{display:flex;gap:8px;align-items:center}
+.cs-code-zeile input{flex:1;min-width:0;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:8px 11px;font-size:1.15rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;transition:border-color .15s,box-shadow .15s}
+.cs-code-zeile input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.cs-zaehler{margin-top:8px;font-size:.88rem}
+.cs-zaehler p{margin:6px 0 0}
+.cs-zaehler-haupt{padding:8px 11px;border-radius:9px;margin:0!important}
+.cs-zaehler-haupt.ok{background:var(--ok-soft);color:var(--ok)}
+.cs-zaehler-haupt.fehlt{background:var(--accent-soft);color:var(--accent-2)}
+.cs-zaehler .warnung{color:var(--accent-2)}
+.cs-themen{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.cs-themen label{position:relative;cursor:pointer;display:flex}
+.cs-themen input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.cs-themen label > span{display:grid;justify-items:center;gap:2px;width:100%;padding:8px 6px;border:1px solid var(--line-2);border-radius:10px;background:#fff;font-size:.86rem;color:var(--muted);transition:border-color .15s,background .15s}
+.cs-themen i{font-size:1.05rem;letter-spacing:1px;white-space:nowrap}
+.cs-themen b{font-weight:600;color:var(--text)}
+.cs-themen label:hover > span{border-color:var(--accent-line)}
+.cs-themen input:checked + span{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.cs-themen input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+.cs-chips{display:flex;flex-wrap:wrap;gap:6px}
+.cs-chips label{position:relative;cursor:pointer}
+.cs-chips input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.cs-chips span{display:inline-block;padding:6px 14px;border:1px solid var(--line-2);border-radius:999px;background:#fff;font-size:.88rem;font-weight:600;color:var(--muted);transition:border-color .15s,background .15s,color .15s}
+.cs-chips label:hover span{border-color:var(--accent-line)}
+.cs-chips input:checked + span{background:var(--accent);border-color:var(--accent);color:var(--auf-akzent)}
+.cs-chips input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+
+/* ---------- Ausgabe ---------- */
+.cs-ausgabe{min-width:0}
+.cs-inhalt{display:grid;gap:14px;min-width:0}
+.cs-inhalt[hidden]{display:none}
+.cs-werkzeug{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.cs-werkzeug .abstand{flex:1}
+.cs-werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
+.cs-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+/* Am Bildschirm lösen */
+.cs-spiel{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px}
+.cs-spiel h2{font-family:var(--display);font-weight:600;font-size:1.2rem;margin:0;color:var(--ink)}
+.cs-spiel p{margin:2px 0 0;color:var(--muted);font-size:.9rem}
+.cs-spiel p b{color:var(--ok)}
+.cs-eingaben{display:flex;gap:8px}
+.cs-eingabe-stelle{display:grid;justify-items:center;gap:6px}
+.cs-eingabe-stelle input{width:44px;height:48px;text-align:center;font-size:1.4rem;font-weight:700;text-transform:uppercase;border:1px solid var(--line-2);border-radius:9px;background:#fff;padding:0}
+.cs-eingabe-stelle input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.cs-eingabe-stelle input.falsch{border-color:var(--err);background:var(--err-soft)}
+.cs-eingaben.offen input{border-color:var(--ok);background:var(--ok-soft)}
+.cs-rahmen{overflow-x:auto;padding-bottom:4px}
+.cs-loesungs-rahmen{display:none}
+/* Blatt */
+.cs-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:26px 32px 30px}
+.cs-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
+.cs-anleitung{margin:0 0 16px;color:#554C45;line-height:1.45;font-size:.95rem}
+.cs-haupt{display:flex;justify-content:space-between;align-items:flex-start;gap:18px}
+.cs-links{display:grid;justify-items:center;gap:18px}
+.cs-feld{display:grid;grid-auto-rows:var(--z)}
+.cs-z{display:grid;place-items:center;line-height:1}
+.cs-buchstabe{font-family:var(--blatt-buchstaben);font-weight:700;font-size:calc(var(--z) * .66);color:#1593D6}
+.cs-emoji{font-size:calc(var(--z) * .62)}
+.cs-ziel{background:#FFF176;border-radius:8px}
+.cs-start{border-radius:50%;border:3px solid var(--ring);box-sizing:border-box}   /* Rahmen statt Schatten: html2canvas füllt innere Schatten */
+.cs-figuren{display:grid;grid-template-columns:repeat(2,auto);gap:4px 6px;justify-content:center}
+.cs-figur{position:relative}
+.cs-linien{position:absolute;left:0;top:0;display:block}
+.cs-sym{position:absolute;transform:translate(-50%,-50%);font-size:30px;line-height:1;padding:3px;border-radius:50%;background:#fff}
+.cs-figur-l{position:absolute;transform:translate(-50%,-50%);font-family:var(--blatt-buchstaben);font-weight:700;font-size:26px;line-height:1;color:#1593D6;background:#FFF176;border-radius:6px;padding:2px 5px}
+.cs-code{display:flex;align-items:center;gap:10px}
+.cs-code-titel{font-family:var(--blatt-schrift);font-size:1.3rem;font-weight:700}
+.cs-punkte{display:flex;gap:10px;padding:10px 14px 8px;border:1.5px solid #8A8079;border-radius:12px}
+.cs-stelle{display:grid;justify-items:center;gap:6px;position:relative}
+.cs-stelle-emoji{position:absolute;bottom:100%;margin-bottom:12px;font-size:24px;line-height:1}
+.cs-punkt{display:block;width:26px;height:26px;border-radius:50%}
+.cs-strich{display:block;width:32px;height:30px;border-bottom:2px solid #1C1714;text-align:center;font-family:var(--blatt-buchstaben);font-weight:700;font-size:24px;line-height:30px;color:#1593D6}
+.cs-schloss-platz{display:flex;align-items:center;gap:12px}
+.cs-schloss{display:block}
+.cs-jubel{font-size:40px;line-height:1}
+.cs-code.mit-emoji{margin-top:30px}
+
+/* ---------- Drucken (gilt auch für das PDF) ---------- */
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#fff!important}
+  .cs-kopf,.cs-eingabe,.cs-werkzeug,.cs-spiel,#csMeldung,.nur-bildschirm{display:none!important}
+  .cs{padding:0;max-width:none}
+  .cs-layout,.cs-inhalt{display:block}
+  .cs-rahmen{overflow:visible;padding:0}
+  .cs-blatt{box-shadow:none;border:0;border-radius:0;padding:0 32px}
+  body.mit-loesung .cs-loesungs-rahmen{display:block;break-before:page}
+}

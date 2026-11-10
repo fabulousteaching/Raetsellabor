@@ -208,6 +208,17 @@ Konzentrische Scheiben zum Ausschneiden (wie gebastelte Drehscheiben mit Musterk
 - **Kopiervorlage:** Die Kreise in Originalgrösse (1 mm = 703/186 Pixel wie im PDF; Seite 703 × 1031 Pixel, damit das PDF nicht verkleinert), mit Schnittlinie, Mittelpunkt und gestricheltem Platz des nächstkleineren Kreises (ohne Nummern). Gut zum Ausschneiden: 8 mm Rand auf der Seite (beim Drucken kommen 12 mm dazu) und mindestens 6 mm zwischen den Kreisen – so viel mehr (bis 25 mm), wie auf gleich vielen Seiten Platz hat; jede Seite ist waagrecht und senkrecht eingemittet. Unten der Hinweis, in Originalgrösse (100 %) zu drucken. Titel und Bastelanleitung wählbar; Lösungsblatt mit den richtig gedrehten Scheiben; PDF.
 - **Am Bildschirm drehen:** Die Scheiben liegen verdreht aufeinander und lassen sich mit Maus, Finger oder Tastatur (Tabulator, Pfeiltasten) drehen; nahe an der richtigen Stellung rasten sie ein, und am Schluss kommt «Geschafft!». «Lösung zeigen» dreht alle an ihren Platz, «Neu mischen» verteilt Zeichen und Drehung neu.
 
+### Code-Schloss
+
+Ein Feld mit Buchstaben (blau) und Emojis, daneben kleine Kästchen (2 × 2 Felder, 3 × 3 Punkte): An einem Punkt sitzt ein Emoji, an einem anderen das Schloss 🔐. Man sucht das Emoji im Feld und geht von dort genau so weit wie im Kästchen vom Emoji zum Schloss – nach oben, unten, links oder rechts. Dort steht ein Buchstabe. Die Emojis haben verschiedene Farben; die Farbpunkte beim Code (in Regenbogen-Reihenfolge rot, orange, gelb, grün, blau, violett) geben die Reihenfolge der Buchstaben an. So entsteht der Code fürs Zahlenschloss.
+
+- **Code:** 3 bis 6 Buchstaben oder Ziffern (so viele, wie das Thema Farben hat); «Andere» schlägt ein Wort vor.
+- **Emoji-Themen** mit je einem Emoji pro Farbe, das auf allen Geräten deutlich diese Farbe hat: *Früchte* 🍓🍊🍋🍏🫐🍇, *Gemüse* 🍅🥕🌽🥦🍆, *Tiere* 🐞🦊🐥🐸🐳, *Bücher* 📕📙📒📗📘, *Herzen* ❤️🧡💛💚💙💜, *Formen* 🔴🟠🟡🟢🔵🟣. Die übrigen Felder bekommen andere Emojis desselben Themas – nie eines der Ziel-Emojis, so steht jedes genau einmal im Feld.
+- **Feld:** 5 × 5 (leicht), 6 × 6 oder 7 × 7 (schwer), etwa zur Hälfte Emojis. Jedes Kästchen bekommt einen eigenen Weg (Ecken und Seitenmitten, in alle Richtungen); die Kästchen stehen nicht in Code-Reihenfolge. Die Buchstaben des Codes kommen im Feld auch sonst vor, damit sie nichts verraten. Geprüft: jedes Kästchen führt zum richtigen Zeichen.
+- **Blatt:** Feld, Kästchen, Code-Feld mit Farbpunkten und Linien, ein gezeichnetes Zahlenschloss; Titel und Anleitung wählbar. Lösung (am Bildschirm und Lösungsblatt): Ziel-Emojis mit Ring in ihrer Farbe, Ziel-Buchstaben gelb, Buchstabe beim Schloss, Emojis über den Punkten, der Code im Schloss 🥳. PDF.
+- **Am Bildschirm lösen:** je Farbpunkt ein Feld; falsche Zeichen werden rot, beim richtigen Code: «Geschafft! 🥳 Das Schloss ist offen.»
+- Die Emojis kommen aus der Emoji-Schrift des Geräts (auch im PDF). 🫐 gibt es erst seit 2020 – auf sehr alten Geräten fehlt es.
+
 ## Aufbau
 
 ```
@@ -238,6 +249,7 @@ raetsel/geheimschrift/          der Generator «Geheimschriften» (Kern: Verschl
 raetsel/kreuzwort/              der Generator «Kreuzworträtsel» (Kern: Anordnen, freie Flächen für Bilder; Seite, Bilder, Lösung)
 raetsel/fleissner/              der Generator «Fleissner-Schablone» (Kern: Lochmuster, Drehen, Verschlüsseln; Raster und Schablone in mm)
 raetsel/kette/                  der Generator «Kettenrätsel» (Kern: Formen A–Z und 0–9, Paare belegen, Eindeutigkeit, Ablenker verteilen)
+raetsel/codeschloss/            der Generator «Code-Schloss» (Kern: Themen, Wege in den Kästchen, Feld füllen)
 raetsel/drehscheiben/           der Generator «Drehscheiben» (Kern: Grösse der Zeichen und Ringe, Wort, Satz setzen, Kreise auf Seiten verteilen)
 raetsel/triomino/               der Generator «Triomino» (Kern: Formen, Kanten, Aufgaben, Belegung; Zeichnen mit Schriftanpassung)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
@@ -257,7 +269,7 @@ api/puzzle.php                  Server-Teil (PHP): speichert Puzzles für QR-Cod
 - Beim Hochladen hängt der GitHub-Workflow eine Versionsnummer an alle Skripte und Stile (`…/labor.js?v=1a2b3c4d`, auch für die Stile der Generatoren). Nach jeder Änderung lädt der Browser so sicher die neuen Dateien.
 - Ist die Seite schon offen, wenn eine neue Version hochgeladen wird (das Labor wechselt zwischen den Generatoren ohne Neuladen), merkt sie das: Der Workflow schreibt die Versionsnummer in `version.txt`, die Seite fragt sie ab, wenn man zu ihr zurückkehrt und alle 10 Minuten. Bei einer neuen Version erscheint ein Hinweis «Neu laden», und der nächste Wechsel zu einem Generator lädt die Seite von selbst neu.
 
-Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und den mitgelieferten Bibliotheken in `gemeinsam/extern/` keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code`, `…/#labyrinth`, `…/#emoji-rechnen`, `…/#text-spiegeln`, `…/#puzzle`, `…/#geheimschrift`, `…/#triomino`, `…/#kreuzwort`, `…/#fleissner`, `…/#kettenraetsel` oder `…/#drehscheiben` öffnet direkt einen Generator, `…/#start` die Startseite.
+Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und den mitgelieferten Bibliotheken in `gemeinsam/extern/` keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code`, `…/#labyrinth`, `…/#emoji-rechnen`, `…/#text-spiegeln`, `…/#puzzle`, `…/#geheimschrift`, `…/#triomino`, `…/#kreuzwort`, `…/#fleissner`, `…/#kettenraetsel`, `…/#drehscheiben` oder `…/#code-schloss` öffnet direkt einen Generator, `…/#start` die Startseite.
 
 ## Einen neuen Generator hinzufügen
 
