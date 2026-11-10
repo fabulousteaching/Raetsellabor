@@ -45,6 +45,13 @@
 .dr-farbe input::-moz-color-swatch{border:1px solid rgba(0,0,0,.15);border-radius:50%}
 .dr-farbe span{font-family:var(--blatt-buchstaben);font-weight:700;font-size:1.05rem;min-width:.8em;text-align:center}
 .dr-farb-knoepfe{display:flex;gap:6px;margin-top:8px}
+/* Satz: je Wort Farbe und Grösse */
+.dr-farben.mit-groesse{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
+.dr-wort-zeile{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.dr-wort-zeile .dr-farbe{flex:1 1 auto;min-width:0;max-width:calc(100% - 8.5em)}
+.dr-farben.mit-groesse .dr-farbe span{max-width:none}
+.dr .dr-groesse{flex:0 0 auto;width:auto;min-width:0;border:1px solid var(--line-2);border-radius:8px;background:#fff;padding:4px 6px;font:inherit;font-size:.86rem;color:var(--text);cursor:pointer}
+.dr-groesse:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
 .dr-farbe span{max-width:9em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dr-zeichen-zeile input.dr-satz-feld{font-size:1rem;letter-spacing:0;font-weight:600}
 .dr-antwort-satz{flex-wrap:wrap}

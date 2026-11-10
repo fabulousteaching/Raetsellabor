@@ -52,21 +52,21 @@ var Kern = (function(){
          punkte[k]:[{ w, r }], ueber (Überlappung unter der nächstkleineren Scheibe) } */
   /* Satz: waagrechte Zeilen von oben nach unten, um den Deckel in der Mitte herum. breiten: Breite jedes Worts bei
      Schriftgrösse 100 (mit Strich), leer: Breite eines Leerzeichens bei 100. Die Wörter bleiben in ihrer Reihenfolge
-     (Zeile für Zeile, links nach rechts), aber jede Anordnung (rnd, «Neu anordnen») ist etwas anders:
-     - jedes Wort hat seine eigene Grösse (72–128 % der Grundschrift),
+     (Zeile für Zeile, links nach rechts) und haben die gewählte Grösse (groessen: Faktor je Wort, 1 = normal), aber jede
+     Anordnung (rnd, «Neu anordnen») ist etwas anders:
      - die Abstände zwischen den Wörtern (80–160 % eines Leerzeichens) und zwischen den Zeilen wechseln,
-     - eine Zeile wird nur zu 72–100 % gefüllt (andere Umbrüche), steht nicht immer genau in der Mitte, und kleinere Wörter
+     - eine Zeile wird nur zu 62–100 % gefüllt (andere Umbrüche), steht irgendwo in ihrer Breite, und kleinere Wörter
        sitzen in ihrer Zeile etwas höher oder tiefer,
      - der ganze Text liegt etwas höher oder tiefer.
      Jede Zeile reicht so weit, wie der Kreis «aussen» an ihrer engsten Stelle breit ist; wo sie am Deckel («kappe»)
      vorbeiführt, hat sie einen linken und einen rechten Teil. Gesucht wird die grösste Grundschrift f, bei der alles passt.
      → { f, zeilen:[{ y, teile:[{ woerter:[{ i, x (Anfang), y (Mitte), f (Schriftgrösse) }] }] }] } (Mitte der Scheibe = 0, 0) */
-  function satzSetzen(breiten, leer, aussen, kappe, rnd){
-    var n = breiten.length, r = rnd || function(){ return 0.5; }, j;
-    function zufallsListe(anzahl, von, bis){ var l = []; for (var i = 0; i < anzahl; i++) l.push(rnd ? von + (bis - von) * r() : (von + bis) / 2); return l; }
-    var gross = rnd ? zufallsListe(n, 0.72, 1.28) : zufallsListe(n, 1, 1), abst = zufallsListe(n, 0.8, 1.6), zitter = zufallsListe(n, -1, 1);
-    var fuell = rnd ? zufallsListe(80, 0.72, 1) : zufallsListe(80, 1, 1), lage = zufallsListe(160, 0.3, 0.7), luft = zufallsListe(80, 0, 1);
-    var versatz = rnd ? (r() - 0.5) * 0.4 : 0;
+  function satzSetzen(breiten, leer, aussen, kappe, rnd, groessen){
+    var n = breiten.length, gross = breiten.map(function(_, i){ return groessen && groessen[i] > 0 ? groessen[i] : 1; });
+    function liste(anzahl, von, bis){ var l = []; for (var i = 0; i < anzahl; i++) l.push(von === bis ? von : von + (bis - von) * rnd()); return l; }
+    // Spielraum der Anordnung: neutral (alles mittig, ohne Zufall) oder zufällig («Neu anordnen»)
+    function neutral(){ return { abst:liste(n, 1, 1), zitter:liste(n, 0, 0), fuell:liste(80, 1, 1), lage:liste(160, 0.5, 0.5), luft:liste(80, 0.5, 0.5), versatz:0 }; }
+    function zufaellig(){ return { abst:liste(n, 0.8, 1.6), zitter:liste(n, -1, 1), fuell:liste(80, 0.62, 1), lage:liste(160, 0.12, 0.88), luft:liste(80, 0, 1), versatz:(rnd() - 0.5) * 0.8 }; }
     function segmente(oben, unten){
       var weit = Math.max(Math.abs(oben), Math.abs(unten));
       if (weit >= aussen) return [];
@@ -75,56 +75,64 @@ var Kern = (function(){
       return xk ? (xk < xr ? [[-xr, -xk], [xk, xr]] : []) : [[-xr, xr]];
     }
     // Wörter der Reihe nach in die Teile einer Zeile → je Teil [{ i, x (ab Teilanfang), b }] oder null
-    function verteilen(f, woerter, segs, z){
+    function verteilen(f, woerter, segs, z, S){
       var teile = segs.map(function(){ return []; }), s = 0, w = 0;
       for (var a = 0; a < woerter.length; a++){
         var i = woerter[a], b = breiten[i] * f * gross[i] / 100, gesetzt = false;
         while (s < segs.length && !gesetzt){
-          var platz = segs[s][1] - segs[s][0], luecke = teile[s].length ? leer * f / 100 * abst[i] : 0;
-          if (w + luecke + b <= (teile[s].length ? platz * fuell[z % 80] : platz)){ teile[s].push({ i:i, x:w + luecke, b:b }); w += luecke + b; gesetzt = true; }
+          var platz = segs[s][1] - segs[s][0], luecke = teile[s].length ? leer * f / 100 * S.abst[i] : 0;
+          if (w + luecke + b <= (teile[s].length ? platz * S.fuell[z % 80] : platz)){ teile[s].push({ i:i, x:w + luecke, b:b }); w += luecke + b; gesetzt = true; }
           else { s++; w = 0; }
         }
         if (!gesetzt) return null;
       }
       return teile;
     }
-    function setzen(f, y0){
+    function setzen(f, y0, S){
       var zeilen = [], wi = 0, y = y0, z = 0, schritte = 0;
       while (wi < n){
         if (y >= aussen || ++schritte > 600) return null;
-        var liste = [], hoch = 0, beste = null;
+        var gewaehlt = [], hoch = 0, beste = null;
         for (var k = wi; k < n; k++){
-          var h2 = Math.max(hoch, f * gross[k]), H = h2 * 1.12, segs = segmente(y, y + H), p = segs.length ? verteilen(f, liste.concat([k]), segs, z) : null;
+          var h2 = Math.max(hoch, f * gross[k]), H = h2 * 1.12, segs = segmente(y, y + H), p = segs.length ? verteilen(f, gewaehlt.concat([k]), segs, z, S) : null;
           if (!p) break;
-          liste.push(k); hoch = h2; beste = { p:p, segs:segs, H:H };
+          gewaehlt.push(k); hoch = h2; beste = { p:p, segs:segs, H:H };
         }
-        if (!liste.length){ y += 0.15 * f; continue; }   // hier ist es zu eng: etwas tiefer versuchen
+        if (!gewaehlt.length){ y += 0.15 * f; continue; }   // hier ist es zu eng: etwas tiefer versuchen
         var zeile = { y:y + beste.H / 2, teile:[] };
         beste.p.forEach(function(t, s){
           if (!t.length) return;
-          var seg = beste.segs[s], ende = t[t.length - 1].x + t[t.length - 1].b, x0 = seg[0] + (seg[1] - seg[0] - ende) * lage[(2 * z + s) % 160];
+          var seg = beste.segs[s], ende = t[t.length - 1].x + t[t.length - 1].b, x0 = seg[0] + (seg[1] - seg[0] - ende) * S.lage[(2 * z + s) % 160];
           zeile.teile.push({ woerter:t.map(function(e){
             var fi = f * gross[e.i];
-            return { i:e.i, x:x0 + e.x, y:zeile.y + zitter[e.i] * (beste.H - fi) / 2 * 0.8, f:fi };
+            return { i:e.i, x:x0 + e.x, y:zeile.y + S.zitter[e.i] * (beste.H - fi) / 2 * 0.8, f:fi };
           }) });
         });
-        zeilen.push(zeile); wi += liste.length; y += beste.H + 0.12 * f * luft[z % 80]; z++;
+        zeilen.push(zeile); wi += gewaehlt.length; y += beste.H + 0.12 * f * S.luft[z % 80]; z++;
       }
       return { zeilen:zeilen, unten:y };
     }
+    // Text senkrecht in die Mitte: Höhe schätzen, setzen, mit der wirklichen Höhe nochmals
     var summe = 0;
-    for (j = 0; j < n; j++) summe += breiten[j] * gross[j] + leer;
-    for (var f = Math.floor(aussen * 0.6); f >= 5; f--){
-      // Text senkrecht in die Mitte: Höhe schätzen, setzen, mit der wirklichen Höhe nochmals
+    for (var j = 0; j < n; j++) summe += breiten[j] * gross[j] + leer;
+    function mittig(f, S){
       var T = Math.max(1, Math.ceil(summe * f / 100 / (1.5 * aussen))) * f * 1.25, gut = null;
       for (var it = 0; it < 6; it++){
-        var y0 = -T / 2 + versatz * f, res = setzen(f, y0);
+        var y0 = -T / 2 + S.versatz * f, res = setzen(f, y0, S);
         if (res){ gut = res; var Tn = res.unten - y0; if (Math.abs(Tn - T) < 0.05 * f) break; T = Tn; }
         else T = T * 1.2 + f * 0.5;
       }
-      if (gut) return { f:f, zeilen:gut.zeilen };
+      return gut && gut.zeilen;
     }
-    return null;
+    var beste = null;
+    for (var f = Math.floor(aussen * 0.6); f >= 5 && !beste; f--){ var l = mittig(f, neutral()); if (l) beste = { f:f, zeilen:l }; }
+    if (!beste || !rnd) return beste;
+    /* Abwandlung: immer dieselbe Grundschrift (90 % der grössten) – so bleiben die gewählten Grössen bei jedem
+       «Neu anordnen» gleich, und es bleibt Platz, die Wörter zu verschieben. */
+    var f2 = Math.max(5, Math.floor(beste.f * 0.9));
+    for (var t = 0; t < 40; t++){ var l2 = mittig(f2, zufaellig()); if (l2) return { f:f2, zeilen:l2 }; }
+    var l3 = mittig(f2, neutral());
+    return l3 ? { f:f2, zeilen:l3 } : beste;
   }
 
   function planen(o){
@@ -137,7 +145,7 @@ var Kern = (function(){
       /* Satz: kleiner Deckel (12 mm Radius); die Zeilen bleiben 4 mm vom Rand. Die Ringe teilen den Bereich, den der Text
          wirklich belegt (bis zur äussersten Wortecke), gleichmässig – so trägt auch die grösste Scheibe genug davon. */
       var kap = 12 * mm, aussenText = kap + 6 * mm;
-      satz = satzSetzen(o.satz.breiten, o.satz.leer, gb, kap + 2 * mm, rnd);
+      satz = satzSetzen(o.satz.breiten, o.satz.leer, gb, kap + 2 * mm, rnd, o.satz.groessen);
       if (satz) satz.zeilen.forEach(function(z){ z.teile.forEach(function(t){ t.woerter.forEach(function(w){
         var x1 = w.x + o.satz.breiten[w.i] * w.f / 100, y1 = Math.abs(w.y) + 0.42 * w.f;
         aussenText = Math.max(aussenText, Math.hypot(Math.max(Math.abs(w.x), Math.abs(x1)), y1));
@@ -181,13 +189,40 @@ var Kern = (function(){
     function versatz(){ return r.slice(1).map(function(){ return Math.round(30 + rnd() * 300); }); }
     var papier = versatz(), schirm = versatz();
     schirm[n - 1] = 0;   // am Bildschirm: die äusserste Scheibe steht still, die anderen sind verdreht
-    // Punkte als Ablenkung: zufällig im sichtbaren Ring jeder Scheibe, etwa einer pro 9 × 9 mm
-    var punkte = [];
+    /* Punkte als Ablenkung: nie auf einem Zeichen (mit 1.2 mm Abstand zu seinem Rechteck) und gleichmässig verteilt –
+       etwa einer pro 9 × 9 mm freier Fläche; jeder neue Punkt kommt von 25 zufälligen Stellen an die, die am weitesten
+       von den Punkten derselben Scheibe entfernt ist. Die Lage bezieht sich auf die Scheibe selbst (wie die Zeichen). */
+    var punkte = [], abst = 0.75 * mm + 1.2 * mm, rm = (ga + gb) / 2;
+    function frei(px, py){
+      if (satz) return !satz.zeilen.some(function(zl){ return zl.teile.some(function(t){ return t.woerter.some(function(w){
+        var x1 = w.x + o.satz.breiten[w.i] * w.f / 100, hh = 0.45 * w.f;
+        return px > w.x - abst && px < x1 + abst && py > w.y - hh - abst && py < w.y + hh + abst;
+      }); }); });
+      return !z.some(function(c, j){
+        if (c === ' ') return false;
+        var a = -winkel[j] * Math.PI / 180, qx = px * Math.cos(a) - py * Math.sin(a), qy = px * Math.sin(a) + py * Math.cos(a) + rm;
+        return Math.abs(qx) < o.breite(c) * h / 2 + abst && Math.abs(qy) < h / 2 + abst;
+      });
+    }
     for (k = 1; k <= n; k++){
       var a0 = r[k - 1] + 1.4 * mm, a1 = r[k] - (k === n ? 2 : 1.4) * mm, liste = [];
-      var anzahl = o.punkte && a1 > a0 ? Math.round(Math.PI * (a1 * a1 - a0 * a0) / Math.pow(9 * mm, 2)) : 0;
-      for (var j = 0; j < anzahl; j++) liste.push({ w:rnd() * 360, r:Math.sqrt(a0 * a0 + rnd() * (a1 * a1 - a0 * a0)) });
-      punkte.push(liste);
+      var stelle = function(){ var w = rnd() * 360, rr = Math.sqrt(a0 * a0 + rnd() * (a1 * a1 - a0 * a0)), b = w * Math.PI / 180; return { w:w, r:rr, x:rr * Math.sin(b), y:-rr * Math.cos(b) }; };
+      if (o.punkte && a1 > a0){
+        var treffer = 0;
+        for (var j = 0; j < 200; j++){ var p0 = stelle(); if (frei(p0.x, p0.y)) treffer++; }
+        var anzahl = Math.round(Math.PI * (a1 * a1 - a0 * a0) * treffer / 200 / Math.pow(9 * mm, 2));
+        for (j = 0; j < anzahl; j++){
+          var beste = null, weit = -1;
+          for (var t = 0; t < 25; t++){
+            var p = stelle();
+            if (!frei(p.x, p.y)) continue;
+            var d = liste.reduce(function(m, q){ return Math.min(m, Math.hypot(q.x - p.x, q.y - p.y)); }, Infinity);
+            if (d > weit){ weit = d; beste = p; }
+          }
+          if (beste) liste.push(beste);
+        }
+      }
+      punkte.push(liste.map(function(p){ return { w:p.w, r:p.r }; }));
     }
     return { mm:mm, R:R, ga:ga, gb:gb, h:h, rm:(ga + gb) / 2, r:r, ringe:n, ueber:ueber, winkel:winkel, zeichen:z.slice(),
       wort:!!o.wort, satz:satz, papier:papier, schirm:schirm, punkte:punkte, ringBreite:o.satz ? ((n > 1 ? r[n - 1] : R) - r[0]) / Math.max(1, n - 1) : h / n };
@@ -243,6 +278,7 @@ var Kern = (function(){
 /* KERN-ENDE */
 
 var TINTE = '#1C1714', GRAU = '#8A8079', PFEIL = '#E46F12';
+var GROESSEN = [[0.75, 'klein'], [1, 'normal'], [1.3, 'gross'], [1.6, 'sehr gross']];   // Wortgrössen beim Satz (Faktor zur Grundschrift)
 // «Bunt»: kräftige Farben, die auf weissem Papier gut sichtbar sind
 var BUNT = ['#D7263D', '#1B6CA8', '#2E8B57', '#E4801C', '#7B3FA0', '#C2185B', '#00838F', '#9A7400'];
 var SEITE_B = 703, SEITE_H = 1031, RAND = 30;   // Seite (Pixel) und Rand ringsum (8 mm; dazu kommen beim Drucken 12 mm)
@@ -335,7 +371,7 @@ var VORLAGE = '<div class="dr">' +
       '<p class="hinweis" id="drWortHinweis" hidden>Ein Wort mit bis zu 12 Buchstaben. Die Buchstaben stehen nebeneinander und lesen sich im Uhrzeigersinn.</p>' +
       '<p class="hinweis" id="drSatzHinweis" hidden>Ein Satz mit bis zu 80 Zeichen. Er steht in Zeilen von oben nach unten auf der Scheibe, so gross wie möglich.</p>' +
       '<div class="dr-zaehler" id="drZaehler" aria-live="polite"></div>' +
-      '<p class="feld-label">Farben</p><div class="dr-farben" id="drFarben"></div>' +
+      '<p class="feld-label" id="drFarbenTitel">Farben</p><div class="dr-farben" id="drFarben"></div>' +
       '<div class="dr-farb-knoepfe"><button type="button" class="btn klein" id="drSchwarz">Alle schwarz</button><button type="button" class="btn klein" id="drBunt">Bunt</button></div>' +
     '</div>' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Kreise</h2></div></div>' +
@@ -386,11 +422,13 @@ function starte(bereich){
   var STANDARD = { art:'ziffern', anzahl:4, ringe:4, pfeil:true, punkte:false, mitLoesung:true, titelAn:true, anleitungAn:true };
   // farben: je Stelle (Zeichen bzw. Buchstabe im Wort) eine Farbe; leer = schwarz
   // farbenSatz: je Wort des Satzes eine Farbe
-  var st = { zeichen:'', wortText:'', satzText:'', farben:[], farbenSatz:[], seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
+  // groessenSatz: je Wort des Satzes die Grösse (Faktor, 1 = normal)
+  var st = { zeichen:'', wortText:'', satzText:'', farben:[], farbenSatz:[], groessenSatz:[], seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
   function farbenLesen(l){ return Array.isArray(l) ? l.map(function(f){ return /^#[0-9a-f]{6}$/i.test(f) ? f : ''; }) : []; }
   try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.zeichen = String(e.zeichen || ''); st.wortText = String(e.wortText || ''); st.satzText = String(e.satzText || ''); st.seed = +e.seed || st.seed;
-    st.farben = farbenLesen(e.farben); st.farbenSatz = farbenLesen(e.farbenSatz); } } catch(x){}
+    st.farben = farbenLesen(e.farben); st.farbenSatz = farbenLesen(e.farbenSatz);
+    if (Array.isArray(e.groessenSatz)) st.groessenSatz = e.groessenSatz.map(function(g){ return GROESSEN.some(function(x){ return x[0] === +g; }) ? +g : 1; }); } } catch(x){}
   if ([2, 3, 4, 5].indexOf(+st.opt.ringe) < 0) st.opt.ringe = 4;
   if (['ziffern', 'buchstaben', 'wort', 'satz'].indexOf(st.opt.art) < 0) st.opt.art = 'ziffern';
   if (!Kern.zeichen(st.zeichen).length) st.zeichen = Kern.zufallsZeichen(st.opt.art === 'buchstaben' ? 'buchstaben' : 'ziffern', st.opt.anzahl, Kern.zufall(st.seed + 7)).join(' ');
@@ -398,7 +436,7 @@ function starte(bereich){
   if (!st.satzText.trim()) st.satzText = Kern.zufallsSatz(Kern.zufall(st.seed + 13));
   var timer = 0;
   function speichernJetzt(){ clearTimeout(timer); timer = 0;
-    try { sessionStorage.setItem(TAB, JSON.stringify({ zeichen:st.zeichen, wortText:st.wortText, satzText:st.satzText, farben:st.farben, farbenSatz:st.farbenSatz, seed:st.seed })); } catch(x){}
+    try { sessionStorage.setItem(TAB, JSON.stringify({ zeichen:st.zeichen, wortText:st.wortText, satzText:st.satzText, farben:st.farben, farbenSatz:st.farbenSatz, groessenSatz:st.groessenSatz, seed:st.seed })); } catch(x){}
     try { localStorage.setItem(OPT, JSON.stringify(st.opt)); } catch(x){} }
   function speichern(){ clearTimeout(timer); timer = setTimeout(speichernJetzt, 200); }
   function meldung(art, html){ $('#drMeldung').innerHTML = html ? '<div class="meldung ' + art + '">' + html + '</div>' : ''; }
@@ -459,10 +497,21 @@ function starte(bereich){
     var schluessel = st.opt.art + '\u0002' + z.join('\u0001'), fl = farbListe();
     if (schluessel === farbSchluessel) return;
     farbSchluessel = schluessel;
+    $('#drFarbenTitel').textContent = istSatz() ? 'Farben und Grössen' : 'Farben';
+    $('#drFarben').classList.toggle('mit-groesse', istSatz());
     $('#drFarben').innerHTML = z.map(function(c, i){
-      return c === ' ' ? '' : '<label class="dr-farbe" title="Farbe für «' + esc(c) + '»"><input type="color" data-i="' + i + '" value="' + (fl[i] || TINTE) + '" aria-label="Farbe für ' + esc(c) + ' (' + (istSatz() ? 'Wort ' : 'Stelle ') + (i + 1) + ')"><span style="color:' + (fl[i] || TINTE) + '">' + esc(c) + '</span></label>';
+      if (c === ' ') return '';
+      var farbe = '<label class="dr-farbe" title="Farbe für «' + esc(c) + '»"><input type="color" data-i="' + i + '" value="' + (fl[i] || TINTE) + '" aria-label="Farbe für ' + esc(c) + ' (' + (istSatz() ? 'Wort ' : 'Stelle ') + (i + 1) + ')"><span style="color:' + (fl[i] || TINTE) + '">' + esc(c) + '</span></label>';
+      if (!istSatz()) return farbe;
+      var g = st.groessenSatz[i] || 1;
+      return '<span class="dr-wort-zeile">' + farbe + '<select class="dr-groesse" data-i="' + i + '" aria-label="Grösse für ' + esc(c) + ' (Wort ' + (i + 1) + ')">' +
+        GROESSEN.map(function(x){ return '<option value="' + x[0] + '"' + (x[0] === g ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select></span>';
     }).join('');
   }
+  $('#drFarben').addEventListener('change', function(ev){
+    var s = ev.target.closest('select.dr-groesse'); if (!s) return;
+    st.groessenSatz[+s.dataset.i] = +s.value; speichern(); zeichnen();
+  });
   $('#drFarben').addEventListener('input', function(ev){
     var f = ev.target.closest('input[type=color]'); if (!f) return;
     var i = +f.dataset.i; farbListe()[i] = f.value.toLowerCase() === TINTE.toLowerCase() ? '' : f.value;
@@ -557,7 +606,7 @@ function starte(bereich){
     farbenZeigen(woerter);
     messer.font = '700 100px ' + Labor.blattSchrift('buchstaben');
     var leer = messer.measureText(' ').width, breiten = woerter.map(function(w){ return messer.measureText(w).width + STRICH_SATZ * 100; });
-    var P = Kern.planen({ satz:{ breiten:breiten, leer:leer }, ringe:o.ringe, punkte:o.punkte, seed:st.seed });
+    var P = Kern.planen({ satz:{ breiten:breiten, leer:leer, groessen:woerter.map(function(_, i){ return st.groessenSatz[i] || 1; }) }, ringe:o.ringe, punkte:o.punkte, seed:st.seed });
     if (!P.satz){
       G = null; $('#drInhalt').hidden = true;
       meldung('warnung', '<p>Dieser Satz passt nicht auf die Scheibe – ein Wort ist zu lang. Ein kürzerer Satz hilft.</p>');
