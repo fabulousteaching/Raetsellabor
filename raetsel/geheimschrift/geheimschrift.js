@@ -99,6 +99,11 @@ var Kern = (function(){
     8:'a b c d e f g1 g2', 9:'a b c d f g1 g2'
   };
   Object.keys(SEGMENTE).forEach(function(k){ SEGMENTE[k] = SEGMENTE[k].split(' '); });
+  /* Bausteine: jeder Buchstabe ein Baustein von oben – die Anzahl Noppen und die Farbe verraten ihn. A–I: 2 × 2 Noppen,
+     J–R: 2 × 3, S–Z: 2 × 4; in jeder Gruppe die Farben der Reihe nach (wie im Regenbogen, dazu Rosa). → [Farbe, Noppen je Reihe] */
+  var STEIN_FARBEN = ['rot', 'orange', 'gelb', 'hellgruen', 'gruen', 'hellblau', 'blau', 'violett', 'rosa'];
+  var BAUSTEINE = {};
+  ABC.split('').forEach(function(c, i){ BAUSTEINE[c] = [STEIN_FARBEN[i % 9], 2 + Math.floor(i / 9)]; });
   // Text in Grossbuchstaben; Umlaute und ß bleiben (Morse, Blindenschrift) oder werden zu AE, OE, UE, SS
   function normal(text, umlaute){
     var t = String(text || '').replace(/ẞ/g, 'ß').replace(/ß/g, umlaute ? '' : 'SS').toUpperCase();
@@ -127,6 +132,7 @@ var Kern = (function(){
       case 'baerte': case 'altlatein': case 'runen': return i < 0 ? null : { bild:[art, BILDZEICHEN[c]] };
       case 'finger': return FINGER[c] ? { bild:['finger', FINGER[c]] } : null;
       case 'segmente': return SEGMENTE[c] ? { segmente:SEGMENTE[c], ausmalen:o.segArt === 'ausmalen' } : null;
+      case 'bausteine': return i < 0 ? null : { stein:BAUSTEINE[c] };
       case 'morse': return MORSE[c] ? { morse:MORSE[c] } : null;
       case 'braille':
         if (/[0-9]/.test(c)){ var m = BRAILLE[ZIFFER_BRAILLE[+c]]; return { braille:/[0-9]/.test(vorher || '') ? [m] : [ZAHLZEICHEN, m] }; }
@@ -162,7 +168,7 @@ var Kern = (function(){
   }
   return { ABC:ABC, GITTER:GITTER, MORSE:MORSE, BRAILLE:BRAILLE, ZAHLZEICHEN:ZAHLZEICHEN, HANDY:HANDY, HIERO:HIERO, HIERO_NAME:HIERO_NAME,
     normal:normal, zeichen:zeichen, zerlege:zerlege, freimaurer:freimaurer, VOEGEL:VOEGEL, KREISE:KREISE, BUECHER:BUECHER, BILDZEICHEN:BILDZEICHEN,
-    SEGMENTE:SEGMENTE, FINGER:FINGER, UMLAUTE:UMLAUTE };
+    SEGMENTE:SEGMENTE, FINGER:FINGER, UMLAUTE:UMLAUTE, BAUSTEINE:BAUSTEINE, STEIN_FARBEN:STEIN_FARBEN };
 })();
 /* KERN-ENDE */
 
@@ -178,6 +184,7 @@ var SCHRIFTEN = [
   ['buecher', 'Bücher-Code', 'Buchstaben aus Büchern gelegt'],
   ['baerte', 'Bärte-Code', 'Haare und Bart formen den Buchstaben'],
   ['segmente', 'Segment-Code', 'Leuchtende Striche wie auf einer Anzeige'],
+  ['bausteine', 'Bausteine', 'Farbe und Anzahl Noppen der Bausteine'],
   ['altlatein', 'Altlatein', 'Alte Buchstaben aus Italien, oft gespiegelt'],
   ['runen', 'Runen', 'Schriftzeichen der Germanen'],
   ['finger', 'Fingeralphabet', 'Handzeichen der Gebärdensprache'],
@@ -431,7 +438,19 @@ function segmentHtml(code){
   return '<span class="gs-seg-mal"><span class="gs-seg-namen">' + namen + '</span>' +
     segmentSvg([], 'gs-seg gs-seg-leer', null, '#8F837A') + segmentSvg(code.segmente, 'gs-seg gs-seg-loes', '#C2410C', '#B5AAA0') + '</span>';
 }
+/* Bausteine: von oben gesehen, 2 Reihen Noppen; Breite je nach Anzahl Noppen (2, 3 oder 4 je Reihe) */
+var STEIN = { rot:['#E3342F', '#A61E1A'], orange:['#F28C28', '#B35F0E'], gelb:['#F7D02C', '#B39207'], hellgruen:['#8BC34A', '#5A8A26'], gruen:['#2E8B57', '#1B5E38'],
+  hellblau:['#4FC3F7', '#1F8BBE'], blau:['#1E5AA8', '#123A70'], violett:['#8E44AD', '#5E2A75'], rosa:['#F48FB1', '#C2577D'] };
+var STEIN_NAME = { rot:'rot', orange:'orange', gelb:'gelb', hellgruen:'hellgrün', gruen:'dunkelgrün', hellblau:'hellblau', blau:'blau', violett:'violett', rosa:'rosa' };
+function steinSvg(stein, klasse){
+  var f = STEIN[stein[0]], n = stein[1], w = n * 10 + 2, noppen = '';
+  for (var r = 0; r < 2; r++) for (var c = 0; c < n; c++) noppen += '<circle cx="' + (6 + c * 10) + '" cy="' + (6 + r * 10) + '" r="3.3"/>';
+  return '<svg class="' + (klasse || 'gs-stein') + '" viewBox="0 0 ' + w + ' 22" style="aspect-ratio:' + w + '/22" aria-hidden="true">' +
+    '<rect x="1" y="1" width="' + (n * 10) + '" height="20" rx="1.6" fill="' + f[0] + '" stroke="' + f[1] + '" stroke-width="1"/>' +
+    '<g fill="' + f[0] + '" stroke="' + f[1] + '" stroke-width="0.9">' + noppen + '</g></svg>';
+}
 function symbolHtml(code){
+  if (code.stein) return steinSvg(code.stein);
   if (code.bild) return bildHtml(code.bild[0], code.bild[1]);
   if (code.segmente) return segmentHtml(code);
   if (code.kreis) return kreisSvg(code.kreis);
@@ -517,6 +536,10 @@ function schluesselHtml(art, o){
         '<div class="gs-seg-kopf">' + segmentPlan() + '<p class="gs-erklaerung">Aussen: <b>a</b> oben, <b>b</b> und <b>c</b> rechts, <b>d</b> unten, <b>e</b> und <b>f</b> links.<br>Mitte: <b>g1</b> und <b>g2</b> waagrecht.<br>Innen oben: <b>h</b>, <b>i</b>, <b>j</b>; innen unten: <b>k</b>, <b>l</b>, <b>m</b>.</p></div>' +
         tabelle(A.map(function(c){ return [c, segmentSvg(Kern.SEGMENTE[c], 'gs-seg-k'), Kern.SEGMENTE[c].join(' ')]; }), 'gs-tab-seg') +
         '<h3 class="gs-unter">Ziffern</h3>' + tabelle('0123456789'.split('').map(function(c){ return [c, segmentSvg(Kern.SEGMENTE[c], 'gs-seg-k'), Kern.SEGMENTE[c].join(' ')]; }), 'gs-tab-seg');
+    case 'bausteine':
+      return '<p class="gs-erklaerung">Jeder Buchstabe ist ein Baustein, von oben gesehen. Zähle die Noppen und schau die Farbe an: A bis I haben 4 Noppen (2 × 2), J bis R 6 Noppen (2 × 3) und S bis Z 8 Noppen (2 × 4). ' +
+        'In jeder Gruppe kommen die Farben in derselben Reihenfolge: rot, orange, gelb, hellgrün, dunkelgrün, hellblau, blau, violett, rosa.</p>' +
+        tabelle(A.map(function(c){ return [c, steinSvg(Kern.BAUSTEINE[c], 'gs-stein-k'), STEIN_NAME[Kern.BAUSTEINE[c][0]]]; }), 'gs-tab-steine');
     case 'finger':
       return '<p class="gs-erklaerung">Mit dem Fingeralphabet buchstabieren gehörlose Menschen Namen und Wörter, für die es keine eigene Gebärde gibt. Jeder Buchstabe ist eine Handform. ' +
         'Im Fingeralphabet der Deutschschweiz haben auch Ä, Ö, Ü, CH und SCH eigene Zeichen. Bei J und Z bewegt sich die Hand (Pfeil).</p>' +
@@ -617,9 +640,9 @@ var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke
 Labor.registriere({
   id:'geheimschrift',
   titel:'Geheimschriften',
-  kurz:'Caesar, Freimaurer, Vögel, Bücher, Bärte, Segmente, Runen, Morse, Hieroglyphen und mehr',
-  beschreibung:'Ein eigener Text in einer von siebzehn Geheimschriften – Caesar-Verschiebung, Rückwärts-Alphabet, Zahlen, Handy-Tasten, Koordinaten, Freimaurer-Code, Vögel auf dem Draht, Kreis-Code, Bücher-Code, Bärte-Code, Segment-Code, Altlatein, Runen, Fingeralphabet, Morse, Blindenschrift oder Hieroglyphen. Mit Schlüssel zum Entschlüsseln.',
-  merkmale:['Siebzehn Geheimschriften', 'Schlüssel einzeln als PDF oder Bild', 'Mit Lösungsblatt'],
+  kurz:'Caesar, Freimaurer, Vögel, Bücher, Bärte, Segmente, Bausteine, Runen, Morse, Hieroglyphen und mehr',
+  beschreibung:'Ein eigener Text in einer von achtzehn Geheimschriften – Caesar-Verschiebung, Rückwärts-Alphabet, Zahlen, Handy-Tasten, Koordinaten, Freimaurer-Code, Vögel auf dem Draht, Kreis-Code, Bücher-Code, Bärte-Code, Segment-Code, Bausteine, Altlatein, Runen, Fingeralphabet, Morse, Blindenschrift oder Hieroglyphen. Mit Schlüssel zum Entschlüsseln.',
+  merkmale:['Achtzehn Geheimschriften', 'Schlüssel einzeln als PDF oder Bild', 'Mit Lösungsblatt'],
   symbol:SYMBOL,
   css:'raetsel/geheimschrift/geheimschrift.css',
   html:VORLAGE,

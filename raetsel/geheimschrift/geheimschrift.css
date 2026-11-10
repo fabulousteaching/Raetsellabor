@@ -170,6 +170,11 @@
 .gs-seg-kopf .gs-erklaerung{margin:0;flex:1 1 220px}
 .gs-seg-plan{width:150px;height:auto;display:block;flex:none}
 .gs-vorschau .gs-seg{height:22px}
+/* Bausteine: gleich hoch, Breite nach Anzahl Noppen */
+.gs-stein{height:calc(var(--fm) * .62);width:auto;display:block}
+.gs-stein-k{height:26px;width:auto;display:block}
+.gs-vorschau .gs-stein{height:13px}
+.gs-tab-steine .gs-tab-zelle{min-width:60px}
 .gs-fm-k{height:38px;width:38px;display:block}
 .gs-fm-schluessel{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(10px,2.4vw,24px);margin:4px 0 22px}
 .gs-fm-schluessel svg{display:block;width:100%;height:auto;aspect-ratio:1}
