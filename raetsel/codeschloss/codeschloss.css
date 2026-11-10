@@ -28,6 +28,13 @@
 .cs-zaehler-haupt.fehlt{background:var(--accent-soft);color:var(--accent-2)}
 .cs-zaehler .warnung{color:var(--accent-2)}
 #csSatzTeil[hidden]{display:none}
+.cs-satz-liste{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.cs-satz-liste:empty{display:none}
+.cs-satz-liste p{flex:1 1 100%;margin:0;font-size:.82rem;color:var(--muted)}
+.cs-satz-knopf{border:1px solid var(--line-2);border-radius:10px;background:#fff;padding:5px 10px;font:inherit;font-size:.86rem;color:var(--text);text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.cs-satz-knopf:hover{border-color:var(--accent-line)}
+.cs-satz-knopf[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-2);font-weight:600}
+.cs-satz-knopf:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
 .cs-code-zeile input.cs-satz-feld{font-size:1rem;letter-spacing:0;text-transform:none;font-weight:600}
 .cs-satz-loesung{margin:18px 0 0;font-size:1rem;color:#3A322C}
 .cs-satz-loesung b{color:#1593D6;letter-spacing:.02em}

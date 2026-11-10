@@ -52,9 +52,35 @@ var Kern = (function(){
   var SAETZE = ['Basel liegt am Rhein', 'Heute lösen wir ein Rätsel', 'Das Schloss ist bald offen', 'Alle Kinder lieben Rätsel', 'Die Sonne scheint warm',
     'Im Garten blühen Blumen', 'Der Tiger schläft im Zoo', 'Wir suchen den geheimen Code', 'Ein Apfel fällt vom Baum', 'Der Pirat findet einen Schatz',
     'Mein Freund hat einen Hund', 'Die Schule beginnt um acht', 'Der Mond scheint hell', 'Im Haus brennt Licht'];
-  // ein Satz, aus dem sich der Code legen lässt und der ins Feld passt (sonst null)
+  /* Sätze zum Thema der Wörter, die «Andere» vorschlägt: Jeder enthält alle Buchstaben des Worts (so oft, wie es sie
+     braucht), aber nicht das Wort selbst, und hat höchstens 30 Buchstaben (geprüft). Für andere Wörter fragt die Seite die KI. */
+  var THEMA = {
+    ZOO:['Zebras und Robben wohnen dort', 'Zwei Robben spielen und toben', 'Zebras grasen, Affen toben froh'],
+    OHR:['Wir horchen auf jedes Geräusch', 'Leise Worte hört man schlecht', 'Hörst du das Rauschen vom Bach'],
+    UHR:['Der Zeiger dreht sich rundherum', 'Die Stunden gehen schnell vorbei', 'Der Wecker klingelt um halb acht'],
+    BAUM:['Im Wald wachsen hohe Buchen', 'Die Blätter fallen im Herbst um', 'Vögel bauen Nester im Ast'],
+    HAUS:['Unsere Wohnung hat einen Balkon', 'Das Dach schützt uns vor Regen', 'Hinter der Tür wartet unser Hund'],
+    MOND:['Nachts kommen die Sterne hervor', 'Die Nacht kommt, es wird dunkel', 'Hoch oben am dunklen Himmel'],
+    BALL:['Alle laufen zum Tor und jubeln', 'Beim Spielen rollt alles schnell', 'Lea wirft, Ben fängt alles'],
+    BASEL:['Die Fasnacht ist bunt und laut', 'Im Zolli sieht man Bären und Affen', 'Bunte Laternen und schräge Musik'],
+    APFEL:['Pflaumen schmecken sehr fein', 'Wir pflücken Pflaumen im Garten', 'Im Herbst pflücken alle Obst'],
+    TIGER:['Die grosse Katze hat Streifen', 'Im Dschungel jagt eine Raubkatze', 'Gestreift schleicht er durchs Gras'],
+    BLUME:['Im Frühling blüht der Garten bunt', 'Die Rose duftet herrlich im Beet', 'Bunte Tulpen wachsen im Mai'],
+    SONNE:['Die Strahlen wärmen den Sommertag', 'Im Sommer baden wir gern am See', 'Am Morgen wird es hell und schön'],
+    STERN:['In der Nacht funkelt es oben', 'Nachts glitzert es am Himmel', 'Sie leuchten hell in der Nacht'],
+    PIRAT:['Der Kapitän sucht einen Schatz', 'Ein Papagei sitzt auf der Schulter', 'Mit Augenklappe segelt er los, Ahoi'],
+    SCHULE:['Wir lernen lesen und schreiben', 'In der Pause rechnen alle zusammen', 'Im Unterricht lesen wir viel'],
+    FREUND:['Wir helfen uns und teilen gerne', 'Zusammen lachen macht Freude', 'Du hilfst mir immer gern'],
+    ZAUBER:['Zwei Tauben flattern aus dem Hut', 'Bravo, der Hase kommt zurück'],
+    DRACHE:['Rauch steigt aus der Höhle', 'Feuer und Rauch kommen aus dem Maul', 'Ein Ritter wacht auf der Burg']
+  };
+  // passt der Satz zum Code? (Buchstaben reichen, passt ins Feld, enthält das Codewort nicht – sonst verriete das Feld die Lösung)
+  function satzPasst(t, codeZ, n){ var z = code(t), p = satzPruefen(z, codeZ, n); return !p.fehlt.length && p.L <= p.maxL && p.L >= 8 && z.join('').indexOf(codeZ.join('')) < 0; }
+  function themenSaetze(codeZ, n){ return (THEMA[codeZ.join('')] || []).filter(function(t){ return satzPasst(t, codeZ, n); }); }
+  // ein Satz, aus dem sich der Code legen lässt und der ins Feld passt – zuerst zum Thema, sonst irgendeiner (sonst null)
   function satzVorschlag(codeZ, n, rnd, ausser){
-    var l = SAETZE.filter(function(t){ var p = satzPruefen(code(t), codeZ, n); return !p.fehlt.length && p.L <= p.maxL && t !== ausser; });
+    var l = themenSaetze(codeZ, n).filter(function(t){ return t !== ausser; });
+    if (!l.length) l = SAETZE.filter(function(t){ var p = satzPruefen(code(t), codeZ, n); return !p.fehlt.length && p.L <= p.maxL && t !== ausser; });
     return l.length ? l[Math.floor(rnd() * l.length)] : null;
   }
 
@@ -153,7 +179,7 @@ var Kern = (function(){
     return null;
   }
   return { zufall:zufall, mischen:mischen, REIHE:REIHE, FARBE:FARBE, THEMEN:THEMEN, WOERTER:WOERTER, thema:thema, farbenVon:farbenVon,
-    code:code, zufallsWort:zufallsWort, PUNKTE:PUNKTE, punkte:punkte, planen:planen, satzPruefen:satzPruefen, satzVorschlag:satzVorschlag, SAETZE:SAETZE };
+    code:code, zufallsWort:zufallsWort, PUNKTE:PUNKTE, punkte:punkte, planen:planen, satzPruefen:satzPruefen, satzVorschlag:satzVorschlag, satzPasst:satzPasst, themenSaetze:themenSaetze, SAETZE:SAETZE, THEMA:THEMA };
 })();
 /* KERN-ENDE */
 
@@ -231,7 +257,8 @@ var VORLAGE = '<div class="cs">' +
       '<div id="csSatzTeil" hidden><label class="feld-label" for="csSatz">Satz</label>' +
         '<div class="cs-code-zeile"><input type="text" id="csSatz" class="cs-satz-feld" maxlength="80" autocomplete="off" spellcheck="false">' +
         '<button type="button" class="btn klein" id="csSatzVorschlag" title="Einen Satz vorschlagen, der zum Code passt">Vorschlag</button></div>' +
-        '<p class="hinweis">Liest man die Buchstaben im Feld der Reihe nach (Zeile für Zeile, Emojis auslassen), ergeben sie diesen Satz. Die Buchstaben des Codes müssen darin vorkommen.</p>' +
+        '<div class="cs-satz-liste" id="csSatzListe" aria-live="polite"></div>' +
+        '<p class="hinweis">Liest man die Buchstaben im Feld der Reihe nach (Zeile für Zeile, Emojis auslassen), ergeben sie diesen Satz. Die Buchstaben des Codes müssen darin vorkommen. «Vorschlag» sucht Sätze, die zum Codewort passen.</p>' +
         '<div class="cs-zaehler" id="csSatzInfo" aria-live="polite"></div></div>' +
       '<p class="feld-label">Feld</p><div class="cs-chips" role="radiogroup" aria-label="Grösse des Felds">' + chips('csN', [[5, '5 × 5 · leicht'], [6, '6 × 6'], [7, '7 × 7 · schwer']]) + '</div>' +
       '<p class="feld-label">Kästchen</p><div class="cs-chips" role="radiogroup" aria-label="Grösse der Kästchen">' + chips('csKaestchen', [[2, '2 × 2 · leicht'], [3, '3 × 3'], [4, '4 × 4 · schwer']]) + '</div>' +
@@ -305,21 +332,86 @@ function starte(bereich){
   function satzArtZeigen(){
     var an = st.opt.feldArt === 'satz';
     $('#csSatzTeil').hidden = !an;
-    if (an && !st.satz.trim()){ st.satz = Kern.satzVorschlag(codeJetzt(), st.opt.n, Kern.zufall(st.seed + 9)) || Kern.SAETZE[0]; $('#csSatz').value = st.satz; speichern(); }
+    if (an && !st.satz.trim()){
+      st.satz = Kern.satzVorschlag(codeJetzt(), st.opt.n, Kern.zufall(st.seed + 9)) || Kern.SAETZE[0]; $('#csSatz').value = st.satz; speichern();
+      var eigene = Kern.themenSaetze(codeJetzt(), st.opt.n);
+      if (eigene.length) vorschlaegeZeigen(eigene, 'Sätze zu «' + codeJetzt().join('') + '» – zum Auswählen anklicken:');
+    }
   }
   radios('csThema', 'thema'); radios('csN', 'n'); radios('csKaestchen', 'kaestchen'); radios('csFeldArt', 'feldArt', satzArtZeigen);
   $('#csSatz').value = st.satz; satzArtZeigen();
   $('#csSatz').addEventListener('input', function(){ st.satz = this.value; speichern(); baldZeichnen(); });
+  /* ---------- Satz-Vorschläge zum Codewort ----------
+     Für die Wörter von «Andere» gibt es eingebaute Sätze; für eigene Wörter fragt die Seite die KI – auf der Website
+     api/saetze.php (Mistral), im Claude-Artefakt Claude. Gezeigt werden nur Sätze, aus denen sich der Code legen lässt,
+     die ins Feld passen und das Codewort nicht enthalten. */
+  var SATZ_SERVER = 'api/saetze.php', kiWeg = null, kiSpeicher = {};
+  function kiBereit(){
+    if (kiWeg) return kiWeg;
+    if (Labor.imArtefakt()) return (kiWeg = Labor.claude('sample').then(function(ki){ return ki ? { art:'claude', ki:ki } : null; }));
+    if (!/^https?:$/.test(location.protocol) || !window.fetch) return (kiWeg = Promise.resolve(null));
+    kiWeg = fetch(SATZ_SERVER, { cache:'no-store' }).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){ return j && j.bereit ? { art:'server' } : null; }, function(){ return null; });
+    return kiWeg;
+  }
+  function kiAuftrag(wort, max){
+    var anzeige = wort.charAt(0) + wort.slice(1).toLowerCase(), zaehl = {};
+    wort.split('').forEach(function(c){ zaehl[c] = (zaehl[c] || 0) + 1; });
+    return 'Du schreibst Rätsel-Sätze für Arbeitsblätter an Schweizer Primarschulen.\n' +
+      'Schreibe 10 kurze, einfache deutsche Sätze für Kinder von 8 bis 12 Jahren, die thematisch zum Wort «' + anzeige + '» passen.\nRegeln:\n' +
+      '- Schweizer Rechtschreibung: ss statt ß.\n- Jeder Satz hat zwischen 15 und ' + max + ' Buchstaben (Leerzeichen und Satzzeichen zählen nicht).\n' +
+      '- In jedem Satz kommen diese Buchstaben mindestens so oft vor (gross oder klein; ä zählt nicht als a): ' + Object.keys(zaehl).map(function(c){ return c + (zaehl[c] > 1 ? ' (' + zaehl[c] + '-mal)' : ''); }).join(', ') + '.\n' +
+      '- Das Wort «' + anzeige + '» selbst kommt nicht vor, auch nicht als Teil eines längeren Worts.\n- Keine Zahlen und keine Namen echter Personen.\n' +
+      'Antworte nur mit JSON in dieser Form: {"saetze": ["…", "…"]}';
+  }
+  function kiSaetze(w, wort, max){
+    var schl = wort + '|' + max;
+    if (kiSpeicher[schl]) return Promise.resolve(kiSpeicher[schl]);
+    var p = w.art === 'server'
+      ? fetch(SATZ_SERVER, { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ wort:wort, max:max }) }).then(function(r){
+          return r.json().catch(function(){ return {}; }).then(function(j){ if (r.ok && j && Array.isArray(j.saetze)) return j.saetze; var e = new Error('ki'); e.code = (j && j.fehler) || (r.status === 429 ? 'zuViele' : 'ki'); throw e; });
+        })
+      : w.ki.json(kiAuftrag(wort, max), { modelTier:'quick' }).then(function(d){ return d && Array.isArray(d.saetze) ? d.saetze : []; });
+    return p.then(function(l){ l = l.map(function(t){ return String(t || '').replace(/ß/g, 'ss').replace(/\s+/g, ' ').trim(); }).filter(Boolean); kiSpeicher[schl] = l; return l; });
+  }
+  function satzWaehlen(t){ st.satz = t; $('#csSatz').value = t; speichern(); listeMarkieren(); zeichnen(); }
+  function listeMarkieren(){ [].forEach.call($('#csSatzListe').querySelectorAll('button'), function(b){ b.setAttribute('aria-pressed', b.textContent === st.satz ? 'true' : 'false'); }); }
+  function vorschlaegeZeigen(liste, titel){
+    $('#csSatzListe').innerHTML = liste.length ? '<p>' + esc(titel) + '</p>' + liste.map(function(t){ return '<button type="button" class="cs-satz-knopf" aria-pressed="false">' + esc(t) + '</button>'; }).join('') : '';
+    listeMarkieren();
+  }
+  $('#csSatzListe').addEventListener('click', function(ev){ var b = ev.target.closest('button'); if (b) satzWaehlen(b.textContent); });
+  var knopfText = $('#csSatzVorschlag').textContent;
   $('#csSatzVorschlag').addEventListener('click', function(){
-    var v = Kern.satzVorschlag(codeJetzt(), st.opt.n, Kern.zufall(Date.now()), st.satz.trim());
-    if (v){ st.satz = v; $('#csSatz').value = v; speichern(); zeichnen(); }
-    else meldung('warnung', '<p>Für den Code «' + esc(codeJetzt().join('')) + '» habe ich keinen passenden Satz in meiner Liste – schreib einen eigenen, in dem alle Buchstaben des Codes vorkommen.</p>');
+    var z = codeJetzt(), wort = z.join(''), n = st.opt.n, knopf = this;
+    function ersatz(text){   // ohne Thema: irgendein Satz, aus dem sich der Code legen lässt
+      var v = Kern.satzVorschlag(z, n, Kern.zufall(Date.now()), st.satz.trim());
+      if (v) satzWaehlen(v);
+      meldung(v ? 'info' : 'warnung', '<p>' + esc(text) + (v ? ' Darum ein Satz, aus dem sich der Code legen lässt.' : ' Schreib einen eigenen Satz, in dem alle Buchstaben des Codes vorkommen.') + '</p>');
+    }
+    if (z.length < 3) return;
+    var eigene = Kern.themenSaetze(z, n);
+    if (eigene.length){ vorschlaegeZeigen(eigene, 'Sätze zu «' + wort + '» – zum Auswählen anklicken:'); satzWaehlen(eigene[Math.floor(Math.random() * eigene.length)]); return; }
+    if (/\d/.test(wort)) { vorschlaegeZeigen([], ''); ersatz('Zu Zahlen-Codes gibt es keine Sätze zum Thema.'); return; }
+    knopf.disabled = true; knopf.textContent = 'Sucht …';
+    kiBereit().then(function(w){
+      if (!w) return ersatz('Sätze zum Thema schlägt die KI auf raetsellabor.fabulousteaching.ch vor.');
+      return kiSaetze(w, wort, Math.min(45, n * n - z.length)).then(function(l){
+        var ok = l.filter(function(t){ return Kern.satzPasst(t, z, n); });
+        if (!ok.length) return ersatz('Die KI hat keinen Satz gefunden, aus dem sich «' + wort + '» legen lässt.');
+        vorschlaegeZeigen(ok, 'Sätze zu «' + wort + '» – zum Auswählen anklicken:'); satzWaehlen(ok[0]);
+      }, function(e){
+        ersatz(e && (e.code === 'zuViele' || e.code === 'rate_limited') ? 'Gerade zu viele Anfragen an die KI – bitte in einer Minute nochmals.' : 'Die KI war gerade nicht erreichbar.');
+      });
+    }).then(function(){ if (!aus){ knopf.disabled = false; knopf.textContent = knopfText; } });
   });
   $('#csCode').value = st.code;
-  $('#csCode').addEventListener('input', function(){ st.code = this.value; speichern(); baldZeichnen(); });
+  $('#csCode').addEventListener('input', function(){ st.code = this.value; speichern(); vorschlaegeZeigen([], ''); baldZeichnen(); });
   $('#csZufall').addEventListener('click', function(){
     st.code = Kern.zufallsWort(Kern.zufall(Date.now()), Kern.farbenVon(st.opt.thema).length, Kern.code(st.code).join(''));
-    $('#csCode').value = st.code; speichern(); zeichnen();
+    $('#csCode').value = st.code; speichern(); vorschlaegeZeigen([], '');
+    // Satz im Feld: zum neuen Wort gleich einen passenden Satz
+    if (st.opt.feldArt === 'satz'){ var eigene = Kern.themenSaetze(codeJetzt(), st.opt.n); if (eigene.length){ vorschlaegeZeigen(eigene, 'Sätze zu «' + codeJetzt().join('') + '» – zum Auswählen anklicken:'); satzWaehlen(eigene[0]); return; } }
+    zeichnen();
   });
   $('#csMitLoesung').checked = !!st.opt.mitLoesung;
   $('#csMitLoesung').addEventListener('change', function(){ st.opt.mitLoesung = this.checked; speichern(); });
