@@ -51,49 +51,80 @@ var Kern = (function(){
          winkel (Mitte jedes Zeichens, Grad im Uhrzeigersinn ab oben), papier / schirm (Drehung jeder Scheibe),
          punkte[k]:[{ w, r }], ueber (Überlappung unter der nächstkleineren Scheibe) } */
   /* Satz: waagrechte Zeilen von oben nach unten, um den Deckel in der Mitte herum. breiten: Breite jedes Worts bei
-     Schriftgrösse 100 (mit Strich), leer: Breite eines Leerzeichens bei 100. Gesucht wird die grösste Schrift, bei der
-     alle Wörter Platz haben (Zeilenhöhe 1.25 × Schrift, Zeilen in der Mitte der Scheibe): Jede Zeile reicht so weit, wie
-     der Kreis «aussen» an ihrer engsten Stelle breit ist; wo sie am Deckel («kappe») vorbeiführt, hat sie einen linken
-     und einen rechten Teil. → { f, zeilen:[{ y, teile:[{ woerter:[{ i, x }] }] }] } (x: Anfang des Worts; Mitte = 0, 0)
-     Mit rnd («Neu anordnen») wird daraus eine Abwandlung: Schrift 86–100 % der grössten, Zeilen etwas höher oder tiefer,
-     andere Umbrüche (jede Zeile nur zu 72–100 % gefüllt) und Wörter nicht immer genau in der Mitte ihrer Zeile – die
-     Reihenfolge bleibt. */
+     Schriftgrösse 100 (mit Strich), leer: Breite eines Leerzeichens bei 100. Die Wörter bleiben in ihrer Reihenfolge
+     (Zeile für Zeile, links nach rechts), aber jede Anordnung (rnd, «Neu anordnen») ist etwas anders:
+     - jedes Wort hat seine eigene Grösse (72–128 % der Grundschrift),
+     - die Abstände zwischen den Wörtern (80–160 % eines Leerzeichens) und zwischen den Zeilen wechseln,
+     - eine Zeile wird nur zu 72–100 % gefüllt (andere Umbrüche), steht nicht immer genau in der Mitte, und kleinere Wörter
+       sitzen in ihrer Zeile etwas höher oder tiefer,
+     - der ganze Text liegt etwas höher oder tiefer.
+     Jede Zeile reicht so weit, wie der Kreis «aussen» an ihrer engsten Stelle breit ist; wo sie am Deckel («kappe»)
+     vorbeiführt, hat sie einen linken und einen rechten Teil. Gesucht wird die grösste Grundschrift f, bei der alles passt.
+     → { f, zeilen:[{ y, teile:[{ woerter:[{ i, x (Anfang), y (Mitte), f (Schriftgrösse) }] }] }] } (Mitte der Scheibe = 0, 0) */
   function satzSetzen(breiten, leer, aussen, kappe, rnd){
-    function eins(){ return 1; }
-    function mitte(){ return 0.5; }
-    function versuch(f, L, m, versatz, fuellung, lage){
-      var zeilen = [], wi = 0, s = leer * f / 100;
-      for (var j = 0; j < m; j++){
-        var y = (j - (m - 1) / 2) * L + versatz, oben = y - L / 2, unten = y + L / 2, weit = Math.max(Math.abs(oben), Math.abs(unten));
-        if (weit >= aussen) return null;
-        var xr = Math.sqrt(aussen * aussen - weit * weit), nah = oben <= 0 && unten >= 0 ? 0 : Math.min(Math.abs(oben), Math.abs(unten));
-        var xk = nah < kappe ? Math.sqrt(kappe * kappe - nah * nah) : 0, zeile = { y:y, teile:[] };
-        (xk ? [[-xr, -xk], [xk, xr]] : [[-xr, xr]]).forEach(function(t){
-          var platz = t[1] - t[0], voll = platz * fuellung(j), w = 0, liste = [];
-          while (platz > 0 && wi < breiten.length){
-            var x = w + (liste.length ? s : 0), neu = x + breiten[wi] * f / 100;
-            if (neu > (liste.length ? voll : platz)) break;   // das erste Wort darf die ganze Breite nutzen
-            liste.push({ i:wi, x:x }); w = neu; wi++;
-          }
-          if (liste.length){ var x0 = t[0] + (platz - w) * lage(); liste.forEach(function(e){ e.x += x0; }); zeile.teile.push({ woerter:liste }); }
-        });
-        zeilen.push(zeile);
+    var n = breiten.length, r = rnd || function(){ return 0.5; }, j;
+    function zufallsListe(anzahl, von, bis){ var l = []; for (var i = 0; i < anzahl; i++) l.push(rnd ? von + (bis - von) * r() : (von + bis) / 2); return l; }
+    var gross = rnd ? zufallsListe(n, 0.72, 1.28) : zufallsListe(n, 1, 1), abst = zufallsListe(n, 0.8, 1.6), zitter = zufallsListe(n, -1, 1);
+    var fuell = rnd ? zufallsListe(80, 0.72, 1) : zufallsListe(80, 1, 1), lage = zufallsListe(160, 0.3, 0.7), luft = zufallsListe(80, 0, 1);
+    var versatz = rnd ? (r() - 0.5) * 0.4 : 0;
+    function segmente(oben, unten){
+      var weit = Math.max(Math.abs(oben), Math.abs(unten));
+      if (weit >= aussen) return [];
+      var xr = Math.sqrt(aussen * aussen - weit * weit), nah = oben <= 0 && unten >= 0 ? 0 : Math.min(Math.abs(oben), Math.abs(unten));
+      var xk = nah < kappe ? Math.sqrt(kappe * kappe - nah * nah) : 0;
+      return xk ? (xk < xr ? [[-xr, -xk], [xk, xr]] : []) : [[-xr, xr]];
+    }
+    // Wörter der Reihe nach in die Teile einer Zeile → je Teil [{ i, x (ab Teilanfang), b }] oder null
+    function verteilen(f, woerter, segs, z){
+      var teile = segs.map(function(){ return []; }), s = 0, w = 0;
+      for (var a = 0; a < woerter.length; a++){
+        var i = woerter[a], b = breiten[i] * f * gross[i] / 100, gesetzt = false;
+        while (s < segs.length && !gesetzt){
+          var platz = segs[s][1] - segs[s][0], luecke = teile[s].length ? leer * f / 100 * abst[i] : 0;
+          if (w + luecke + b <= (teile[s].length ? platz * fuell[z % 80] : platz)){ teile[s].push({ i:i, x:w + luecke, b:b }); w += luecke + b; gesetzt = true; }
+          else { s++; w = 0; }
+        }
+        if (!gesetzt) return null;
       }
-      return wi >= breiten.length ? zeilen : null;
+      return teile;
     }
-    var beste = null;
-    for (var f = Math.floor(aussen * 0.6); f >= 5 && !beste; f--){
-      var L = f * 1.25, maxZ = Math.floor(2 * aussen / L);
-      for (var m = 1; m <= maxZ && !beste; m++){ var z = versuch(f, L, m, 0, eins, mitte); if (z) beste = { f:f, zeilen:z }; }
+    function setzen(f, y0){
+      var zeilen = [], wi = 0, y = y0, z = 0, schritte = 0;
+      while (wi < n){
+        if (y >= aussen || ++schritte > 600) return null;
+        var liste = [], hoch = 0, beste = null;
+        for (var k = wi; k < n; k++){
+          var h2 = Math.max(hoch, f * gross[k]), H = h2 * 1.12, segs = segmente(y, y + H), p = segs.length ? verteilen(f, liste.concat([k]), segs, z) : null;
+          if (!p) break;
+          liste.push(k); hoch = h2; beste = { p:p, segs:segs, H:H };
+        }
+        if (!liste.length){ y += 0.15 * f; continue; }   // hier ist es zu eng: etwas tiefer versuchen
+        var zeile = { y:y + beste.H / 2, teile:[] };
+        beste.p.forEach(function(t, s){
+          if (!t.length) return;
+          var seg = beste.segs[s], ende = t[t.length - 1].x + t[t.length - 1].b, x0 = seg[0] + (seg[1] - seg[0] - ende) * lage[(2 * z + s) % 160];
+          zeile.teile.push({ woerter:t.map(function(e){
+            var fi = f * gross[e.i];
+            return { i:e.i, x:x0 + e.x, y:zeile.y + zitter[e.i] * (beste.H - fi) / 2 * 0.8, f:fi };
+          }) });
+        });
+        zeilen.push(zeile); wi += liste.length; y += beste.H + 0.12 * f * luft[z % 80]; z++;
+      }
+      return { zeilen:zeilen, unten:y };
     }
-    if (!beste || !rnd) return beste;
-    for (var t = 0; t < 60; t++){
-      var f2 = Math.max(5, Math.round(beste.f * (0.86 + 0.14 * rnd()))), L2 = f2 * 1.25, versatz = (rnd() - 0.5) * 0.8 * L2, fuell = [];
-      var fuellung = function(j){ return fuell[j] || (fuell[j] = 0.72 + 0.28 * rnd()); };
-      var lage = function(){ return 0.3 + 0.4 * rnd(); };
-      for (var m2 = 1; m2 <= Math.floor(2 * aussen / L2); m2++){ var z2 = versuch(f2, L2, m2, versatz, fuellung, lage); if (z2) return { f:f2, zeilen:z2 }; }
+    var summe = 0;
+    for (j = 0; j < n; j++) summe += breiten[j] * gross[j] + leer;
+    for (var f = Math.floor(aussen * 0.6); f >= 5; f--){
+      // Text senkrecht in die Mitte: Höhe schätzen, setzen, mit der wirklichen Höhe nochmals
+      var T = Math.max(1, Math.ceil(summe * f / 100 / (1.5 * aussen))) * f * 1.25, gut = null;
+      for (var it = 0; it < 6; it++){
+        var y0 = -T / 2 + versatz * f, res = setzen(f, y0);
+        if (res){ gut = res; var Tn = res.unten - y0; if (Math.abs(Tn - T) < 0.05 * f) break; T = Tn; }
+        else T = T * 1.2 + f * 0.5;
+      }
+      if (gut) return { f:f, zeilen:gut.zeilen };
     }
-    return beste;
+    return null;
   }
 
   function planen(o){
@@ -108,7 +139,7 @@ var Kern = (function(){
       var kap = 12 * mm, aussenText = kap + 6 * mm;
       satz = satzSetzen(o.satz.breiten, o.satz.leer, gb, kap + 2 * mm, rnd);
       if (satz) satz.zeilen.forEach(function(z){ z.teile.forEach(function(t){ t.woerter.forEach(function(w){
-        var x1 = w.x + o.satz.breiten[w.i] * satz.f / 100, y1 = Math.abs(z.y) + 0.42 * satz.f;
+        var x1 = w.x + o.satz.breiten[w.i] * w.f / 100, y1 = Math.abs(w.y) + 0.42 * w.f;
         aussenText = Math.max(aussenText, Math.hypot(Math.max(Math.abs(w.x), Math.abs(x1)), y1));
       }); }); });
       aussenText = Math.min(aussenText, gb);
@@ -249,7 +280,7 @@ function ringInhalt(G, k, id){
     '<g clip-path="url(#' + id + ')"><g font-size="' + f1(G.f) + '" font-weight="700" fill="' + TINTE + '" stroke="' + TINTE + '" stroke-width="' + f1(G.f * (P.satz ? STRICH_SATZ : STRICH)) + '" stroke-linejoin="round" style="font-family:var(--blatt-buchstaben)">';
   if (P.satz) P.satz.zeilen.forEach(function(z){ z.teile.forEach(function(teil){ teil.woerter.forEach(function(w){
     var farbe = G.farben[w.i];
-    t += '<text x="' + f1(w.x) + '" y="' + f1(z.y) + '" dominant-baseline="central"' + (farbe ? ' fill="' + farbe + '" stroke="' + farbe + '"' : '') + '>' + esc(G.woerter[w.i]) + '</text>';
+    t += '<text x="' + f1(w.x) + '" y="' + f1(w.y) + '" font-size="' + f1(w.f) + '" stroke-width="' + f1(w.f * STRICH_SATZ) + '" dominant-baseline="central"' + (farbe ? ' fill="' + farbe + '" stroke="' + farbe + '"' : '') + '>' + esc(G.woerter[w.i]) + '</text>';
   }); }); });
   else P.zeichen.forEach(function(c, j){ if (c !== ' ') t += zeichenSvg(G, c, P.winkel[j], G.farben[j]); });
   t += '</g></g>';
@@ -533,7 +564,9 @@ function starte(bereich){
       return;
     }
     G = { P:P, f:P.satz.f, woerter:woerter, farben:woerter.map(function(_, i){ return st.farbenSatz[i] || ''; }), pfeil:o.pfeil };
-    var mm = P.mm, klein = P.satz.f < 4.5 * mm;   // Schriftgrösse 4.5 mm: Grossbuchstaben gut 3 mm hoch
+    var kleinste = Infinity;
+    P.satz.zeilen.forEach(function(z){ z.teile.forEach(function(t){ t.woerter.forEach(function(w){ kleinste = Math.min(kleinste, w.f); }); }); });
+    var mm = P.mm, klein = kleinste < 4.5 * mm;   // Schriftgrösse 4.5 mm: Grossbuchstaben gut 3 mm hoch
     meldung(klein ? 'warnung' : '', klein ? '<p>Der Satz ist lang – die Schrift wird klein. Ein kürzerer Satz hilft.</p>' : '');
     seitenZeichnen(woerter);
     spielVersatz = P.schirm.slice();
