@@ -221,6 +221,14 @@ Ein Feld mit Buchstaben (blau) und Emojis, daneben kleine Kästchen (2 × 2 Feld
 - **Am Bildschirm lösen:** je Farbpunkt ein Feld; falsche Zeichen werden rot, beim richtigen Code: «Geschafft! 🥳 Das Schloss ist offen.»
 - Die Emojis kommen aus der Emoji-Schrift des Geräts (auch im PDF). 🫐 gibt es erst seit 2020 – auf sehr alten Geräten fehlt es.
 
+### Regenbogenrätsel
+
+Oben ein Regenbogen, darunter Gruppen von Formen (Sterne, Kreise, Dreiecke, Quadrate, Herzen, Rauten, Sechsecke, Blumen – je Gruppe eine Form) in den Farben des Regenbogens. Wer in jeder Gruppe die Formen in der Reihenfolge der Regenbogenfarben verbindet (von aussen nach innen), zeichnet eine Ziffer; zusammen ergeben sie eine Zahl.
+
+- **Ziffern:** 1 bis 6 Ziffern selbst eingeben (Standard 243) oder «Andere» (2–4 zufällige). Jede Ziffer ist ein Linienzug in einem Feld 2 × 4 (die 8 als Schleife mit Kreuzung, die 0 oben leicht offen, damit Anfang und Ende sichtbar sind).
+- **Farben:** 3 bis 10. Wählbar sind nur Anzahlen, die für die gewählten Ziffern reichen – die kleinste ist so gross wie die Zahl der Eckpunkte der anspruchsvollsten Ziffer (z. B. 7 für die 8). Mehr Farben setzen zusätzliche Punkte auf die Linien, verteilt nach der Länge der Strecken; ein Punkt, der zu nahe an einem anderen oder an einer fremden Linie (etwa bei der Kreuzung der 8) läge, wird entlang seiner Strecke verschoben. Der Regenbogen hat immer genau diese Farben (3: rot, gelb, blau; 6: rot, orange, gelb, grün, hellblau, violett; bis 10 kommen blau, hellgrün, türkis und rosa dazu), die Reihenfolge steht links als Liste. So geht es immer auf: jede Gruppe hat genau eine Form pro Farbe.
+- **Blatt:** Titel und Anleitung wählbar (die Anleitung nennt erste und letzte Farbe), Antwortlinie «Zahl» auf Wunsch; bis 3 Gruppen pro Reihe, sonst zwei Reihen (die Formen werden bei engen Stellen kleiner). Die Punkte sind leicht verwackelt, damit die Ziffer nicht sofort zu erkennen ist. «Neu mischen» wählt andere Formen und Lagen. Lösung (am Bildschirm und Lösungsblatt) mit den gezeichneten Linien und der Zahl. PDF.
+
 ## Aufbau
 
 ```
@@ -253,6 +261,7 @@ raetsel/fleissner/              der Generator «Fleissner-Schablone» (Kern: Loc
 raetsel/kette/                  der Generator «Kettenrätsel» (Kern: Formen A–Z und 0–9, Paare belegen, Eindeutigkeit, Ablenker verteilen)
 raetsel/codeschloss/            der Generator «Code-Schloss» (Kern: Themen, Wege in den Kästchen, Feld füllen, Satz im Feld, Sätze zum Codewort)
 raetsel/drehscheiben/           der Generator «Drehscheiben» (Kern: Grösse der Zeichen und Ringe, Wort, Satz setzen, Kreise auf Seiten verteilen)
+raetsel/regenbogen/             der Generator «Regenbogenrätsel» (Kern: Ziffern als Linienzüge, Punkte ergänzen, Farbreihen; Regenbogen und Formen als SVG)
 raetsel/triomino/               der Generator «Triomino» (Kern: Formen, Kanten, Aufgaben, Belegung; Zeichnen mit Schriftanpassung)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)
@@ -271,7 +280,7 @@ api/puzzle.php                  Server-Teil (PHP): speichert Puzzles für QR-Cod
 - Beim Hochladen hängt der GitHub-Workflow eine Versionsnummer an alle Skripte und Stile (`…/labor.js?v=1a2b3c4d`, auch für die Stile der Generatoren). Nach jeder Änderung lädt der Browser so sicher die neuen Dateien.
 - Ist die Seite schon offen, wenn eine neue Version hochgeladen wird (das Labor wechselt zwischen den Generatoren ohne Neuladen), merkt sie das: Der Workflow schreibt die Versionsnummer in `version.txt`, die Seite fragt sie ab, wenn man zu ihr zurückkehrt und alle 10 Minuten. Bei einer neuen Version erscheint ein Hinweis «Neu laden», und der nächste Wechsel zu einem Generator lädt die Seite von selbst neu.
 
-Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und den mitgelieferten Bibliotheken in `gemeinsam/extern/` keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code`, `…/#labyrinth`, `…/#emoji-rechnen`, `…/#text-spiegeln`, `…/#puzzle`, `…/#geheimschrift`, `…/#triomino`, `…/#kreuzwort`, `…/#fleissner`, `…/#kettenraetsel`, `…/#drehscheiben` oder `…/#code-schloss` öffnet direkt einen Generator, `…/#start` die Startseite.
+Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und den mitgelieferten Bibliotheken in `gemeinsam/extern/` keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code`, `…/#labyrinth`, `…/#emoji-rechnen`, `…/#text-spiegeln`, `…/#puzzle`, `…/#geheimschrift`, `…/#triomino`, `…/#kreuzwort`, `…/#fleissner`, `…/#kettenraetsel`, `…/#drehscheiben`, `…/#code-schloss` oder `…/#regenbogen` öffnet direkt einen Generator, `…/#start` die Startseite.
 
 ## Einen neuen Generator hinzufügen
 
