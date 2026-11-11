@@ -22,14 +22,22 @@ var Kern = (function(){
   function mischen(a, rnd){ for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(rnd() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
   // so hell erscheint eine Farbe durch die rote Folie (0 = schwarz, 1 = weiss)
   function rotAnteil(hex){ return parseInt(String(hex).slice(1, 3), 16) / 255; }
-  /* Farben. BLAU: der Satz, hell (Rotanteil 127–142 → durch die Folie grau; kräftigeres Blau
-     wäre durch die Folie dunkler, liess aber ohne Folie die Buchstabenformen erahnen). ROT: das deckende Muster (Rotanteil 255 → durch die
+  /* Farben. BLAU: der Satz, hell und fett (Rotanteil 127–142 → durch die Folie grau; ein kräftigeres
+     Blau stach ohne Folie hervor). ROT: das deckende Muster (Rotanteil 255 → durch die
      Folie weiss). KONFETTI: helle Pastelltöne unter dem Muster (Rotanteil ≥ 230 → durch die Folie fast weiss), darunter
      auch blasse Blau- und Lilatöne, damit Blau ohne Folie nicht nur beim Satz vorkommt. */
   var BLAU = ['#7FC2EF', '#86C5F0', '#8ECAF2'];
+  /* TUPFEN: kleine, dunklere Karmin- und Weinrot-Tupfen in Strichbreite, die das rote Muster stellenweise einfärben
+     (Rotanteil 210–225 → durch die Folie fast weiss). Aus der Ferne wirkt das Rot dort, wo Blau durchscheint, dunkler –
+     die Tupfen machen es überall so: Die «Schatten» der Buchstaben gehen darin unter. */
+  var TUPFEN = ['#DC0046', '#D7003C', '#E1004B', '#D2145A', '#D80A6E', '#DA1E32'];
   var ROT = ['#FF1F1F', '#FF0A3C', '#FF3B30', '#FF2D55', '#FF4A1C', '#FF1A6B'];
   var KONFETTI = ['#FFD6E0', '#FFE2C6', '#FFF1A8', '#FFE0F0', '#F0E2FF', '#FFDDD2', '#E6F7EE'];
   var KONFETTI_BLAU = ['#E4F2FD', '#E8EBFF', '#E2F4F8', '#ECE6FB'];   // blasse Blau- und Lilatöne (Rotanteil ≥ 226)
+  /* WOLKEN: grosse, weiche Farbwolken, die das rote Muster einfärben (Rotanteil ≥ 230 → durch die Folie weiss). Aus der
+     Ferne wirken die Flächen der blauen Buchstaben etwas dunkler und violetter als der Rest – Karmin- und Magentawolken
+     erzeugen solche Stellen überall, so gehen die «Schatten» der Buchstaben darin unter. */
+  var WOLKEN = ['#E6003C', '#FF0090', '#FF5A14', '#F0004B', '#FF2D7A', '#E60028', '#FF1F1F', '#FF3B8E'];
   var WOERTER = ['GEHEIM', 'PSST', 'DETEKTIV', 'RÄTSEL', 'SPION', 'CODE', 'SCHATZ', 'LUPE', 'TOPSECRET', 'HINWEIS'];
   var FIGUREN = ['herz', 'stern', 'spirale', 'kringel', 'blitz'];
   function text(t){ return String(t || '').replace(/\s+/g, ' ').trim(); }
@@ -74,9 +82,11 @@ var Kern = (function(){
      reihen – Wortreihen über die ganze Breite, sehr dicht übereinander (Abstand 0.31–0.36 × Schriftgrösse, sie überlappen),
               jede in einer Lage: normal, auf dem Kopf oder gespiegelt; Wörter zufällig aneinandergereiht;
      figuren – rote Herzen, Sterne, Spiralen, Kringel und Blitze darüber;
-     konfetti – Pastellformen unter allem. */
+     wolken – weiche Farbwolken, die Reihen und Figuren einfärben;
+     konfetti – Pastellformen unter allem;
+     tupfen – kleine dunklere Karmin-Tupfen in Strichbreite des Satzes (Schriftgrösse o.gr). */
   function muster(o){
-    var rnd = zufall(o.seed), b = o.b, h = o.h, t = { reihen:[], figuren:[], konfetti:[] }, i, n;
+    var rnd = zufall(o.seed), b = o.b, h = o.h, t = { reihen:[], figuren:[], konfetti:[], wolken:[], tupfen:[] }, i, n, sg = o.gr || 60;
     function aus(l){ return l[Math.floor(rnd() * l.length)]; }
     for (i = 0, n = Math.round(b * h / 900); i < n; i++)
       t.konfetti.push({ art:aus(['kreis', 'herz', 'stern', 'kreis']), x:rnd() * b, y:rnd() * h, gr:12 + rnd() * 34, dreh:rnd() * 6.3, farbe:aus(rnd() < 0.45 ? KONFETTI_BLAU : KONFETTI) });
@@ -87,11 +97,16 @@ var Kern = (function(){
       t.reihen.push({ y:y, gr:gr, text:w, x:-rnd() * gr * 4, lage:aus(['normal', 'kopf', 'spiegel', 'normal', 'kopf']), farbe:aus(ROT) });
       y += gr * (0.31 + rnd() * 0.05);
     }
+    // Tupfen in Strichbreite des Satzes (etwa 0.1–0.25 × Schriftgrösse), so viele, dass gut ein Drittel der Fläche getupft ist
+    for (i = 0, n = Math.round(b * h / (sg * sg * 0.075)); i < n; i++)
+      t.tupfen.push({ x:rnd() * b, y:rnd() * h, r:sg * (0.1 + rnd() * 0.15), farbe:aus(TUPFEN) });
+    for (i = 0, n = Math.max(8, Math.round(b * h / 14000)); i < n; i++)
+      t.wolken.push({ x:rnd() * b, y:rnd() * h, r:50 + rnd() * 110, farbe:aus(WOLKEN) });
     for (i = 0, n = Math.round(b * h / 3600); i < n; i++)
       t.figuren.push({ art:aus(FIGUREN), x:rnd() * b, y:rnd() * h, gr:12 + rnd() * 22, dreh:rnd() * 6.3, farbe:aus(ROT), breite:1.6 + rnd() * 1.6 });
     return t;
   }
-  return { zufall:zufall, mischen:mischen, rotAnteil:rotAnteil, BLAU:BLAU, ROT:ROT, KONFETTI:KONFETTI, KONFETTI_BLAU:KONFETTI_BLAU, WOERTER:WOERTER, FIGUREN:FIGUREN,
+  return { zufall:zufall, mischen:mischen, rotAnteil:rotAnteil, BLAU:BLAU, TUPFEN:TUPFEN, ROT:ROT, WOLKEN:WOLKEN, KONFETTI:KONFETTI, KONFETTI_BLAU:KONFETTI_BLAU, WOERTER:WOERTER, FIGUREN:FIGUREN,
     text:text, umbrechen:umbrechen, setzen:setzen, setzenGroesse:setzenGroesse, muster:muster };
 })();
 /* KERN-ENDE */
@@ -162,21 +177,31 @@ function malen(P, T, seed){
   ctx.scale(S, S);
   ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, P.b, P.h);
   T.konfetti.forEach(function(f){ figur(ctx, f, true); });
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
   P.buchst.forEach(function(q){
     ctx.save(); ctx.translate(q.x, q.y); ctx.rotate((rnd() - 0.5) * 0.12);
     ctx.font = schrift(P.gr, 800); ctx.fillStyle = Kern.BLAU[Math.floor(rnd() * Kern.BLAU.length)]; ctx.fillText(q.c, 0, 0); ctx.restore();
   });
-  // rote Wortreihen: dicht, deckend, in drei Lagen
-  ctx.textAlign = 'left';
+  // rote Schicht auf eigener Ebene: Wortreihen (dicht, deckend, in drei Lagen) und Figuren, danach eingefärbt durch die
+  // Farbwolken (nur wo die Ebene etwas trägt) und deckend über den Satz gelegt
+  var ebene = document.createElement('canvas'); ebene.width = cv.width; ebene.height = cv.height;
+  var ec = ebene.getContext('2d'); ec.scale(S, S); ec.textAlign = 'left'; ec.textBaseline = 'middle';
   T.reihen.forEach(function(r){
-    ctx.save(); ctx.font = schrift(r.gr, 800); ctx.fillStyle = r.farbe;
-    if (r.lage === 'kopf'){ ctx.translate(P.b, r.y * 2); ctx.rotate(Math.PI); }
-    else if (r.lage === 'spiegel'){ ctx.translate(P.b, 0); ctx.scale(-1, 1); }
-    ctx.fillText(r.text, r.x, r.y);
-    ctx.restore();
+    ec.save(); ec.font = schrift(r.gr, 800); ec.fillStyle = r.farbe;
+    if (r.lage === 'kopf'){ ec.translate(P.b, r.y * 2); ec.rotate(Math.PI); }
+    else if (r.lage === 'spiegel'){ ec.translate(P.b, 0); ec.scale(-1, 1); }
+    ec.fillText(r.text, r.x, r.y);
+    ec.restore();
   });
-  T.figuren.forEach(function(f, i){ figur(ctx, f, i % 3 === 0); });
+  T.figuren.forEach(function(f, i){ figur(ec, f, i % 3 === 0); });
+  ec.globalCompositeOperation = 'source-atop';
+  T.wolken.forEach(function(w){
+    var g = ec.createRadialGradient(w.x, w.y, 0, w.x, w.y, w.r);
+    g.addColorStop(0, w.farbe); g.addColorStop(0.55, w.farbe + 'B3'); g.addColorStop(1, w.farbe + '00');
+    ec.fillStyle = g; ec.fillRect(w.x - w.r, w.y - w.r, 2 * w.r, 2 * w.r);
+  });
+  T.tupfen.forEach(function(t){ ec.fillStyle = t.farbe; ec.beginPath(); ec.arc(t.x, t.y, t.r, 0, Math.PI * 2); ec.fill(); });
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(ebene, 0, 0);
   return cv;
 }
 /* Durch die rote Folie: Nur der Rotanteil zählt. art 'rot' – so sieht es am Bildschirm durch die Folie aus (rot/schwarz);
@@ -358,7 +383,7 @@ function starte(bereich){
       (P.kleiner ? '<p class="warnung">Kleiner gesetzt als gewählt (' + st.opt.groesse + ' px): Sonst wäre ein Wort zu lang für die Zeile oder das Bild höher als die Seite.</p>' : '') + h;
     var k = [satz, P.gr, st.seed, Labor.blattSchrift('buchstaben')].join('|');
     if (k !== schluessel || !bilder){
-      var cv = malen(P, Kern.muster({ seed:st.seed, b:P.b, h:P.h }), st.seed);
+      var cv = malen(P, Kern.muster({ seed:st.seed, b:P.b, h:P.h, gr:P.gr }), st.seed);
       bilder = { normal:cv.toDataURL('image/png'), rot:durchFolie(cv, 'rot').toDataURL('image/png'), grau:durchFolie(cv, 'grau').toDataURL('image/png') };
       schluessel = k;
     }
