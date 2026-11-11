@@ -1,13 +1,13 @@
 /* Rätsellabor – Generator «Rotfolienrätsel»
-   Ein Satz versteckt sich in einem Buchstabenfeld: Die ganze Fläche ist ein Raster aus Buchstaben in kühlen Farben (Blau,
-   Hellblau, Blau), darüber dichte rote, pinke und orange Kritzel und Buchstaben. Nur die Buchstaben des Satzes haben keinen
-   Rotanteil – die falschen sehen fast gleich aus (sehr ähnliche Blautöne), haben aber einen mittleren Rotanteil.
-   Physik dahinter: Die rote Folie lässt nur rotes Licht durch – wie hell eine Farbe durch die Folie wirkt, hängt nur von
-   ihrem Rotanteil ab. Durch die Folie werden die Buchstaben des Satzes schwarz, die falschen hellgrau, alles Rote weiss.
-   Von Auge sind echte und falsche Buchstaben kaum zu unterscheiden, und die rote Schicht darüber zerstückelt alle.
-   Die Fläche wird in ein Canvas gezeichnet; die rote Schicht liegt «multipliziert» darüber wie Druckfarbe, so bleiben die
-   Buchstaben des Satzes auch dort schwarz, wo Kritzel sie kreuzen. Die Ansicht durch die Folie (am Bildschirm und im
-   Lösungsblatt) wird Pixel für Pixel aus dem Rotanteil berechnet. Arbeitsblatt, Lösungsblatt, PDF. */
+   Der Satz steht in grossen hellblauen Buchstaben; darüber liegt deckend ein dichtes rotes Muster: Reihen aus Wörtern
+   (GEHEIM, PSST, DETEKTIV …), abwechselnd normal, auf dem Kopf und gespiegelt, dazu Herzen, Sterne, Spiralen und
+   Kringel. Darunter verteilt sich buntes Pastell-Konfetti. Physik dahinter: Die rote Folie lässt nur rotes Licht durch –
+   wie hell eine Farbe durch die Folie wirkt, hängt nur von ihrem Rotanteil ab. Das Rot (Rotanteil 255) und das Konfetti
+   (≥ 230) sind durch die Folie so hell wie das Papier; das Hellblau (Rotanteil um 110) wird grau – der Satz erscheint.
+   Das Rot deckt (es mischt sich nicht mit dem Blau wie Druckfarbe): So verrät keine dunklere Stelle die Buchstaben, und
+   von Auge geht das blasse Blau im dichten Rot und im Konfetti unter. Die Fläche wird in ein Canvas gezeichnet; die
+   Ansicht durch die Folie (am Bildschirm und im Lösungsblatt) wird Pixel für Pixel aus dem Rotanteil berechnet.
+   Arbeitsblatt, Lösungsblatt, PDF. */
 (function(){
 'use strict';
 
@@ -22,25 +22,15 @@ var Kern = (function(){
   function mischen(a, rnd){ for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(rnd() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
   // so hell erscheint eine Farbe durch die rote Folie (0 = schwarz, 1 = weiss)
   function rotAnteil(hex){ return parseInt(String(hex).slice(1, 3), 16) / 255; }
-  function lin(v){ v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
-  function helligkeit(h){ var r = parseInt(h.slice(1, 3), 16), g = parseInt(h.slice(3, 5), 16), b = parseInt(h.slice(5, 7), 16); return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b); }
-  /* Farben. ECHT: Buchstaben des Satzes – sechs Blautöne ohne Rotanteil (durch die Folie schwarz). FALSCH: die übrigen
-     Buchstaben im Raster – zu jedem echten Blau das, das ihm mit Rotanteil 105 am ähnlichsten sieht (kleinster Farbabstand
-     ΔE im Lab-Farbraum, 10–14; durch die Folie 41 % grau, deutlich heller als der schwarze Satz). Mehr Rotanteil machte die
-     Folie klarer, aber ohne Folie fielen die echten Buchstaben als dunklere Blaus auf – 105 ist der geprüfte Ausgleich. Blau gewählt, weil das Auge
-     dort einen höheren Rotanteil am wenigsten bemerkt (bei Grün ist der Abstand fast doppelt so gross). Die echten Blautöne
-     unterscheiden sich untereinander etwa gleich stark (ΔE im Mittel 14) wie echt von falsch – im Gewimmel fällt der
-     Unterschied nicht auf, und zwischen den Buchstaben des Satzes stehen immer falsche (siehe raster).
-     ROT, WARM: Kritzel, Punkte und Buchstaben der roten Schicht (Rotanteil ≥ 228: durch die Folie weiss). HELL,
-     HELL_KUEHL: Flecken im Hintergrund (Rotanteil ≥ 224). */
-  var ECHT = ['#00BEF0', '#00AEEF', '#009EE2', '#008FD8', '#0080CD', '#0070C0'];
-  var FALSCH = ['#69C9F7', '#69BAF7', '#69ABEB', '#699DE3', '#698FD9', '#6981CF'];
-  var KRITZEL_KUEHL = ['#A6D8FF', '#A6CCF5', '#A6E2F2'];   // dünne hellblaue Kritzel (Rotanteil 166: durch die Folie hellgrau)
-  var ROT = ['#ED1C24', '#EC008C', '#F15A29', '#E4007C', '#F7941D', '#EF4136'];
-  var WARM = ['#F9B5D0', '#FFD27F', '#FFE36E', '#F7A8A0', '#FBB4E0', '#FFC08A', '#F49AC1', '#FBB040'];
-  var HELL = ['#FFD3E2', '#FFE1BE', '#FFF0A0', '#FFC6D3', '#FFD8F2', '#FFDCC8'];
-  var HELL_KUEHL = ['#E1F2FF', '#E0F7EE', '#E6EEFF'];
-  var ABC_GROSS = 'ABCDEFGHIJKLMNOPRSTUVWZ', ABC_KLEIN = 'abcdefghiklmnoprstuvwz';
+  /* Farben. BLAU: der Satz, hell (Rotanteil 127–142 → durch die Folie grau). ROT: das deckende Muster (Rotanteil 255 → durch die
+     Folie weiss). KONFETTI: helle Pastelltöne unter dem Muster (Rotanteil ≥ 230 → durch die Folie fast weiss), darunter
+     auch blasse Blau- und Lilatöne, damit Blau ohne Folie nicht nur beim Satz vorkommt. */
+  var BLAU = ['#7FC2EF', '#86C5F0', '#8ECAF2'];
+  var ROT = ['#FF1F1F', '#FF0A3C', '#FF3B30', '#FF2D55', '#FF4A1C', '#FF1A6B'];
+  var KONFETTI = ['#FFD6E0', '#FFE2C6', '#FFF1A8', '#FFE0F0', '#F0E2FF', '#FFDDD2', '#E6F7EE'];
+  var KONFETTI_BLAU = ['#E4F2FD', '#E8EBFF', '#E2F4F8', '#ECE6FB'];   // blasse Blau- und Lilatöne (Rotanteil ≥ 226)
+  var WOERTER = ['GEHEIM', 'PSST', 'DETEKTIV', 'RÄTSEL', 'SPION', 'CODE', 'SCHATZ', 'LUPE', 'TOPSECRET', 'HINWEIS'];
+  var FIGUREN = ['herz', 'stern', 'spirale', 'kringel', 'blitz'];
   function text(t){ return String(t || '').replace(/\s+/g, ' ').trim(); }
   /* Zeilen umbrechen: Wörter mit Breiten → Zeilen [[wort, …], …]; null, wenn ein Wort allein breiter ist als max */
   function umbrechen(woerter, breite, leer, max){
@@ -54,58 +44,42 @@ var Kern = (function(){
     if (z.length) zeilen.push(z);
     return zeilen;
   }
-  /* Das Raster: spalten × zeilen Felder, je ein Buchstabe. Der Satz steht in aufeinanderfolgenden Zeilen, mit mindestens
-     einer Zeile darüber und darunter und an zufälliger Stelle in der Zeile. Zwischen zwei Buchstaben des Satzes stehen
-     zufällig ein oder zwei falsche, zwischen zwei Wörtern vier – so lassen sich ohne Folie keine Wörter herauslesen (wie in
-     einem Suchsel), auch nicht, indem man jeden zweiten Buchstaben liest; durch die Folie treten die schwarzen Buchstaben
-     hervor, die grauen dazwischen nicht.
-     Alle übrigen Felder: falsche Buchstaben (meist kühl, einige warm).
-     → { spalten, zeilen, satzZeilen:[text], felder:[{ r, c, ch, echt, farbe, dx, dy, dreh, gr }], ueber:[…] } oder null */
-  function raster(o){
-    var rnd = zufall(o.seed), spalten = o.spalten, w = text(o.satz).split(' ').filter(Boolean);
-    // Felder je Wort: Buchstabe, eine oder zwei Lücken, Buchstabe … (null = Feld für einen falschen Buchstaben)
-    var wf = w.map(function(wort){ var f = []; Array.from(wort).forEach(function(ch, k){ if (k){ f.push(null); if (rnd() < 0.35) f.push(null); } f.push(ch); }); return f; });
-    var z = umbrechen(wf, function(f){ return f.length; }, 4, spalten);
-    if (!z || !z.length) return null;
-    var satzZeilen = z.map(function(zeile){ return zeile.map(function(f){ return f.filter(Boolean).join(''); }).join(' '); });
-    function felderVon(zeile){ var f = []; zeile.forEach(function(wort, i){ if (i) f.push(null, null, null, null); f = f.concat(wort); }); return f; }
-    var zeilen = Math.max(o.mindestZeilen || 4, satzZeilen.length + 2), oben = 1 + Math.floor(rnd() * (zeilen - satzZeilen.length - 1));
-    var klein = !o.gross && /[a-zäöü]/.test(o.satz);
-    function aus(l){ return l[Math.floor(rnd() * l.length)]; }
-    function falscherBuchstabe(){ return klein && rnd() > 0.12 ? aus(ABC_KLEIN) : aus(ABC_GROSS); }
-    function wackeln(f){ f.dx = (rnd() - 0.5) * 0.12; f.dy = (rnd() - 0.5) * 0.12; f.dreh = (rnd() - 0.5) * 0.24; f.gr = 0.94 + rnd() * 0.12; return f; }
-    var satz = {}, felder = [], ueber = [];
-    z.forEach(function(woerter, i){
-      var zs = felderVon(woerter), start = Math.floor(rnd() * (spalten - zs.length + 1));
-      zs.forEach(function(ch, k){ if (ch) satz[(oben + i) + ',' + (start + k)] = ch; });
-    });
-    for (var r = 0; r < zeilen; r++) for (var c = 0; c < spalten; c++){
-      var ch = satz[r + ',' + c], f;
-      if (ch) f = { r:r, c:c, ch:ch, echt:true, farbe:aus(ECHT) };
-      else f = { r:r, c:c, ch:falscherBuchstabe(), echt:false, farbe:rnd() < 0.2 ? aus(ROT.concat(WARM)) : aus(FALSCH) };
-      felder.push(wackeln(f));
-      // rote Schicht: über fast jedem Feld ein heller warmer Buchstabe, leicht versetzt und gedreht
-      if (rnd() < 0.85) ueber.push({ r:r, c:c, ch:falscherBuchstabe(), farbe:aus(WARM), dx:(rnd() - 0.5) * 0.6, dy:(rnd() - 0.5) * 0.4, dreh:(rnd() - 0.5) * 0.9, gr:0.8 + rnd() * 0.35 });
-    }
-    return { spalten:spalten, zeilen:zeilen, satzZeilen:satzZeilen, oben:oben, felder:felder, ueber:ueber };
+  /* Satz so gross wie möglich setzen: messen(wort) gibt die Breite bei 100 px. Höchstens 4 Zeilen, sonst bis 6.
+     → { gr, zeilen } oder null (ein Wort zu lang) */
+  function setzen(satz, messen, breite, o){
+    o = o || {};
+    var woerter = text(satz).split(' ').filter(Boolean), max = o.max || 120, min = o.min || 30, leer = messen(' ');
+    if (!woerter.length) return null;
+    for (var grenze = 4; grenze <= 6; grenze += 2)
+      for (var gr = max; gr >= min; gr -= 2){
+        var z = umbrechen(woerter, function(w){ return messen(w) * gr / 100; }, leer * gr / 100, breite);
+        if (z && z.length <= grenze) return { gr:gr, zeilen:z };
+      }
+    return null;
   }
-  /* Kritzel, Punkte und Flecken über die ganze Fläche b × h (Pixel) */
-  function tarnung(o){
-    var rnd = zufall(o.seed + 7), b = o.b, h = o.h, A = b * h, t = { flecken:[], kritzel:[], kuehl:[], punkte:[] }, i, n;
+  /* Das rote Muster und das Konfetti planen (Fläche b × h Pixel):
+     reihen – Wortreihen über die ganze Breite, dicht übereinander (Abstand etwa 0.5 × Schriftgrösse, sie überlappen),
+              jede in einer Lage: normal, auf dem Kopf oder gespiegelt; Wörter zufällig aneinandergereiht;
+     figuren – rote Herzen, Sterne, Spiralen, Kringel und Blitze darüber;
+     konfetti – Pastellformen unter allem. */
+  function muster(o){
+    var rnd = zufall(o.seed), b = o.b, h = o.h, t = { reihen:[], figuren:[], konfetti:[] }, i, n;
     function aus(l){ return l[Math.floor(rnd() * l.length)]; }
-    function bogen(lMin, lVar){
-      var x = rnd() * b, y = rnd() * h, l = lMin + rnd() * lVar, w = rnd() * Math.PI * 2, k = (rnd() - 0.5) * l * 0.9;
-      var x1 = x + Math.cos(w) * l, y1 = y + Math.sin(w) * l;
-      return [x, y, (x + x1) / 2 - Math.sin(w) * k, (y + y1) / 2 + Math.cos(w) * k, x1, y1];
+    for (i = 0, n = Math.round(b * h / 900); i < n; i++)
+      t.konfetti.push({ art:aus(['kreis', 'herz', 'stern', 'kreis']), x:rnd() * b, y:rnd() * h, gr:12 + rnd() * 34, dreh:rnd() * 6.3, farbe:aus(rnd() < 0.45 ? KONFETTI_BLAU : KONFETTI) });
+    var y = -4;
+    while (y < h + 10){
+      var gr = 14 + rnd() * 5, w = '';
+      while (w.length < b / (gr * 0.5)) w += aus(WOERTER);
+      t.reihen.push({ y:y, gr:gr, text:w, x:-rnd() * gr * 4, lage:aus(['normal', 'kopf', 'spiegel', 'normal', 'kopf']), farbe:aus(ROT) });
+      y += gr * (0.44 + rnd() * 0.1);
     }
-    for (i = 0, n = Math.round(A / 2200); i < n; i++) t.flecken.push({ x:rnd() * b, y:rnd() * h, r:16 + rnd() * 44, farbe:aus(rnd() < 0.3 ? HELL_KUEHL : HELL) });
-    for (i = 0, n = Math.round(A / 230); i < n; i++) t.kritzel.push({ p:bogen(14, 30), breite:1.6 + rnd() * 2.6, farbe:aus(ROT) });
-    for (i = 0, n = Math.round(A / 1100); i < n; i++) t.kuehl.push({ p:bogen(18, 34), breite:1 + rnd() * 1.2, farbe:aus(KRITZEL_KUEHL) });
-    for (i = 0, n = Math.round(A / 700); i < n; i++) t.punkte.push({ x:rnd() * b, y:rnd() * h, r:1.2 + rnd() * 2.8, farbe:aus(ROT) });
+    for (i = 0, n = Math.round(b * h / 5200); i < n; i++)
+      t.figuren.push({ art:aus(FIGUREN), x:rnd() * b, y:rnd() * h, gr:12 + rnd() * 22, dreh:rnd() * 6.3, farbe:aus(ROT), breite:1.6 + rnd() * 1.6 });
     return t;
   }
-  return { zufall:zufall, mischen:mischen, rotAnteil:rotAnteil, helligkeit:helligkeit, ECHT:ECHT, FALSCH:FALSCH, ROT:ROT, WARM:WARM,
-    HELL:HELL, HELL_KUEHL:HELL_KUEHL, text:text, umbrechen:umbrechen, raster:raster, tarnung:tarnung };
+  return { zufall:zufall, mischen:mischen, rotAnteil:rotAnteil, BLAU:BLAU, ROT:ROT, KONFETTI:KONFETTI, KONFETTI_BLAU:KONFETTI_BLAU, WOERTER:WOERTER, FIGUREN:FIGUREN,
+    text:text, umbrechen:umbrechen, setzen:setzen, muster:muster };
 })();
 /* KERN-ENDE */
 
@@ -120,47 +94,74 @@ var SAETZE = ['Du bist ein super Detektiv', 'Der Schatz liegt unter dem Baum', '
 
 /* ---------- Zeichnen ins Canvas ---------- */
 var messer = document.createElement('canvas').getContext('2d');
-function schrift(gr){ return '700 ' + gr + 'px ' + Labor.blattSchrift('buchstaben'); }
-var RAND = 8;   // Abstand des Rasters zum Bildrand
-/* Raster planen: Schrift so gross wie möglich (Felder 0.68 × 1.3 Schriftgrössen), der Satz in höchstens 4 Zeilen, sonst bis 6.
-   → { b, h, gr, fb, fh, x0, y0, R } oder null (ein Wort zu lang) */
-function plan(satz, seed, gross){
-  for (var grenze = 4; grenze <= 6; grenze += 2)
-    for (var gr = 58; gr >= 22; gr -= 2){
-      var fb = gr * 0.68, spalten = Math.floor((B - 2 * RAND) / fb);
-      var R = Kern.raster({ satz:satz, spalten:spalten, seed:seed, gross:gross, mindestZeilen:gr > 40 ? 4 : 5 });
-      if (!R || R.satzZeilen.length > grenze) continue;
-      var fh = gr * 1.3, h = Math.round(R.zeilen * fh + 2 * RAND);
-      return { b:B, h:h, gr:gr, fb:fb, fh:fh, x0:(B - spalten * fb) / 2, y0:RAND, R:R };
-    }
-  return null;
+function schrift(gr, dick){ return (dick || 700) + ' ' + gr + 'px ' + Labor.blattSchrift('buchstaben'); }
+function sperrung(gr){ return gr * 0.04; }
+function messen(w){ messer.font = schrift(100); return w === ' ' ? messer.measureText(' ').width * 1.3 : messer.measureText(w).width + sperrung(100) * Math.max(0, w.length - 1); }
+/* Satz setzen: Lage jedes Buchstabens – Zeilen mittig, Block senkrecht mittig. → { b, h, gr, zeilen, buchst:[{ c, x, y }] } oder null */
+function plan(satz){
+  var rand = 20, S = Kern.setzen(satz, messen, B - 2 * rand, { max:84, min:30 });
+  if (!S) return null;
+  var gr = S.gr, zh = gr * 1.12, h = Math.round(Math.max(380, S.zeilen.length * zh + 70)), y0 = (h - S.zeilen.length * zh) / 2 + zh / 2, buchst = [];
+  var leer = messen(' ') * gr / 100, sp = sperrung(gr);
+  S.zeilen.forEach(function(z, j){
+    var breite = z.reduce(function(s, w, k){ return s + messen(w) * gr / 100 + (k ? leer : 0); }, 0), x = (B - breite) / 2, y = y0 + j * zh;
+    messer.font = schrift(gr);   // nach messen() – das stellt auf 100 px
+    z.forEach(function(w, k){
+      if (k) x += leer;
+      Array.from(w).forEach(function(c){ var cb = messer.measureText(c).width; buchst.push({ c:c, x:x + cb / 2, y:y }); x += cb + sp; });
+      x -= sp;
+    });
+  });
+  return { b:B, h:h, gr:gr, zeilen:S.zeilen, buchst:buchst };
 }
-function mitte(P, f){ return [P.x0 + (f.c + 0.5 + (f.dx || 0)) * P.fb, P.y0 + (f.r + 0.55 + (f.dy || 0)) * P.fh]; }
-function buchstabe(ctx, P, f, farbe){
-  var m = mitte(P, f), gr = P.gr * (f.gr || 1);
-  ctx.save(); ctx.translate(m[0], m[1]); if (f.dreh) ctx.rotate(f.dreh);
-  ctx.font = schrift(gr); ctx.fillStyle = farbe; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  var w = ctx.measureText(f.ch).width, max = P.fb * 0.94;
-  if (w > max) ctx.scale(max / w, 1);   // breite Buchstaben (M, W) schmaler, damit sie das Nachbarfeld nicht berühren
-  ctx.fillText(f.ch, 0, 0); ctx.restore();
+// eine Figur (Herz, Stern, Spirale, Kringel, Blitz; fürs Konfetti auch Kreis) um (x, y)
+function figur(ctx, f, gefuellt){
+  var g = f.gr / 2;
+  ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.dreh || 0);
+  ctx.fillStyle = f.farbe; ctx.strokeStyle = f.farbe; ctx.lineWidth = f.breite || 2; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath();
+  if (f.art === 'kreis'){ ctx.arc(0, 0, g, 0, Math.PI * 2); ctx.fill(); }
+  else if (f.art === 'herz'){
+    ctx.moveTo(0, g * 0.9); ctx.bezierCurveTo(-g * 1.2, 0, -g, -g, 0, -g * 0.4); ctx.bezierCurveTo(g, -g, g * 1.2, 0, 0, g * 0.9);
+    if (gefuellt) ctx.fill(); else ctx.stroke();
+  } else if (f.art === 'stern'){
+    for (var i = 0; i < 10; i++){ var r = i % 2 ? g * 0.42 : g, w = i * Math.PI / 5; ctx.lineTo(r * Math.sin(w), -r * Math.cos(w)); }
+    ctx.closePath(); if (gefuellt) ctx.fill(); else ctx.stroke();
+  } else if (f.art === 'spirale'){
+    for (var a = 0; a < Math.PI * 5; a += 0.25){ var rr = g * a / (Math.PI * 5); ctx.lineTo(rr * Math.cos(a), rr * Math.sin(a)); }
+    ctx.stroke();
+  } else if (f.art === 'kringel'){
+    for (var k = 0; k <= 40; k++){ var t = k / 40, xx = (t - 0.5) * g * 2.4; ctx.lineTo(xx + Math.sin(t * Math.PI * 6) * g * 0.35, Math.cos(t * Math.PI * 6) * g * 0.5); }
+    ctx.stroke();
+  } else if (f.art === 'blitz'){
+    ctx.moveTo(-g * 0.2, -g); ctx.lineTo(g * 0.35, -g * 0.15); ctx.lineTo(-g * 0.1, -g * 0.05); ctx.lineTo(g * 0.25, g); ctx.lineTo(-g * 0.4, g * 0.05); ctx.lineTo(0, 0); ctx.closePath();
+    if (gefuellt) ctx.fill(); else ctx.stroke();
+  }
+  ctx.restore();
 }
-function bogen(ctx, k){ ctx.strokeStyle = k.farbe; ctx.lineWidth = k.breite; ctx.beginPath(); ctx.moveTo(k.p[0], k.p[1]); ctx.quadraticCurveTo(k.p[2], k.p[3], k.p[4], k.p[5]); ctx.stroke(); }
-// Die Fläche zeichnen: Flecken, das Buchstabenraster; darüber (multipliziert wie Druckfarbe) die rote Schicht
-function malen(P, T){
-  var cv = document.createElement('canvas'), S = MASSSTAB;
+// Die Fläche zeichnen: Konfetti, der Satz in Hellblau, darüber deckend das rote Muster
+function malen(P, T, seed){
+  var cv = document.createElement('canvas'), S = MASSSTAB, rnd = Kern.zufall(seed + 11);
   cv.width = Math.round(P.b * S); cv.height = Math.round(P.h * S);
   var ctx = cv.getContext('2d');
   ctx.scale(S, S);
   ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, P.b, P.h);
-  T.flecken.forEach(function(f){ ctx.fillStyle = f.farbe; ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2); ctx.fill(); });
-  P.R.felder.forEach(function(f){ buchstabe(ctx, P, f, f.farbe); });
-  ctx.globalCompositeOperation = 'multiply';
-  P.R.ueber.forEach(function(f){ buchstabe(ctx, P, f, f.farbe); });
-  ctx.lineCap = 'round';
-  T.kritzel.forEach(function(k){ bogen(ctx, k); });
-  T.punkte.forEach(function(p){ ctx.fillStyle = p.farbe; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); });
-  T.kuehl.forEach(function(k){ bogen(ctx, k); });
-  ctx.globalCompositeOperation = 'source-over';
+  T.konfetti.forEach(function(f){ figur(ctx, f, true); });
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  P.buchst.forEach(function(q){
+    ctx.save(); ctx.translate(q.x, q.y); ctx.rotate((rnd() - 0.5) * 0.12);
+    ctx.font = schrift(P.gr, 800); ctx.fillStyle = Kern.BLAU[Math.floor(rnd() * Kern.BLAU.length)]; ctx.fillText(q.c, 0, 0); ctx.restore();
+  });
+  // rote Wortreihen: dicht, deckend, in drei Lagen
+  ctx.textAlign = 'left';
+  T.reihen.forEach(function(r){
+    ctx.save(); ctx.font = schrift(r.gr, 800); ctx.fillStyle = r.farbe;
+    if (r.lage === 'kopf'){ ctx.translate(P.b, r.y * 2); ctx.rotate(Math.PI); }
+    else if (r.lage === 'spiegel'){ ctx.translate(P.b, 0); ctx.scale(-1, 1); }
+    ctx.fillText(r.text, r.x, r.y);
+    ctx.restore();
+  });
+  T.figuren.forEach(function(f, i){ figur(ctx, f, i % 3 === 0); });
   return cv;
 }
 /* Durch die rote Folie: Nur der Rotanteil zählt. art 'rot' – so sieht es am Bildschirm durch die Folie aus (rot/schwarz);
@@ -179,7 +180,7 @@ function durchFolie(cv, art){
 
 var VORLAGE = '<div class="rf">' +
   '<header class="rf-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Rotfolienrätsel</h1>' +
-    '<p>Ein Satz versteckt sich in einem Feld voller bunter Buchstaben und roter Kritzel – von Auge nicht zu lesen. Mit einer roten Folie darüber erscheint er schwarz.</p></header>' +
+    '<p>Ein Satz versteckt sich unter einem dichten roten Muster – von Auge nicht zu lesen. Mit einer roten Folie darüber verschwindet das Rot, und der Satz erscheint.</p></header>' +
   '<div class="rf-layout"><section class="rf-eingabe" aria-label="Eingaben">' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Geheimer Satz</h2><p>Er erscheint unter der roten Folie.</p></div></div>' +
       '<label class="feld-label" for="rfSatz">Satz</label>' +
@@ -191,7 +192,7 @@ var VORLAGE = '<div class="rf">' +
     '</div>' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Blatt</h2></div></div>' +
       '<label class="opt"><input type="checkbox" id="rfLinien"><span>Linien für die Antwort</span></label>' +
-      '<p class="hinweis">Das Bild ist ein Feld voller blauer Buchstaben, darüber rote Kritzel. Nur die Buchstaben des Satzes werden durch die Folie schwarz – die anderen sehen gleich aus, werden aber nur hellgrau.</p>' +
+      '<p class="hinweis">Der Satz steht in grossen hellblauen Buchstaben unter einem dichten roten Muster aus Wörtern, Herzen, Sternen und Spiralen. Durch die rote Folie wird alles Rote weiss – der Satz bleibt grau stehen.</p>' +
       '<p class="hinweis">Zum Lösen braucht es eine rote Folie (z. B. rote Klarsichthülle oder Bastelfolie). In Farbe drucken – Drucker mischen Farben unterschiedlich, darum zuerst ein Blatt mit der Folie testen.</p>' +
     '</div>' +
   '</section>' +
@@ -218,7 +219,7 @@ Labor.registriere({
   id:'rotfolie',
   titel:'Rotfolienrätsel',
   kurz:'Ein versteckter Satz – erst die rote Folie macht ihn lesbar',
-  beschreibung:'Ein eigener Satz versteckt sich in einem Feld voller bunter Buchstaben und roter Kritzel. Von Auge ist er nicht zu lesen; mit einer roten Folie darauf erscheint er schwarz. Mit Folie zum Ausprobieren am Bildschirm und Lösungsblatt.',
+  beschreibung:'Ein eigener Satz versteckt sich unter einem dichten roten Muster aus Wörtern, Herzen und Sternen. Von Auge ist er nicht zu lesen; mit einer roten Folie darauf erscheint er. Mit Folie zum Ausprobieren am Bildschirm und Lösungsblatt.',
   merkmale:['Eigener Satz', 'Nur mit Folie lesbar', 'Mit Lösungsblatt'],
   symbol:SYMBOL,
   css:'raetsel/rotfolie/rotfolie.css',
@@ -293,7 +294,7 @@ function starte(bereich){
   var P = null, bilder = null, schluessel = '';
   function satzJetzt(){ var t = Kern.text(st.satz); return st.opt.gross ? t.toUpperCase().replace(/ß/g, 'SS') : t; }
   function anleitung(){
-    return 'In diesem Buchstabenfeld versteckt sich ein geheimer Satz. Lege eine rote Folie auf das Bild – die Buchstaben des Satzes werden schwarz.' + (st.opt.linien ? ' Schreibe den Satz auf die Linien.' : ' Wie heisst er?');
+    return 'Unter dem roten Muster versteckt sich ein geheimer Satz. Lege eine rote Folie auf das Bild – das Rot verschwindet, und der Satz erscheint.' + (st.opt.linien ? ' Schreibe ihn auf die Linien.' : ' Wie heisst er?');
   }
   // Antwortlinien: so viele, wie der Satz in Kinderhandschrift braucht (etwa 24 Zeichen pro Linie, mindestens 2)
   function linienHtml(satz, loesung){
@@ -328,13 +329,13 @@ function starte(bereich){
     // Schrift laden, bevor gemessen und gezeichnet wird
     var f = schrift(40);
     if (document.fonts && document.fonts.check && !document.fonts.check(f)){ document.fonts.load(f).then(function(){ if (!aus && document.fonts.check(f)) zeichnen(); }, function(){}); }
-    P = plan(satz, st.seed, st.opt.gross || satz === satz.toUpperCase());
+    P = plan(satz);
     if (!P){ $('#rfZaehler').innerHTML = ''; $('#rfBlatt').parentNode.hidden = true; $('#rfLoesung').parentNode.hidden = true; ['#rfZeigeLoesung', '#rfNeu', '#rfPdf', '#rfHerunterladen', '#rfFolieKnopf'].forEach(function(s){ $(s).disabled = true; }); meldung('warnung', '<p>Ein Wort ist zu lang für eine Zeile – kürze es oder trenne es mit einem Leerzeichen.</p>'); return; }
     meldung('', ''); $('#rfBlatt').parentNode.hidden = false; $('#rfLoesung').parentNode.hidden = false;
-    $('#rfZaehler').innerHTML = '<p class="rf-zaehler-haupt ok"><b>' + satz.length + '</b> Zeichen · ' + P.R.satzZeilen.length + (P.R.satzZeilen.length === 1 ? ' Zeile' : ' Zeilen') + ' im Feld mit ' + P.R.spalten + ' × ' + P.R.zeilen + ' Buchstaben</p>' + h;
+    $('#rfZaehler').innerHTML = '<p class="rf-zaehler-haupt ok"><b>' + satz.length + '</b> Zeichen · ' + P.zeilen.length + (P.zeilen.length === 1 ? ' Zeile' : ' Zeilen') + ', Schrift ' + P.gr + ' px</p>' + h;
     var k = [satz, P.gr, st.seed, Labor.blattSchrift('buchstaben')].join('|');
     if (k !== schluessel || !bilder){
-      var cv = malen(P, Kern.tarnung({ seed:st.seed, b:P.b, h:P.h }));
+      var cv = malen(P, Kern.muster({ seed:st.seed, b:P.b, h:P.h }), st.seed);
       bilder = { normal:cv.toDataURL('image/png'), rot:durchFolie(cv, 'rot').toDataURL('image/png'), grau:durchFolie(cv, 'grau').toDataURL('image/png') };
       schluessel = k;
     }
