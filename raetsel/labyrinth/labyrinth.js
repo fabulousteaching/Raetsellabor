@@ -198,15 +198,16 @@ var STUFEN = { leicht:{ figur:10, neu:0.55, name:'Leicht' }, mittel:{ figur:16, 
 var FORMEN = { rechteck:'Rechteck', kreis:'Kreis', herz:'Herz', stern:'Stern', zufall:'Zufall' };
 var KOPF = '<div class="lb">' +
   '<header class="lb-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Labyrinth</h1>' +
-    '<p>Ein Labyrinth als Rechteck, Kreis, Herz, Stern oder in einer zufälligen Form – oder mit einem versteckten Lösungssatz: In jedem Feld steht ein Buchstabe, und nur auf dem richtigen Weg ergeben sie deinen Satz.</p></header>' +
+    '<p>Ein Labyrinth als Rechteck, Kreis, Herz, Stern oder in einer zufälligen Form – mit einem versteckten Lösungssatz (in jedem Feld ein Buchstabe, nur auf dem richtigen Weg ergeben sie deinen Satz) – oder ein Labyrinth, dessen richtiger Weg deinen Satz schreibt.</p></header>' +
   '<div class="lb-art-ort"></div></div>';
-// Karte 1 (bei beiden Arten gleich): welche Art von Labyrinth?
+// Karte 1 (bei allen Arten gleich): welche Art von Labyrinth?
 function artKarte(art){
   function wahl(wert, titel, text){ return '<label><input type="radio" name="lbArt" value="' + wert + '"' + (art === wert ? ' checked' : '') + '><span><b>' + titel + '</b><small>' + text + '</small></span></label>'; }
   return '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Art des Labyrinths</h2></div></div>' +
     '<div class="lb-art" role="radiogroup" aria-label="Art des Labyrinths">' +
       wahl('figur', 'Mit Start und Ziel', 'Rechteck, Kreis, Herz, Stern oder eine zufällige Form') +
       wahl('satz', 'Mit Lösungssatz', 'In jedem Feld ein Buchstabe – der richtige Weg ergibt deinen Satz') +
+      wahl('schrift', 'Weg schreibt den Satz', 'Zeichnet man den richtigen Weg nach, erscheint dein Satz in Blockschrift') +
     '</div></div>';
 }
 function figurVorlage(karte){
@@ -256,9 +257,9 @@ var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke
 Labor.registriere({
   id:'labyrinth',
   titel:'Labyrinth',
-  kurz:'Labyrinthe mit Start und Ziel oder mit Lösungssatz',
-  beschreibung:'Ein Labyrinth als Rechteck, Kreis, Herz, Stern oder in einer zufälligen Form – oder mit einem versteckten Lösungssatz: In jedem Feld steht ein Buchstabe, nur auf dem richtigen Weg ergeben sie deinen Satz.',
-  merkmale:['Figuren und Zufallsformen', 'Mit Lösungssatz', 'Mit Lösungsblatt'],
+  kurz:'Labyrinthe mit Start und Ziel, mit Lösungssatz oder mit einem Weg, der den Satz schreibt',
+  beschreibung:'Ein Labyrinth als Rechteck, Kreis, Herz, Stern oder in einer zufälligen Form – mit einem versteckten Lösungssatz (in jedem Feld ein Buchstabe, nur auf dem richtigen Weg ergeben sie deinen Satz) – oder eines, dessen richtiger Weg deinen Satz in Blockschrift schreibt.',
+  merkmale:['Figuren und Zufallsformen', 'Mit Lösungssatz', 'Weg schreibt den Satz', 'Mit Lösungsblatt'],
   symbol:SYMBOL,
   css:'raetsel/labyrinth/labyrinth.css',
   html:KOPF,
@@ -268,17 +269,18 @@ Labor.registriere({
 /* ===== Art wählen: die passende Oberfläche einsetzen ===== */
 function starte(bereich){
   var OPT = 'labyrinth-einstellungen', ort = bereich.querySelector('.lb-art-ort'), art = 'figur', stopp = null;
-  try { var o = JSON.parse(localStorage.getItem(OPT)); if (o && o.art === 'satz' && window.LabyrinthSatz) art = 'satz'; } catch(x){}
+  var ARTEN = { satz:window.LabyrinthSatz, schrift:window.LabyrinthSchrift };   // weitere Arten (eigene Dateien); sonst «figur»
+  try { var o = JSON.parse(localStorage.getItem(OPT)); if (o && ARTEN[o.art]) art = o.art; } catch(x){}
   function zeige(neu){
     if (stopp){ try { stopp(); } catch(e){ console.error(e); } stopp = null; }
     art = neu;
     try { var o = JSON.parse(localStorage.getItem(OPT)) || {}; o.art = art; localStorage.setItem(OPT, JSON.stringify(o)); } catch(x){}
     var karte = artKarte(art);
-    ort.innerHTML = art === 'satz' ? window.LabyrinthSatz.vorlage(karte) : figurVorlage(karte);
+    ort.innerHTML = ARTEN[art] ? ARTEN[art].vorlage(karte) : figurVorlage(karte);
     [].forEach.call(ort.querySelectorAll('input[name="lbArt"]'), function(r){
       r.addEventListener('change', function(){ if (r.checked && r.value !== art){ zeige(r.value); var f = ort.querySelector('input[name="lbArt"]:checked'); if (f) f.focus(); } });
     });
-    try { stopp = art === 'satz' ? window.LabyrinthSatz.starte(ort) : starteFigur(ort); } catch(e){ console.error(e); }
+    try { stopp = ARTEN[art] ? ARTEN[art].starte(ort) : starteFigur(ort); } catch(e){ console.error(e); }
   }
   zeige(art);
   return function(){ if (stopp) stopp(); };

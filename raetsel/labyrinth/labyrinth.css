@@ -157,6 +157,14 @@ svg.sl-svg .sl-pfeil{fill:none;stroke:var(--accent-dunkel,#E0741C);stroke-width:
 svg.sl-svg .sl-loesung{fill:none;stroke:#F7A25D;stroke-width:6.4;stroke-linecap:round;stroke-linejoin:round;opacity:.55;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 #slBlatt svg.sl-svg .sl-loesung{opacity:0;transition:opacity .2s}
 #slBlatt.zeige-loesung svg.sl-svg .sl-loesung{opacity:.5}
+/* Art «Weg schreibt den Satz»: Felder des Wegs gefüllt (die Buchstaben stehen deutlich da) und die Linie durch ihre Mitten */
+#lsBlatt svg.sl-svg{cursor:crosshair}
+svg.ls-svg .ls-felder{fill:#FBD2AE;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+svg.ls-svg .ls-loesung{fill:none;stroke:#E0741C;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+#lsBlatt svg.ls-svg .ls-felder,#lsBlatt svg.ls-svg .ls-loesung{opacity:0;transition:opacity .2s}
+#lsBlatt.zeige-loesung svg.ls-svg .ls-felder,#lsBlatt.zeige-loesung svg.ls-svg .ls-loesung{opacity:1}
+svg.ls-svg .sl-weg{stroke-width:4.4}
+.ls-eingabe{color:#6E655E;font-weight:400}
 svg.sl-svg .sl-weg{fill:none;stroke:#63C2EA;stroke-width:6.4;stroke-linecap:round;stroke-linejoin:round;opacity:.6}
 .geschafft svg.sl-svg .sl-weg{stroke:#68D77E}
 
@@ -166,6 +174,7 @@ svg.sl-svg .sl-weg{fill:none;stroke:#63C2EA;stroke-width:6.4;stroke-linecap:roun
   .sl-blatt{box-shadow:none;border:0;border-radius:0;padding:0;break-inside:avoid}
   .sl-blatt.veraltet::before{display:none}
   #slBlatt .sl-weg{display:none}
+  #lsBlatt .sl-weg,#lsBlatt svg.ls-svg .ls-felder,#lsBlatt svg.ls-svg .ls-loesung{display:none}
   #slBlatt svg.sl-svg .sl-loesung{display:none}
   svg.sl-svg{max-height:200mm;max-width:186mm;margin:0 auto}
   body.mit-loesung .sl-loesungsblatt{display:block;break-before:page;margin-top:0}

@@ -94,7 +94,7 @@ Links mit «www.» bekommen automatisch «https://» davor, damit das Handy sie 
 
 ### Labyrinth
 
-Zwei Arten, oben in der ersten Karte wählbar:
+Drei Arten, oben in der ersten Karte wählbar:
 
 **Mit Start und Ziel** – ein Labyrinth als Rechteck, Kreis, Herz, Stern oder **Zufall**: eine bei jedem Erstellen und Mischen neue Form (ein Umriss um die Mitte, dessen Radius mit ein paar zufälligen Wellen schwankt).
 
@@ -110,7 +110,15 @@ Zwei Arten, oben in der ersten Karte wählbar:
 - In den Irrwegen stehen Zufallsbuchstaben aus dem Satz selbst (gleich häufig wie im Satz), damit der richtige Weg nicht auffällt.
 - **Schwierigkeit:** etwa drei (*Leicht*), fünf, acht oder zwölf (*Sehr schwer*) Mal so viele Felder, wie der Satz Buchstaben hat. Schrift Andika (gut unterscheidbare Buchstaben), Linien zum Aufschreiben auf dem Blatt.
 
-Beide Arten: am Bildschirm lösbar (Weg vom Start aus ziehen; durch Wände geht es nicht, zurückziehen löscht), Lösung zeigen, «Neu mischen», PDF mit Lösungsblatt.
+**Weg schreibt den Satz** – ein Labyrinth, dessen einziger Weg vom Start zum Ziel den Satz schreibt: Wer ihn mit dem Stift nachzeichnet, sieht die Buchstaben (`labyrinth-schrift.js`).
+
+- **Blockschrift** (Tabelle `SCHRIFT`): A–Z und 0–9, 5 Blöcke hoch, 3–5 breit, nur waagrechte und senkrechte Striche (schräge als Treppen oder eckig: N, Z, K, V, X); Ä, Ö, Ü werden zu AE, OE, UE, ß zu SS, Satzzeichen fallen weg. Jeder Block wird zu 2 × 2 Feldern.
+- **Weg:** Er läuft einmal ganz um jeden Buchstaben herum – auf der einen Seite eines Strichs hinauf, auf der anderen zurück – und besucht so jedes Feld des Buchstabens genau einmal (Umlauf um einen Spannbaum der Blöcke; Ringe wie bei A, B, D, O werden an einer zufälligen Stelle aufgetrennt). Unter jeder Zeile verbindet eine Grundlinie die Buchstaben (mit einer Lücke darüber, damit sie sich vom Buchstaben abhebt); am Zeilenende geht es am Rand hinunter, die nächste Zeile läuft er rückwärts ab. Start links bei der ersten Zeile, Ziel am Ende der letzten.
+- **Irrwege:** An vielen Feldern des Wegs zweigt zuerst eine Sackgasse ab (sonst fielen Grundlinien und Buchstaben als lange Gänge auf), dann wachsen alle übrigen Felder als Irrwege an («perfektes» Labyrinth: genau ein Weg). *Leicht*, *Mittel*, *Schwer*: kürzere oder längere, verschlungenere Sackgassen. Geprüft: Für viele Sätze und Zufallswerte ist das Labyrinth perfekt, und der einzige Weg ist genau der Schriftweg.
+- **Grösse:** Der Satz wird so auf Zeilen verteilt, dass die Felder möglichst gross werden (oft ein Wort pro Zeile); der Hinweis nennt die Feldgrösse im Druck und warnt unter 2,5 mm. «DU BIST SUPER» ergibt etwa 3,5 mm, «HALLO» 3,7 mm.
+- **Lösung** (am Bildschirm und auf dem Lösungsblatt): die Felder des Wegs eingefärbt – so stehen die Buchstaben deutlich da – und die Linie durch ihre Mitten; dazu der Satz.
+
+Alle Arten: am Bildschirm lösbar (Weg vom Start aus ziehen; durch Wände geht es nicht, zurückziehen löscht), Lösung zeigen, «Neu mischen», PDF mit Lösungsblatt.
 
 ### Emoji-Rechnen
 
@@ -261,6 +269,7 @@ raetsel/qr-code/                der Generator «QR-Code» (zum Ausmalen und fert
 raetsel/labyrinth/              der Generator «Labyrinth»
   labyrinth.js                  Art «Mit Start und Ziel» (Figuren) und Auswahl der Art
   labyrinth-satz.js             Art «Mit Lösungssatz» (Buchstaben in jedem Feld)
+  labyrinth-schrift.js          Art «Weg schreibt den Satz» (Blockschrift, Umlauf um die Buchstaben, Irrwege)
 raetsel/emoji-rechnen/          der Generator «Emoji-Rechnen» (Kern: Rätsel bauen und prüfen; Oberfläche)
 raetsel/text-spiegeln/          der Generator «Text spiegeln» (Kern: Unicode-Spiegelung; Oberfläche zum Kopieren)
 raetsel/puzzle/                 der Generator «Puzzle»
