@@ -28,12 +28,12 @@ var Kern = (function(){
      auch blasse Blau- und Lilatöne, damit Blau ohne Folie nicht nur beim Satz vorkommt. */
   var BLAU = ['#7FC2EF', '#86C5F0', '#8ECAF2'];
   /* TUPFEN: kleine, dunklere Karmin- und Weinrot-Tupfen in Strichbreite, die das rote Muster stellenweise einfärben
-     (Rotanteil 210–225 → durch die Folie fast weiss). Aus der Ferne wirkt das Rot dort, wo Blau durchscheint, dunkler –
+     (Rotanteil 227–232 → durch die Folie fast weiss). Aus der Ferne wirkt das Rot dort, wo Blau durchscheint, dunkler –
      die Tupfen machen es überall so: Die «Schatten» der Buchstaben gehen darin unter. */
-  var TUPFEN = ['#DC0046', '#D7003C', '#E1004B', '#D2145A', '#D80A6E', '#DA1E32'];
+  var TUPFEN = ['#E6004B', '#E40041', '#E80050', '#E3145C', '#E50A6E', '#E61E37'];
   var ROT = ['#FF1F1F', '#FF0A3C', '#FF3B30', '#FF2D55', '#FF4A1C', '#FF1A6B'];
   var KONFETTI = ['#FFD6E0', '#FFE2C6', '#FFF1A8', '#FFE0F0', '#F0E2FF', '#FFDDD2', '#E6F7EE'];
-  var KONFETTI_BLAU = ['#E4F2FD', '#E8EBFF', '#E2F4F8', '#ECE6FB'];   // blasse Blau- und Lilatöne (Rotanteil ≥ 226)
+  var KONFETTI_BLAU = ['#EEF6FE', '#F0F1FF', '#EDF8FA', '#F3EEFC'];   // sehr blasse Blau- und Lilatöne (Rotanteil ≥ 237)
   /* WOLKEN: grosse, weiche Farbwolken, die das rote Muster einfärben (Rotanteil ≥ 230 → durch die Folie weiss). Aus der
      Ferne wirken die Flächen der blauen Buchstaben etwas dunkler und violetter als der Rest – Karmin- und Magentawolken
      erzeugen solche Stellen überall, so gehen die «Schatten» der Buchstaben darin unter. */
@@ -89,7 +89,7 @@ var Kern = (function(){
     var rnd = zufall(o.seed), b = o.b, h = o.h, t = { reihen:[], figuren:[], konfetti:[], wolken:[], tupfen:[] }, i, n, sg = o.gr || 60;
     function aus(l){ return l[Math.floor(rnd() * l.length)]; }
     for (i = 0, n = Math.round(b * h / 900); i < n; i++)
-      t.konfetti.push({ art:aus(['kreis', 'herz', 'stern', 'kreis']), x:rnd() * b, y:rnd() * h, gr:12 + rnd() * 34, dreh:rnd() * 6.3, farbe:aus(rnd() < 0.45 ? KONFETTI_BLAU : KONFETTI) });
+      t.konfetti.push({ art:aus(['kreis', 'herz', 'stern', 'kreis']), x:rnd() * b, y:rnd() * h, gr:12 + rnd() * 34, dreh:rnd() * 6.3, farbe:aus(rnd() < 0.3 ? KONFETTI_BLAU : KONFETTI) });
     var y = -4;
     while (y < h + 10){
       var gr = 14 + rnd() * 5, w = '';
@@ -98,7 +98,7 @@ var Kern = (function(){
       y += gr * (0.31 + rnd() * 0.05);
     }
     // Tupfen in Strichbreite des Satzes (etwa 0.1–0.25 × Schriftgrösse), so viele, dass gut ein Drittel der Fläche getupft ist
-    for (i = 0, n = Math.round(b * h / (sg * sg * 0.075)); i < n; i++)
+    for (i = 0, n = Math.round(b * h / (sg * sg * 0.095)); i < n; i++)
       t.tupfen.push({ x:rnd() * b, y:rnd() * h, r:sg * (0.1 + rnd() * 0.15), farbe:aus(TUPFEN) });
     for (i = 0, n = Math.max(8, Math.round(b * h / 14000)); i < n; i++)
       t.wolken.push({ x:rnd() * b, y:rnd() * h, r:50 + rnd() * 110, farbe:aus(WOLKEN) });
