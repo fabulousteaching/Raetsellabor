@@ -22,7 +22,8 @@ var Kern = (function(){
   function mischen(a, rnd){ for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(rnd() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
   // so hell erscheint eine Farbe durch die rote Folie (0 = schwarz, 1 = weiss)
   function rotAnteil(hex){ return parseInt(String(hex).slice(1, 3), 16) / 255; }
-  /* Farben. BLAU: der Satz, hell (Rotanteil 127–142 → durch die Folie grau). ROT: das deckende Muster (Rotanteil 255 → durch die
+  /* Farben. BLAU: der Satz, hell (Rotanteil 127–142 → durch die Folie grau; kräftigeres Blau
+     wäre durch die Folie dunkler, liess aber ohne Folie die Buchstabenformen erahnen). ROT: das deckende Muster (Rotanteil 255 → durch die
      Folie weiss). KONFETTI: helle Pastelltöne unter dem Muster (Rotanteil ≥ 230 → durch die Folie fast weiss), darunter
      auch blasse Blau- und Lilatöne, damit Blau ohne Folie nicht nur beim Satz vorkommt. */
   var BLAU = ['#7FC2EF', '#86C5F0', '#8ECAF2'];
@@ -57,8 +58,20 @@ var Kern = (function(){
       }
     return null;
   }
+  /* Satz in der gewünschten Grösse setzen (Schieberegler): so gross wie gewünscht, aber kleiner, wenn sonst ein Wort nicht in
+     die Zeile passt oder das Bild höher würde als maxHoehe (Höhe: Zeilen × 1.12 × Grösse + 70).
+     → { gr, zeilen, kleiner:true|false } oder null (auch bei 24 px passt ein Wort nicht) */
+  function setzenGroesse(satz, messen, breite, wunsch, maxHoehe){
+    var woerter = text(satz).split(' ').filter(Boolean), leer = messen(' ');
+    if (!woerter.length) return null;
+    for (var gr = wunsch; gr >= 24; gr -= 2){
+      var z = umbrechen(woerter, function(w){ return messen(w) * gr / 100; }, leer * gr / 100, breite);
+      if (z && z.length * gr * 1.12 + 70 <= maxHoehe) return { gr:gr, zeilen:z, kleiner:gr < wunsch };
+    }
+    return null;
+  }
   /* Das rote Muster und das Konfetti planen (Fläche b × h Pixel):
-     reihen – Wortreihen über die ganze Breite, dicht übereinander (Abstand etwa 0.5 × Schriftgrösse, sie überlappen),
+     reihen – Wortreihen über die ganze Breite, sehr dicht übereinander (Abstand 0.31–0.36 × Schriftgrösse, sie überlappen),
               jede in einer Lage: normal, auf dem Kopf oder gespiegelt; Wörter zufällig aneinandergereiht;
      figuren – rote Herzen, Sterne, Spiralen, Kringel und Blitze darüber;
      konfetti – Pastellformen unter allem. */
@@ -72,14 +85,14 @@ var Kern = (function(){
       var gr = 14 + rnd() * 5, w = '';
       while (w.length < b / (gr * 0.5)) w += aus(WOERTER);
       t.reihen.push({ y:y, gr:gr, text:w, x:-rnd() * gr * 4, lage:aus(['normal', 'kopf', 'spiegel', 'normal', 'kopf']), farbe:aus(ROT) });
-      y += gr * (0.44 + rnd() * 0.1);
+      y += gr * (0.31 + rnd() * 0.05);
     }
-    for (i = 0, n = Math.round(b * h / 5200); i < n; i++)
+    for (i = 0, n = Math.round(b * h / 3600); i < n; i++)
       t.figuren.push({ art:aus(FIGUREN), x:rnd() * b, y:rnd() * h, gr:12 + rnd() * 22, dreh:rnd() * 6.3, farbe:aus(ROT), breite:1.6 + rnd() * 1.6 });
     return t;
   }
   return { zufall:zufall, mischen:mischen, rotAnteil:rotAnteil, BLAU:BLAU, ROT:ROT, KONFETTI:KONFETTI, KONFETTI_BLAU:KONFETTI_BLAU, WOERTER:WOERTER, FIGUREN:FIGUREN,
-    text:text, umbrechen:umbrechen, setzen:setzen, muster:muster };
+    text:text, umbrechen:umbrechen, setzen:setzen, setzenGroesse:setzenGroesse, muster:muster };
 })();
 /* KERN-ENDE */
 
@@ -97,9 +110,11 @@ var messer = document.createElement('canvas').getContext('2d');
 function schrift(gr, dick){ return (dick || 700) + ' ' + gr + 'px ' + Labor.blattSchrift('buchstaben'); }
 function sperrung(gr){ return gr * 0.04; }
 function messen(w){ messer.font = schrift(100); return w === ' ' ? messer.measureText(' ').width * 1.3 : messer.measureText(w).width + sperrung(100) * Math.max(0, w.length - 1); }
-/* Satz setzen: Lage jedes Buchstabens – Zeilen mittig, Block senkrecht mittig. → { b, h, gr, zeilen, buchst:[{ c, x, y }] } oder null */
-function plan(satz){
-  var rand = 20, S = Kern.setzen(satz, messen, B - 2 * rand, { max:84, min:30 });
+var MAX_HOEHE = 620;   // höchstens so hoch wird das Bild – dann passen Titel, Anleitung und Linien noch aufs Blatt
+/* Satz setzen (Grösse vom Schieberegler): Lage jedes Buchstabens – Zeilen mittig, Block senkrecht mittig.
+   → { b, h, gr, kleiner, zeilen, buchst:[{ c, x, y }] } oder null */
+function plan(satz, wunsch){
+  var rand = 20, S = Kern.setzenGroesse(satz, messen, B - 2 * rand, wunsch, MAX_HOEHE);
   if (!S) return null;
   var gr = S.gr, zh = gr * 1.12, h = Math.round(Math.max(380, S.zeilen.length * zh + 70)), y0 = (h - S.zeilen.length * zh) / 2 + zh / 2, buchst = [];
   var leer = messen(' ') * gr / 100, sp = sperrung(gr);
@@ -112,7 +127,7 @@ function plan(satz){
       x -= sp;
     });
   });
-  return { b:B, h:h, gr:gr, zeilen:S.zeilen, buchst:buchst };
+  return { b:B, h:h, gr:gr, kleiner:S.kleiner, zeilen:S.zeilen, buchst:buchst };
 }
 // eine Figur (Herz, Stern, Spirale, Kringel, Blitz; fürs Konfetti auch Kreis) um (x, y)
 function figur(ctx, f, gefuellt){
@@ -187,6 +202,9 @@ var VORLAGE = '<div class="rf">' +
       '<div class="rf-zeile"><textarea id="rfSatz" rows="2" maxlength="90" autocomplete="off" spellcheck="false"></textarea>' +
         '<button type="button" class="btn klein" id="rfZufall" title="Einen anderen Satz vorschlagen">Andere</button></div>' +
       '<p class="hinweis">Bis 90 Zeichen. Je kürzer der Satz, desto grösser die Buchstaben.</p>' +
+      '<label class="feld-label" for="rfGroesse">Schriftgrösse des Satzes: <b id="rfGroesseWert"></b></label>' +
+      '<input type="range" id="rfGroesse" class="rf-balken" min="36" max="140" step="2">' +
+      '<p class="hinweis">Grösser ist durch die Folie leichter zu lesen – ohne Folie aber auch eher zu erahnen.</p>' +
       '<label class="opt"><input type="checkbox" id="rfGross"><span>Nur Grossbuchstaben</span></label>' +
       '<div class="rf-zaehler" id="rfZaehler" aria-live="polite"></div>' +
     '</div>' +
@@ -231,7 +249,7 @@ Labor.registriere({
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false;
   var TAB = 'rotfolie-eingaben', OPT = 'rotfolie-einstellungen';
-  var STANDARD = { gross:false, linien:true, mitLoesung:true, titelAn:true, anleitungAn:true };
+  var STANDARD = { groesse:80, gross:false, linien:true, mitLoesung:true, titelAn:true, anleitungAn:true };
   var st = { satz:'', seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
   try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.satz = String(e.satz || ''); st.seed = +e.seed || st.seed; } } catch(x){}
@@ -253,6 +271,10 @@ function starte(bereich){
     var jetzt = Kern.text(st.satz), l = SAETZE.filter(function(t){ return t !== jetzt; });
     st.satz = l[Math.floor(Math.random() * l.length)]; $('#rfSatz').value = st.satz; speichern(); zeichnen();
   });
+  st.opt.groesse = Math.max(36, Math.min(140, +st.opt.groesse || 80));
+  function groesseZeigen(){ $('#rfGroesseWert').textContent = st.opt.groesse + ' px'; }
+  $('#rfGroesse').value = st.opt.groesse; groesseZeigen();
+  $('#rfGroesse').addEventListener('input', function(){ st.opt.groesse = +this.value; groesseZeigen(); speichern(); baldZeichnen(); });
   [['#rfGross', 'gross'], ['#rfLinien', 'linien'], ['#rfMitLoesung', 'mitLoesung']].forEach(function(x){
     $(x[0]).checked = !!st.opt[x[1]];
     $(x[0]).addEventListener('change', function(){ st.opt[x[1]] = this.checked; speichern(); if (x[1] !== 'mitLoesung') zeichnen(); });
@@ -329,10 +351,11 @@ function starte(bereich){
     // Schrift laden, bevor gemessen und gezeichnet wird
     var f = schrift(40);
     if (document.fonts && document.fonts.check && !document.fonts.check(f)){ document.fonts.load(f).then(function(){ if (!aus && document.fonts.check(f)) zeichnen(); }, function(){}); }
-    P = plan(satz);
+    P = plan(satz, st.opt.groesse);
     if (!P){ $('#rfZaehler').innerHTML = ''; $('#rfBlatt').parentNode.hidden = true; $('#rfLoesung').parentNode.hidden = true; ['#rfZeigeLoesung', '#rfNeu', '#rfPdf', '#rfHerunterladen', '#rfFolieKnopf'].forEach(function(s){ $(s).disabled = true; }); meldung('warnung', '<p>Ein Wort ist zu lang für eine Zeile – kürze es oder trenne es mit einem Leerzeichen.</p>'); return; }
     meldung('', ''); $('#rfBlatt').parentNode.hidden = false; $('#rfLoesung').parentNode.hidden = false;
-    $('#rfZaehler').innerHTML = '<p class="rf-zaehler-haupt ok"><b>' + satz.length + '</b> Zeichen · ' + P.zeilen.length + (P.zeilen.length === 1 ? ' Zeile' : ' Zeilen') + ', Schrift ' + P.gr + ' px</p>' + h;
+    $('#rfZaehler').innerHTML = '<p class="rf-zaehler-haupt ok"><b>' + satz.length + '</b> Zeichen · ' + P.zeilen.length + (P.zeilen.length === 1 ? ' Zeile' : ' Zeilen') + ', Schrift ' + P.gr + ' px</p>' +
+      (P.kleiner ? '<p class="warnung">Kleiner gesetzt als gewählt (' + st.opt.groesse + ' px): Sonst wäre ein Wort zu lang für die Zeile oder das Bild höher als die Seite.</p>' : '') + h;
     var k = [satz, P.gr, st.seed, Labor.blattSchrift('buchstaben')].join('|');
     if (k !== schluessel || !bilder){
       var cv = malen(P, Kern.muster({ seed:st.seed, b:P.b, h:P.h }), st.seed);

@@ -30,6 +30,8 @@
 .rf-chips input:checked + span{background:var(--accent);border-color:var(--accent);color:var(--auf-akzent)}
 .rf-chips input:checked + span i{border-color:#fff}
 .rf-chips input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+.rf-balken{display:block;width:100%;margin:6px 0 0;accent-color:var(--accent)}
+.rf-zaehler .warnung{color:var(--accent-2)}
 .rf .opt{display:flex;align-items:flex-start;gap:10px;margin:10px 0 0;font-size:.9rem}
 .rf .opt input[type=checkbox]{width:16px;height:16px;margin:3px 0 0;accent-color:var(--accent);flex:none}
 
