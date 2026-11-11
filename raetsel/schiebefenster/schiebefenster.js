@@ -67,18 +67,41 @@ function f1(x){ return (Math.round(x * 10) / 10).toString(); }
 var WOERTER = ['SCHATZ', 'PIRAT', 'TIGER', 'HALLO', 'ROBOTER', 'ZAUBER', 'DRACHE', 'KATZE', 'APFEL', 'RAKETE', 'WOLKE', 'FUCHS'];
 
 /* ---------- Zeichnen ---------- */
-// die schwarzen Felder eines Streifens ab (x, y), Feldgrösse z; nebeneinanderliegende Felder einer Zeile als ein Rechteck
+// Farben, die gut gedruckt werden und auf denen ein weisses Zeichen gut zu sehen ist
+var FARBEN = ['#1E88E5', '#E53935', '#43A047', '#8E24AA', '#FB8C00', '#D81B60', '#00897B', '#3949AB', '#6D4C41', '#F9A825'];
+var FARBNAMEN = ['Blau', 'Rot', 'Grün', 'Violett', 'Orange', 'Pink', 'Türkis', 'Indigo', 'Braun', 'Gelb'];
+/* die Felder eines Streifens ab (x, y), Feldgrösse z; nebeneinanderliegende Felder einer Zeile mit gleicher Farbe als ein
+   Rechteck. Farbe je Feld aus s.farben[Spalte][Zeile] (sonst schwarz). */
 function felderSvg(s, x, y, z){
   var t = '', H = PS.HOEHE;
+  function farbe(c, r){ return s.farben ? s.farben[c][r] : SCHWARZ; }
   for (var r = 0; r < H; r++){
-    var anfang = -1;
+    var anfang = -1, f = null;
     for (var c = 0; c <= s.spalten.length; c++){
-      var da = c < s.spalten.length && s.spalten[c][r];
-      if (da && anfang < 0) anfang = c;
-      if (!da && anfang >= 0){ t += '<rect x="' + f1(x + anfang * z) + '" y="' + f1(y + r * z) + '" width="' + f1((c - anfang) * z + 0.3) + '" height="' + f1(z + 0.3) + '"/>'; anfang = -1; }
+      var da = c < s.spalten.length && s.spalten[c][r], fc = da ? farbe(c, r) : null;
+      if (anfang >= 0 && (!da || fc !== f)){ t += '<rect x="' + f1(x + anfang * z) + '" y="' + f1(y + r * z) + '" width="' + f1((c - anfang) * z + 0.3) + '" height="' + f1(z + 0.3) + '" fill="' + f + '"/>'; anfang = -1; }
+      if (da && anfang < 0){ anfang = c; f = fc; }
     }
   }
-  return '<g fill="' + SCHWARZ + '">' + t + '</g>';
+  return '<g>' + t + '</g>';
+}
+/* Farben aller Felder eines Streifens: einfarbig (eine Farbe) oder je Zeichen (farbeVon(k) für das k-te Zeichen des
+   Streifens); Ablenk-Felder in den Lücken bekommen die Farbe des linken oder rechten Nachbarzeichens – so verraten sie
+   sich nicht durch eine eigene Farbe. */
+function farbenSetzen(s, eine, farbeVon, rnd){
+  var B3 = PS.BREITE;
+  s.farben = s.spalten.map(function(sp, c){
+    var k = -1;
+    s.ziele.forEach(function(x, i){ if (c >= x && c < x + B3) k = i; });
+    return sp.map(function(){
+      if (!farbeVon) return eine;
+      if (k >= 0) return farbeVon(k);
+      var links = -1, rechts = -1;
+      s.ziele.forEach(function(x, i){ if (x + B3 <= c) links = i; if (rechts < 0 && x > c) rechts = i; });
+      var n = links < 0 ? rechts : rechts < 0 ? links : (rnd() < 0.5 ? links : rechts);
+      return farbeVon(Math.max(0, n));
+    });
+  });
 }
 /* Masse bei Feldgrösse z (Pixel): Rand m des Balkens über und unter dem Fenster; Balkenhöhe */
 function masse(z){ var m = Math.max(5 * MM, z * 0.8); return { z:z, m:m, balkenH:5 * z + 2 * m }; }
@@ -120,8 +143,15 @@ var VORLAGE = '<div class="sf">' +
     '</div>' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Streifen und Folie</h2></div></div>' +
       '<label class="opt"><input type="checkbox" id="sfAblenkung"><span>Ablenkung: schwarze Felder zwischen den Zeichen, damit man ohne Fenster nichts erkennt</span></label>' +
-      '<p class="feld-label">Grösse eines Felds</p><div class="sf-chips" role="radiogroup" aria-label="Grösse eines Felds">' +
-        [[6, '6 mm'], [7, '7 mm'], [8, '8 mm']].map(function(x){ return '<label><input type="radio" name="sfZelle" value="' + x[0] + '"><span>' + x[1] + '</span></label>'; }).join('') + '</div>' +
+      '<label class="opt"><input type="checkbox" id="sfFarbig"><span>In Farbe</span></label>' +
+      '<div class="sf-farbteil" id="sfFarbTeil" hidden>' +
+        '<p class="feld-label">Farbe</p><div class="sf-farbwahl" role="radiogroup" aria-label="Farbe der Bruchstücke">' +
+          FARBEN.map(function(f, i){ return '<label title="' + FARBNAMEN[i] + '"><input type="radio" name="sfFarbe" value="' + f + '"><span style="background:' + f + '"></span><b class="vh">' + FARBNAMEN[i] + '</b></label>'; }).join('') +
+          '<label class="sf-eigene" title="Eigene Farbe"><input type="color" id="sfEigeneFarbe"><span>eigene</span></label></div>' +
+        '<label class="opt"><input type="checkbox" id="sfJeFarbe"><span>Jedes Zeichen eine eigene Farbe</span></label>' +
+        '<div class="sf-farbliste" id="sfFarbListe" hidden></div>' +
+        '<p class="hinweis">Im Fenster erscheint das Zeichen weiss – auf kräftigen, dunklen Farben ist es am besten zu sehen.</p>' +
+      '</div>' +
       '<label class="opt"><input type="checkbox" id="sfLinie"><span>Linie für den Code</span></label>' +
       '<p class="hinweis">Den Streifen auf Papier drucken, die Fensterfolie auf eine Overhead-Folie (Folie für den Drucker) und die Balken ausschneiden.</p>' +
     '</div>' +
@@ -163,15 +193,17 @@ Labor.registriere({
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false;
   var TAB = 'schiebefenster-eingaben', OPT = 'schiebefenster-einstellungen';
-  var STANDARD = { ablenkung:true, zelle:7, linie:true, mitLoesung:true, titelAn:true, anleitungAn:true };
-  var st = { code:'', seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
+  var STANDARD = { ablenkung:true, farbig:false, farbe:FARBEN[0], jeFarbe:false, linie:true, mitLoesung:true, titelAn:true, anleitungAn:true };
+  var ZELLE = 7;   // Feldgrösse in mm: Fenster 21 × 35 mm, bis 5 Zeichen je Streifen, höchstens 3 Streifen – passt immer auf ein Blatt
+  var st = { code:'', farben:[], seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
-  try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.code = String(e.code || ''); st.seed = +e.seed || st.seed; } } catch(x){}
-  if ([6, 7, 8].indexOf(+st.opt.zelle) < 0) st.opt.zelle = 7;
+  try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.code = String(e.code || ''); st.seed = +e.seed || st.seed; if (Array.isArray(e.farben)) st.farben = e.farben; } } catch(x){}
+  delete st.opt.zelle;   // früher wählbar
+  if (!/^#[0-9a-f]{6}$/i.test(st.opt.farbe)) st.opt.farbe = FARBEN[0];
   if (!PS.lesen(st.code).zeichen.length) st.code = String(10000 + Math.floor(Math.random() * 90000));
   var timer = 0;
   function speichernJetzt(){ clearTimeout(timer); timer = 0;
-    try { sessionStorage.setItem(TAB, JSON.stringify({ code:st.code, seed:st.seed })); } catch(x){}
+    try { sessionStorage.setItem(TAB, JSON.stringify({ code:st.code, seed:st.seed, farben:st.farben })); } catch(x){}
     try { localStorage.setItem(OPT, JSON.stringify(st.opt)); } catch(x){} }
   function speichern(){ clearTimeout(timer); timer = setTimeout(speichernJetzt, 200); }
   function meldung(art, html){ $('#sfMeldung').innerHTML = html ? '<div class="meldung ' + art + '">' + html + '</div>' : ''; }
@@ -188,10 +220,45 @@ function starte(bereich){
     else { var l = WOERTER.filter(function(w){ return w !== st.code.toUpperCase(); }); z = l[Math.floor(r() * l.length)]; }
     zahlDran = !zahlDran; st.code = z; $('#sfCode').value = z; speichern(); zeichnen();
   });
-  [].forEach.call(bereich.querySelectorAll('input[name="sfZelle"]'), function(r){
-    r.checked = r.value === String(st.opt.zelle);
-    r.addEventListener('change', function(){ if (r.checked){ st.opt.zelle = +r.value; speichern(); zeichnen(); } });
+  /* ---------- Farbe: Häkchen «In Farbe» klappt die Farbwahl auf; «Jedes Zeichen eine eigene Farbe» zeigt ein Farbfeld je Zeichen ---------- */
+  function farbWahlZeigen(){
+    $('#sfFarbTeil').hidden = !st.opt.farbig;
+    $('#sfFarbListe').hidden = !st.opt.jeFarbe;
+    bereich.querySelector('.sf-farbwahl').classList.toggle('aus', !!st.opt.jeFarbe);
+    [].forEach.call(bereich.querySelectorAll('input[name="sfFarbe"]'), function(r){ r.checked = r.value.toLowerCase() === st.opt.farbe.toLowerCase(); });
+    $('#sfEigeneFarbe').value = st.opt.farbe;
+    $('.sf-eigene').classList.toggle('gewaehlt', FARBEN.map(function(f){ return f.toLowerCase(); }).indexOf(st.opt.farbe.toLowerCase()) < 0);
+  }
+  [].forEach.call(bereich.querySelectorAll('input[name="sfFarbe"]'), function(r){
+    r.addEventListener('change', function(){ if (r.checked){ st.opt.farbe = r.value; speichern(); farbWahlZeigen(); zeichnen(); } });
   });
+  $('#sfEigeneFarbe').addEventListener('input', function(){ st.opt.farbe = this.value; speichern(); farbWahlZeigen(); baldZeichnen(); });
+  // Farben je Zeichen: so viele wie Zeichen, neue der Reihe nach aus FARBEN
+  function farbenErgaenzen(n){ for (var i = st.farben.length; i < n; i++) st.farben.push(FARBEN[i % FARBEN.length]); }
+  var listeFuer = '';
+  function farbListeZeigen(){
+    var k = Z.join('');
+    if (k === listeFuer) return;
+    listeFuer = k; farbenErgaenzen(Z.length);
+    $('#sfFarbListe').innerHTML = '<div class="sf-farbfelder">' + Z.map(function(c, i){
+      return '<label class="sf-farbe" title="Farbe von ' + esc(c) + ' (' + (i + 1) + '. Zeichen)"><input type="color" data-k="' + i + '" value="' + st.farben[i] + '"><span>' + esc(c) + '</span></label>';
+    }).join('') + '</div><div class="sf-farb-knoepfe"><button type="button" class="btn klein" id="sfBunt">Bunt</button><button type="button" class="btn klein" id="sfGleich">Alle wie oben</button></div>';
+  }
+  $('#sfFarbListe').addEventListener('input', function(ev){
+    var f = ev.target.closest('input[type=color]'); if (!f) return;
+    st.farben[+f.getAttribute('data-k')] = f.value; speichern(); baldZeichnen();
+  });
+  $('#sfFarbListe').addEventListener('click', function(ev){
+    var b = ev.target.closest('button'); if (!b) return;
+    if (b.id === 'sfBunt') st.farben = Z.map(function(c, i){ return FARBEN[i % FARBEN.length]; });
+    if (b.id === 'sfGleich') st.farben = Z.map(function(){ return st.opt.farbe; });
+    listeFuer = ''; speichern(); zeichnen();
+  });
+  [['#sfFarbig', 'farbig'], ['#sfJeFarbe', 'jeFarbe']].forEach(function(x){
+    $(x[0]).checked = !!st.opt[x[1]];
+    $(x[0]).addEventListener('change', function(){ st.opt[x[1]] = this.checked; speichern(); farbWahlZeigen(); zeichnen(); });
+  });
+  farbWahlZeigen();
   [['#sfAblenkung', 'ablenkung'], ['#sfLinie', 'linie'], ['#sfMitLoesung', 'mitLoesung']].forEach(function(x){
     $(x[0]).checked = !!st.opt[x[1]];
     $(x[0]).addEventListener('change', function(){ st.opt[x[1]] = this.checked; speichern(); if (x[1] !== 'mitLoesung') zeichnen(); });
@@ -216,9 +283,19 @@ function starte(bereich){
     var leer = !Z.length;
     ['#sfNeu', '#sfPdf', '#sfHerunterladen', '#sfZeige'].forEach(function(s){ $(s).disabled = leer; });
     if (leer){ P = null; $('#sfZaehler').innerHTML = h; ['#sfBlatt', '#sfFolie', '#sfLoesung'].forEach(function(s){ $(s).parentNode.hidden = true; }); $('.sf-spiel').hidden = true; meldung('info', '<p>Gib links den Code ein.</p>'); return; }
-    var M = masse(+o.zelle * MM), pro = Kern.proStreifen(Math.floor((B - 40) / M.z));
+    var M = masse(ZELLE * MM), pro = Kern.proStreifen(Math.floor((B - 40) / M.z));
     P = Kern.planen({ zeichen:Z, proStreifen:pro, ablenkung:o.ablenkung, seed:st.seed });
     if (!P){ meldung('warnung', '<p>Das hat nicht geklappt – versuche «Neu mischen».</p>'); return; }
+    // Farben: schwarz, eine Farbe oder je Zeichen eine
+    farbListeZeigen(); farbenErgaenzen(Z.length);
+    var frnd = Kern.zufall(st.seed + 17), k0 = 0;
+    P.streifen.forEach(function(s){
+      var start = k0;
+      if (!o.farbig) farbenSetzen(s, SCHWARZ, null, frnd);
+      else if (!o.jeFarbe) farbenSetzen(s, o.farbe, null, frnd);
+      else farbenSetzen(s, null, function(k){ return st.farben[start + k]; }, frnd);
+      k0 += s.zeichen.length;
+    });
     var mehrere = P.streifen.length > 1;
     $('#sfZaehler').innerHTML = '<p class="sf-zaehler-haupt ok">Code: <b>' + esc(Z.join('')) + '</b> · ' + (mehrere ? P.streifen.length + ' Streifen' : '1 Streifen') + '</p>' + h;
     meldung('', ''); ['#sfBlatt', '#sfFolie', '#sfLoesung'].forEach(function(s){ $(s).parentNode.hidden = false; }); $('.sf-spiel').hidden = false;

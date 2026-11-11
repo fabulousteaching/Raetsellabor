@@ -51,6 +51,8 @@
 .uf .opt[hidden]{display:none}
 .uf .uf-zeile input{letter-spacing:.12em}
 .uf-karten{display:block}
+.uf-blatt2{margin-top:16px}
+.uf-zaehler .uf-zaehler-info{color:var(--muted)}
 .uf-notiz{margin:10px 0 0;font-size:.78rem;color:#8A8079;text-align:center}
 .uf-code-loesung{margin:14px 0 0;font-size:1.15rem}
 /* Am Bildschirm ausprobieren */
@@ -77,5 +79,6 @@
   .uf-layout{display:block}
   .uf-rahmen{overflow:visible;padding:0}
   .uf-blatt{box-shadow:none;border:0;border-radius:0;padding:0 32px}
+  .uf-blatt2{break-before:page;margin-top:0}
   body.mit-loesung .uf-loesungsblatt{display:block;break-before:page;margin-top:0}
 }

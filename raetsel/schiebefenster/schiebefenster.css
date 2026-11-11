@@ -84,6 +84,34 @@
 #sfAntwortInfo{font-size:.9rem;color:var(--muted)}
 #sfAntwortInfo.ok{color:var(--ok);font-weight:700}
 
+/* Farbe */
+.sf-farbteil{margin:6px 0 4px 26px}
+.sf-farbteil[hidden]{display:none}
+.sf-farbwahl{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.sf-farbwahl.aus{opacity:.45}
+.sf-farbwahl label{position:relative;cursor:pointer}
+.sf-farbwahl input[type=radio]{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.sf-farbwahl label > span{display:block;width:26px;height:26px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line-2)}
+.sf-farbwahl input:checked + span{box-shadow:0 0 0 2px var(--ink)}
+.sf-farbwahl input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+.sf-eigene{display:inline-flex!important;align-items:center;gap:5px;padding:2px 9px 2px 3px;border:1px solid var(--line-2);border-radius:999px;background:#fff}
+.sf-eigene.gewaehlt{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.sf-eigene input{width:24px;height:24px;padding:0;border:0;background:none;cursor:pointer;-webkit-appearance:none;appearance:none}
+.sf-eigene input::-webkit-color-swatch-wrapper{padding:0}
+.sf-eigene input::-webkit-color-swatch{border:1px solid rgba(0,0,0,.15);border-radius:50%}
+.sf-eigene input::-moz-color-swatch{border:1px solid rgba(0,0,0,.15);border-radius:50%}
+.sf-eigene span{width:auto!important;height:auto!important;border:0!important;box-shadow:none!important;font-size:.84rem;color:var(--muted)}
+.sf-farbliste[hidden]{display:none}
+.sf-farbfelder{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.sf-farbe{display:inline-flex;align-items:center;gap:5px;padding:3px 9px 3px 4px;border:1px solid var(--line-2);border-radius:999px;background:#fff;cursor:pointer}
+.sf-farbe:focus-within{outline:2px solid var(--accent-2);outline-offset:2px}
+.sf-farbe input{width:26px;height:26px;padding:0;border:0;border-radius:50%;background:none;cursor:pointer;-webkit-appearance:none;appearance:none}
+.sf-farbe input::-webkit-color-swatch-wrapper{padding:0}
+.sf-farbe input::-webkit-color-swatch{border:1px solid rgba(0,0,0,.15);border-radius:50%}
+.sf-farbe input::-moz-color-swatch{border:1px solid rgba(0,0,0,.15);border-radius:50%}
+.sf-farbe span{font-weight:700;min-width:.8em;text-align:center}
+.sf-farb-knoepfe{display:flex;gap:6px;margin-top:8px}
+
 /* ---------- Drucken (gilt auch für das PDF) ---------- */
 @media print{
   @page{size:A4;margin:12mm}

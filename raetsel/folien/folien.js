@@ -161,8 +161,6 @@ var VORLAGE = '<div class="uf">' +
       '<p class="hinweis" id="ufLageInfo"></p>' +
       '<label class="opt" id="ufExtraZeile"><input type="checkbox" id="ufExtra"><span>2 zusätzliche untere Karten, die zu keiner oberen passen</span></label>' +
       '<label class="opt"><input type="checkbox" id="ufDoppelt"><span>Einige Felder auf beiden Karten (die Karten überlappen sich auch im Blau)</span></label>' +
-      '<p class="feld-label">Grösse eines Felds</p><div class="uf-chips" role="radiogroup" aria-label="Grösse eines Felds">' +
-        [[6, '6 mm'], [8, '8 mm'], [10, '10 mm']].map(function(x){ return '<label><input type="radio" name="ufZelle" value="' + x[0] + '"><span>' + x[1] + '</span></label>'; }).join('') + '</div>' +
       '<p class="hinweis">Zum Lösen: die Seite mit den Karten auf eine Overhead-Folie drucken (Folie für den Drucker) und die Karten ausschneiden.</p>' +
     '</div>' +
   '</section>' +
@@ -179,6 +177,7 @@ var VORLAGE = '<div class="uf">' +
       '<div class="uf-spiel-knoepfe"><button type="button" class="btn klein" id="ufZurueck">Karten zurücklegen</button><button type="button" class="btn klein" id="ufZeige">Lösung zeigen</button></div></div>' +
       '<div class="uf-spielfeld" id="ufSpielfeld"></div></div>' +
     '<div class="uf-rahmen"><article class="uf-blatt" id="ufBlatt"></article></div>' +
+    '<div class="uf-rahmen" hidden><article class="uf-blatt uf-blatt2" id="ufBlatt2"></article></div>' +
     '<div class="uf-rahmen"><article class="uf-blatt uf-loesungsblatt" id="ufLoesung" aria-hidden="true"></article></div>' +
   '</section></div></div>';
 
@@ -201,12 +200,13 @@ Labor.registriere({
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false;
   var TAB = 'folien-eingaben', OPT = 'folien-einstellungen';
-  var STANDARD = { lage:'gemischt', extra:true, doppelt:true, zelle:8, mitLoesung:true, titelAn:true, anleitungAn:true };
+  var STANDARD = { lage:'gemischt', extra:true, doppelt:true, mitLoesung:true, titelAn:true, anleitungAn:true };
+  var ZELLE = 8;   // Feldgrösse in mm: Karte 29 × 47 mm – bis 4 Zeichen auf einem Blatt, sonst die unteren Karten auf einem zweiten
   var st = { code:'', seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
   try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.code = String(e.code || ''); st.seed = +e.seed || st.seed; } } catch(x){}
   if (['gemischt', 'unter'].indexOf(st.opt.lage) < 0) st.opt.lage = 'gemischt';
-  if ([6, 8, 10].indexOf(+st.opt.zelle) < 0) st.opt.zelle = 8;
+  delete st.opt.zelle;   // früher wählbar
   if (!PS.lesen(st.code).zeichen.length) st.code = String(1000 + Math.floor(Math.random() * 9000));
   var timer = 0;
   function speichernJetzt(){ clearTimeout(timer); timer = 0;
@@ -233,7 +233,7 @@ function starte(bereich){
       r.addEventListener('change', function(){ if (!r.checked) return; st.opt[k] = typeof STANDARD[k] === 'number' ? +r.value : r.value; speichern(); zeichnen(); });
     });
   }
-  radios('ufLage', 'lage'); radios('ufZelle', 'zelle');
+  radios('ufLage', 'lage');
   [['#ufExtra', 'extra'], ['#ufDoppelt', 'doppelt'], ['#ufMitLoesung', 'mitLoesung']].forEach(function(x){
     $(x[0]).checked = !!st.opt[x[1]];
     $(x[0]).addEventListener('change', function(){ st.opt[x[1]] = this.checked; speichern(); if (x[1] !== 'mitLoesung') zeichnen(); });
@@ -251,14 +251,18 @@ function starte(bereich){
         : 'Lege jede obere Karte genau auf die Karte mit derselben Nummer darunter – die blauen Felder ergänzen sich zu einem Zeichen.') +
       ' Lies die Zeichen in der Reihenfolge der Nummern: Wie heisst ' + (zahl ? 'die Zahl' : 'der Code') + '?';
   }
-  /* Kartenblatt: obere Karten (Nummern), untere Karten (Symbole oder dieselben Nummern) */
-  function kartenSvg(M){
-    var o = reihen(P.oben.length, M, B, 22), u = reihen(P.unten.length, M, B, 22 + o.hoehe + 44), t = '';
-    t += '<text x="0" y="12" font-size="13" font-weight="700" fill="' + TINTE + '">Obere Karten</text>';
-    t += '<text x="0" y="' + f1(22 + o.hoehe + 34) + '" font-size="13" font-weight="700" fill="' + TINTE + '">Untere Karten</text>';
-    P.oben.forEach(function(k, i){ t += karteInhalt(M, o.orte[i].x, o.orte[i].y, k.felder, { art:'nummer', text:String(i + 1) }); });
-    P.unten.forEach(function(k, j){ t += karteInhalt(M, u.orte[j].x, u.orte[j].y, k.felder, gemischt() ? { art:'symbol', name:SYMBOLE[j % SYMBOLE.length] } : { art:'nummer', text:String(k.zu + 1) }); });
-    var h = 22 + o.hoehe + 44 + u.hoehe + 4;
+  /* Kartenblatt: obere Karten (Nummern) und/oder untere Karten (Symbole oder dieselben Nummern); teile: 'beide', 'oben', 'unten' */
+  function kartenSvg(M, teile){
+    var t = '', y = 0;
+    function abschnitt(titel, karten, marke){
+      var r = reihen(karten.length, M, B, y + 22);
+      t += '<text x="0" y="' + f1(y + 12) + '" font-size="13" font-weight="700" fill="' + TINTE + '">' + titel + '</text>';
+      karten.forEach(function(k, i){ t += karteInhalt(M, r.orte[i].x, r.orte[i].y, k.felder, marke(k, i)); });
+      y += 22 + r.hoehe + 22;
+    }
+    if (teile !== 'unten') abschnitt('Obere Karten', P.oben, function(k, i){ return { art:'nummer', text:String(i + 1) }; });
+    if (teile !== 'oben') abschnitt('Untere Karten', P.unten, function(k, j){ return gemischt() ? { art:'symbol', name:SYMBOLE[j % SYMBOLE.length] } : { art:'nummer', text:String(k.zu + 1) }; });
+    var h = y - 18;
     return { svg:'<svg class="uf-karten" width="' + B + '" height="' + f1(h) + '" viewBox="0 0 ' + B + ' ' + f1(h) + '">' + t + '</svg>', hoehe:h };
   }
   function loesungSvg(M){
@@ -284,17 +288,17 @@ function starte(bereich){
     $('#ufLageInfo').textContent = gemischt() ? 'Die unteren Karten liegen in anderer Reihenfolge und tragen Symbole statt Nummern – man muss die passende suchen.' : 'Jede untere Karte trägt dieselbe Nummer wie ihre obere.';
     var leer = !Z.length;
     ['#ufNeu', '#ufPdf', '#ufHerunterladen', '#ufZurueck', '#ufZeige'].forEach(function(s){ $(s).disabled = leer; });
-    if (leer){ P = null; $('#ufBlatt').parentNode.hidden = true; $('#ufLoesung').parentNode.hidden = true; $('.uf-spiel').hidden = true; meldung('info', '<p>Gib links den Code ein.</p>'); return; }
+    if (leer){ P = null; $('#ufBlatt').parentNode.hidden = true; $('#ufBlatt2').parentNode.hidden = true; $('#ufLoesung').parentNode.hidden = true; $('.uf-spiel').hidden = true; meldung('info', '<p>Gib links den Code ein.</p>'); return; }
     P = Kern.planen({ zeichen:Z, gemischt:gemischt(), extra:st.opt.extra ? 2 : 0, doppelt:st.opt.doppelt ? 0.15 : 0, seed:st.seed });
-    if (!P){ $('#ufBlatt').parentNode.hidden = true; $('.uf-spiel').hidden = true; meldung('warnung', '<p>Für diesen Code finde ich keine eindeutige Aufteilung. Versuche «Neu mischen» oder andere Zeichen.</p>'); return; }
+    if (!P){ $('#ufBlatt').parentNode.hidden = true; $('#ufBlatt2').parentNode.hidden = true; $('.uf-spiel').hidden = true; meldung('warnung', '<p>Für diesen Code finde ich keine eindeutige Aufteilung. Versuche «Neu mischen» oder andere Zeichen.</p>'); return; }
     meldung('', ''); $('#ufBlatt').parentNode.hidden = false; $('#ufLoesung').parentNode.hidden = false; $('.uf-spiel').hidden = false;
-    // Feldgrösse: wie gewählt – kleiner, wenn sonst nicht alles auf eine Seite passt
-    var o = st.opt, z = +o.zelle, K, kopfH = (o.titelAn ? 46 : 0) + (o.anleitungAn ? 70 : 0);
-    for (; z >= 5; z--){ K = kartenSvg(masse(z * MM)); if (K.hoehe + kopfH <= 960) break; }
-    if (z < +o.zelle) $('#ufZaehler').innerHTML += '<p class="warnung">Felder ' + z + ' mm statt ' + o.zelle + ' mm – sonst passen nicht alle Karten auf eine Seite.</p>';
-    var M = masse(z * MM);
-    $('#ufBlatt').innerHTML = (o.titelAn ? '<h2>Überlappende Folien</h2>' : '') + (o.anleitungAn ? '<p class="uf-anleitung">' + esc(anleitung()) + '</p>' : '') + K.svg +
-      '<p class="uf-notiz">In Originalgrösse (100 %) auf Folie drucken.</p>';
+    // feste Feldgrösse; passen nicht alle Karten auf ein Blatt, kommen die unteren auf ein zweites
+    var o = st.opt, M = masse(ZELLE * MM), kopfH = (o.titelAn ? 46 : 0) + (o.anleitungAn ? 80 : 0), K = kartenSvg(M, 'beide'), zwei = K.hoehe + kopfH > 950;
+    var kopf = (o.titelAn ? '<h2>Überlappende Folien</h2>' : '') + (o.anleitungAn ? '<p class="uf-anleitung">' + esc(anleitung()) + '</p>' : ''), notiz = '<p class="uf-notiz">In Originalgrösse (100 %) auf Folie drucken.</p>';
+    $('#ufBlatt').innerHTML = kopf + (zwei ? kartenSvg(M, 'oben').svg + '<p class="uf-notiz">Die unteren Karten sind auf dem nächsten Blatt.</p>' : K.svg) + notiz;
+    $('#ufBlatt2').innerHTML = zwei ? (o.titelAn ? '<h2>Überlappende Folien – untere Karten</h2>' : '') + kartenSvg(M, 'unten').svg + notiz : '';
+    $('#ufBlatt2').parentNode.hidden = !zwei;
+    if (zwei) $('#ufZaehler').innerHTML += '<p class="uf-zaehler-info">Die Karten brauchen zwei Blätter: oben und unten je eines.</p>';
     $('#ufLoesung').innerHTML = (o.titelAn ? '<h2>Überlappende Folien – Lösung</h2>' : '<p class="uf-anleitung"><b>Lösung</b></p>') +
       '<p class="uf-anleitung">So liegen die Karten richtig aufeinander' + (gemischt() ? ' (Nummer der oberen Karte, Symbol der unteren)' : '') + '. Dunkelblau: Felder auf beiden Karten.</p>' + loesungSvg(M) +
       '<p class="uf-code-loesung">Code: <b>' + esc(Z.join('')) + '</b></p>';
@@ -372,7 +376,7 @@ function starte(bereich){
   function druckVorbereiten(){ document.body.classList.toggle('mit-loesung', !!st.opt.mitLoesung); }
   window.addEventListener('beforeprint', druckVorbereiten);
   function fehler(t){ meldung('fehler', '<p>' + esc(t) + '</p>'); }
-  Labor.pdfKnopf($('#ufPdf'), function(){ return P && { blaetter:[$('#ufBlatt'), st.opt.mitLoesung && $('#ufLoesung')], name:Labor.pdfName('Ueberlappende-Folien', '') }; }, fehler);
+  Labor.pdfKnopf($('#ufPdf'), function(){ return P && { blaetter:[$('#ufBlatt'), !$('#ufBlatt2').parentNode.hidden && $('#ufBlatt2'), st.opt.mitLoesung && $('#ufLoesung')], name:Labor.pdfName('Ueberlappende-Folien', '') }; }, fehler);
   var speicherOrt = null;
   if (Labor.imArtefakt()){
     $('#ufPdf').hidden = true;
@@ -381,7 +385,7 @@ function starte(bereich){
   $('#ufHerunterladen').addEventListener('click', function(){
     if (!speicherOrt || !P) return;
     var name = Labor.pdfName('Ueberlappende-Folien', '').replace(/\.pdf$/, '.html');
-    var inhalt = [$('#ufBlatt'), st.opt.mitLoesung && $('#ufLoesung')].filter(Boolean).map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
+    var inhalt = [$('#ufBlatt'), !$('#ufBlatt2').parentNode.hidden && $('#ufBlatt2'), st.opt.mitLoesung && $('#ufLoesung')].filter(Boolean).map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
     speicherOrt.save({ filename:name, data:Labor.blattDatei('Überlappende Folien', inhalt, '.uf-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
       meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
