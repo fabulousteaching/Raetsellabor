@@ -35,6 +35,21 @@
 .cs-satz-knopf:hover{border-color:var(--accent-line)}
 .cs-satz-knopf[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-2);font-weight:600}
 .cs-satz-knopf:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+.cs-satz-knopf:disabled{cursor:default;color:var(--muted);background:var(--bg,#FAF7F2);border-style:dashed}
+.cs-satz-knopf:disabled:hover{border-color:var(--line-2)}
+.cs-satz-knopf small{font-size:.8rem;color:var(--muted);font-weight:400}
+.cs-satz-liste .warnung{color:var(--accent-2)}
+/* Buchstabenschloss: Hinweis beim Code und die Räder */
+.cs-zaehler .cs-schloss-info{color:var(--muted)}
+.cs-zaehler .cs-schloss-info.ja{color:var(--ok)}
+.cs-raeder{margin-top:10px;font-size:.88rem}
+.cs-raeder summary{cursor:pointer;color:var(--muted);font-weight:600}
+.cs-raeder summary:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px;border-radius:4px}
+.cs-raeder-tabelle{display:grid;gap:3px;margin-top:8px;max-width:260px}
+.cs-raeder-tabelle div{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;align-items:center}
+.cs-raeder-tabelle b{text-align:center;color:#1E88E5;font-weight:700;font-size:.85rem}
+.cs-raeder-tabelle span{text-align:center;padding:3px 0;border:1px solid var(--line);border-radius:5px;background:#fff;font-weight:700;font-size:.85rem}
+.cs-raeder .hinweis{margin-top:6px}
 .cs-code-zeile input.cs-satz-feld{font-size:1rem;letter-spacing:0;text-transform:none;font-weight:600}
 .cs-satz-loesung{margin:18px 0 0;font-size:1rem;color:#3A322C}
 .cs-satz-loesung b{color:#1593D6;letter-spacing:.02em}

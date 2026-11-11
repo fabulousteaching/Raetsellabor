@@ -33,7 +33,34 @@ var Kern = (function(){
   function farbenVon(id){ var T = thema(id); return REIHE.filter(function(f){ return T.ziel[f]; }); }
   // Eingabe → Code: Grossbuchstaben (auch Ä, Ö, Ü) und Ziffern; alles andere fällt weg
   function code(text){ return String(text || '').replace(/ß/g, 'SS').toUpperCase().replace(/[^0-9A-ZÄÖÜ]/g, '').split(''); }
-  function zufallsWort(rnd, max, ausser){ var l = WOERTER.filter(function(w){ return w.length >= 3 && w.length <= max && w !== ausser; }); return l[Math.floor(rnd() * l.length)]; }
+  /* «Andere»: ein Wort fürs Buchstabenschloss (höchstens max Zeichen, nicht ausser). Mit saetze: bevorzugt Wörter, die zu
+     möglichst vielen dieser Sätze passen (mindestens 3, sonst so vielen wie möglich); streng: nur solche, sonst null. */
+  function zufallsWort(rnd, max, ausser, saetze, n, streng){
+    var l = WOERTER.filter(function(w){ return w.length <= max && w !== ausser; });
+    if (saetze && saetze.length){
+      var wert = l.map(function(w){ var z = w.split(''); return saetze.filter(function(t){ return satzPasst(t, z, n); }).length; });
+      var best = Math.max.apply(null, wert.concat(0));
+      if (best) l = l.filter(function(w, i){ return wert[i] >= Math.min(3, best); });
+      else if (streng) return null;
+    }
+    return l.length ? l[Math.floor(rnd() * l.length)] : null;
+  }
+  /* Buchstabenschloss mit 5 Rädern, je 10 Zeichen (wie das Schloss der Lehrperson). Ein Wort lässt sich einstellen, wenn
+     sein 1. Buchstabe auf Rad 1 steht, der 2. auf Rad 2 usw.; Wörter mit 4 Buchstaben stellen Rad 5 auf «-».
+     → null (einstellbar), { laenge:true } oder { rad (1–5), c } – das erste Rad ohne dieses Zeichen */
+  var SCHLOSS = ['MSTABCDEJL', 'AOELIHURNT', 'TACDEILNRS', 'CSNEYALITO', 'HSKLDYNAE-'];
+  function amSchloss(codeZ){
+    if (codeZ.length < 4 || codeZ.length > 5) return { laenge:true };
+    for (var i = 0; i < 5; i++){ var c = codeZ[i] || '-'; if (SCHLOSS[i].indexOf(c) < 0) return { rad:i + 1, c:c }; }
+    return null;
+  }
+  // Deutsche Wörter, die sich am Buchstabenschloss einstellen lassen (alle geprüft) – «Andere» schlägt nur diese vor
+  var WOERTER = ['SONNE', 'TISCH', 'STEIN', 'TANTE', 'MALEN', 'LESEN', 'BADEN', 'MILCH', 'LINIE', 'LISTE', 'TASSE', 'TORTE', 'TINTE', 'BIENE',
+    'BIRNE', 'LINSE', 'LEINE', 'BESEN', 'TANNE', 'TONNE', 'ENTEN', 'EULEN', 'MITTE', 'SEITE', 'ERNTE', 'MUSIK', 'TITEL', 'TEICH', 'MEISE',
+    'MOLCH', 'MOTTE', 'ATLAS', 'DUDEN', 'STALL', 'STROH', 'ALLEE', 'EISEN', 'LADEN', 'BODEN', 'STILL', 'LEISE', 'BUNTE', 'STIEL', 'LILIE',
+    'ARENA', 'BLASE', 'SOSSE', 'BASEL', 'BEINE',
+    'ENTE', 'EULE', 'DOSE', 'BALL', 'BETT', 'BEIN', 'SEIL', 'ERDE', 'BREI', 'AUTO', 'MAIS', 'EINS', 'DREI', 'JUNI', 'JULI', 'LILA', 'DORN',
+    'TORE', 'BLEI', 'TOLL', 'BUNT', 'TEIL', 'BERN', 'BIEL', 'AARE', 'TELL', 'DINO', 'MARS', 'AULA'];
   // Punkte am Rand eines Kästchens mit gr × gr Feldern (Ecken und Randpunkte), [x, y] von 0 bis gr, y nach unten
   function punkte(gr){ var l = []; for (var y = 0; y <= gr; y++) for (var x = 0; x <= gr; x++) if (!x || !y || x === gr || y === gr) l.push([x, y]); return l; }
   var PUNKTE = punkte(2);
@@ -51,7 +78,19 @@ var Kern = (function(){
   var SAETZE = ['Basel liegt am Rhein', 'Heute lösen wir ein Rätsel', 'Das Schloss ist bald offen', 'Alle Kinder lieben Rätsel', 'Die Sonne scheint warm',
     'Im Garten blühen Blumen', 'Der Tiger schläft im Zoo', 'Wir suchen den geheimen Code', 'Ein Apfel fällt vom Baum', 'Der Pirat findet einen Schatz',
     'Mein Freund hat einen Hund', 'Die Schule beginnt um acht', 'Der Mond scheint hell', 'Im Haus brennt Licht'];
-  /* Satz-Datenbank: zu jedem Codewort, das «Andere» vorschlägt, 2–5 Sätze zum Thema. Jeder enthält alle Buchstaben des
+  /* Sätze zu den Emoji-Themen: je 5, «Vorschlag» zeigt die des gewählten Themas. Jedes Thema hat einen kurzen Satz (bis 20
+     Buchstaben, passt ins Feld 5 × 5), die anderen haben 23–31 Buchstaben (Feld 6 × 6). Gewählt so, dass zu jedem Thema
+     mindestens 19 Wörter des Buchstabenschlosses zu 3 oder mehr Sätzen passen (Feld 6 × 6). */
+  var THEMA_SAETZE = {
+    fruechte:['Erdbeeren sind rot und süss', 'Die Orange hat viel Saft', 'Die Zitrone ist gelb und sauer', 'Ein grüner Apfel liegt im Korb', 'Heidelbeeren und Trauben sind blau'],
+    gemuese:['Tomaten reifen in der Sonne', 'Die Karotte wächst in der Erde', 'Maiskolben sind gelb', 'Broccoli sieht aus wie ein Baum', 'Die Aubergine ist dunkel violett'],
+    tiere:['Der Marienkäfer hat sieben Punkte', 'Der Fuchs schleicht durch den Wald', 'Das Küken piepst im Nest', 'Der Frosch quakt laut am Teich', 'Der Wal schwimmt im tiefen Meer'],
+    buecher:['Wir lesen jeden Tag ein Buch', 'In der Bibliothek ist es still', 'Das Buch hat viele bunte Seiten', 'Lesen macht allen Spass', 'Im Regal stehen dicke Bücher'],
+    herzen:['Ich habe dich sehr lieb', 'Freunde halten immer zusammen', 'Mit Liebe geht alles leichter', 'Mein Herz tanzt vor lauter Freude', 'Ein Lächeln macht alle Menschen froh'],
+    formen:['Ein Kreis hat keine Ecke', 'Ein Quadrat hat vier gleiche Seiten', 'Das bunte Dreieck hat drei Ecken', 'Der volle Mond ist rund wie ein Ball', 'Wir malen Punkte, Linien und Kreise']
+  };
+  function themaSaetze(id){ return THEMA_SAETZE[id] || []; }
+  /* Weitere Sammlung (Rückgriff, wenn kein Satz des Themas passt): zu 61 Wörtern 2–5 Sätze zum Wort. Jeder enthält alle Buchstaben des
      Worts (so oft, wie es sie braucht), aber nicht das Wort selbst (sonst verriete das Feld die Lösung), und hat 8 bis 30
      Buchstaben – passt also ins Feld 6 × 6; die kürzesten (bis 19–22 Buchstaben) auch ins Feld 5 × 5. Alles geprüft.
      Für eigene Codewörter werden alle Sätze der Datenbank durchsucht, aus denen sich der Code legen lässt. */
@@ -120,20 +159,31 @@ var Kern = (function(){
   };
   // passt der Satz zum Code? (Buchstaben reichen, passt ins Feld, enthält das Codewort nicht)
   function satzPasst(t, codeZ, n){ var z = code(t), p = satzPruefen(z, codeZ, n); return !p.fehlt.length && p.L <= p.maxL && p.L >= 8 && z.join('').indexOf(codeZ.join('')) < 0; }
-  function themenSaetze(codeZ, n){ return (THEMA[codeZ.join('')] || []).filter(function(t){ return satzPasst(t, codeZ, n); }); }
-  // alle Sätze der Datenbank (und der allgemeinen Liste), aus denen sich der Code legen lässt – ohne die zum Thema
-  function andereSaetze(codeZ, n){
-    var eigene = THEMA[codeZ.join('')] || [], alle = [];
+  // warum passt der Satz nicht? '' = passt; sonst kurz, z. B. «zu lang für 5 × 5 · es fehlt O, ein zweites E»
+  function satzGrund(t, codeZ, n){
+    var z = code(t), p = satzPruefen(z, codeZ, n), g = [], ZAHL = ['', '', 'zweites', 'drittes', 'viertes', 'fünftes'];
+    if (p.L > p.maxL) g.push('zu lang für ' + n + ' × ' + n);
+    if (p.L < 8) g.push('zu kurz');
+    if (p.fehlt.length) g.push('es fehl' + (p.fehlt.length > 1 ? 'en ' : 't ') + p.fehlt.map(function(f){
+      return f.hat ? (f.braucht - f.hat > 1 ? f.braucht - f.hat + ' weitere ' + f.c : 'ein ' + (ZAHL[f.braucht] || 'weiteres') + ' ' + f.c) : f.c;
+    }).join(', '));
+    if (!g.length && z.join('').indexOf(codeZ.join('')) >= 0) g.push('enthält das Codewort');
+    return g.join(' · ');
+  }
+  function themenSaetze(id, codeZ, n){ return themaSaetze(id).filter(function(t){ return satzPasst(t, codeZ, n); }); }
+  // alle übrigen Sätze (zuerst die zum Codewort, dann die der anderen Themen, dann die ganze Sammlung), aus denen sich der Code legen lässt
+  function andereSaetze(codeZ, n, id){
+    var eigene = themaSaetze(id), alle = (THEMA[codeZ.join('')] || []).slice();
+    Object.keys(THEMA_SAETZE).forEach(function(k){ if (k !== id) alle = alle.concat(THEMA_SAETZE[k]); });
     Object.keys(THEMA).forEach(function(w){ alle = alle.concat(THEMA[w]); });
     return alle.concat(SAETZE).filter(function(t, i, l){ return l.indexOf(t) === i && eigene.indexOf(t) < 0 && satzPasst(t, codeZ, n); });
   }
-  // ein Satz, aus dem sich der Code legen lässt und der ins Feld passt – zuerst zum Thema, sonst irgendeiner (sonst null)
-  function satzVorschlag(codeZ, n, rnd, ausser){
-    var l = themenSaetze(codeZ, n).filter(function(t){ return t !== ausser; });
-    if (!l.length) l = andereSaetze(codeZ, n).filter(function(t){ return t !== ausser; });
+  // ein Satz, aus dem sich der Code legen lässt und der ins Feld passt – zuerst zum Emoji-Thema, sonst irgendeiner (sonst null)
+  function satzVorschlag(codeZ, n, rnd, ausser, id){
+    var l = themenSaetze(id, codeZ, n).filter(function(t){ return t !== ausser; });
+    if (!l.length) l = andereSaetze(codeZ, n, id).filter(function(t){ return t !== ausser; });
     return l.length ? l[Math.floor(rnd() * l.length)] : null;
   }
-  var WOERTER = Object.keys(THEMA);   // «Andere» schlägt nur Wörter vor, zu denen es Sätze gibt
 
   /* Rätsel planen. o: { code:[…], thema, n (Feld n × n), kaestchen (2, 3 oder 4: Kästchen mit so vielen Feldern je Seite),
      satz (auf Wunsch: Buchstaben, die im Feld der Reihe nach stehen sollen), seed }
@@ -230,7 +280,8 @@ var Kern = (function(){
     return null;
   }
   return { zufall:zufall, mischen:mischen, REIHE:REIHE, FARBE:FARBE, THEMEN:THEMEN, WOERTER:WOERTER, thema:thema, farbenVon:farbenVon,
-    code:code, zufallsWort:zufallsWort, PUNKTE:PUNKTE, punkte:punkte, planen:planen, satzPruefen:satzPruefen, satzVorschlag:satzVorschlag, satzPasst:satzPasst, themenSaetze:themenSaetze, andereSaetze:andereSaetze, SAETZE:SAETZE, THEMA:THEMA };
+    code:code, zufallsWort:zufallsWort, PUNKTE:PUNKTE, punkte:punkte, planen:planen, satzPruefen:satzPruefen, satzVorschlag:satzVorschlag, satzPasst:satzPasst, themenSaetze:themenSaetze, andereSaetze:andereSaetze, SAETZE:SAETZE, THEMA:THEMA,
+    THEMA_SAETZE:THEMA_SAETZE, themaSaetze:themaSaetze, satzGrund:satzGrund, SCHLOSS:SCHLOSS, amSchloss:amSchloss };
 })();
 /* KERN-ENDE */
 
@@ -295,8 +346,12 @@ var VORLAGE = '<div class="cs">' +
       '<label class="feld-label" for="csCode">Code</label>' +
       '<div class="cs-code-zeile"><input type="text" id="csCode" maxlength="20" autocomplete="off" spellcheck="false">' +
         '<button type="button" class="btn klein" id="csZufall" title="Ein anderes Wort vorschlagen">Andere</button></div>' +
-      '<p class="hinweis">3 bis 6 Buchstaben oder Ziffern – so viele, wie das Thema Farben hat.</p>' +
+      '<p class="hinweis">3 bis 6 Buchstaben oder Ziffern – so viele, wie das Thema Farben hat. «Andere» schlägt deutsche Wörter vor, die sich am Buchstabenschloss einstellen lassen.</p>' +
       '<div class="cs-zaehler" id="csZaehler" aria-live="polite"></div>' +
+      '<details class="cs-raeder"><summary>Räder des Buchstabenschlosses</summary><div class="cs-raeder-tabelle" role="table" aria-label="Buchstaben auf den 5 Rädern (Spalten)">' +
+        '<div role="row">' + Kern.SCHLOSS.map(function(r, i){ return '<b role="columnheader">' + (i + 1) + '</b>'; }).join('') + '</div>' +
+        Kern.SCHLOSS[0].split('').map(function(x, j){ return '<div role="row">' + Kern.SCHLOSS.map(function(r){ var c = r.charAt(j); return '<span role="cell">' + (c === '-' ? '–' : c) + '</span>'; }).join('') + '</div>'; }).join('') +
+      '</div><p class="hinweis">Ein Buchstabe pro Rad, in dieser Reihenfolge. Wörter mit 4 Buchstaben: Rad 5 auf «–».</p></details>' +
     '</div>' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Emojis</h2><p>Jedes Thema hat Emojis in passenden Farben.</p></div></div>' +
       '<div class="cs-themen" role="radiogroup" aria-label="Emoji-Thema">' + Kern.THEMEN.map(function(T){
@@ -309,7 +364,7 @@ var VORLAGE = '<div class="cs">' +
         '<div class="cs-code-zeile"><input type="text" id="csSatz" class="cs-satz-feld" maxlength="80" autocomplete="off" spellcheck="false">' +
         '<button type="button" class="btn klein" id="csSatzVorschlag" title="Einen Satz vorschlagen, der zum Code passt">Vorschlag</button></div>' +
         '<div class="cs-satz-liste" id="csSatzListe" aria-live="polite"></div>' +
-        '<p class="hinweis">Liest man die Buchstaben im Feld der Reihe nach (Zeile für Zeile, Emojis auslassen), ergeben sie diesen Satz. Die Buchstaben des Codes müssen darin vorkommen. «Vorschlag» bietet Sätze aus der Sammlung an, die zum Codewort passen.</p>' +
+        '<p class="hinweis">Liest man die Buchstaben im Feld der Reihe nach (Zeile für Zeile, Emojis auslassen), ergeben sie diesen Satz. Die Buchstaben des Codes müssen darin vorkommen. «Vorschlag» zeigt fünf Sätze zum Emoji-Thema – wählbar sind die, aus denen sich der Code legen lässt.</p>' +
         '<div class="cs-zaehler" id="csSatzInfo" aria-live="polite"></div></div>' +
       '<p class="feld-label">Feld</p><div class="cs-chips" role="radiogroup" aria-label="Grösse des Felds">' + chips('csN', [[5, '5 × 5 · leicht'], [6, '6 × 6'], [7, '7 × 7 · schwer']]) + '</div>' +
       '<p class="feld-label">Kästchen</p><div class="cs-chips" role="radiogroup" aria-label="Grösse der Kästchen">' + chips('csKaestchen', [[2, '2 × 2 · leicht'], [3, '3 × 3'], [4, '4 × 4 · schwer']]) + '</div>' +
@@ -361,7 +416,7 @@ function starte(bereich){
   if (!Kern.THEMEN.some(function(T){ return T.id === st.opt.thema; })) st.opt.thema = 'fruechte';
   if ([5, 6, 7].indexOf(+st.opt.n) < 0) st.opt.n = 6;
   if ([2, 3, 4].indexOf(+st.opt.kaestchen) < 0) st.opt.kaestchen = 2;
-  if (!Kern.code(st.code).length) st.code = Kern.zufallsWort(Kern.zufall(st.seed + 5), 5);
+  if (!Kern.code(st.code).length) st.code = Kern.zufallsWort(Kern.zufall(st.seed + 5), 5, '', Kern.themaSaetze(st.opt.thema), st.opt.n);
   var timer = 0;
   function speichernJetzt(){ clearTimeout(timer); timer = 0;
     try { sessionStorage.setItem(TAB, JSON.stringify({ code:st.code, satz:st.satz, seed:st.seed })); } catch(x){}
@@ -384,47 +439,55 @@ function starte(bereich){
     var an = st.opt.feldArt === 'satz';
     $('#csSatzTeil').hidden = !an;
     if (an && !st.satz.trim()){
-      st.satz = Kern.satzVorschlag(codeJetzt(), st.opt.n, Kern.zufall(st.seed + 9)) || Kern.SAETZE[0]; $('#csSatz').value = st.satz; speichern();
-      var eigene = Kern.themenSaetze(codeJetzt(), st.opt.n);
-      if (eigene.length) vorschlaegeZeigen(eigene, 'Sätze zu «' + codeJetzt().join('') + '» – zum Auswählen anklicken:');
+      st.satz = Kern.satzVorschlag(codeJetzt(), st.opt.n, Kern.zufall(st.seed + 9), null, st.opt.thema) || Kern.themaSaetze(st.opt.thema)[0] || Kern.SAETZE[0];
+      $('#csSatz').value = st.satz; speichern();
     }
   }
-  radios('csThema', 'thema'); radios('csN', 'n'); radios('csKaestchen', 'kaestchen'); radios('csFeldArt', 'feldArt', satzArtZeigen);
+  // Die Satz-Liste erscheint nur nach «Vorschlag»; ändert sich Thema, Feld oder Art, verschwindet sie
+  function ohneListe(){ vorschlaegeZeigen(null); }
+  radios('csThema', 'thema', ohneListe); radios('csN', 'n', ohneListe); radios('csKaestchen', 'kaestchen'); radios('csFeldArt', 'feldArt', function(){ ohneListe(); satzArtZeigen(); });
   $('#csSatz').value = st.satz; satzArtZeigen();
   $('#csSatz').addEventListener('input', function(){ st.satz = this.value; speichern(); baldZeichnen(); });
-  /* ---------- Satz-Vorschläge zum Codewort ----------
-     Aus der Satz-Datenbank (Kern.THEMA): zuerst Sätze zum Thema des Codeworts; für eigene Wörter Sätze aus der ganzen
-     Datenbank, aus denen sich der Code legen lässt – sonst schreibt man einen eigenen Satz. */
+  /* ---------- Satz-Vorschläge ----------
+     «Vorschlag» zeigt die 5 Sätze zum Emoji-Thema (Kern.THEMA_SAETZE): wählbar die, aus denen sich der Code legen lässt und
+     die ins Feld passen; die übrigen ausgegraut mit Grund. Passt keiner, Sätze aus der übrigen Sammlung. Nur nach dem Klick. */
   function satzWaehlen(t){ st.satz = t; $('#csSatz').value = t; speichern(); listeMarkieren(); zeichnen(); }
-  function listeMarkieren(){ [].forEach.call($('#csSatzListe').querySelectorAll('button'), function(b){ b.setAttribute('aria-pressed', b.textContent === st.satz ? 'true' : 'false'); }); }
-  function vorschlaegeZeigen(liste, titel){
-    $('#csSatzListe').innerHTML = liste.length ? '<p>' + esc(titel) + '</p>' + liste.map(function(t){ return '<button type="button" class="cs-satz-knopf" aria-pressed="false">' + esc(t) + '</button>'; }).join('') : '';
+  function listeMarkieren(){ [].forEach.call($('#csSatzListe').querySelectorAll('button'), function(b){ b.setAttribute('aria-pressed', b.getAttribute('data-satz') === st.satz ? 'true' : 'false'); }); }
+  function knopf(t, grund){
+    return '<button type="button" class="cs-satz-knopf" data-satz="' + esc(t) + '" aria-pressed="false"' + (grund ? ' disabled' : '') + '>' + esc(t) +
+      (grund ? '<small> – ' + esc(grund) + '</small>' : '') + '</button>';
+  }
+  // eigene: Sätze des Themas (mit Grund, falls sie nicht passen); andere: passende aus der Sammlung; null = Liste weg
+  function vorschlaegeZeigen(eigene, z, n, andere, kopf){
+    if (!eigene){ $('#csSatzListe').innerHTML = ''; return; }
+    var h = '<p>' + esc(kopf) + '</p>' + eigene.map(function(t){ return knopf(t, Kern.satzGrund(t, z, n)); }).join('');
+    if (andere) h += andere.length ? '<p>Keiner passt zu «' + esc(z.join('')) + '» – diese Sätze aus der Sammlung schon:</p>' + andere.map(function(t){ return knopf(t, ''); }).join('')
+      : '<p class="warnung">Für «' + esc(z.join('')) + '» passt kein Satz aus der Sammlung' + (n < 7 ? ' (in ein grösseres Feld passen längere Sätze)' : '') + '. Schreib einen eigenen Satz, in dem alle Buchstaben des Codes vorkommen.</p>';
+    $('#csSatzListe').innerHTML = h;
     listeMarkieren();
   }
-  $('#csSatzListe').addEventListener('click', function(ev){ var b = ev.target.closest('button'); if (b) satzWaehlen(b.textContent); });
+  $('#csSatzListe').addEventListener('click', function(ev){ var b = ev.target.closest('button'); if (b && !b.disabled) satzWaehlen(b.getAttribute('data-satz')); });
   $('#csSatzVorschlag').addEventListener('click', function(){
-    var z = codeJetzt(), wort = z.join(''), n = st.opt.n;
+    var z = codeJetzt(), n = st.opt.n, T = Kern.thema(st.opt.thema);
     if (z.length < 3) return;
-    var eigene = Kern.themenSaetze(z, n);
-    if (eigene.length){ vorschlaegeZeigen(eigene, 'Sätze zu «' + wort + '» – zum Auswählen anklicken:'); satzWaehlen(eigene[Math.floor(Math.random() * eigene.length)]); return; }
-    var andere = Kern.mischen(Kern.andereSaetze(z, n), Kern.zufall(Date.now())).slice(0, 8);
-    if (andere.length){
-      vorschlaegeZeigen(andere, 'Diese Sätze enthalten alle Buchstaben von «' + wort + '» – zum Auswählen anklicken:');
-      satzWaehlen(andere[0]);
-      meldung('info', '<p>' + (Kern.THEMA[wort] ? 'Für das Feld ' + n + ' × ' + n + ' sind die Sätze zu «' + esc(wort) + '» zu lang' : 'Zu «' + esc(wort) + '» gibt es noch keine Sätze zum Thema') + ' – darum Sätze, aus denen sich der Code legen lässt. Oder schreib einen eigenen Satz.</p>');
-      return;
-    }
-    vorschlaegeZeigen([], '');
-    meldung('warnung', '<p>Für «' + esc(wort) + '» passt kein Satz aus der Sammlung' + (n < 7 ? ' (in ein grösseres Feld passen längere Sätze)' : '') + '. Schreib einen eigenen Satz, in dem alle Buchstaben des Codes vorkommen.</p>');
+    var eigene = Kern.themaSaetze(T.id), gute = Kern.themenSaetze(T.id, z, n);
+    var andere = gute.length ? null : Kern.mischen(Kern.andereSaetze(z, n, T.id), Kern.zufall(Date.now())).slice(0, 6);
+    vorschlaegeZeigen(eigene, z, n, andere, 'Sätze zum Thema «' + T.name + '» – zum Auswählen anklicken:');
+    var wahl = gute.length ? gute : andere, neu = wahl.filter(function(t){ return t !== st.satz; });
+    if (neu.length) satzWaehlen(neu[Math.floor(Math.random() * neu.length)]);
   });
   $('#csCode').value = st.code;
-  $('#csCode').addEventListener('input', function(){ st.code = this.value; speichern(); vorschlaegeZeigen([], ''); baldZeichnen(); });
+  $('#csCode').addEventListener('input', function(){ st.code = this.value; speichern(); ohneListe(); baldZeichnen(); });
+  /* «Andere»: ein Wort fürs Buchstabenschloss. Mit eigenem Satz zuerst eines, das zu diesem Satz passt; sonst eines, zu dem
+     möglichst viele Sätze des Themas passen – und passt der Satz dann nicht mehr, kommt (ohne Liste) ein passender. */
   $('#csZufall').addEventListener('click', function(){
-    st.code = Kern.zufallsWort(Kern.zufall(Date.now()), Kern.farbenVon(st.opt.thema).length, Kern.code(st.code).join(''));
-    $('#csCode').value = st.code; speichern(); vorschlaegeZeigen([], '');
-    // Satz im Feld: zum neuen Wort gleich einen passenden Satz
-    if (st.opt.feldArt === 'satz'){ var eigene = Kern.themenSaetze(codeJetzt(), st.opt.n); if (eigene.length){ vorschlaegeZeigen(eigene, 'Sätze zu «' + codeJetzt().join('') + '» – zum Auswählen anklicken:'); satzWaehlen(eigene[0]); return; } }
-    zeichnen();
+    var max = Kern.farbenVon(st.opt.thema).length, alt = Kern.code(st.code).join(''), rnd = Kern.zufall(Date.now()), n = st.opt.n, satzArt = st.opt.feldArt === 'satz', w = null;
+    if (satzArt && Kern.code(st.satz).length) w = Kern.zufallsWort(rnd, max, alt, [st.satz], n, true);
+    if (!w) w = Kern.zufallsWort(rnd, max, alt, Kern.themaSaetze(st.opt.thema), n);
+    if (!w) return;
+    st.code = w; $('#csCode').value = w; ohneListe();
+    if (satzArt && !Kern.satzPasst(st.satz, codeJetzt(), n)){ var t = Kern.satzVorschlag(codeJetzt(), n, rnd, null, st.opt.thema); if (t){ st.satz = t; $('#csSatz').value = t; } }
+    speichern(); zeichnen();
   });
   $('#csMitLoesung').checked = !!st.opt.mitLoesung;
   $('#csMitLoesung').addEventListener('change', function(){ st.opt.mitLoesung = this.checked; speichern(); });
@@ -455,6 +518,9 @@ function starte(bereich){
     var o = st.opt, max = Kern.farbenVon(o.thema).length, alle = Kern.code(st.code), z = alle.slice(0, max), T = Kern.thema(o.thema), h = '';
     if (alle.length > max) h += '<p class="warnung">«' + esc(T.name) + '» hat ' + max + ' Farben – es werden die ersten ' + max + ' Zeichen verwendet.</p>';
     if (z.length && z.length < 3) h += '<p class="warnung">Es braucht mindestens 3 Zeichen.</p>';
+    var sl = Kern.amSchloss(z);
+    if (z.length >= 3) h += sl ? '<p class="cs-schloss-info">Am Buchstabenschloss nicht einstellbar: ' + (sl.laenge ? 'Es hat 5 Räder – es braucht 4 oder 5 Buchstaben.' : 'Rad ' + sl.rad + ' hat kein «' + esc(sl.c) + '».') + '</p>'
+      : '<p class="cs-schloss-info ja">🔒 Lässt sich am Buchstabenschloss einstellen' + (z.length === 4 ? ' (Rad 5 auf «–»)' : '') + '.</p>';
     $('#csZaehler').innerHTML = z.length ? '<p class="cs-zaehler-haupt ' + (z.length >= 3 ? 'ok' : 'fehlt') + '">Code: <b>' + esc(z.join('')) + '</b> (' + z.length + ' Zeichen)</p>' + h : '';
     var leer = z.length < 3;
     ['#csZeigeLoesung', '#csNeu', '#csPdf', '#csHerunterladen'].forEach(function(s){ $(s).disabled = leer; });
@@ -475,7 +541,7 @@ function starte(bereich){
       if (!satzZ.length) problem = '<p>Gib links den Satz ein, der im Feld stehen soll.</p>';
       else if (pr.fehlt.length) problem = '<p>Der Code «' + esc(z.join('')) + '» lässt sich aus diesem Satz nicht legen: ' + pr.fehlt.map(function(f){
           return f.hat ? '«' + esc(f.c) + '» kommt nur ' + f.hat + '-mal vor, der Code braucht es ' + f.braucht + '-mal' : '«' + esc(f.c) + '» kommt im Satz nicht vor';
-        }).join(', ') + '. Ändere den Satz oder den Code' + (Kern.satzVorschlag(z, o.n, Kern.zufall(1)) ? ' – oder nimm einen «Vorschlag»' : '') + '.</p>';
+        }).join(', ') + '. Ändere den Satz oder den Code' + (Kern.satzVorschlag(z, o.n, Kern.zufall(1), null, o.thema) ? ' – oder nimm einen «Vorschlag»' : '') + '.</p>';
       else if (pr.L > pr.maxL) problem = '<p>Der Satz hat ' + pr.L + ' Buchstaben – im Feld ' + o.n + ' × ' + o.n + ' haben höchstens ' + pr.maxL + ' Platz, weil es noch ' + z.length + ' Felder für die Emojis braucht. ' +
         (passt ? 'Wähle das Feld ' + passt + ' × ' + passt + ' oder kürze den Satz.' : 'Kürze den Satz.') + '</p>';
       if (problem){ R = null; $('#csInhalt').hidden = true; ['#csZeigeLoesung', '#csNeu', '#csPdf', '#csHerunterladen'].forEach(function(s){ $(s).disabled = true; }); meldung(satzZ.length ? 'warnung' : 'info', problem); return; }
