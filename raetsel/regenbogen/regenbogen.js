@@ -165,7 +165,7 @@ var Kern = (function(){
     z.forEach(function(c){ ZEICHEN[c].forEach(function(s){ s.forEach(function(q){ o = Math.min(o, q[1]); u = Math.max(u, q[1]); }); }); });
     return { oben:Math.min(o, 1.6), unten:Math.max(u, 4) };
   }
-  /* Plan: o: { zeichen:[…], farben (Anzahl), seed } → { farben:[Name …], oben, unten,
+  /* Plan: o: { zeichen:[…], farben (Anzahl), ablenker (false: keine Ablenkformen), seed } → { farben:[Name …], oben, unten,
        gruppen:[{ zeichen, striche:[{ form, punkte:[[x, y, farbe] …] }], ablenker:[{ x, y, form, farbe }] }] }
      Punkte leicht verwackelt (±0.08); Reihenfolge der Punkte = Farbreihenfolge. Ablenker: Formen in Regenbogenfarben, die
      zu keinem Strich der Gruppe gehören (so verrät die Punktwolke das Zeichen nicht) – nie zu nahe an Punkten oder Linien. */
@@ -189,7 +189,7 @@ var Kern = (function(){
       // Ablenker: «bester Kandidat» – jeder neue dort, wo er am weitesten von Punkten, Linien und anderen Ablenkern weg ist
       var alle = [], strecken = [], ablenker = [];
       striche.forEach(function(s){ s.punkte.forEach(function(q, k){ alle.push(q); if (k) strecken.push([s.punkte[k - 1], q]); }); });
-      var ziel = Math.min(9, Math.round(alle.length * 0.8));
+      var ziel = o.ablenker === false ? 0 : Math.min(9, Math.round(alle.length * 0.8));
       for (var a = 0; a < ziel; a++){
         var best = null, bestW = -1;
         for (var v = 0; v < 60; v++){
@@ -312,6 +312,7 @@ var VORLAGE = '<div class="rb">' +
       '<p class="feld-label">Anzahl Farben</p><div class="rb-chips" id="rbFarben" role="radiogroup" aria-label="Anzahl Farben im Regenbogen"></div>' +
       '<p class="hinweis" id="rbFarbenInfo"></p>' +
       '<div class="rb-farbfolge" id="rbFolge"></div>' +
+      '<label class="opt rb-ablenker"><input type="checkbox" id="rbAblenker"><span>Ablenkformen – andere Formen dazwischen, damit man die Zeichen nicht schon ohne Linien erkennt</span></label>' +
     '</div>' +
   '</section>' +
   '<section class="rb-ausgabe" aria-label="Ergebnis">' +
@@ -347,7 +348,7 @@ Labor.registriere({
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false;
   var TAB = 'regenbogen-eingaben', OPT = 'regenbogen-einstellungen';
-  var STANDARD = { farben:0, mitLoesung:true, titelAn:true, anleitungAn:true };   // farben 0: so wenige wie nötig
+  var STANDARD = { farben:0, ablenker:true, mitLoesung:true, titelAn:true, anleitungAn:true };   // farben 0: so wenige wie nötig
   var st = { ziffern:'', seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
   try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.ziffern = String(e.ziffern || ''); st.seed = +e.seed || st.seed; } } catch(x){}
@@ -387,6 +388,8 @@ function starte(bereich){
     $('#rbFarbenInfo').textContent = 'Diese Zeichen brauchen mindestens ' + min + ' Farben. Mit mehr Farben bekommen die Striche zusätzliche Punkte auf ihren Linien – das wird schwieriger. Kurze Striche brauchen nur die ersten Farben.';
     return gewaehlt;
   }
+  $('#rbAblenker').checked = st.opt.ablenker !== false;
+  $('#rbAblenker').addEventListener('change', function(){ st.opt.ablenker = this.checked; speichern(); zeichnen(); });
   $('#rbMitLoesung').checked = !!st.opt.mitLoesung;
   $('#rbMitLoesung').addEventListener('change', function(){ st.opt.mitLoesung = this.checked; speichern(); });
   Labor.blattSchalter(bereich, st.opt, function(){ speichern(); zeichnen(); });
@@ -399,7 +402,7 @@ function starte(bereich){
   function anleitung(z){
     var zahl = z.every(function(c){ return /[0-9]/.test(c); }), mehrere = P.gruppen.some(function(g){ return g.striche.length > 1; }), punkt = P.gruppen.some(function(g){ return g.striche.some(function(st){ return st.punkte.length === 1; }); });
     return 'Über jeder Gruppe siehst du, welche Formen zu ihr gehören. Verbinde ' + (mehrere ? 'jede dieser Formen für sich' : 'sie') + ' der Reihe nach in den Farben des Regenbogens: zuerst ' +
-      Kern.FARBNAME[P.farben[0]] + ' (ganz aussen), dann ' + Kern.FARBNAME[P.farben[1]] + ' und so weiter. Die anderen Formen gehören nicht dazu.' +
+      Kern.FARBNAME[P.farben[0]] + ' (ganz aussen), dann ' + Kern.FARBNAME[P.farben[1]] + ' und so weiter.' + (st.opt.ablenker !== false ? ' Die anderen Formen gehören nicht dazu.' : '') +
       (punkt ? ' Eine einzelne Form bleibt ein Punkt.' : '') + ' ' + (zahl ? 'Welche Zahl' : 'Welches Wort') + ' entsteht?' + (z.length > 1 ? ' Lies von links nach rechts.' : '');
   }
   function blattHtml(z, loesung, kopf){
@@ -420,7 +423,7 @@ function starte(bereich){
     if (leer){ P = null; $('#rbBlatt').parentNode.hidden = true; meldung('info', '<p>Gib links die Zahl oder das Wort ein, das erscheinen soll.</p>'); return; }
     meldung('', ''); $('#rbBlatt').parentNode.hidden = false;
     var min = Kern.mindestens(z), n = farbenZeigen(min);
-    P = Kern.planen({ zeichen:z, farben:n, seed:st.seed });
+    P = Kern.planen({ zeichen:z, farben:n, ablenker:st.opt.ablenker !== false, seed:st.seed });
     $('#rbFolge').innerHTML = P.farben.map(function(f, i){ return '<span><i style="background:' + Kern.FARBE[f] + '"></i>' + (i + 1) + '. ' + esc(Kern.FARBNAME[f]) + '</span>'; }).join('');
     var zeige = $('#rbZeigeLoesung').getAttribute('aria-pressed') === 'true';
     $('#rbBlatt').innerHTML = blattHtml(z, zeige, false);
