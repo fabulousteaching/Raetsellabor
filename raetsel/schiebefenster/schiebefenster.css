@@ -1,0 +1,98 @@
+/* Rätsellabor · Schiebefenster – nur aktiv, solange dieser Generator offen ist.
+   Gemeinsame Bausteine (Karten, Knöpfe, Eingabefelder, Meldungen) stehen in gemeinsam/labor.css.
+   Das Blatt ist 703 Pixel breit (= 186 mm im PDF), die Zeichenfläche 639 Pixel; Streifen und Fensterfolie sind in Originalgrösse gezeichnet. */
+.sf{max-width:1440px;margin:0 auto;padding-block:22px 48px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.sf-kopf{display:grid;gap:4px;margin:0 0 20px}
+.sf-kopf h1{font-family:var(--display);font-weight:600;font-size:clamp(1.7rem,3vw,2.2rem);letter-spacing:-.01em;line-height:1.1;margin:0;color:var(--ink)}
+.sf-kopf h1:focus{outline:none}
+.sf-kopf p:last-child{margin:2px 0 0;color:var(--muted);max-width:70ch}
+.sf-layout{display:grid;grid-template-columns:minmax(300px,400px) minmax(0,1fr);gap:24px;align-items:start}
+.sf-eingabe{display:grid;gap:16px;min-width:0}
+@media (min-width:961px){ .sf-eingabe{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--kopf-h) + 16px);max-height:calc(100vh - var(--kopf-h) - 32px);overflow:auto;padding:2px 4px 2px 2px;scrollbar-width:thin} }
+@media (max-width:960px){ .sf-layout{grid-template-columns:minmax(0,1fr);gap:18px} }
+@media (max-width:640px){ .sf{padding-block:18px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))} }
+
+/* ---------- Eingaben ---------- */
+.sf .feld-label{display:block;margin-top:4px}
+.sf-zeile{display:flex;gap:8px;align-items:center}
+.sf-zeile input{flex:1;min-width:0;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:8px 11px;font-size:1.25rem;font-weight:700;letter-spacing:.2em;transition:border-color .15s,box-shadow .15s}
+.sf-zeile input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.sf-zaehler{margin-top:8px;font-size:.88rem}
+.sf-zaehler p{margin:6px 0 0}
+.sf-zaehler-haupt{padding:8px 11px;border-radius:9px;margin:0!important}
+.sf-zaehler-haupt.ok{background:var(--ok-soft);color:var(--ok)}
+.sf-zaehler .warnung{color:var(--accent-2)}
+.sf-chips{display:flex;flex-wrap:wrap;gap:6px}
+.sf-chips label{position:relative;cursor:pointer}
+.sf-chips input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.sf-chips span{display:inline-block;padding:6px 14px;text-align:center;border:1px solid var(--line-2);border-radius:999px;background:#fff;font-size:.88rem;font-weight:600;color:var(--muted);transition:border-color .15s,background .15s,color .15s}
+.sf-chips label:hover span{border-color:var(--accent-line)}
+.sf-chips input:checked + span{background:var(--accent);border-color:var(--accent);color:var(--asf-akzent)}
+.sf-chips input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+.sf .opt{display:flex;align-items:flex-start;gap:10px;margin:4px 0 0;font-size:.9rem}
+.sf .opt input[type=checkbox]{width:16px;height:16px;margin:3px 0 0;accent-color:var(--accent);flex:none}
+
+/* ---------- Ausgabe ---------- */
+.sf-ausgabe{min-width:0}
+.sf-werkzeug{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.sf-werkzeug .abstand{flex:1}
+.sf-werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
+.sf-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+.sf-rahmen{overflow-x:auto;padding-bottom:4px}
+.sf-rahmen[hidden]{display:none}
+.sf-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:26px 32px 30px}
+.sf-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
+.sf-anleitung{margin:0 0 14px;color:#554C45;line-height:1.45;font-size:.95rem}
+.sf-antwort{margin:14px 0 0;font-weight:700;font-size:1.1rem;display:flex;align-items:flex-end;gap:10px}
+.sf-loesungsblatt{display:none;margin-top:16px}
+
+
+.sf-chips{margin-bottom:4px}
+.sf .opt[hidden]{display:none}
+.sf .sf-zeile input{letter-spacing:.12em}
+.sf-notiz{margin:10px 0 0;font-size:.78rem;color:#8A8079;text-align:center}
+.sf-code-loesung{margin:14px 0 0;font-size:1.15rem}
+/* Am Bildschirm ausprobieren */
+.sf-spiel{margin-bottom:14px}
+.sf-spiel[hidden]{display:none}
+.sf-spiel-kopf{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.sf-spiel-kopf h2{font-family:var(--display);font-weight:600;font-size:1.15rem;margin:0;color:var(--ink)}
+.sf-spiel-kopf p{margin:2px 0 0;color:var(--muted);font-size:.9rem;max-width:60ch}
+.sf-spiel-kopf b{color:var(--ok)}
+.sf-spielfeld{position:relative;width:100%;max-width:760px;margin:0 auto;touch-action:none;user-select:none;-webkit-user-select:none}
+
+.sf-streifen,.sf-balken{display:block}
+.sf-streifen-liste{display:grid;gap:14px}
+.sf-folie{margin-top:16px}
+.sf-antwort{margin:18px 0 0;font-weight:700;font-size:1.05rem;display:flex;align-items:flex-end;gap:10px}
+.sf-linie{flex:1;max-width:340px;min-height:1.5em;border-bottom:2px solid #1C1714}
+.sf-spielfeld-schienen{display:grid;gap:12px}
+#sfSpielfeld{display:grid;gap:14px;justify-items:center}
+.sf-schiene{position:relative;overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:4px;touch-action:none;user-select:none;-webkit-user-select:none}
+.sf-schiene-streifen{display:block}
+.sf-schieber{position:absolute;top:0;cursor:grab;transition:left .12s ease}
+.sf-schieber.zieht{cursor:grabbing;transition:none}
+.sf-schieber svg{display:block}
+.sf-schieber:focus-visible{outline:3px solid var(--accent-2);outline-offset:-3px}
+.sf-ziel{display:none}
+#sfSpielfeld.zeige .sf-ziel{display:inline}
+#sfSpielfeld.zeige .sf-schieber{opacity:.35}
+.sf-antwort-zeile{display:flex;align-items:center;gap:8px;margin-top:12px;flex-wrap:wrap}
+.sf-antwort-zeile label{font-weight:700}
+.sf-antwort-zeile input{width:12em;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:6px 10px;font-size:1.05rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.sf-antwort-zeile input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+#sfAntwortInfo{font-size:.9rem;color:var(--muted)}
+#sfAntwortInfo.ok{color:var(--ok);font-weight:700}
+
+/* ---------- Drucken (gilt auch für das PDF) ---------- */
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#fff!important}
+  .sf-kopf,.sf-eingabe,.sf-werkzeug,#sfMeldung,.nur-bildschirm{display:none!important}
+  .sf{padding:0;max-width:none}
+  .sf-layout{display:block}
+  .sf-rahmen{overflow:visible;padding:0}
+  .sf-blatt{box-shadow:none;border:0;border-radius:0;padding:0 32px}
+  .sf-folie{break-before:page;margin-top:0}
+  body.mit-loesung .sf-loesungsblatt{display:block;break-before:page;margin-top:0}
+}

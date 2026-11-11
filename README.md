@@ -248,6 +248,25 @@ Ein eigener Satz versteckt sich unter einem dichten roten Muster – von Auge ni
 - **Am Bildschirm:** «Rote Folie» legt eine Folie über das Bild, die sich mit Maus, Finger oder Pfeiltasten verschieben lässt; darunter wird das Bild Pixel für Pixel so umgerechnet, wie es durch die Folie aussieht. «Neu mischen» verteilt Muster und Konfetti neu.
 - **Blatt:** Titel und Anleitung wählbar, Antwortlinien (etwa 24 Zeichen pro Linie, mindestens 2) auf Wunsch; «Lösung zeigen» schreibt den Satz auf die Linien. Lösungsblatt: das Bild, wie es durch die Folie aussieht (Graustufen), und der Satz. PDF (Bild in etwa 290 dpi). Drucker mischen Farben unterschiedlich – der Hinweis empfiehlt, zuerst ein Blatt mit der Folie zu testen.
 
+### Überlappende Folien
+
+Karten mit blauen Feldern zum Drucken auf Folie: Jedes Zeichen des Codes ist auf eine obere und eine untere Karte verteilt. Legt man die richtige obere Karte genau auf die richtige untere, ergänzen sich die blauen Felder zum Zeichen.
+
+- **Code:** 1 bis 8 Ziffern oder Buchstaben (A–Z) in einer Blockschrift aus 3 × 5 Feldern (`gemeinsam/pixelschrift.js`, eigene Zeichnung; Ä, Ö, Ü werden zu AE, OE, UE). Leicht verwechselbare Zeichen (0/O, 0/D, 5/S, 2/Z, 8/B, 1/I, 6/G) sind möglichst verschieden gezeichnet; kommen beide im Code vor, gibt es einen Hinweis. «Andere» schlägt abwechselnd eine Zahl oder ein Wort vor.
+- **Aufteilen:** Jedes blaue Feld kommt auf die obere oder die untere Karte, auf Wunsch einige auf beide (15 %). Jede Karte hat 30–70 % der Felder und ist allein kein Zeichen.
+- **Untere Karten:** *gemischt* (Standard; andere Reihenfolge, Symbole statt Nummern, auf Wunsch 2 zusätzliche Karten, die nirgends passen) oder *genau darunter* (gleiche Nummer). Geprüft: Jede obere Karte ergibt nur mit ihrer eigenen unteren Karte ein Zeichen – bei gleichen Zeichen im Code dürfen die Karten über Kreuz passen, wenn es in beide Richtungen aufgeht (der Code bleibt gleich). Bei Konflikten wird gezielt das betroffene Zeichen neu aufgeteilt; so klappt es auch bei 80808080 oder AAAAAAAA.
+- **Blatt (für die Folie):** Karten in Originalgrösse (Feld 6, 8 oder 10 mm; kleiner, wenn sonst nicht alles auf eine Seite passt) mit Umriss zum Ausschneiden und feinem Gitter, unten Nummer (obere Karten, links) oder Symbol (untere Karten, rechts) – aufeinandergelegt sind beide lesbar. Titel und Anleitung wählbar. Lösungsblatt: die Paare aufeinandergelegt (dunkelblau: Felder auf beiden Karten), Nummer und Symbol, der Code. PDF.
+- **Am Bildschirm ausprobieren:** Karten mit Maus, Finger oder Pfeiltasten ziehen; liegt eine Karte fast auf einer anderen, rastet sie ein. Passende Paare bekommen einen grünen Rahmen, am Schluss «Geschafft!». «Lösung zeigen» legt alle richtig, «Karten zurücklegen» setzt zurück.
+
+### Schiebefenster
+
+Ein Streifen mit schwarzen Bruchstücken (auf Papier) und eine Fensterfolie: ein schwarzer Balken mit einem Fenster, genau so gross wie ein Zeichen. Schiebt man das Fenster über den Streifen, erscheint an bestimmten Stellen ein weisses Zeichen – der Reihe nach ergeben sie den Code.
+
+- **Code:** 1 bis 12 Ziffern oder Buchstaben in derselben Blockschrift (3 × 5 Felder). Auf dem Streifen steht jedes Zeichen als «Negativ»: schwarz sind die Felder, die nicht dazugehören – ohne Fenster sieht man nur Bruchstücke. Zwischen den Zeichen (und am Anfang und Ende) liegt je eine Spalte. Passen nicht alle Zeichen auf einen Streifen, gibt es mehrere, gleichmässig gefüllt.
+- **Ablenkung** (Häkchen, Standard: an): schwarze Felder in den Spalten zwischen den Zeichen (je 40 %). Geprüft: An keiner anderen Stelle zeigt das Fenster ein Zeichen – sonst wird ein Feld einer Zwischenspalte im betroffenen Fenster umgeschaltet, bis es stimmt (auch ohne Ablenkung, dann mit einzelnen Feldern, wo nötig).
+- **Blätter:** Streifen in Originalgrösse (Feld 6, 7 oder 8 mm) mit gestrichelten Führungslinien oben und unten (dort liegen die Kanten des Balkens) und einem Startpfeil; auf Wunsch eine Linie für den Code. Zweite Seite *Fensterfolie*: so viele Balken, wie auf eine Seite passen, Fenster in der Mitte – auf Folie drucken und ausschneiden. Lösungsblatt: der Streifen mit orangen Rahmen an den richtigen Stellen und den Zeichen darüber. PDF (drei Seiten).
+- **Am Bildschirm ausprobieren:** den Balken mit Maus, Finger oder Pfeiltasten über den Streifen schieben (rastet spaltenweise ein); den Code eintippen – «Geschafft!», wenn er stimmt. «Lösung zeigen» macht den Balken durchsichtig und zeigt die Rahmen.
+
 ## Aufbau
 
 ```
@@ -256,6 +275,7 @@ gemeinsam/labor.css             gemeinsames Aussehen (Farben, Schriften, Kopflei
 gemeinsam/labor.js              Menü, Startseite und Wechsel zwischen den Generatoren
 gemeinsam/wortwahl.js           Baustein «Thema und Wörter»: Wortarten, KI-Vorschläge, eingebaute Listen, Wort-Chips
 gemeinsam/gitter.js             Baustein «Buchstabengitter»: Zeichnen, Markieren, Füllbuchstaben
+gemeinsam/pixelschrift.js       Baustein «Pixelschrift»: Ziffern und A–Z als Blockschrift aus 3 × 5 Feldern (Überlappende Folien, Schiebefenster)
 api/woerter.php                 Server-Teil (PHP): fragt Mistral für Wortvorschläge; Schlüssel in api/geheim.php (entsteht beim Hochladen)
 api/uebersetzen.php             Server-Teil (PHP): übersetzt Wörter für das Triomino (Deutsch ↔ Englisch/Französisch), gleiche KI und gleicher Schlüssel
 raetsel/zahlen-suchsel/         der Generator «Zahlen-Suchsel»
@@ -283,6 +303,8 @@ raetsel/codeschloss/            der Generator «Code-Schloss» (Kern: Themen, Bu
 raetsel/drehscheiben/           der Generator «Drehscheiben» (Kern: Grösse der Zeichen und Ringe, Wort, Satz setzen, Kreise auf Seiten verteilen)
 raetsel/regenbogen/             der Generator «Regenbogenrätsel» (Kern: Ziffern und Buchstaben als Striche, Punkte ergänzen, Ablenkformen, Farbreihen; Regenbogen und Formen als SVG)
 raetsel/rotfolie/               der Generator «Rotfolienrätsel» (Kern: Farben nach Rotanteil, Satz setzen, rotes Muster und Konfetti planen; Zeichnen im Canvas, Ansicht durch die Folie)
+raetsel/folien/                 der Generator «Überlappende Folien» (Kern: Zeichen auf zwei Karten teilen, Eindeutigkeit prüfen und reparieren; Karten, Ziehen am Bildschirm)
+raetsel/schiebefenster/         der Generator «Schiebefenster» (Kern: Streifen aus Negativ-Zeichen, Ablenkung, Prüfen aller Fensterstellen; Streifen, Fensterfolie, Schieben am Bildschirm)
 raetsel/triomino/               der Generator «Triomino» (Kern: Formen, Kanten, Aufgaben, Belegung; Zeichnen mit Schriftanpassung)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)
@@ -301,7 +323,7 @@ api/puzzle.php                  Server-Teil (PHP): speichert Puzzles für QR-Cod
 - Beim Hochladen hängt der GitHub-Workflow eine Versionsnummer an alle Skripte und Stile (`…/labor.js?v=1a2b3c4d`, auch für die Stile der Generatoren). Nach jeder Änderung lädt der Browser so sicher die neuen Dateien.
 - Ist die Seite schon offen, wenn eine neue Version hochgeladen wird (das Labor wechselt zwischen den Generatoren ohne Neuladen), merkt sie das: Der Workflow schreibt die Versionsnummer in `version.txt`, die Seite fragt sie ab, wenn man zu ihr zurückkehrt und alle 10 Minuten. Bei einer neuen Version erscheint ein Hinweis «Neu laden», und der nächste Wechsel zu einem Generator lädt die Seite von selbst neu.
 
-Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und den mitgelieferten Bibliotheken in `gemeinsam/extern/` keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code`, `…/#labyrinth`, `…/#emoji-rechnen`, `…/#text-spiegeln`, `…/#puzzle`, `…/#geheimschrift`, `…/#triomino`, `…/#kreuzwort`, `…/#fleissner`, `…/#kettenraetsel`, `…/#drehscheiben`, `…/#code-schloss`, `…/#regenbogen` oder `…/#rotfolie` öffnet direkt einen Generator, `…/#start` die Startseite.
+Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und den mitgelieferten Bibliotheken in `gemeinsam/extern/` keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code`, `…/#labyrinth`, `…/#emoji-rechnen`, `…/#text-spiegeln`, `…/#puzzle`, `…/#geheimschrift`, `…/#triomino`, `…/#kreuzwort`, `…/#fleissner`, `…/#kettenraetsel`, `…/#drehscheiben`, `…/#code-schloss`, `…/#regenbogen`, `…/#rotfolie`, `…/#folien` oder `…/#schiebefenster` öffnet direkt einen Generator, `…/#start` die Startseite.
 
 ## Einen neuen Generator hinzufügen
 
