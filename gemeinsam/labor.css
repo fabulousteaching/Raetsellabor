@@ -108,7 +108,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input[type=checkbox]:
 .btn:disabled{opacity:.6;cursor:progress}
 
 /* ---------- Schrift der Arbeitsblätter ---------- */
-.em-blatt,.gs-blatt,.kw-seite,.sl-blatt,.lb-blatt,.pz-blatt,.qr-blatt,.rb-blatt,.sb-blatt,.tr-blatt,.zs .blatt{font-family:var(--blatt-schrift)}
+.em-blatt,.gs-blatt,.kw-seite,.sl-blatt,.lb-blatt,.pz-blatt,.qr-blatt,.rb-blatt,.rf-blatt,.sb-blatt,.tr-blatt,.zs .blatt{font-family:var(--blatt-schrift)}
 /* Auswahl wie in Word: Feld mit der aktuellen Schrift, beim Tippen wird gesucht */
 .schrift-wahl{position:relative;display:inline-flex;align-items:center;width:200px;max-width:100%;height:32px;border:1px solid var(--line-2);border-radius:8px;background:var(--card);transition:border-color .15s,box-shadow .15s}
 .schrift-wahl:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
