@@ -75,6 +75,13 @@
 .lk-zeichen.drin{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-2)}
 .lk-zeichen:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
 
+/* Stufen: klappen auf, wenn darüber etwas gewählt ist; eingerückt mit Linie */
+.lk-stufe{margin:10px 0 2px;padding:2px 0 4px 12px;border-left:3px solid var(--accent-line)}
+.lk-stufe[hidden]{display:none}
+.lk-stufe .lk-stufe{border-left-color:var(--line-2)}
+.lk-stufe > .feld-label:first-child{margin-top:2px}
+.lk .feld-label{margin-top:8px}
+
 /* ---------- Drucken (gilt auch für das PDF) ---------- */
 @media print{
   @page{size:A4;margin:12mm}

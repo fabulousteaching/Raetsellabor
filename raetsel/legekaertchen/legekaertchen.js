@@ -184,9 +184,10 @@ var VORLAGE = '<div class="lk">' +
     '<p>Kärtchen zum Ausschneiden: Richtig aneinandergelegt – immer zwei passende Begriffe gegenüber – bilden sie eine Ziffer oder einen Buchstaben.</p></header>' +
   '<div class="lk-layout"><section class="lk-eingabe" aria-label="Eingaben">' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Figuren</h2><p>Diese Zeichen entstehen aus den Kärtchen.</p></div></div>' +
+      '<p class="feld-label">Was soll entstehen?</p>' +
       '<div class="lk-chips" role="radiogroup" aria-label="Zahl oder Buchstabe">' + chips('lkModus', [['zahl', 'Zahl'], ['buchstabe', 'Buchstabe']]) + '</div>' +
-      '<p class="feld-label" id="lkWahlTitel"></p>' +
-      '<div class="lk-zeichenwahl" id="lkZeichenWahl" role="group" aria-labelledby="lkWahlTitel"></div>' +
+      '<div class="lk-stufe" id="lkWahlStufe" hidden><p class="feld-label" id="lkWahlTitel"></p>' +
+        '<div class="lk-zeichenwahl" id="lkZeichenWahl" role="group" aria-labelledby="lkWahlTitel"></div></div>' +
       '<label class="feld-label" for="lkCode">Oder selbst schreiben</label>' +
       '<div class="lk-zeile"><input type="text" id="lkCode" maxlength="12" autocomplete="off" spellcheck="false">' +
         '<button type="button" class="btn klein" id="lkLeeren" title="Alle Zeichen löschen">Leeren</button>' +
@@ -195,25 +196,33 @@ var VORLAGE = '<div class="lk">' +
       '<div class="lk-zaehler" id="lkZaehler" aria-live="polite"></div>' +
     '</div>' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Paare</h2><p>Was steht sich an den Kanten gegenüber?</p></div></div>' +
+      '<p class="feld-label">Fach</p>' +
       '<div class="lk-chips" role="radiogroup" aria-label="Fach">' + chips('lkFach', FAECHER) + '</div>' +
-      '<div class="lk-teil" data-fach="deutsch"><div class="lk-chips" role="radiogroup" aria-label="Deutsch">' + chips('lkDeutsch', DEUTSCH) + '</div>' +
+      '<div class="lk-stufe lk-teil" data-fach="deutsch"><p class="feld-label">Deutsch: Art der Paare</p>' +
+        '<div class="lk-chips" role="radiogroup" aria-label="Deutsch">' + chips('lkDeutsch', DEUTSCH) + '</div>' +
         '<p class="hinweis" data-deutsch="trennung">Zusammengesetzte Wörter, an einer lustigen Stelle getrennt: GEL | ÄCHTER, SIEB | ENTE, STAUB | ECKEN …</p></div>' +
-      '<div class="lk-teil" data-fach="mathe"><div class="lk-chips" role="radiogroup" aria-label="Mathe">' + chips('lkMathe', MATHE) + '</div>' +
-        '<div class="lk-unter" data-mathe="plusminus"><p class="feld-label">Zahlenraum</p><div class="lk-chips" role="radiogroup" aria-label="Zahlenraum">' + chips('lkZr', [['10', 'bis 10'], ['20', 'bis 20'], ['100', 'bis 100'], ['1000', 'bis 1000']]) + '</div>' +
-          '<div class="lk-chips">' + kaestchen('lkOps', [['plus', 'Plus'], ['minus', 'Minus']]) + '</div></div>' +
-        '<div class="lk-unter" data-mathe="einmaleins"><p class="feld-label">Reihen</p><div class="lk-chips lk-reihen">' + kaestchen('lkReihen', [2, 3, 4, 5, 6, 7, 8, 9, 10].map(function(r){ return [r, r]; })) + '</div>' +
-          '<div class="lk-chips">' + kaestchen('lkEOps', [['mal', 'Mal'], ['geteilt', 'Geteilt']]) + '</div></div>' +
-        '<div class="lk-unter" data-mathe="dezimal"><p class="feld-label">Brüche mit Nenner</p><div class="lk-chips" role="radiogroup" aria-label="Stellen">' + chips('lkDez', [['1', '10'], ['2', 'bis 100'], ['3', 'bis 1000']]) + '</div></div>' +
-        '<div class="lk-unter" data-mathe="brueche"><p class="feld-label">Nenner bis</p><div class="lk-chips" role="radiogroup" aria-label="Nenner bis">' + chips('lkNenner', [['4', '4'], ['6', '6'], ['10', '10'], ['12', '12']]) + '</div></div>' +
+      '<div class="lk-stufe lk-teil" data-fach="mathe"><p class="feld-label">Mathe: Thema</p>' +
+        '<div class="lk-chips" role="radiogroup" aria-label="Mathe">' + chips('lkMathe', MATHE) + '</div>' +
+        '<div class="lk-stufe lk-unter" data-mathe="plusminus">' +
+          '<p class="feld-label">Zahlenraum</p><div class="lk-chips" role="radiogroup" aria-label="Zahlenraum">' + chips('lkZr', [['10', 'bis 10'], ['20', 'bis 20'], ['100', 'bis 100'], ['1000', 'bis 1000']]) + '</div>' +
+          '<p class="feld-label">Rechenarten</p><div class="lk-chips">' + kaestchen('lkOps', [['plus', 'Plus'], ['minus', 'Minus']]) + '</div></div>' +
+        '<div class="lk-stufe lk-unter" data-mathe="einmaleins">' +
+          '<p class="feld-label">Reihen</p><div class="lk-chips lk-reihen">' + kaestchen('lkReihen', [2, 3, 4, 5, 6, 7, 8, 9, 10].map(function(r){ return [r, r]; })) + '</div>' +
+          '<p class="feld-label">Rechenarten</p><div class="lk-chips">' + kaestchen('lkEOps', [['mal', 'Mal'], ['geteilt', 'Geteilt']]) + '</div></div>' +
+        '<div class="lk-stufe lk-unter" data-mathe="dezimal">' +
+          '<p class="feld-label">Brüche mit Nenner</p><div class="lk-chips" role="radiogroup" aria-label="Nenner">' + chips('lkDez', [['1', '10'], ['2', '10 und 100'], ['3', '10, 100 und 1000']]) + '</div></div>' +
+        '<div class="lk-stufe lk-unter" data-mathe="brueche">' +
+          '<p class="feld-label">Nenner bis</p><div class="lk-chips" role="radiogroup" aria-label="Nenner bis">' + chips('lkNenner', [['4', '4'], ['6', '6'], ['10', '10'], ['12', '12']]) + '</div></div>' +
         '<p class="hinweis lk-unter" data-mathe="vorsilben">KILO | 1\'000, MILLI | 0,001, MEGA | 1\'000\'000 … – zehn Vorsilben.</p></div>' +
-      '<div class="lk-teil" data-fach="bilder"><div class="lk-chips" role="radiogroup" aria-label="Bilder">' + chips('lkBild', BILDTHEMEN) + '</div>' +
+      '<div class="lk-stufe lk-teil" data-fach="bilder"><p class="feld-label">Bilder: Thema</p>' +
+        '<div class="lk-chips" role="radiogroup" aria-label="Bilder">' + chips('lkBild', BILDTHEMEN) + '</div>' +
         '<p class="hinweis">Jedes Bild ist auf zwei Kärtchen halbiert – zusammengelegt ist es wieder ganz.</p></div>' +
-      '<div class="lk-teil lk-paarliste" data-fach="englisch franzoesisch eigene" id="lkPaarliste">' + Paarliste.html() + '</div>' +
+      '<div class="lk-stufe lk-teil lk-paarliste" data-fach="englisch franzoesisch eigene" id="lkPaarliste">' + Paarliste.html() + '</div>' +
       '<div class="lk-zaehler" id="lkPaarInfo" aria-live="polite"></div>' +
     '</div>' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Kärtchen</h2></div></div>' +
       '<p class="feld-label">Ablenker an den Aussenkanten</p><div class="lk-chips" role="radiogroup" aria-label="Ablenker">' + chips('lkAblenker', ABLENKER) + '</div>' +
-      '<p class="hinweis">Ablenker sind Wörter ohne Partner – so sieht man nicht sofort, welche Kanten aussen liegen.</p>' +
+      '<p class="hinweis" id="lkAblenkerInfo">Ablenker sind Wörter ohne Partner – so sieht man nicht sofort, welche Kanten aussen liegen.</p>' +
       '<label class="opt"><input type="checkbox" id="lkFarbig"><span>Jede Figur in einer eigenen Farbe (so weiss man, welche Kärtchen zusammengehören)</span></label>' +
       '<label class="opt"><input type="checkbox" id="lkLinie"><span>Linie für die Lösung</span></label>' +
       '<p class="hinweis">Die Kärtchen sind 5 × 10 cm gross, sechs auf einer Seite – in Originalgrösse (100 %) drucken.</p>' +
@@ -251,15 +260,17 @@ Labor.registriere({
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false, KK = window.KettenKern;
   var TAB = 'legekaertchen-eingaben', OPT = 'legekaertchen-einstellungen';
-  var STANDARD = { modus:'zahl', fach:'deutsch', deutschArt:'trennung', matheArt:'plusminus', zr:'20', ops:['plus', 'minus'], reihen:[2, 3, 4, 5, 6, 7, 8, 9, 10], eOps:['mal', 'geteilt'],
-    dez:'2', nenner:'10', bild:'tiere', ablenker:'wenige', farbig:true, linie:true, mitLoesung:true, titelAn:true, anleitungAn:true };
+  // Keine Vorauswahl: Jede Stufe klappt erst auf, wenn in der Stufe darüber etwas gewählt ist
+  var STANDARD = { modus:'', fach:'', deutschArt:'', matheArt:'', zr:'', ops:[], reihen:[], eOps:[], dez:'', nenner:'', bild:'', ablenker:'',
+    farbig:true, linie:true, mitLoesung:true, titelAn:true, anleitungAn:true };
   var st = { code:'', zeilen:{ englisch:[], franzoesisch:[], eigene:[] }, seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
   try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.code = String(e.code || ''); st.seed = +e.seed || st.seed;
     Object.keys(KOEPFE).forEach(function(k){ if (e.zeilen && e.zeilen[k]) st.zeilen[k] = Paarliste.aufraeumen(e.zeilen[k]); }); } } catch(x){}
-  function gueltig(k, liste){ if (!liste.some(function(x){ return x[0] === st.opt[k]; })) st.opt[k] = STANDARD[k]; }
+  function gueltig(k, liste){ if (!liste.some(function(x){ return x[0] === st.opt[k]; })) st.opt[k] = ''; }
+  ['ops', 'reihen', 'eOps'].forEach(function(k){ if (!Array.isArray(st.opt[k])) st.opt[k] = []; });
   gueltig('modus', [['zahl'], ['buchstabe']]); gueltig('fach', FAECHER); gueltig('deutschArt', DEUTSCH); gueltig('matheArt', MATHE); gueltig('bild', BILDTHEMEN); gueltig('ablenker', ABLENKER);
-  if (!Kern.lesen(st.code, 4).zeichen.length) st.code = String(Math.floor(Math.random() * 10));
+
   var timer = 0;
   function speichernJetzt(){ clearTimeout(timer); timer = 0;
     try { sessionStorage.setItem(TAB, JSON.stringify({ code:st.code, seed:st.seed, zeilen:st.zeilen })); } catch(x){}
@@ -274,6 +285,8 @@ function starte(bereich){
   var WAHL = { zahl:'0123456789'.split(''), buchstabe:Object.keys(Kern.FIGUREN).filter(function(c){ return /[A-Z]/.test(c); }) };
   function wahlZeigen(){
     var m = st.opt.modus, drin = Kern.lesen(st.code, 99).zeichen;
+    $('#lkWahlStufe').hidden = !m;
+    if (!m) return;
     $('#lkWahlTitel').textContent = m === 'zahl' ? 'Ziffer antippen' : 'Buchstabe antippen';
     $('#lkZeichenWahl').innerHTML = WAHL[m].map(function(c){
       var n = drin.filter(function(x){ return x === c; }).length;
@@ -295,7 +308,7 @@ function starte(bereich){
   $('#lkCode').addEventListener('input', function(){ st.code = this.value; speichern(); wahlZeigen(); baldZeichnen(); });
   $('#lkLeeren').addEventListener('click', function(){ codeSetzen(''); $('#lkCode').focus(); });
   $('#lkZufall').addEventListener('click', function(){
-    var alle = WAHL[st.opt.modus], r = Kern.zufall(Date.now()), z = alle[Math.floor(r() * alle.length)];
+    var alle = WAHL[st.opt.modus] || WAHL.zahl.concat(WAHL.buchstabe), r = Kern.zufall(Date.now()), z = alle[Math.floor(r() * alle.length)];
     if (z === st.code) z = alle[(alle.indexOf(z) + 1) % alle.length];
     codeSetzen(z);
   });
@@ -311,7 +324,6 @@ function starte(bereich){
       c.checked = st.opt[k].map(String).indexOf(c.value) >= 0;
       c.addEventListener('change', function(){
         var l = [].filter.call(bereich.querySelectorAll('input[name="' + name + '"]'), function(x){ return x.checked; }).map(function(x){ return zahl ? +x.value : x.value; });
-        if (!l.length){ c.checked = true; return; }
         st.opt[k] = l; speichern(); zeichnen();
       });
     });
@@ -339,11 +351,29 @@ function starte(bereich){
     [].forEach.call(bereich.querySelectorAll('.lk-teil'), function(d){ d.hidden = d.dataset.fach.split(' ').indexOf(st.opt.fach) < 0; });
     [].forEach.call(bereich.querySelectorAll('.lk-unter'), function(d){ d.hidden = d.dataset.mathe !== st.opt.matheArt; });
     [].forEach.call(bereich.querySelectorAll('[data-deutsch]'), function(d){ d.hidden = d.dataset.deutsch !== st.opt.deutschArt; });
+    $('#lkAblenkerInfo').textContent = st.opt.ablenker ? 'Ablenker sind Wörter ohne Partner – so sieht man nicht sofort, welche Kanten aussen liegen.' : 'Noch nichts gewählt: ohne Ablenker. Ablenker sind Wörter ohne Partner – so sieht man nicht sofort, welche Kanten aussen liegen.';
     if (KOEPFE[st.opt.fach]) paarliste.zeigen();
   }
   teileZeigen();
 
   /* ---------- Paare ---------- */
+  // Was fehlt noch, bevor es Paare gibt? '' = alles gewählt
+  function fehltNoch(){
+    var o = st.opt;
+    if (!o.fach) return 'ein Fach';
+    if (o.fach === 'deutsch' && !o.deutschArt) return 'bei Deutsch die Art der Paare';
+    if (o.fach === 'bilder' && !o.bild) return 'bei Bilder ein Thema';
+    if (o.fach === 'mathe'){
+      if (!o.matheArt) return 'bei Mathe ein Thema';
+      if (o.matheArt === 'plusminus' && !o.zr) return 'den Zahlenraum';
+      if (o.matheArt === 'plusminus' && !o.ops.length) return 'mindestens eine Rechenart';
+      if (o.matheArt === 'einmaleins' && !o.reihen.length) return 'mindestens eine Reihe';
+      if (o.matheArt === 'einmaleins' && !o.eOps.length) return 'mindestens eine Rechenart';
+      if (o.matheArt === 'dezimal' && !o.dez) return 'die Nenner';
+      if (o.matheArt === 'brueche' && !o.nenner) return 'den grössten Nenner';
+    }
+    return '';
+  }
   function paare(rnd, anzahl){
     var o = st.opt, l;
     if (o.fach === 'deutsch') return o.deutschArt === 'trennung' ? Kern.trennungen() : KK.vorschlaege(o.deutschArt, 999, rnd);
@@ -378,7 +408,13 @@ function starte(bereich){
     if (L.zuViele) h += '<p class="warnung">Höchstens 4 Zeichen – es werden die ersten 4 verwendet.</p>';
     var leer = !Z.length;
     ['#lkNeu', '#lkPdf', '#lkHerunterladen'].forEach(function(s){ $(s).disabled = leer; });
-    if (leer){ R = null; $('#lkZaehler').innerHTML = h; $('#lkSeiten').innerHTML = ''; $('#lkLoesung').parentNode.hidden = true; $('#lkPaarInfo').innerHTML = ''; meldung('info', '<p>Wähle links eine Ziffer oder einen Buchstaben (oder schreib sie ins Feld).</p>'); return; }
+    var fehlt = fehltNoch();
+    if (leer || fehlt){
+      R = null; $('#lkZaehler').innerHTML = h; $('#lkSeiten').innerHTML = ''; $('#lkLoesung').parentNode.hidden = true; $('#lkPaarInfo').innerHTML = '';
+      ['#lkNeu', '#lkPdf', '#lkHerunterladen'].forEach(function(s){ $(s).disabled = true; });
+      meldung('info', '<p>Wähle links ' + (leer ? 'zuerst, ob eine Zahl oder ein Buchstabe entstehen soll, und dann die Zeichen' + (fehlt ? ' – danach ' + fehlt : '') : fehlt) + '.</p>');
+      return;
+    }
     var be = Kern.bedarf(Z, o.ablenker), rnd = Kern.zufall(st.seed), liste = paare(rnd, be.innen + be.ablenker + 6);
     var karten = Z.reduce(function(s, c){ return s + Kern.felder(c).length / 2; }, 0);
     $('#lkZaehler').innerHTML = '<p class="lk-zaehler-haupt ok">Lösung: <b>' + esc(Z.join('')) + '</b> · ' + karten + ' Kärtchen, ' + Math.ceil(karten / 6) + (Math.ceil(karten / 6) === 1 ? ' Seite' : ' Seiten') + '</p>' + h;
