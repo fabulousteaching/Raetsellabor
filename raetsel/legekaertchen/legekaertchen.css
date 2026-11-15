@@ -45,6 +45,10 @@
 .lk-anleitung{margin:0 0 14px;color:#554C45;line-height:1.45;font-size:.95rem}
 .lk-antwort{margin:14px 0 0;font-weight:700;font-size:1.1rem;display:flex;align-items:flex-end;gap:10px}
 .lk-loesungsblatt{display:none;margin-top:16px}
+.lk-blaetter{display:grid;gap:16px}
+.lk-loesungsblatt.zeigen{display:block;margin-top:0}
+.lk-loesung-rahmen:has(.zeigen){order:-1}
+.lk-loesung-rahmen:not(:has(.zeigen)){display:none}
 
 
 .lk-chips{margin-bottom:4px}
@@ -93,5 +97,8 @@
   .lk-blatt{box-shadow:none;border:0;border-radius:0;padding:0 32px}
   .lk-kartenblatt{break-before:page}
   .lk-rahmen:first-child .lk-kartenblatt{break-before:auto}
+  .lk-blaetter{display:block}
+  .lk-loesung-rahmen:not(:has(.zeigen)){display:block}
+  .lk-loesungsblatt.zeigen{display:none}
   body.mit-loesung .lk-loesungsblatt{display:block;break-before:page;margin-top:0}
 }

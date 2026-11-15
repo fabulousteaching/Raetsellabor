@@ -231,14 +231,15 @@ var VORLAGE = '<div class="lk">' +
   '<section class="lk-ausgabe" aria-label="Ergebnis">' +
     '<div id="lkMeldung" aria-live="polite"></div>' +
     '<div class="lk-werkzeug">' +
+      '<button type="button" class="btn klein" id="lkZeigeLoesung" aria-pressed="false" title="Die zusammengelegten Figuren hier oben zeigen">Lösung zeigen</button>' +
       '<button type="button" class="btn klein" id="lkNeu" title="Andere Paare und Lage">Neu mischen</button>' +
       '<span class="abstand"></span>' + Labor.blattSchalterHtml() +
       '<label><input type="checkbox" id="lkMitLoesung"> mit Lösungsblatt</label>' +
       '<button type="button" class="btn klein primary" id="lkPdf">PDF herunterladen</button>' +
       '<button type="button" class="btn klein primary" id="lkHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
     '</div>' +
-    '<div class="lk-seiten" id="lkSeiten"></div>' +
-    '<div class="lk-rahmen"><article class="lk-blatt lk-loesungsblatt" id="lkLoesung" aria-hidden="true"></article></div>' +
+    '<div class="lk-blaetter"><div class="lk-seiten" id="lkSeiten"></div>' +
+    '<div class="lk-rahmen lk-loesung-rahmen"><article class="lk-blatt lk-loesungsblatt" id="lkLoesung" aria-hidden="true"></article></div></div>' +
   '</section></div></div>';
 
 var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true">' +
@@ -336,6 +337,13 @@ function starte(bereich){
     $(x[0]).addEventListener('change', function(){ st.opt[x[1]] = this.checked; speichern(); if (x[1] !== 'mitLoesung') zeichnen(); });
   });
   Labor.blattSchalter(bereich, st.opt, function(){ speichern(); zeichnen(); });
+  // Lösung am Bildschirm: das Lösungsblatt oben über den Kärtchen (fürs PDF und den Druck zählt weiter «mit Lösungsblatt»)
+  $('#lkZeigeLoesung').addEventListener('click', function(){
+    var an = this.getAttribute('aria-pressed') !== 'true';
+    this.setAttribute('aria-pressed', an ? 'true' : 'false');
+    $('#lkLoesung').classList.toggle('zeigen', an);
+    $('#lkLoesung').setAttribute('aria-hidden', an ? 'false' : 'true');
+  });
   $('#lkNeu').addEventListener('click', function(){ st.seed = Math.floor(Math.random() * 1e9) + 1; speichern(); zeichnen(); });
   var paarliste = Paarliste.starte($('#lkPaarliste'), {
     liste:function(art){ return st.zeilen[art] || (st.zeilen[art] = []); },
@@ -407,11 +415,11 @@ function starte(bereich){
     if (nicht.length) h += '<p class="warnung">Nicht möglich: ' + esc(nicht.join(', ')) + '.</p>';
     if (L.zuViele) h += '<p class="warnung">Höchstens 4 Zeichen – es werden die ersten 4 verwendet.</p>';
     var leer = !Z.length;
-    ['#lkNeu', '#lkPdf', '#lkHerunterladen'].forEach(function(s){ $(s).disabled = leer; });
+    ['#lkNeu', '#lkPdf', '#lkHerunterladen', '#lkZeigeLoesung'].forEach(function(s){ $(s).disabled = leer; });
     var fehlt = fehltNoch();
     if (leer || fehlt){
       R = null; $('#lkZaehler').innerHTML = h; $('#lkSeiten').innerHTML = ''; $('#lkLoesung').parentNode.hidden = true; $('#lkPaarInfo').innerHTML = '';
-      ['#lkNeu', '#lkPdf', '#lkHerunterladen'].forEach(function(s){ $(s).disabled = true; });
+      ['#lkNeu', '#lkPdf', '#lkHerunterladen', '#lkZeigeLoesung'].forEach(function(s){ $(s).disabled = true; });
       meldung('info', '<p>Wähle links ' + (leer ? 'zuerst, ob eine Zahl oder ein Buchstabe entstehen soll, und dann die Zeichen' + (fehlt ? ' – danach ' + fehlt : '') : fehlt) + '.</p>');
       return;
     }
