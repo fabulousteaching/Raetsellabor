@@ -438,7 +438,6 @@ var VORLAGE = '<div class="kt">' +
         '<div class="kt-unter" data-mathe="dezimal">' +
           '<p class="feld-label">Brüche</p><div class="kt-chips">' + chips('ktDez', [['1', 'Zehntel'], ['2', 'bis Hundertstel'], ['3', 'bis Tausendstel']]) + '</div>' +
           '<p class="feld-label">Art</p><div class="kt-chips">' + chips('ktDezArt', [['echt', 'kleiner als 1'], ['unecht', 'grösser als 1'], ['beides', 'beides']]) + '</div>' +
-          '<p class="feld-label">Dezimaltrennzeichen</p><div class="kt-chips">' + chips('ktSep', [['.', 'Punkt 0.5'], [',', 'Komma 0,5']]) + '</div>' +
           '<p class="hinweis">z. B. 7/100 und 0.07</p>' +
         '</div>' +
         '<div class="kt-unter" data-mathe="brueche">' +
@@ -500,7 +499,7 @@ function starte(bereich){
   var TAB = 'kettenraetsel-eingaben', OPT = 'kettenraetsel-einstellungen';
   var STANDARD = { modus:'buchstabe', zeichen:'M', fach:'deutsch', deutschArt:'reime', matheArt:'plusminus', ops:['plus', 'minus'], zr:'100',
     eOps:['mal', 'geteilt'], einmal:'klein', reihen:[2, 3, 4, 5, 6, 7, 8, 9, 10], reihenGross:[11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
-    dez:'2', dezArt:'echt', sep:'.', nenner:'10', bruchArt:'echt', drei:true, ablenker:8, mitLoesung:true, titelAn:true, anleitungAn:true };
+    dez:'2', dezArt:'echt', nenner:'10', bruchArt:'echt', drei:true, ablenker:8, mitLoesung:true, titelAn:true, anleitungAn:true };
   // zeilen: je Liste (d-reime, d-mehrzahl, d-gegenteile, d-eigene, englisch, franzoesisch); vorschlag: Liste ist unverändert vorgeschlagen
   var st = { titel:'', zeilen:{}, vorschlag:{}, seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
@@ -548,7 +547,7 @@ function starte(bereich){
   radios('ktFach', 'fach', fachZeigen);
   radios('ktZr', 'zr'); radios('ktAblenker', 'ablenker');
   radios('ktMathe', 'matheArt', fachZeigen); radios('ktDeutsch', 'deutschArt', fachZeigen);
-  radios('ktDez', 'dez'); radios('ktSep', 'sep'); radios('ktNenner', 'nenner'); radios('ktDezArt', 'dezArt'); radios('ktBruchArt', 'bruchArt');
+  radios('ktDez', 'dez'); radios('ktNenner', 'nenner'); radios('ktDezArt', 'dezArt'); radios('ktBruchArt', 'bruchArt');
   radios('ktEinmal', 'einmal', fachZeigen);
   // Mehrfachwahl (mindestens eines bleibt gewählt)
   function mehrfach(name, k, zahl){
@@ -614,7 +613,7 @@ function starte(bereich){
     var o = st.opt;
     if (o.fach === 'mathe'){
       if (o.matheArt === 'einmaleins') return Kern.einmaleins(o.einmal === 'gross' ? o.reihenGross : o.reihen, o.eOps, bedarf, rnd);
-      if (o.matheArt === 'dezimal') return Kern.dezimal(+o.dez, o.sep, o.dezArt, bedarf, rnd);
+      if (o.matheArt === 'dezimal') return Kern.dezimal(+o.dez, '.', o.dezArt, bedarf, rnd)   // Dezimalzahlen immer mit Punkt;
       if (o.matheArt === 'brueche') return Kern.brueche(+o.nenner, o.bruchArt, bedarf, rnd);
       return Kern.plusMinus(o.ops, +o.zr, bedarf, rnd);
     }

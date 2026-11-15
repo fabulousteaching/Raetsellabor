@@ -265,7 +265,7 @@ function starte(bereich){
     var mm = Math.min(186 / (lab.w + 2.4), 190 / (lab.h + 2.4));
     meldung('erfolg', '<p><b>Fertig!</b> Labyrinth mit ' + lab.w + ' × ' + lab.h + ' Feldern. Der richtige Weg ist ' + lab.n + ' Felder lang – ein Feld für jeden Buchstaben deines Satzes. ' +
       'Du kannst ihn hier am Bildschirm suchen: beim Pfeil links hineinziehen.</p>' +
-      (mm < 6 ? '<p>Achtung: Gedruckt werden die Felder nur etwa ' + mm.toFixed(1).replace('.', ',') + ' mm gross. Für gut lesbare Buchstaben eine leichtere Stufe oder einen kürzeren Satz wählen.</p>' : ''));
+      (mm < 6 ? '<p>Achtung: Gedruckt werden die Felder nur etwa ' + mm.toFixed(1) + ' mm gross. Für gut lesbare Buchstaben eine leichtere Stufe oder einen kürzeren Satz wählen.</p>' : ''));
   }
 
   /* ---------- Zeichnen ---------- */

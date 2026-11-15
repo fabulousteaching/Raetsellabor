@@ -274,3 +274,6 @@ a.raetsel-karte:hover{border-color:var(--accent);box-shadow:0 10px 28px rgba(242
 .labor-neu{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:12px;
   width:max-content;max-width:calc(100vw - 32px);padding:10px 12px 10px 16px;border-radius:12px;background:#221C18;color:#fff;font-size:.9rem;box-shadow:0 12px 32px rgba(0,0,0,.25)}
 @media print{ .labor-neu{display:none!important} }
+/* Bruch im Text: Zähler über Nenner (statt 3/5) – <span class="bruch"><span>3</span><span>5</span></span> */
+.bruch{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.05;font-size:.82em;margin:0 .1em}
+.bruch > span + span{border-top:1.5px solid currentColor;padding-top:1px;margin-top:1px;align-self:stretch;text-align:center}

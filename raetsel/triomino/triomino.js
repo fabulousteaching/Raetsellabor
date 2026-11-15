@@ -255,9 +255,6 @@ var VORLAGE = '<div class="tr">' +
         '<p class="feld-label">Nenner</p><div class="tr-chips">' + chips('trBruch', [['6', 'bis Sechstel'], ['10', 'bis Zehntel'], ['12', 'bis Zwölftel']]) + '</div>' +
         '<p class="hinweis">z. B. «drei Fünftel» und 3/5. Reichen die echten Brüche nicht, kommen unechte dazu (z. B. fünf Viertel).</p>' +
       '</div>' +
-      '<div class="tr-unter" data-art="dezimalbrueche stellenwerte">' +
-        '<p class="feld-label">Dezimaltrennzeichen</p><div class="tr-chips">' + chips('trSep', [['.', 'Punkt 0.5'], [',', 'Komma 0,5']]) + '</div>' +
-      '</div>' +
       '</div>' +
       '<div class="tr-teil" data-art="englisch franzoesisch eigene">' +
         '<div class="tr-paarliste" id="trPaarliste">' + Paarliste.html() + '</div>' +
@@ -313,7 +310,7 @@ window.addEventListener('hashchange', alterLink);
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, esc = Labor.esc, aus = false;
   var TAB = 'triomino-eingaben', OPT = 'triomino-einstellungen';
-  var STANDARD = { form:'stern', art:'rechnen', matheArt:'rechnen', ops:['plus', 'minus'], zr:'100', dez:'2', stellen:'dezimal', bruch:'10', sep:'.', rand:'leer', farbe:'#F28C38',
+  var STANDARD = { form:'stern', art:'rechnen', matheArt:'rechnen', ops:['plus', 'minus'], zr:'100', dez:'2', stellen:'dezimal', bruch:'10', rand:'leer', farbe:'#F28C38',
     mitLoesung:true, titelAn:true, anleitungAn:true };
   // zeilen[art]: [{ a, b, auto }] – auto: welche Seite automatisch übersetzt wurde ('a', 'b' oder '')
   var st = { titel:'', zeilen:{ englisch:[], franzoesisch:[], eigene:[] }, seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
@@ -355,7 +352,7 @@ function starte(bereich){
     r.addEventListener('change', function(){ if (!r.checked) return; st.opt.art = st.opt.matheArt = r.value; speichern(); artZeigen(); erzeugen(); });
   });
   radios('trForm', 'form'); radios('trZr', 'zr'); radios('trDez', 'dez'); radios('trStellen', 'stellen');
-  radios('trBruch', 'bruch'); radios('trSep', 'sep'); radios('trRand', 'rand'); radios('trFarbe', 'farbe');
+  radios('trBruch', 'bruch'); radios('trRand', 'rand'); radios('trFarbe', 'farbe');
   [].forEach.call(bereich.querySelectorAll('input[name="trOp"]'), function(c){
     c.checked = st.opt.ops.indexOf(c.value) >= 0;
     c.addEventListener('change', function(){
@@ -398,8 +395,8 @@ function starte(bereich){
   function quelle(bedarf){
     var o = st.opt;
     if (o.art === 'rechnen') return Kern.rechnen(o.ops, +o.zr);
-    if (o.art === 'dezimalbrueche') return Kern.dezimalbrueche(+o.dez, o.sep);
-    if (o.art === 'stellenwerte') return Kern.stellenwerte(o.stellen, o.sep);
+    if (o.art === 'dezimalbrueche') return Kern.dezimalbrueche(+o.dez, '.');
+    if (o.art === 'stellenwerte') return Kern.stellenwerte(o.stellen, '.')   // Dezimalzahlen immer mit Punkt;
     if (o.art === 'brueche') return Kern.brueche(+o.bruch, bedarf);
     return paare().paare;
   }
@@ -457,7 +454,7 @@ function starte(bereich){
   }
   /* Platz für einen Text: Er liegt als Band (Dicke d·fs) im Abstand RAND von seiner Kante. In der 60°-Ecke darf er nicht
      in das Band der Nachbarkante (Ausdehnung Enb) ragen: Ein Punkt im Abstand u von der Ecke und y von der eigenen Kante
-     hat von der Nachbarkante den Abstand 0,866·u − 0,5·y. Daraus die nutzbare Länge L. */
+     hat von der Nachbarkante den Abstand 0.866·u − 0.5·y. Daraus die nutzbare Länge L. */
   var RAND = 3.5;
   function darstellungen(x){
     if (!x) return null;
@@ -532,7 +529,7 @@ function starte(bereich){
       (info.ablenker.length ? '<li class="tr-ablenker">Ablenker: ' + info.ablenker.map(kurz).join(' · ') + '</li>' : '');
     $('#trPaare').querySelector('summary').textContent = 'Verwendete Paare (' + info.paare.length + ')';
   }
-  function kurz(x){ return x.bruch ? x.bruch[0] + '/' + x.bruch[1] : x.zahl ? esc(x.zahl.slice(0, x.mark)) + '<b style="color:' + MARKE + '">' + esc(x.zahl.charAt(x.mark)) + '</b>' + esc(x.zahl.slice(x.mark + 1)) : esc(x.t); }
+  function kurz(x){ return x.bruch ? '<span class="bruch" aria-label="' + x.bruch[0] + ' durch ' + x.bruch[1] + '"><span>' + x.bruch[0] + '</span><span>' + x.bruch[1] + '</span></span>' : x.zahl ? esc(x.zahl.slice(0, x.mark)) + '<b style="color:' + MARKE + '">' + esc(x.zahl.charAt(x.mark)) + '</b>' + esc(x.zahl.slice(x.mark + 1)) : esc(x.t); }
 
   /* ---------- Werkzeuge, PDF ---------- */
   $('#trNeu').addEventListener('click', function(){ st.seed = Math.floor(Math.random() * 1e9) + 1; speichern(); erzeugen(); });

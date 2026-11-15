@@ -62,7 +62,7 @@ var Kern = (function(){
 /* KERN-ENDE */
 
 var GROESSEN = [[4, '4 × 4', 'Holzschablone 4 × 4'], [6, '6 × 6', 'Holzschablone 6 × 6']];
-// Feldgrösse fest wie im Excel: Zeilen 37 pt hoch, Felder quadratisch (37 pt = 13,05 mm) – passend zu den Holzschablonen
+// Feldgrösse fest wie im Excel: Zeilen 37 pt hoch, Felder quadratisch (37 pt = 13.05 mm) – passend zu den Holzschablonen
 var FELD = 37 / 72 * 25.4;
 var FARBEN = ['#C2410C', '#1E63C4', '#2E7D32', '#7B3FB5'];   // Stellungen 1–4 im Lösungsblatt
 var TINTE = '#1C1714';
@@ -256,7 +256,7 @@ function starte(bereich){
       '<p class="fl-kontrolle">Kontrolle: Das Buchstabenfeld ist ' + fmt(n * f) + ' mm breit, ein Feld ' + fmt(f) + ' mm (wie im Excel). Diese Linie muss genau ' + fmt(n * f) + ' mm lang sein: ' +
       '<span class="fl-mass" style="width:' + (n * f) + 'mm"></span></p>';
   }
-  function fmt(x){ return String(Math.round(x * 10) / 10).replace('.', ','); }
+  function fmt(x){ return String(Math.round(x * 10) / 10); }   // Dezimalzahlen mit Punkt
 
   /* ---------- PDF, Herunterladen ---------- */
   function druckVorbereiten(){ document.body.classList.toggle('mit-loesung', !!st.opt.mitLoesung); }

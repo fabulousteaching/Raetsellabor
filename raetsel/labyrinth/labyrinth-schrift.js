@@ -308,7 +308,7 @@ function starte(bereich){
     if (!n){ $('#lsInfo').textContent = 'Kurze Sätze werden grösser. Ä, Ö, Ü werden zu AE, OE, UE; Satzzeichen fallen weg.'; return; }
     var A = Kern.anordnen(ws, PLATZ), groesse = mm(A.s);
     $('#lsInfo').textContent = n + ' Buchstaben in ' + A.zeilen.length + (A.zeilen.length === 1 ? ' Zeile' : ' Zeilen') + ' (' + A.zeilen.map(function(z){ return z.join(' '); }).join(' / ') + '). ' +
-      'Gedruckt ist ein Feld etwa ' + groesse.toFixed(1).replace('.', ',') + ' mm gross' + (groesse < 2.5 ? ' – sehr fein; ein kürzerer Satz wird grösser.' : '.');
+      'Gedruckt ist ein Feld etwa ' + groesse.toFixed(1) + ' mm gross' + (groesse < 2.5 ? ' – sehr fein; ein kürzerer Satz wird grösser.' : '.');
   }
   satzFeld.addEventListener('input', function(){ st.satz = satzFeld.value; speichern(); info(); if (aktuell) $('#lsBlatt').classList.add('veraltet'); });
   satzFeld.addEventListener('keydown', function(ev){ if (ev.key === 'Enter' && !ev.shiftKey){ ev.preventDefault(); erstellen(); } });
@@ -333,7 +333,7 @@ function starte(bereich){
     var groesse = mm(Math.min(PLATZ.b / (lab.w + 2), PLATZ.h / (lab.h + 1)));
     meldung('erfolg', '<p><b>Fertig!</b> Labyrinth mit ' + lab.w + ' × ' + lab.h + ' Feldern. Der richtige Weg ist ' + lab.weg.length + ' Felder lang und schreibt «' + esc(lab.satz) + '». ' +
       'Du kannst ihn hier am Bildschirm suchen: beim Pfeil links hineinziehen.</p>' +
-      (groesse < 2.5 ? '<p>Achtung: Gedruckt sind die Felder nur etwa ' + groesse.toFixed(1).replace('.', ',') + ' mm gross. Ein kürzerer Satz macht sie grösser.</p>' : ''));
+      (groesse < 2.5 ? '<p>Achtung: Gedruckt sind die Felder nur etwa ' + groesse.toFixed(1) + ' mm gross. Ein kürzerer Satz macht sie grösser.</p>' : ''));
   }
 
   /* ---------- Zeichnen ---------- */

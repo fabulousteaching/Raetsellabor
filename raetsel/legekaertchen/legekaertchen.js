@@ -117,8 +117,8 @@ var Kern = (function(){
     'ALTBAUCH|ARME BILLI|GREISE HOFFEN|STERCHEN KREISCH|ORVERBAND DUDEL|EI NACHTEIL|ZUG MÜLLER|ZEUGUNG DISCO|UNTERPREISE ' +
     'ALPENO|STRAND ALTER|STEILZEIT VERS|ENDUNG TAL|ENTFÖRDERUNG';
   function trennungen(){ return TRENNUNGEN.split(' ').map(function(x){ var t = x.split('|'); return { a:t[0], b:t[1] }; }); }
-  // Mathe: Vorsilben der Masseinheiten ↔ Zahl (Schweizer Schreibweise)
-  var VORSILBEN = 'KILO=1\'000 HEKTO=100 DEKA=10 DEZI=0,1 ZENTI=0,01 MILLI=0,001 MEGA=1\'000\'000 GIGA=1\'000\'000\'000 MIKRO=0,000\'001 NANO=0,000\'000\'001';
+  // Mathe: Vorsilben der Masseinheiten ↔ Zahl (Tausender mit ', Dezimalzahlen immer mit Punkt)
+  var VORSILBEN = 'KILO=1\'000 HEKTO=100 DEKA=10 DEZI=0.1 ZENTI=0.01 MILLI=0.001 MEGA=1\'000\'000 GIGA=1\'000\'000\'000 MIKRO=0.000001 NANO=0.000000001';
   function vorsilben(){ return VORSILBEN.split(' ').map(function(x){ var t = x.split('='); return { a:t[0], b:t[1] }; }); }
   // Bilder: Emojis, die halbiert gut zu erkennen sind
   var BILDER = {
@@ -152,7 +152,8 @@ function kaestchen(name, l){ return l.map(function(x){ return '<label><input typ
 /* ---------- Zeichnen ---------- */
 var messer = document.createElement('canvas').getContext('2d');
 function breite(t, gr){ messer.font = '700 ' + gr + 'px ' + Labor.blattSchrift('text'); return messer.measureText(t).width; }
-var WINKEL = { u:0, o:180, l:90, r:-90 };   // Drehung des Texts: «unten» im Text zeigt zur Kante
+var WINKEL = { u:0, o:180, l:90, r:-90 };
+var BRUCH = /^(\d+)\/(\d+)$/;   // «3/5» wird als Bruch übereinander gezeichnet   // Drehung des Texts: «unten» im Text zeigt zur Kante
 /* Ein Kärtchen in seiner Lage in der Figur (waagrecht 2K × K oder senkrecht K × 2K), oben links bei (0, 0).
    Texte an den Kanten, zur Kante hin ausgerichtet (wie auf dem Kärtchen gegenüber); Bilder: halbes Emoji auf der Kante,
    beim Partner um 180° gedreht – zusammengelegt ist das Tier ganz. */
@@ -170,9 +171,19 @@ function kartenInhalt(karte, farbe, z){
       bild += '<text x="0" y="0" font-size="' + f1(z * 0.5) + '" text-anchor="middle" dominant-baseline="central" transform="translate(' + f1(px) + ' ' + f1(py) + ') rotate(' + (w + dreh) + ')">' + x.t + '</text>';
       return;
     }
+    var trafo = ' transform="translate(' + f1(px) + ' ' + f1(py) + ') rotate(' + w + ')"', bruch = BRUCH.exec(x.t);
+    if (bruch){
+      // Bruch übereinander: Nenner näher an der Kante, Zähler darüber (im gedrehten Bild)
+      var g2 = z * 0.085, bw = Math.max(breite(bruch[1], g2), breite(bruch[2], g2)) + g2 * 0.4, ym = -z * 0.07 - 1.2 * g2;
+      t += '<g' + trafo + ' font-size="' + f1(g2) + '" font-weight="700" fill="' + TINTE + '" text-anchor="middle">' +
+        '<text x="0" y="' + f1(ym - 0.22 * g2) + '">' + esc(bruch[1]) + '</text>' +
+        '<path d="M' + f1(-bw / 2) + ' ' + f1(ym) + 'H' + f1(bw / 2) + '" stroke="' + TINTE + '" stroke-width="' + f1(Math.max(1, g2 * 0.09)) + '"/>' +
+        '<text x="0" y="' + f1(ym + 0.98 * g2) + '">' + esc(bruch[2]) + '</text></g>';
+      return;
+    }
     var gr = z * 0.095, max = z * 0.86, b = breite(x.t, gr);
     if (b > max) gr = Math.max(z * 0.045, gr * max / b);
-    t += '<text x="0" y="' + f1(-z * 0.085) + '" font-size="' + f1(gr) + '" font-weight="700" fill="' + TINTE + '" text-anchor="middle" transform="translate(' + f1(px) + ' ' + f1(py) + ') rotate(' + w + ')">' + esc(x.t) + '</text>';
+    t += '<text x="0" y="' + f1(-z * 0.085) + '" font-size="' + f1(gr) + '" font-weight="700" fill="' + TINTE + '" text-anchor="middle"' + trafo + '>' + esc(x.t) + '</text>';
   });
   if (bild) t += '<clipPath id="' + id + '"><rect x="0" y="0" width="' + f1(W) + '" height="' + f1(H) + '"/></clipPath><g clip-path="url(#' + id + ')">' + bild + '</g>';
   t += '<rect x="0.4" y="0.4" width="' + f1(W - 0.8) + '" height="' + f1(H - 0.8) + '" fill="none" stroke="' + RAND + '" stroke-width="0.9"/>';
@@ -213,7 +224,7 @@ var VORLAGE = '<div class="lk">' +
           '<p class="feld-label">Brüche mit Nenner</p><div class="lk-chips" role="radiogroup" aria-label="Nenner">' + chips('lkDez', [['1', '10'], ['2', '10 und 100'], ['3', '10, 100 und 1000']]) + '</div></div>' +
         '<div class="lk-stufe lk-unter" data-mathe="brueche">' +
           '<p class="feld-label">Nenner bis</p><div class="lk-chips" role="radiogroup" aria-label="Nenner bis">' + chips('lkNenner', [['4', '4'], ['6', '6'], ['10', '10'], ['12', '12']]) + '</div></div>' +
-        '<p class="hinweis lk-unter" data-mathe="vorsilben">KILO | 1\'000, MILLI | 0,001, MEGA | 1\'000\'000 … – zehn Vorsilben.</p></div>' +
+        '<p class="hinweis lk-unter" data-mathe="vorsilben">KILO | 1\'000, MILLI | 0.001, MEGA | 1\'000\'000 … – zehn Vorsilben.</p></div>' +
       '<div class="lk-stufe lk-teil" data-fach="bilder"><p class="feld-label">Bilder: Thema</p>' +
         '<div class="lk-chips" role="radiogroup" aria-label="Bilder">' + chips('lkBild', BILDTHEMEN) + '</div>' +
         '<p class="hinweis">Jedes Bild ist auf zwei Kärtchen halbiert – zusammengelegt ist es wieder ganz.</p></div>' +
@@ -390,7 +401,7 @@ function starte(bereich){
       var gleich = function(p){ return { a:p.a, b:'= ' + p.b }; };
       if (o.matheArt === 'plusminus') return KK.plusMinus(o.ops, +o.zr, anzahl, rnd).map(gleich);
       if (o.matheArt === 'einmaleins') return KK.einmaleins(o.reihen, o.eOps, anzahl, rnd).map(gleich);
-      if (o.matheArt === 'dezimal') return KK.dezimal(+o.dez, ',', 'echt', anzahl, rnd);
+      if (o.matheArt === 'dezimal') return KK.dezimal(+o.dez, '.', 'echt', anzahl, rnd);
       if (o.matheArt === 'brueche') return KK.brueche(+o.nenner, 'echt', anzahl, rnd);
       return Kern.vorsilben();
     }
