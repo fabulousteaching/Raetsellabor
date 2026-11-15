@@ -137,6 +137,8 @@ var Kern = (function(){
 
 var MM = 703 / 186, K = 50 * MM;     // Pixel je Millimeter; 5 cm (ein Feld, Kärtchenbreite)
 var TINTE = '#1C1714', RAND = '#8A8079', B = 639;
+// Farben für die Schnittlinien (ohne Wahl: grau)
+var LINIENFARBEN = [['#8A8079', 'Grau'], ['#1C1714', 'Schwarz'], ['#E53935', 'Rot'], ['#1E88E5', 'Blau'], ['#43A047', 'Grün'], ['#FB8C00', 'Orange'], ['#8E24AA', 'Violett']];
 var FARBEN = [['#FCE4EC', 'rosa'], ['#E3F2E6', 'grün'], ['#E1EEFB', 'blau'], ['#FFF0D9', 'orange'], ['#EFE4F8', 'violett'], ['#DDF4F2', 'türkis']];
 var FAECHER = [['deutsch', 'Deutsch'], ['mathe', 'Mathe'], ['englisch', 'Englisch'], ['franzoesisch', 'Französisch'], ['bilder', 'Bilder'], ['eigene', 'Eigene Paare']];
 var DEUTSCH = [['trennung', 'Lustige Worttrennungen'], ['reime', 'Reimwörter'], ['mehrzahl', 'Einzahl – Mehrzahl'], ['gegenteile', 'Gegenteile']];
@@ -157,7 +159,7 @@ var BRUCH = /^(\d+)\/(\d+)$/;   // «3/5» wird als Bruch übereinander gezeichn
 /* Ein Kärtchen in seiner Lage in der Figur (waagrecht 2K × K oder senkrecht K × 2K), oben links bei (0, 0).
    Texte an den Kanten, zur Kante hin ausgerichtet (wie auf dem Kärtchen gegenüber); Bilder: halbes Emoji auf der Kante,
    beim Partner um 180° gedreht – zusammengelegt ist das Tier ganz. */
-function kartenInhalt(karte, farbe, z){
+function kartenInhalt(karte, farbe, z, linie){
   var waag = karte.felder[0][0] === karte.felder[1][0], W = waag ? 2 * z : z, H = waag ? z : 2 * z, t = '', id = 'k' + Math.floor(Math.random() * 1e9);
   t += '<rect x="0" y="0" width="' + f1(W) + '" height="' + f1(H) + '" fill="' + farbe + '"/>';
   var bild = '';
@@ -186,7 +188,7 @@ function kartenInhalt(karte, farbe, z){
     t += '<text x="0" y="' + f1(-z * 0.085) + '" font-size="' + f1(gr) + '" font-weight="700" fill="' + TINTE + '" text-anchor="middle"' + trafo + '>' + esc(x.t) + '</text>';
   });
   if (bild) t += '<clipPath id="' + id + '"><rect x="0" y="0" width="' + f1(W) + '" height="' + f1(H) + '"/></clipPath><g clip-path="url(#' + id + ')">' + bild + '</g>';
-  t += '<rect x="0.4" y="0.4" width="' + f1(W - 0.8) + '" height="' + f1(H - 0.8) + '" fill="none" stroke="' + RAND + '" stroke-width="0.9"/>';
+  t += '<rect x="0.4" y="0.4" width="' + f1(W - 0.8) + '" height="' + f1(H - 0.8) + '" fill="none" stroke="' + (linie || RAND) + '" stroke-width="' + (linie && linie !== RAND ? 1.3 : 0.9) + '"/>';
   return { svg:t, W:W, H:H, waag:waag };
 }
 
@@ -234,6 +236,10 @@ var VORLAGE = '<div class="lk">' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Kärtchen</h2></div></div>' +
       '<p class="feld-label">Ablenker an den Aussenkanten</p><div class="lk-chips" role="radiogroup" aria-label="Ablenker">' + chips('lkAblenker', ABLENKER) + '</div>' +
       '<p class="hinweis" id="lkAblenkerInfo">Ablenker sind Wörter ohne Partner – so sieht man nicht sofort, welche Kanten aussen liegen.</p>' +
+      '<p class="feld-label">Farbe der Schnittlinien</p><div class="lk-farbwahl" role="radiogroup" aria-label="Farbe der Schnittlinien">' +
+        LINIENFARBEN.map(function(f){ return '<label title="' + f[1] + '"><input type="radio" name="lkSchnitt" value="' + f[0] + '"><span style="background:' + f[0] + '"></span><b class="vh">' + f[1] + '</b></label>'; }).join('') +
+        '<label class="lk-eigene" title="Eigene Farbe"><input type="color" id="lkSchnittEigen" value="#8A8079"><span>eigene</span></label></div>' +
+      '<p class="hinweis" id="lkSchnittInfo"></p>' +
       '<label class="opt"><input type="checkbox" id="lkFarbig"><span>Jede Figur in einer eigenen Farbe (so weiss man, welche Kärtchen zusammengehören)</span></label>' +
       '<label class="opt"><input type="checkbox" id="lkLinie"><span>Linie für die Lösung</span></label>' +
       '<p class="hinweis">Die Kärtchen sind 5 × 10 cm gross, sechs auf einer Seite – in Originalgrösse (100 %) drucken.</p>' +
@@ -274,13 +280,14 @@ function starte(bereich){
   var TAB = 'legekaertchen-eingaben', OPT = 'legekaertchen-einstellungen';
   // Keine Vorauswahl: Jede Stufe klappt erst auf, wenn in der Stufe darüber etwas gewählt ist
   var STANDARD = { modus:'', fach:'', deutschArt:'', matheArt:'', zr:'', ops:[], reihen:[], eOps:[], dez:'', nenner:'', bild:'', ablenker:'',
-    farbig:true, linie:true, mitLoesung:true, titelAn:true, anleitungAn:true };
+    schnitt:'', farbig:true, linie:true, mitLoesung:true, titelAn:true, anleitungAn:true };
   var st = { code:'', zeilen:{ englisch:[], franzoesisch:[], eigene:[] }, seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
   try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.code = String(e.code || ''); st.seed = +e.seed || st.seed;
     Object.keys(KOEPFE).forEach(function(k){ if (e.zeilen && e.zeilen[k]) st.zeilen[k] = Paarliste.aufraeumen(e.zeilen[k]); }); } } catch(x){}
   function gueltig(k, liste){ if (!liste.some(function(x){ return x[0] === st.opt[k]; })) st.opt[k] = ''; }
   ['ops', 'reihen', 'eOps'].forEach(function(k){ if (!Array.isArray(st.opt[k])) st.opt[k] = []; });
+  if (st.opt.schnitt && !/^#[0-9a-f]{6}$/i.test(st.opt.schnitt)) st.opt.schnitt = '';
   gueltig('modus', [['zahl'], ['buchstabe']]); gueltig('fach', FAECHER); gueltig('deutschArt', DEUTSCH); gueltig('matheArt', MATHE); gueltig('bild', BILDTHEMEN); gueltig('ablenker', ABLENKER);
 
   var timer = 0;
@@ -347,6 +354,20 @@ function starte(bereich){
     $(x[0]).checked = !!st.opt[x[1]];
     $(x[0]).addEventListener('change', function(){ st.opt[x[1]] = this.checked; speichern(); if (x[1] !== 'mitLoesung') zeichnen(); });
   });
+  /* Farbe der Schnittlinien: eine der Farben oder eine eigene; ohne Wahl grau */
+  function schnittZeigen(){
+    var f = (st.opt.schnitt || '').toLowerCase(), eigen = f && !LINIENFARBEN.some(function(x){ return x[0].toLowerCase() === f; });
+    [].forEach.call(bereich.querySelectorAll('input[name="lkSchnitt"]'), function(r){ r.checked = r.value.toLowerCase() === f; });
+    $('.lk-eigene').classList.toggle('gewaehlt', !!eigen);
+    if (eigen) $('#lkSchnittEigen').value = st.opt.schnitt;
+    var name = !f ? '' : eigen ? 'eigene Farbe' : LINIENFARBEN.filter(function(x){ return x[0].toLowerCase() === f; })[0][1];
+    $('#lkSchnittInfo').textContent = f ? 'Schnittlinien: ' + name + '.' : 'Noch nichts gewählt: Schnittlinien grau.';
+  }
+  [].forEach.call(bereich.querySelectorAll('input[name="lkSchnitt"]'), function(r){
+    r.addEventListener('change', function(){ if (r.checked){ st.opt.schnitt = r.value; speichern(); schnittZeigen(); if (R){ seitenZeichnen(); loesungZeichnen(); } } });
+  });
+  $('#lkSchnittEigen').addEventListener('input', function(){ st.opt.schnitt = this.value; speichern(); schnittZeigen(); if (R){ seitenZeichnen(); loesungZeichnen(); } });
+  schnittZeigen();
   Labor.blattSchalter(bereich, st.opt, function(){ speichern(); zeichnen(); });
   // Lösung am Bildschirm: das Lösungsblatt oben über den Kärtchen (fürs PDF und den Druck zählt weiter «mit Lösungsblatt»)
   $('#lkZeigeLoesung').addEventListener('click', function(){
@@ -463,7 +484,7 @@ function starte(bereich){
     seiten.forEach(function(teil, si){
       var x0 = (B - 3 * K) / 2, t = '';
       teil.forEach(function(e, i){
-        var x = x0 + (i % 3) * K, y = Math.floor(i / 3) * 2 * K, I = kartenInhalt(e.k, e.farbe, K), tr;
+        var x = x0 + (i % 3) * K, y = Math.floor(i / 3) * 2 * K, I = kartenInhalt(e.k, e.farbe, K, st.opt.schnitt), tr;
         if (I.waag) tr = e.dreh ? 'translate(' + f1(x + K) + ' ' + f1(y) + ') rotate(90)' : 'translate(' + f1(x) + ' ' + f1(y + 2 * K) + ') rotate(-90)';
         else tr = e.dreh ? 'translate(' + f1(x + K) + ' ' + f1(y + 2 * K) + ') rotate(180)' : 'translate(' + f1(x) + ' ' + f1(y) + ')';
         t += '<g transform="' + tr + '">' + I.svg + '</g>';
@@ -486,7 +507,7 @@ function starte(bereich){
     var sumB = masse.reduce(function(s, m){ return s + m.b; }, 0) + (n - 1) * 0.6, maxH = Math.max.apply(null, masse.map(function(m){ return m.h; }));
     var z = Math.min(96, (B - 4) / sumB, 760 / maxH), x = (B - sumB * z) / 2, t = '';
     R.figuren.forEach(function(F, i){
-      F.karten.forEach(function(k){ var I = kartenInhalt(k, farbe(i), K), p = k.felder[0];
+      F.karten.forEach(function(k){ var I = kartenInhalt(k, farbe(i), K, st.opt.schnitt), p = k.felder[0];
         t += '<g transform="translate(' + f1(x + p[1] * z) + ' ' + f1(p[0] * z) + ') scale(' + (z / K).toFixed(4) + ')">' + I.svg + '</g>'; });
       x += (masse[i].b + 0.6) * z;
     });

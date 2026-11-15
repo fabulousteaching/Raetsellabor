@@ -86,6 +86,21 @@
 .lk-stufe > .feld-label:first-child{margin-top:2px}
 .lk .feld-label{margin-top:8px}
 
+/* Farbe der Schnittlinien */
+.lk-farbwahl{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.lk-farbwahl label{position:relative;cursor:pointer}
+.lk-farbwahl input[type=radio]{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.lk-farbwahl label > span{display:block;width:26px;height:26px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line-2)}
+.lk-farbwahl input:checked + span{box-shadow:0 0 0 2px var(--ink)}
+.lk-farbwahl input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+.lk-eigene{display:inline-flex!important;align-items:center;gap:5px;padding:2px 9px 2px 3px;border:1px solid var(--line-2);border-radius:999px;background:#fff}
+.lk-eigene.gewaehlt{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.lk-eigene input{width:24px;height:24px;padding:0;border:0;background:none;cursor:pointer;-webkit-appearance:none;appearance:none}
+.lk-eigene input::-webkit-color-swatch-wrapper{padding:0}
+.lk-eigene input::-webkit-color-swatch{border:1px solid rgba(0,0,0,.15);border-radius:50%}
+.lk-eigene input::-moz-color-swatch{border:1px solid rgba(0,0,0,.15);border-radius:50%}
+.lk-eigene span{width:auto!important;height:auto!important;border:0!important;box-shadow:none!important;font-size:.84rem;color:var(--muted)}
+
 /* ---------- Drucken (gilt auch für das PDF) ---------- */
 @media print{
   @page{size:A4;margin:12mm}
