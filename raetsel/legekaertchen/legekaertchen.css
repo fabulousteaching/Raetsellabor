@@ -68,6 +68,13 @@
 .lk-seitenkopf{margin:0 0 10px;font-size:.85rem;color:#8A8079}
 .lk-loesung-text{margin:14px 0 0;font-size:1.15rem}
 
+/* Zeichen zum Antippen */
+.lk-zeichenwahl{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 10px}
+.lk-zeichen{width:38px;height:38px;border:1px solid var(--line-2);border-radius:8px;background:#fff;font:inherit;font-size:1.05rem;font-weight:700;color:var(--text);cursor:pointer;transition:border-color .15s,background .15s}
+.lk-zeichen:hover{border-color:var(--accent-line)}
+.lk-zeichen.drin{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-2)}
+.lk-zeichen:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+
 /* ---------- Drucken (gilt auch für das PDF) ---------- */
 @media print{
   @page{size:A4;margin:12mm}

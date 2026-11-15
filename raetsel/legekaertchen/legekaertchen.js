@@ -184,10 +184,14 @@ var VORLAGE = '<div class="lk">' +
     '<p>Kärtchen zum Ausschneiden: Richtig aneinandergelegt – immer zwei passende Begriffe gegenüber – bilden sie eine Ziffer oder einen Buchstaben.</p></header>' +
   '<div class="lk-layout"><section class="lk-eingabe" aria-label="Eingaben">' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Figuren</h2><p>Diese Zeichen entstehen aus den Kärtchen.</p></div></div>' +
-      '<label class="feld-label" for="lkCode">Zahl oder Buchstaben</label>' +
+      '<div class="lk-chips" role="radiogroup" aria-label="Zahl oder Buchstabe">' + chips('lkModus', [['zahl', 'Zahl'], ['buchstabe', 'Buchstabe']]) + '</div>' +
+      '<p class="feld-label" id="lkWahlTitel"></p>' +
+      '<div class="lk-zeichenwahl" id="lkZeichenWahl" role="group" aria-labelledby="lkWahlTitel"></div>' +
+      '<label class="feld-label" for="lkCode">Oder selbst schreiben</label>' +
       '<div class="lk-zeile"><input type="text" id="lkCode" maxlength="12" autocomplete="off" spellcheck="false">' +
+        '<button type="button" class="btn klein" id="lkLeeren" title="Alle Zeichen löschen">Leeren</button>' +
         '<button type="button" class="btn klein" id="lkZufall" title="Etwas anderes vorschlagen">Andere</button></div>' +
-      '<p class="hinweis">1 bis 4 Zeichen: Ziffern 0–9 und die Buchstaben A, C, E, F, H, J, L, P, T, U (nur gerade Kanten, keine, die wie eine Ziffer aussehen).</p>' +
+      '<p class="hinweis">1 bis 4 Zeichen, auch gemischt. Möglich sind die Ziffern 0–9 und die Buchstaben A, C, E, F, H, J, L, P, T, U (nur gerade Kanten, keine, die wie eine Ziffer aussehen).</p>' +
       '<div class="lk-zaehler" id="lkZaehler" aria-live="polite"></div>' +
     '</div>' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Paare</h2><p>Was steht sich an den Kanten gegenüber?</p></div></div>' +
@@ -247,14 +251,14 @@ Labor.registriere({
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false, KK = window.KettenKern;
   var TAB = 'legekaertchen-eingaben', OPT = 'legekaertchen-einstellungen';
-  var STANDARD = { fach:'deutsch', deutschArt:'trennung', matheArt:'plusminus', zr:'20', ops:['plus', 'minus'], reihen:[2, 3, 4, 5, 6, 7, 8, 9, 10], eOps:['mal', 'geteilt'],
+  var STANDARD = { modus:'zahl', fach:'deutsch', deutschArt:'trennung', matheArt:'plusminus', zr:'20', ops:['plus', 'minus'], reihen:[2, 3, 4, 5, 6, 7, 8, 9, 10], eOps:['mal', 'geteilt'],
     dez:'2', nenner:'10', bild:'tiere', ablenker:'wenige', farbig:true, linie:true, mitLoesung:true, titelAn:true, anleitungAn:true };
   var st = { code:'', zeilen:{ englisch:[], franzoesisch:[], eigene:[] }, seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
   try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.code = String(e.code || ''); st.seed = +e.seed || st.seed;
     Object.keys(KOEPFE).forEach(function(k){ if (e.zeilen && e.zeilen[k]) st.zeilen[k] = Paarliste.aufraeumen(e.zeilen[k]); }); } } catch(x){}
   function gueltig(k, liste){ if (!liste.some(function(x){ return x[0] === st.opt[k]; })) st.opt[k] = STANDARD[k]; }
-  gueltig('fach', FAECHER); gueltig('deutschArt', DEUTSCH); gueltig('matheArt', MATHE); gueltig('bild', BILDTHEMEN); gueltig('ablenker', ABLENKER);
+  gueltig('modus', [['zahl'], ['buchstabe']]); gueltig('fach', FAECHER); gueltig('deutschArt', DEUTSCH); gueltig('matheArt', MATHE); gueltig('bild', BILDTHEMEN); gueltig('ablenker', ABLENKER);
   if (!Kern.lesen(st.code, 4).zeichen.length) st.code = String(Math.floor(Math.random() * 10));
   var timer = 0;
   function speichernJetzt(){ clearTimeout(timer); timer = 0;
@@ -266,13 +270,36 @@ function starte(bereich){
   function baldZeichnen(){ clearTimeout(warte); warte = setTimeout(zeichnen, 300); }
 
   /* ---------- Eingaben ---------- */
-  $('#lkCode').value = st.code;
-  $('#lkCode').addEventListener('input', function(){ st.code = this.value; speichern(); baldZeichnen(); });
-  $('#lkZufall').addEventListener('click', function(){
-    var alle = Object.keys(Kern.FIGUREN), r = Kern.zufall(Date.now()), z = alle[Math.floor(r() * alle.length)];
-    if (z === st.code) z = alle[(alle.indexOf(z) + 1) % alle.length];
-    st.code = z; $('#lkCode').value = z; speichern(); zeichnen();
+  /* Zahl oder Buchstabe: die möglichen Zeichen zum Antippen (hängt das Zeichen hinten an, höchstens 4); das Feld bleibt frei */
+  var WAHL = { zahl:'0123456789'.split(''), buchstabe:Object.keys(Kern.FIGUREN).filter(function(c){ return /[A-Z]/.test(c); }) };
+  function wahlZeigen(){
+    var m = st.opt.modus, drin = Kern.lesen(st.code, 99).zeichen;
+    $('#lkWahlTitel').textContent = m === 'zahl' ? 'Ziffer antippen' : 'Buchstabe antippen';
+    $('#lkZeichenWahl').innerHTML = WAHL[m].map(function(c){
+      var n = drin.filter(function(x){ return x === c; }).length;
+      return '<button type="button" class="lk-zeichen' + (n ? ' drin' : '') + '" data-c="' + c + '" aria-label="' + c + ' anhängen' + (n ? ' (schon ' + n + '-mal)' : '') + '">' + c + '</button>';
+    }).join('');
+  }
+  function codeSetzen(t){ st.code = t; $('#lkCode').value = t; speichern(); wahlZeigen(); zeichnen(); }
+  $('#lkZeichenWahl').addEventListener('click', function(ev){
+    var b = ev.target.closest('.lk-zeichen'); if (!b) return;
+    var z = Kern.lesen(st.code, 99).zeichen;
+    if (z.length >= 4){ meldung('info', '<p>Höchstens 4 Zeichen – lösche zuerst eines (Feld unten oder «Leeren»).</p>'); return; }
+    codeSetzen(z.join('') + b.getAttribute('data-c'));
   });
+  [].forEach.call(bereich.querySelectorAll('input[name="lkModus"]'), function(r){
+    r.checked = r.value === st.opt.modus;
+    r.addEventListener('change', function(){ if (r.checked){ st.opt.modus = r.value; speichern(); wahlZeigen(); } });
+  });
+  $('#lkCode').value = st.code;
+  $('#lkCode').addEventListener('input', function(){ st.code = this.value; speichern(); wahlZeigen(); baldZeichnen(); });
+  $('#lkLeeren').addEventListener('click', function(){ codeSetzen(''); $('#lkCode').focus(); });
+  $('#lkZufall').addEventListener('click', function(){
+    var alle = WAHL[st.opt.modus], r = Kern.zufall(Date.now()), z = alle[Math.floor(r() * alle.length)];
+    if (z === st.code) z = alle[(alle.indexOf(z) + 1) % alle.length];
+    codeSetzen(z);
+  });
+  wahlZeigen();
   function radios(name, k){
     [].forEach.call(bereich.querySelectorAll('input[name="' + name + '"]'), function(r){
       r.checked = r.value === String(st.opt[k]);
@@ -351,7 +378,7 @@ function starte(bereich){
     if (L.zuViele) h += '<p class="warnung">Höchstens 4 Zeichen – es werden die ersten 4 verwendet.</p>';
     var leer = !Z.length;
     ['#lkNeu', '#lkPdf', '#lkHerunterladen'].forEach(function(s){ $(s).disabled = leer; });
-    if (leer){ R = null; $('#lkZaehler').innerHTML = h; $('#lkSeiten').innerHTML = ''; $('#lkLoesung').parentNode.hidden = true; $('#lkPaarInfo').innerHTML = ''; meldung('info', '<p>Gib links eine Zahl oder Buchstaben ein.</p>'); return; }
+    if (leer){ R = null; $('#lkZaehler').innerHTML = h; $('#lkSeiten').innerHTML = ''; $('#lkLoesung').parentNode.hidden = true; $('#lkPaarInfo').innerHTML = ''; meldung('info', '<p>Wähle links eine Ziffer oder einen Buchstaben (oder schreib sie ins Feld).</p>'); return; }
     var be = Kern.bedarf(Z, o.ablenker), rnd = Kern.zufall(st.seed), liste = paare(rnd, be.innen + be.ablenker + 6);
     var karten = Z.reduce(function(s, c){ return s + Kern.felder(c).length / 2; }, 0);
     $('#lkZaehler').innerHTML = '<p class="lk-zaehler-haupt ok">Lösung: <b>' + esc(Z.join('')) + '</b> · ' + karten + ' Kärtchen, ' + Math.ceil(karten / 6) + (Math.ceil(karten / 6) === 1 ? ' Seite' : ' Seiten') + '</p>' + h;
