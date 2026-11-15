@@ -272,6 +272,8 @@ var Kern = (function(){
     abstandStrecke:abstandStrecke, verteilen:verteilen };
 })();
 /* KERN-ENDE */
+// Für andere Generatoren (z. B. Legekärtchen): Mathe-Aufgaben und Deutsch-Vorschläge
+window.KettenKern = Kern;
 
 var FAECHER = [['mathe', 'Mathe'], ['deutsch', 'Deutsch'], ['englisch', 'Englisch'], ['franzoesisch', 'Französisch']];
 var MATHE = [['plusminus', 'Plus & Minus'], ['einmaleins', 'Einmaleins'], ['dezimal', 'Dezimalzahlen'], ['brueche', 'Brüche']];

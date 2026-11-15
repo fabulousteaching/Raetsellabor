@@ -268,6 +268,15 @@ Ein Streifen mit schwarzen Bruchstücken (auf Papier) und eine Fensterfolie: ein
 - **Blätter:** Streifen in Originalgrösse – eine feste Grösse, Feld 7 mm (Fenster 21 × 35 mm), bis 5 Zeichen je Streifen, höchstens 3 Streifen: passt immer auf ein Blatt. Mit gestrichelten Führungslinien oben und unten (dort liegen die Kanten des Balkens) und einem Startpfeil; auf Wunsch eine Linie für den Code. Zweite Seite *Fensterfolie*: so viele Balken, wie auf eine Seite passen, Fenster in der Mitte – auf Folie drucken und ausschneiden. Lösungsblatt: der Streifen mit orangen Rahmen an den richtigen Stellen und den Zeichen darüber. PDF (drei Seiten).
 - **Am Bildschirm ausprobieren:** den Balken mit Maus, Finger oder Pfeiltasten über den Streifen schieben (rastet spaltenweise ein); den Code eintippen – «Geschafft!», wenn er stimmt. «Lösung zeigen» macht den Balken durchsichtig und zeigt die Rahmen.
 
+### Legekärtchen
+
+Kärtchen von 5 × 10 cm zum Ausschneiden: An den Kanten stehen Begriffe. Wer die Kärtchen so aneinanderlegt, dass sich immer zwei passende Begriffe genau gegenüberliegen – gerade Kante an gerade Kante –, bildet eine Ziffer oder einen Buchstaben.
+
+- **Figuren:** 1 bis 4 Zeichen – Ziffern 0–9 und nur die Buchstaben A, C, E, F, H, J, L, P, T, U: gerade Kanten und keine, die wie eine Ziffer aussehen. Bei anderen erklärt ein Hinweis, warum nicht (B sieht aus wie 8, O und D wie 0, S wie 5, Z wie 2, I wie 1, G wie 6; K, M, N, Q, R, V, W, X, Y haben schräge Striche). Jede Figur besteht aus Feldern von 5 × 5 cm (Tabelle `FIGUREN`, meist 3 × 5 Felder, 8, H, U 4 breit, T 5 breit, C und T 6 hoch), mit einer geraden Zahl Felder; das Programm sucht alle Arten, sie mit Kärtchen auszulegen (geprüft: jede Figur geht), und nimmt eine davon.
+- **Paare:** Wo sich zwei Kärtchen auf 5 cm berühren, steht ein Paar – die Begriffe zur Kante hin ausgerichtet, wie im Vorbild. *Deutsch:* lustige Worttrennungen (GEL | ÄCHTER, SIEB | ENTE, STAUB | ECKEN … – 39, kindgerecht ausgewählt, ohne sehr kurze Hälften wie ER oder AU, die mit anderen Hälften leicht ein anderes Wort ergeben), Reimwörter, Einzahl – Mehrzahl, Gegenteile. *Mathe:* Plus & Minus, Einmaleins, Dezimalzahlen, Brüche (wie beim Kettenrätsel, `window.KettenKern`) und Vorsilben (KILO | 1'000, MILLI | 0,001 …). *Englisch, Französisch:* eigene Paare mit automatischer Übersetzung. *Bilder:* Emojis (Tiere, Essen, Fahrzeuge oder gemischt), auf der Kante halbiert – zusammengelegt ist das Bild wieder ganz. *Eigene Paare:* irgendetwas, z. B. Vorname und Nachname. Bei Worttrennungen, Mathe und Bildern liegt die erste Hälfte immer links oder oben (Leserichtung).
+- **Eindeutig:** Jeder Begriff kommt nur einmal vor und hat genau einen Partner. **Ablenker** (keine, wenige, viele): Begriffe ohne Partner an Aussenkanten, möglichst auf verschiedenen Kärtchen.
+- **Blätter:** Kärtchen in Originalgrösse, sechs je Seite, aneinanderliegend (gemeinsame Schnittlinien), senkrecht und zufällig gedreht, je Figur gemischt. Auf Wunsch jede Figur in einer eigenen Farbe (Reihenfolge der Farben auf der ersten Seite = Reihenfolge der Lösung) und eine Linie für die Lösung. Lösungsblatt: die Figuren zusammengesetzt, darunter die Lösung. PDF.
+
 ## Aufbau
 
 ```
@@ -306,6 +315,7 @@ raetsel/regenbogen/             der Generator «Regenbogenrätsel» (Kern: Ziffe
 raetsel/rotfolie/               der Generator «Rotfolienrätsel» (Kern: Farben nach Rotanteil, Satz setzen, rotes Muster und Konfetti planen; Zeichnen im Canvas, Ansicht durch die Folie)
 raetsel/folien/                 der Generator «Überlappende Folien» (Kern: Zeichen auf zwei Karten teilen, Eindeutigkeit prüfen und reparieren; Karten, Ziehen am Bildschirm)
 raetsel/schiebefenster/         der Generator «Schiebefenster» (Kern: Streifen aus Negativ-Zeichen, Ablenkung, Prüfen aller Fensterstellen; Streifen, Fensterfolie, Schieben am Bildschirm)
+raetsel/legekaertchen/          der Generator «Legekärtchen» (Kern: Figuren aus Feldern, Auslegen mit Kärtchen, Kanten, Paare belegen; Kärtchenblätter, Lösung)
 raetsel/triomino/               der Generator «Triomino» (Kern: Formen, Kanten, Aufgaben, Belegung; Zeichnen mit Schriftanpassung)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)
@@ -324,7 +334,7 @@ api/puzzle.php                  Server-Teil (PHP): speichert Puzzles für QR-Cod
 - Beim Hochladen hängt der GitHub-Workflow eine Versionsnummer an alle Skripte und Stile (`…/labor.js?v=1a2b3c4d`, auch für die Stile der Generatoren). Nach jeder Änderung lädt der Browser so sicher die neuen Dateien.
 - Ist die Seite schon offen, wenn eine neue Version hochgeladen wird (das Labor wechselt zwischen den Generatoren ohne Neuladen), merkt sie das: Der Workflow schreibt die Versionsnummer in `version.txt`, die Seite fragt sie ab, wenn man zu ihr zurückkehrt und alle 10 Minuten. Bei einer neuen Version erscheint ein Hinweis «Neu laden», und der nächste Wechsel zu einem Generator lädt die Seite von selbst neu.
 
-Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und den mitgelieferten Bibliotheken in `gemeinsam/extern/` keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code`, `…/#labyrinth`, `…/#emoji-rechnen`, `…/#text-spiegeln`, `…/#puzzle`, `…/#geheimschrift`, `…/#triomino`, `…/#kreuzwort`, `…/#fleissner`, `…/#kettenraetsel`, `…/#drehscheiben`, `…/#code-schloss`, `…/#regenbogen`, `…/#rotfolie`, `…/#folien` oder `…/#schiebefenster` öffnet direkt einen Generator, `…/#start` die Startseite.
+Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und den mitgelieferten Bibliotheken in `gemeinsam/extern/` keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code`, `…/#labyrinth`, `…/#emoji-rechnen`, `…/#text-spiegeln`, `…/#puzzle`, `…/#geheimschrift`, `…/#triomino`, `…/#kreuzwort`, `…/#fleissner`, `…/#kettenraetsel`, `…/#drehscheiben`, `…/#code-schloss`, `…/#regenbogen`, `…/#rotfolie`, `…/#folien`, `…/#schiebefenster` oder `…/#legekaertchen` öffnet direkt einen Generator, `…/#start` die Startseite.
 
 ## Einen neuen Generator hinzufügen
 
