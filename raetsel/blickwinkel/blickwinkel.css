@@ -1,0 +1,101 @@
+/* Rätsellabor · Blickwinkel – nur aktiv, solange dieser Generator offen ist.
+   Gemeinsame Bausteine (Karten, Knöpfe, Eingabefelder, Meldungen) stehen in gemeinsam/labor.css.
+   Das Blatt ist 703 Pixel breit (= 186 mm im PDF); die Form hat 15 cm Durchmesser. */
+.bw{max-width:1440px;margin:0 auto;padding-block:22px 48px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.bw-kopf{display:grid;gap:4px;margin:0 0 20px}
+.bw-kopf h1{font-family:var(--display);font-weight:600;font-size:clamp(1.7rem,3vw,2.2rem);letter-spacing:-.01em;line-height:1.1;margin:0;color:var(--ink)}
+.bw-kopf h1:focus{outline:none}
+.bw-kopf p:last-child{margin:2px 0 0;color:var(--muted);max-width:70ch}
+.bw-layout{display:grid;grid-template-columns:minmax(300px,400px) minmax(0,1fr);gap:24px;align-items:start}
+.bw-eingabe{display:grid;gap:16px;min-width:0}
+@media (min-width:961px){ .bw-eingabe{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--kopf-h) + 16px);max-height:calc(100vh - var(--kopf-h) - 32px);overflow:auto;padding:2px 4px 2px 2px;scrollbar-width:thin} }
+@media (max-width:960px){ .bw-layout{grid-template-columns:minmax(0,1fr);gap:18px} }
+@media (max-width:640px){ .bw{padding-block:18px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))} }
+
+/* ---------- Eingaben ---------- */
+.bw .feld-label{display:block;margin-top:8px}
+.bw-nachrichten{display:grid;gap:12px;margin-bottom:10px}
+.bw-nachricht{padding:10px 12px 12px;border:1px solid var(--line-2);border-radius:10px;background:#fff}
+.bw-nachricht-kopf{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.bw-nachricht-kopf .feld-label{margin:0}
+.bw-weg{width:26px;height:26px;border:1px solid var(--line-2);border-radius:50%;background:#fff;color:var(--muted);font:inherit;font-size:1rem;line-height:1;cursor:pointer}
+.bw-weg:hover{border-color:var(--accent-line);color:var(--ink)}
+.bw-text{display:block;width:100%;box-sizing:border-box;margin-top:6px;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:8px 11px;font-size:1.05rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;transition:border-color .15s,box-shadow .15s}
+.bw-text:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+/* Stufe klappt auf, sobald Text da ist */
+.bw-stufe{margin:10px 0 0;padding:2px 0 2px 12px;border-left:3px solid var(--accent-line);display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 16px}
+.bw-stufe[hidden]{display:none}
+.bw-stufe .feld-label{width:100%;margin:2px 0 0}
+.bw-kompass{display:grid;grid-template-columns:repeat(3,34px);grid-template-rows:repeat(3,34px);gap:4px;padding:6px;border-radius:50%;background:radial-gradient(circle,var(--accent-soft) 0 30%,transparent 31%)}
+.bw-ri{border:1px solid var(--line-2);border-radius:8px;background:#fff;font:inherit;font-size:.92rem;font-weight:700;color:var(--muted);cursor:pointer;transition:border-color .15s,background .15s,color .15s}
+.bw-ri:hover:not(:disabled){border-color:var(--accent-line);color:var(--ink)}
+.bw-ri[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--alk-akzent)}
+.bw-ri:disabled{opacity:.3;cursor:not-allowed}
+.bw-ri:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+.bw-kompass-mitte{display:block;align-self:center;justify-self:center;width:12px;height:12px;border-radius:50%;background:var(--accent-line)}
+.bw-farbe{display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 4px;border:1px solid var(--line-2);border-radius:999px;background:#fff;font-size:.85rem;color:var(--muted);cursor:pointer}
+.bw-farbe input{width:24px;height:24px;padding:0;border:0;background:none;cursor:pointer;-webkit-appearance:none;appearance:none}
+.bw-farbe input::-webkit-color-swatch-wrapper{padding:0}
+.bw-farbe input::-webkit-color-swatch{border:1px solid rgba(0,0,0,.15);border-radius:50%}
+.bw-farbe input::-moz-color-swatch{border:1px solid rgba(0,0,0,.15);border-radius:50%}
+.bw-zaehler{font-size:.88rem}
+.bw-zaehler p{margin:8px 0 0}
+.bw-zaehler .warnung{color:var(--accent-2)}
+.bw-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+.bw-chips label{position:relative;cursor:pointer}
+.bw-chips input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.bw-chips span{display:inline-block;padding:6px 14px;text-align:center;border:1px solid var(--line-2);border-radius:999px;background:#fff;font-size:.88rem;font-weight:600;color:var(--muted);transition:border-color .15s,background .15s,color .15s}
+.bw-chips label:hover span{border-color:var(--accent-line)}
+.bw-chips input:checked + span{background:var(--accent);border-color:var(--accent);color:var(--alk-akzent)}
+.bw-chips input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+.bw .hinweis:empty{display:none}
+.bw .opt{display:flex;align-items:flex-start;gap:10px;margin:6px 0 0;font-size:.9rem}
+.bw .opt input[type=checkbox]{width:16px;height:16px;margin:3px 0 0;accent-color:var(--accent);flex:none}
+
+/* ---------- Ausgabe ---------- */
+.bw-ausgabe{min-width:0}
+.bw-werkzeug{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.bw-werkzeug .abstand{flex:1}
+.bw-werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
+.bw-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+.bw-blick{margin-bottom:16px;display:grid;gap:10px}
+.bw-blick[hidden]{display:none}
+.bw-blick h2{margin:0;font-size:1.05rem}
+.bw-blick p{margin:2px 0 0;color:var(--muted);font-size:.9rem}
+.bw-blickbild{display:flex;justify-content:center;overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px}
+.bw-blickbild svg{max-width:100%;height:auto}
+.bw-rahmen{overflow-x:auto;padding-bottom:4px}
+.bw-rahmen[hidden]{display:none}
+.bw-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:26px 32px 30px}
+.bw-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
+.bw-anleitung{margin:0 0 10px;color:#554C45;line-height:1.45;font-size:.95rem}
+.bw-mitte{display:flex;justify-content:center}
+.bw-form{display:block}
+.bw-antworten{display:grid;gap:14px;margin-top:10px}
+.bw-antwort{margin:0;font-weight:700;font-size:1.05rem;display:flex;align-items:flex-end;gap:10px}
+.bw-antwort b{display:inline-grid;place-items:center;width:24px;height:24px;border:1.5px solid #1C1714;border-radius:50%;font-size:.85rem}
+.bw-linie{flex:1;min-height:1.4em;border-bottom:2px solid #1C1714}
+.bw-loesungsblatt{display:none;margin-top:16px}
+.bw-blaetter{display:grid;gap:16px}
+.bw-loesungsblatt.zeigen{display:block;margin-top:0}
+.bw-loesung-rahmen:has(.zeigen){order:-1}
+.bw-loesung-rahmen:not(:has(.zeigen)){display:none}
+.bw-loesungen{display:grid;gap:12px}
+.bw-loesung{break-inside:avoid}
+.bw-loesung p{margin:0 0 2px;font-size:1rem}
+.bw-loesung svg{display:block;margin:0 auto}
+
+/* ---------- Drucken (gilt auch für das PDF) ---------- */
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#fff!important}
+  .bw-kopf,.bw-eingabe,.bw-werkzeug,#bwMeldung,.nur-bildschirm{display:none!important}
+  .bw{padding:0;max-width:none}
+  .bw-layout{display:block}
+  .bw-rahmen{overflow:visible;padding:0}
+  .bw-blatt{box-shadow:none;border:0;border-radius:0;padding:0 32px}
+  .bw-blaetter{display:block}
+  .bw-loesung-rahmen:not(:has(.zeigen)){display:block}
+  .bw-loesungsblatt.zeigen{display:none}
+  body.mit-loesung .bw-loesungsblatt{display:block;break-before:page;margin-top:0}
+}

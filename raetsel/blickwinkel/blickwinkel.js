@@ -1,0 +1,408 @@
+/* Rätsellabor – Generator «Blickwinkel»
+   Wörter und Sätze, stark in die Länge gezogen, liegen in verschiedenen Richtungen übereinander in einer Form (Kreis,
+   Quadrat, Achteck …). Von oben sieht man nur ein Gewirr von Strichen. Hält man das Blatt auf Augenhöhe und schaut flach
+   darüber («aus der Schnauzenperspektive»), staucht sich die Nachricht, die in diese Richtung zeigt, wieder zu normalen
+   Buchstaben – die anderen bleiben ein Gewirr. Bis zu 4 Nachrichten in 8 Blickrichtungen (1 = von unten, dann im
+   Gegenuhrzeigersinn). Buchstaben aus Strichen (window.KettenKern.ZEICHEN, Raster 4 × 6). Farben je Nachricht, je Wort
+   oder schwarz-weiss. Am Bildschirm lässt sich der flache Blick nachahmen. Blatt, Lösungsblatt, PDF. */
+(function(){
+'use strict';
+
+/* KERN-START */
+var Kern = (function(){
+  /* Zeichen: aus dem Kettenrätsel (A–Z, 0–9) und ein paar Satzzeichen; Raster 4 breit × 6 hoch, y nach unten */
+  var EXTRA = {
+    '.':[[[1.7, 5.6], [2.3, 5.6], [2.3, 6], [1.7, 6], [1.7, 5.6]]], '!':[[[2, 0], [2, 4.3]], [[1.7, 5.6], [2.3, 5.6], [2.3, 6], [1.7, 6], [1.7, 5.6]]],
+    '?':[[[0.3, 1.2], [1, 0.1], [3, 0.1], [3.8, 1.2], [3.5, 2.4], [2, 3.3], [2, 4.3]], [[1.7, 5.6], [2.3, 5.6], [2.3, 6], [1.7, 6], [1.7, 5.6]]],
+    ',':[[[2.3, 5.2], [1.7, 6.4]]], '-':[[[0.6, 3], [3.4, 3]]], ':':[[[2, 1.6], [2, 2.2]], [[2, 5.4], [2, 6]]]
+  };
+  function zeichenSatz(basis){ var z = {}; Object.keys(basis || {}).forEach(function(k){ z[k] = basis[k]; }); Object.keys(EXTRA).forEach(function(k){ z[k] = EXTRA[k]; }); return z; }
+  // Text → Wörter aus Zeichen, die es gibt (Grossbuchstaben; Ä → AE, Ö → OE, Ü → UE, ß → SS)
+  function lesen(text, Z){
+    var t = String(text || '').normalize('NFC').toLocaleUpperCase('de-CH').replace(/Ä/g, 'AE').replace(/Ö/g, 'OE').replace(/Ü/g, 'UE').replace(/ẞ|ß/g, 'SS');
+    var weg = [];
+    var woerter = t.split(/\s+/).map(function(w){ return Array.from(w).filter(function(c){ if (Z[c]) return true; if (weg.indexOf(c) < 0) weg.push(c); return false; }).join(''); }).filter(Boolean);
+    return { woerter:woerter, weg:weg };
+  }
+  var BUCHSTABE = 4, ABSTAND = 1.1, LEER = 3;   // in Rastereinheiten: Breite eines Zeichens, Abstand dazwischen, Wortabstand
+  function zeilenBreite(z){ return z.reduce(function(s, w, i){ return s + w.length * BUCHSTABE + (w.length - 1) * ABSTAND + (i ? LEER : 0); }, 0); }
+  // Wörter auf k Zeilen verteilen, so dass die längste Zeile möglichst kurz ist (alle Aufteilungen der Reihe nach)
+  function aufteilen(woerter, k){
+    var best = null;
+    (function weiter(i, zeilen){
+      if (zeilen.length === k - 1){ var l = zeilen.concat([woerter.slice(i)]); if (!l[l.length - 1].length) return; var m = Math.max.apply(null, l.map(zeilenBreite)); if (!best || m < best.m) best = { m:m, z:l }; return; }
+      for (var j = i + 1; j <= woerter.length - (k - 1 - zeilen.length); j++) weiter(j, zeilen.concat([woerter.slice(i, j)]));
+    })(0, []);
+    return best;
+  }
+  /* Satz setzen in ein Feld (breite × hoehe Pixel, Mitte 0, 0): so viele Zeilen (1–4), dass die Streckung (Höhe : Breite
+     einer Rastereinheit) nahe bei ZIEL liegt. Zu wenig gestreckt (kurze Wörter) → schmaler setzen, so dass sie mindestens
+     MIN_STRECKUNG beträgt; sonst könnte man das Wort von oben lesen. → { zeilen, striche:[{ wort, p:[[x, y] …] }], streckung, k } */
+  var ZIEL = 8, MIN_STRECKUNG = 7;
+  function setzen(woerter, Z, breite, hoehe){
+    if (!woerter.length) return null;
+    var best = null;
+    for (var k = 1; k <= Math.min(4, woerter.length); k++){
+      var a = aufteilen(woerter, k), lueck = hoehe * 0.06, h = (hoehe - (k - 1) * lueck) / k, uy = h / 6, ux = Math.min(breite / a.m, uy / MIN_STRECKUNG), s = uy / ux;
+      var guete = Math.abs(Math.log(s / ZIEL)) + (k > 1 && h < hoehe * 0.2 ? 1 : 0);
+      if (!best || guete < best.guete - 1e-9) best = { guete:guete, k:k, z:a.z, ux:ux, uy:uy, h:h, lueck:lueck, s:s };
+    }
+    var striche = [], y0 = -hoehe / 2, n = 0;
+    best.z.forEach(function(zeile, j){
+      var b = zeilenBreite(zeile) * best.ux, x = -b / 2, oben = y0 + j * (best.h + best.lueck);
+      zeile.forEach(function(wort, wi){
+        if (wi) x += LEER * best.ux;
+        Array.from(wort).forEach(function(c, ci){
+          if (ci) x += ABSTAND * best.ux;
+          (Z[c] || []).forEach(function(st){ striche.push({ wort:n, p:st.map(function(q){ return [x + q[0] * best.ux, oben + q[1] * best.uy]; }) }); });
+          x += BUCHSTABE * best.ux;
+        });
+        n++;
+      });
+    });
+    return { zeilen:best.z.map(function(z){ return z.join(' '); }), striche:striche, streckung:best.s, k:best.k, woerter:n };
+  }
+  /* Blickrichtung 1–8: 1 = von unten, dann im Gegenuhrzeigersinn (2 unten rechts, 3 rechts … 8 unten links).
+     Winkel, um den die Nachricht gedreht wird (im Uhrzeigersinn, Bildschirm-Koordinaten): −(r − 1) · 45° */
+  function winkel(r){ return -(r - 1) * 45; }
+  function drehen(p, grad){ var w = grad * Math.PI / 180, c = Math.cos(w), s = Math.sin(w); return [p[0] * c - p[1] * s, p[0] * s + p[1] * c]; }
+  /* Grösstes Rechteck, das ganz in der Form liegt, wenn die Form um −grad gedreht ist (= im Rahmen der Nachricht; y zeigt
+     zum Betrachter). Form mit Radius 1. halb: nur in der Hälfte beim Betrachter (y ≥ LUECKE) – dann, wenn die
+     gegenüberliegende Richtung auch belegt ist; sonst stünden die beiden Nachrichten verkehrt übereinander.
+     → { b, h, y } (y = Mitte des Rechtecks) */
+  var LUECKE = 0.05;
+  function rahmen(name, grad, halb){
+    var e = form(name), kanten = [];
+    if (e){
+      var q = e.map(function(p){ return drehen(p, -grad); });
+      q.forEach(function(p, i){ var n = q[(i + 1) % q.length], nx = n[1] - p[1], ny = p[0] - n[0], l = Math.hypot(nx, ny); nx /= l; ny /= l;
+        var d = nx * p[0] + ny * p[1]; if (d < 0){ nx = -nx; ny = -ny; d = -d; } kanten.push([nx, ny, d]); });
+    } else for (var i = 0; i < 180; i++){ var w = i * Math.PI / 90; kanten.push([Math.cos(w), Math.sin(w), 1]); }   // Kreis als 180-Eck (innen)
+    // halbe Breite, wenn das Rechteck von y0 bis y1 reicht (Mitte x = 0)
+    function halbeBreite(y0, y1){
+      var m = Infinity;
+      kanten.forEach(function(k){ [y0, y1].forEach(function(y){ var rest = k[2] - k[1] * y;
+        if (Math.abs(k[0]) > 1e-9) m = Math.min(m, rest / Math.abs(k[0])); else if (rest < 0) m = -1; }); });
+      return m;
+    }
+    var best = null;
+    if (halb) for (var h = 0.05; h <= 1.0001; h += 0.01){ var hb = halbeBreite(LUECKE, LUECKE + h); if (hb > 0 && (!best || 2 * hb * h > best.f + 1e-9)) best = { f:2 * hb * h, b:2 * hb, h:h, y:LUECKE + h / 2 }; }
+    else for (var v = 0.5; v <= 2.0001; v += 0.02){   // v = Höhe : Breite, Rechteck in der Mitte
+      // grösstes t mit halber Breite t und halber Höhe v·t: Halbierung
+      var lo = 0, hi = 1;
+      for (var n = 0; n < 40; n++){ var t = (lo + hi) / 2; if (halbeBreite(-v * t, v * t) >= t) lo = t; else hi = t; }
+      if (!best || lo * lo * v > best.f + 1e-9) best = { f:lo * lo * v, b:2 * lo, h:2 * lo * v, y:0 };
+    }
+    return { b:best.b, h:best.h, y:best.y };
+  }
+  function gegenueber(r){ return (r + 3) % 8 + 1; }
+  function quer(r){ return [(r + 1) % 8 + 1, (r + 5) % 8 + 1]; }   // die zwei Richtungen im rechten Winkel
+  function zufall(seed){ var a = seed >>> 0; return function(){ a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function streuwert(t){ var h = 2166136261; for (var i = 0; i < t.length; i++){ h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  /* Tarnlinien: «Wörter» aus Buchstaben-Bruchstücken (ein Teil eines Buchstabens und ein Strich eines anderen), gleich
+     lang wie die Vorlage. Quer zu einer Nachricht gelegt, sehen sie von oben aus wie eine weitere Nachricht; beim flachen
+     Blick auf die Nachricht werden sie zu feinen Strichen. → { woerter, Z } (Z mit den Tarnzeichen ergänzt) */
+  var TARN_AUS = 'ABCDEFGHKMNPRSTUVWXYZ';
+  function tarnung(vorlage, Z, rnd){
+    var aus = TARN_AUS.split('').filter(function(c){ return Z[c]; }), Z2 = {}, n = 0;
+    Object.keys(Z).forEach(function(k){ Z2[k] = Z[k]; });
+    function eins(){ return Z[aus[Math.floor(rnd() * aus.length)]]; }
+    var woerter = vorlage.map(function(w){ return Array.from(w).map(function(){
+      var a = eins(), b = eins(), k = String.fromCharCode(0xE000 + n++);
+      Z2[k] = a.slice(0, Math.max(1, Math.ceil(a.length / 2))).concat([b[Math.floor(rnd() * b.length)]]);
+      return k;
+    }).join(''); });
+    return { woerter:woerter, Z:Z2 };
+  }
+  // Dicke des Stifts senkrecht zur Zeile: so bleiben waagrechte Striche beim flachen Blick sichtbar
+  function stift(s){ return Math.sqrt(s); }
+  // Formen: Ecken (Mitte 0, 0, Radius 1); Kreis = null
+  function form(name){
+    function eck(n, start){ var l = []; for (var i = 0; i < n; i++){ var w = (start + i * 360 / n) * Math.PI / 180; l.push([Math.sin(w), -Math.cos(w)]); } return l; }
+    if (name === 'quadrat') return eck(4, 45);
+    if (name === 'raute') return eck(4, 0);
+    if (name === 'fuenfeck') return eck(5, 0);
+    if (name === 'sechseck') return eck(6, 30);
+    if (name === 'achteck') return eck(8, 22.5);
+    return null;
+  }
+  return { EXTRA:EXTRA, zeichenSatz:zeichenSatz, lesen:lesen, zeilenBreite:zeilenBreite, aufteilen:aufteilen, setzen:setzen, winkel:winkel, drehen:drehen, form:form, rahmen:rahmen, gegenueber:gegenueber, quer:quer, zufall:zufall, streuwert:streuwert, tarnung:tarnung, stift:stift, MIN_STRECKUNG:MIN_STRECKUNG };
+})();
+/* KERN-ENDE */
+
+var TINTE = '#1C1714', B = 639;
+var D = 150 * 703 / 186;   // Durchmesser der Form: 15 cm
+var FORMEN = [['kreis', 'Kreis'], ['quadrat', 'Quadrat'], ['raute', 'Raute'], ['fuenfeck', 'Fünfeck'], ['sechseck', 'Sechseck'], ['achteck', 'Achteck']];
+var FARBMODI = [['sw', 'schwarz-weiss'], ['nachricht', 'jede Nachricht eine Farbe'], ['wort', 'jedes Wort eine Farbe']];
+var DICKEN = [['fein', 'fein'], ['mittel', 'mittel'], ['dick', 'dick']], DICKE = { fein:2.4, mittel:3.6, dick:5.2 };
+var FARBEN = ['#E53935', '#1E88E5', '#43A047', '#FB8C00', '#8E24AA', '#00897B', '#D81B60', '#6D4C41'];
+var RICHTUNG = { 1:'unten', 2:'unten rechts', 3:'rechts', 4:'oben rechts', 5:'oben', 6:'oben links', 7:'links', 8:'unten links' };
+// Kompass 3 × 3 (Mitte leer): so liegen die Richtungen ums Blatt
+var KOMPASS = [6, 5, 4, 7, 0, 3, 8, 1, 2];
+var MAX = 4;
+function esc(t){ return Labor.esc(t); }
+function f1(x){ return (Math.round(x * 10) / 10).toString(); }
+function chips(name, l){ return l.map(function(x){ return '<label><input type="radio" name="' + name + '" value="' + x[0] + '"><span>' + x[1] + '</span></label>'; }).join(''); }
+
+var VORLAGE = '<div class="bw">' +
+  '<header class="bw-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Blickwinkel</h1>' +
+    '<p>Gestreckte Wörter, übereinander in einer Form: Von oben ein Gewirr – schaut man flach über das Blatt, wird eine Nachricht lesbar.</p></header>' +
+  '<div class="bw-layout"><section class="bw-eingabe" aria-label="Eingaben">' +
+    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Nachrichten</h2><p>Bis zu vier Wörter oder kurze Sätze – jede aus einer anderen Richtung lesbar.</p></div></div>' +
+      '<div class="bw-nachrichten" id="bwNachrichten"></div>' +
+      '<button type="button" class="btn klein" id="bwMehr">+ weitere Nachricht</button>' +
+      '<div class="bw-zaehler" id="bwZaehler" aria-live="polite"></div>' +
+    '</div>' +
+    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Form</h2></div></div>' +
+      '<div class="bw-chips" role="radiogroup" aria-label="Form">' + chips('bwForm', FORMEN) + '</div>' +
+    '</div>' +
+    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Farben</h2></div></div>' +
+      '<div class="bw-chips" role="radiogroup" aria-label="Farben">' + chips('bwFarbmodus', FARBMODI) + '</div>' +
+      '<p class="hinweis" id="bwFarbInfo"></p>' +
+    '</div>' +
+    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">4</span><div><h2>Blatt</h2></div></div>' +
+      '<p class="feld-label">Strichdicke</p><div class="bw-chips" role="radiogroup" aria-label="Strichdicke">' + chips('bwDicke', DICKEN) + '</div>' +
+      '<p class="hinweis" id="bwDickeInfo"></p>' +
+      '<label class="opt"><input type="checkbox" id="bwTarnung"><span>Tarnlinien quer zu den Nachrichten (von oben schwerer zu lesen)</span></label>' +
+      '<p class="hinweis" id="bwTarnInfo"></p>' +
+      '<label class="opt"><input type="checkbox" id="bwMarken"><span>Blickrichtungen am Rand markieren (Nummern)</span></label>' +
+      '<label class="opt"><input type="checkbox" id="bwLinien"><span>Linien für die Antworten</span></label>' +
+    '</div>' +
+  '</section>' +
+  '<section class="bw-ausgabe" aria-label="Ergebnis">' +
+    '<div id="bwMeldung" aria-live="polite"></div>' +
+    '<div class="bw-werkzeug">' +
+      '<button type="button" class="btn klein" id="bwZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
+      '<span class="abstand"></span>' + Labor.blattSchalterHtml() +
+      '<label><input type="checkbox" id="bwMitLoesung"> mit Lösungsblatt</label>' +
+      '<button type="button" class="btn klein primary" id="bwPdf">PDF herunterladen</button>' +
+      '<button type="button" class="btn klein primary" id="bwHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
+    '</div>' +
+    '<div class="karte bw-blick nur-bildschirm" id="bwBlick"><div><h2>Flach darüber schauen</h2><p>So sieht man die Form, wenn man flach von einer Seite darüber schaut:</p></div>' +
+      '<div class="bw-chips" id="bwBlickWahl" role="radiogroup" aria-label="Blickrichtung"></div><div class="bw-blickbild" id="bwBlickBild"></div></div>' +
+    '<div class="bw-blaetter"><div class="bw-rahmen"><article class="bw-blatt" id="bwBlatt"></article></div>' +
+    '<div class="bw-rahmen bw-loesung-rahmen"><article class="bw-blatt bw-loesungsblatt" id="bwLoesung" aria-hidden="true"></article></div></div>' +
+  '</section></div></div>';
+
+var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">' +
+  '<circle cx="12" cy="12" r="9"/><path d="M8 5v14M12 3.5v17M16 5v14" stroke-width="1.6"/><path d="M5 9h14" stroke-width="1.6"/></svg>';
+
+Labor.registriere({
+  id:'blickwinkel',
+  titel:'Blickwinkel',
+  kurz:'Gestreckte Wörter – nur flach über das Blatt geschaut lesbar',
+  beschreibung:'Wörter und Sätze, stark in die Länge gezogen, liegen in bis zu vier Richtungen übereinander. Von oben ein Gewirr; schaut man flach über das Blatt, wird eine Nachricht lesbar. Formen und Farben wählbar, mit Lösungsblatt.',
+  merkmale:['Eigene Wörter und Sätze', 'Bis 4 Blickrichtungen', 'Mit Lösungsblatt'],
+  symbol:SYMBOL,
+  css:'raetsel/blickwinkel/blickwinkel.css',
+  html:VORLAGE,
+  start:starte
+});
+
+/* ===== Bedienung ===== */
+function starte(bereich){
+  var $ = function(s){ return bereich.querySelector(s); }, aus = false, Z = Kern.zeichenSatz(window.KettenKern && window.KettenKern.ZEICHEN);
+  var TAB = 'blickwinkel-eingaben', OPT = 'blickwinkel-einstellungen';
+  // Keine Vorauswahl: Form, Farben und Strichdicke wählt man selbst; Nachrichten brauchen Text und Richtung
+  var STANDARD = { form:'', farbmodus:'', dicke:'', tarnung:true, marken:true, linien:true, mitLoesung:true, titelAn:true, anleitungAn:true };
+  var st = { nachrichten:[{ text:'', richtung:0, farbe:'' }], opt:Object.assign({}, STANDARD) };
+  try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
+  try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e && Array.isArray(e.nachrichten) && e.nachrichten.length) st.nachrichten = e.nachrichten.slice(0, MAX).map(function(n){ return { text:String(n.text || ''), richtung:+n.richtung || 0, farbe:/^#[0-9a-f]{6}$/i.test(n.farbe) ? n.farbe : '' }; }); } catch(x){}
+  function gueltig(k, l){ if (!l.some(function(x){ return x[0] === st.opt[k]; })) st.opt[k] = ''; }
+  gueltig('form', FORMEN); gueltig('farbmodus', FARBMODI); gueltig('dicke', DICKEN);
+  var timer = 0;
+  function speichernJetzt(){ clearTimeout(timer); timer = 0;
+    try { sessionStorage.setItem(TAB, JSON.stringify({ nachrichten:st.nachrichten })); } catch(x){}
+    try { localStorage.setItem(OPT, JSON.stringify(st.opt)); } catch(x){} }
+  function speichern(){ clearTimeout(timer); timer = setTimeout(speichernJetzt, 200); }
+  function meldung(art, html){ $('#bwMeldung').innerHTML = html ? '<div class="meldung ' + art + '">' + html + '</div>' : ''; }
+  var warte = 0;
+  function baldZeichnen(){ clearTimeout(warte); warte = setTimeout(zeichnen, 300); }
+
+  /* ---------- Nachrichten: Text, «Von wo schaut man?» (Kompass), Farbe ---------- */
+  function farbeVon(i){ return st.nachrichten[i].farbe || FARBEN[i % FARBEN.length]; }
+  function nachrichtenZeigen(){
+    var belegt = st.nachrichten.map(function(n){ return n.richtung; });
+    $('#bwNachrichten').innerHTML = st.nachrichten.map(function(n, i){
+      return '<div class="bw-nachricht" data-i="' + i + '">' +
+        '<div class="bw-nachricht-kopf"><label class="feld-label" for="bwText' + i + '">Nachricht ' + (i + 1) + '</label>' +
+          (st.nachrichten.length > 1 ? '<button type="button" class="bw-weg" data-weg="' + i + '" aria-label="Nachricht ' + (i + 1) + ' entfernen">×</button>' : '') + '</div>' +
+        '<input type="text" class="bw-text" id="bwText' + i + '" data-i="' + i + '" maxlength="40" autocomplete="off" spellcheck="false" value="' + esc(n.text) + '">' +
+        '<div class="bw-stufe"' + (n.text.trim() ? '' : ' hidden') + '><p class="feld-label">Von wo schaut man?</p>' +
+          '<div class="bw-kompass" role="radiogroup" aria-label="Blickrichtung für Nachricht ' + (i + 1) + '">' + KOMPASS.map(function(r){
+            if (!r) return '<span class="bw-kompass-mitte" aria-hidden="true"></span>';
+            var weg = belegt.indexOf(r) >= 0 && n.richtung !== r;
+            return '<button type="button" class="bw-ri" data-i="' + i + '" data-r="' + r + '" aria-pressed="' + (n.richtung === r) + '"' + (weg ? ' disabled' : '') + ' title="von ' + RICHTUNG[r] + (weg ? ' – schon belegt' : '') + '">' + r + '</button>';
+          }).join('') + '</div>' +
+          (st.opt.farbmodus === 'nachricht' ? '<label class="bw-farbe"><input type="color" data-farbe="' + i + '" value="' + farbeVon(i) + '"><span>Farbe</span></label>' : '') +
+        '</div></div>';
+    }).join('');
+    $('#bwMehr').hidden = st.nachrichten.length >= MAX;
+  }
+  $('#bwNachrichten').addEventListener('input', function(ev){
+    var t = ev.target;
+    if (t.classList.contains('bw-text')){
+      var i = +t.getAttribute('data-i'), vorher = !!st.nachrichten[i].text.trim();
+      st.nachrichten[i].text = t.value; speichern();
+      if (vorher !== !!t.value.trim()){ var stufe = t.parentNode.querySelector('.bw-stufe'); if (stufe) stufe.hidden = !t.value.trim(); }
+      baldZeichnen();
+    }
+    if (t.hasAttribute('data-farbe')){ st.nachrichten[+t.getAttribute('data-farbe')].farbe = t.value; speichern(); baldZeichnen(); }
+  });
+  $('#bwNachrichten').addEventListener('click', function(ev){
+    var r = ev.target.closest('.bw-ri'), w = ev.target.closest('[data-weg]');
+    if (r && !r.disabled){ var i = +r.getAttribute('data-i'); st.nachrichten[i].richtung = +r.getAttribute('data-r'); speichern(); nachrichtenZeigen(); zeichnen(); var b = $('.bw-ri[data-i="' + i + '"][data-r="' + r.getAttribute('data-r') + '"]'); if (b) b.focus(); }
+    if (w){ st.nachrichten.splice(+w.getAttribute('data-weg'), 1); speichern(); nachrichtenZeigen(); zeichnen(); }
+  });
+  $('#bwMehr').addEventListener('click', function(){
+    if (st.nachrichten.length >= MAX) return;
+    st.nachrichten.push({ text:'', richtung:0, farbe:'' }); speichern(); nachrichtenZeigen();
+    var f = $('#bwText' + (st.nachrichten.length - 1)); if (f) f.focus();
+  });
+  function radios(name, k, nachher){
+    [].forEach.call(bereich.querySelectorAll('input[name="' + name + '"]'), function(r){
+      r.checked = r.value === st.opt[k];
+      r.addEventListener('change', function(){ if (r.checked){ st.opt[k] = r.value; speichern(); if (nachher) nachher(); zeichnen(); } });
+    });
+  }
+  radios('bwForm', 'form'); radios('bwFarbmodus', 'farbmodus', nachrichtenZeigen); radios('bwDicke', 'dicke');
+  [['#bwTarnung', 'tarnung'], ['#bwMarken', 'marken'], ['#bwLinien', 'linien'], ['#bwMitLoesung', 'mitLoesung']].forEach(function(x){
+    $(x[0]).checked = !!st.opt[x[1]];
+    $(x[0]).addEventListener('change', function(){ st.opt[x[1]] = this.checked; speichern(); if (x[1] !== 'mitLoesung') zeichnen(); });
+  });
+  Labor.blattSchalter(bereich, st.opt, function(){ speichern(); zeichnen(); });
+  $('#bwZeigeLoesung').addEventListener('click', function(){
+    var an = this.getAttribute('aria-pressed') !== 'true'; this.setAttribute('aria-pressed', an ? 'true' : 'false');
+    $('#bwLoesung').classList.toggle('zeigen', an); $('#bwLoesung').setAttribute('aria-hidden', an ? 'false' : 'true');
+  });
+  nachrichtenZeigen();
+
+  /* ---------- Zeichnen ---------- */
+  var P = null, T = [], blick = 0;
+  // Pfad der Form (Mitte cx, cy, Radius r)
+  function formPfad(cx, cy, r){
+    var e = Kern.form(st.opt.form);
+    if (!e) return 'M' + f1(cx - r) + ' ' + f1(cy) + 'A' + f1(r) + ' ' + f1(r) + ' 0 1 0 ' + f1(cx + r) + ' ' + f1(cy) + 'A' + f1(r) + ' ' + f1(r) + ' 0 1 0 ' + f1(cx - r) + ' ' + f1(cy) + 'Z';
+    return e.map(function(p, i){ return (i ? 'L' : 'M') + f1(cx + p[0] * r) + ' ' + f1(cy + p[1] * r); }).join('') + 'Z';
+  }
+  /* Die Nachrichten als Striche, gedreht in ihre Richtung, in der Form. Jede Nachricht liegt in ihrer eigenen Gruppe:
+     drehen, dann senkrecht zur Zeile um den Stift-Faktor strecken – so ist der Stift dort dicker (die Punkte werden
+     vorher entsprechend gestaucht). ansicht: Richtung, aus der flach geschaut wird (0 = von oben); dann wird alles
+     zurückgedreht und in Blickrichtung um die Streckung dieser Nachricht gestaucht. */
+  function formSvg(r, ansicht, id){
+    var cx = r + 30, cy = r + 30, W = 2 * r + 60, dicke = DICKE[st.opt.dicke] || DICKE.mittel, faktor = r / (D / 2), t = '';
+    P.concat(T).forEach(function(n, i){
+      var f = Kern.stift(n.satz.streckung), g = '';
+      n.satz.striche.forEach(function(s){
+        var farbe = st.opt.farbmodus === 'sw' ? TINTE : st.opt.farbmodus === 'wort' ? FARBEN[(i * 3 + s.wort) % FARBEN.length] : farbeVon(n.i);
+        g += '<path d="' + s.p.map(function(q, k){ return (k ? 'L' : 'M') + f1(q[0]) + ' ' + f1(q[1] / f); }).join('') + '" stroke="' + farbe + '"/>';
+      });
+      t += '<g transform="translate(' + f1(cx) + ' ' + f1(cy) + ') rotate(' + Kern.winkel(n.richtung) + ') scale(' + faktor.toFixed(4) + ' ' + (faktor * f).toFixed(4) + ')">' + g + '</g>';
+    });
+    var clip = 'bwc' + id, umriss = '<path d="' + formPfad(cx, cy, r) + '" fill="none" stroke="#B9AFA8" stroke-width="1.2"/>';
+    var inhalt = '<clipPath id="' + clip + '"><path d="' + formPfad(cx, cy, r) + '"/></clipPath>' +
+      '<g clip-path="url(#' + clip + ')" fill="none" stroke-width="' + dicke + '" stroke-linecap="round" stroke-linejoin="round">' + t + '</g>' + umriss;
+    if (ansicht){
+      var n = P.filter(function(x){ return x.richtung === ansicht; })[0], s = n ? n.satz.streckung : 5;
+      inhalt = '<g transform="translate(' + f1(cx) + ' ' + f1(cy) + ') scale(1 ' + (1 / s).toFixed(4) + ') rotate(' + (-Kern.winkel(ansicht)) + ') translate(' + f1(-cx) + ' ' + f1(-cy) + ')">' + inhalt + '</g>';
+      var h = 2 * r / s + 24;
+      return '<svg class="bw-form" width="' + f1(W) + '" height="' + f1(h) + '" viewBox="0 ' + f1(cy - h / 2) + ' ' + f1(W) + ' ' + f1(h) + '">' + inhalt + '</svg>';
+    }
+    var marken = '';
+    if (st.opt.marken) P.forEach(function(n){
+      var p = Kern.drehen([0, r + 17], Kern.winkel(n.richtung));
+      marken += '<circle cx="' + f1(cx + p[0]) + '" cy="' + f1(cy + p[1]) + '" r="11" fill="#fff" stroke="' + TINTE + '" stroke-width="1.4"/>' +
+        '<text x="' + f1(cx + p[0]) + '" y="' + f1(cy + p[1] + 4.5) + '" font-size="13" font-weight="700" text-anchor="middle" fill="' + TINTE + '">' + n.richtung + '</text>';
+    });
+    return '<svg class="bw-form" width="' + f1(W) + '" height="' + f1(W) + '" viewBox="0 0 ' + f1(W) + ' ' + f1(W) + '">' + inhalt + marken + '</svg>';
+  }
+  function fehltNoch(){
+    var mitText = st.nachrichten.filter(function(n){ return n.text.trim(); });
+    if (!mitText.length) return 'eine Nachricht (ein Wort oder einen kurzen Satz)';
+    if (mitText.some(function(n){ return !n.richtung; })) return 'bei jeder Nachricht, von wo man schaut';
+    if (!st.opt.form) return 'eine Form';
+    if (!st.opt.farbmodus) return 'die Farben';
+    return '';
+  }
+  function zeichnen(){
+    if (aus) return;
+    var o = st.opt, fehlt = fehltNoch(), h = '';
+    $('#bwFarbInfo').textContent = o.farbmodus === 'sw' ? 'Alles schwarz – am schwierigsten.' : o.farbmodus === 'wort' ? 'Jedes Wort in einer anderen Farbe – so sieht man, wo Wörter beginnen.' : o.farbmodus === 'nachricht' ? 'Jede Nachricht hat ihre eigene Farbe (bei der Nachricht änderbar).' : '';
+    $('#bwDickeInfo').textContent = o.dicke ? '' : 'Noch nichts gewählt: mittel.';
+    var weg = [];
+    P = [];
+    st.nachrichten.forEach(function(n, i){
+      if (!n.text.trim() || !n.richtung) return;
+      var L = Kern.lesen(n.text, Z); L.weg.forEach(function(c){ if (weg.indexOf(c) < 0) weg.push(c); });
+      var halb = st.nachrichten.some(function(m){ return m.text.trim() && m.richtung === Kern.gegenueber(n.richtung); });
+      var box = Kern.rahmen(o.form, Kern.winkel(n.richtung), halb), satz = Kern.setzen(L.woerter, Z, box.b * D / 2 * 0.93, box.h * D / 2 * 0.93);
+      if (satz) satz.striche.forEach(function(s){ s.p = s.p.map(function(q){ return [q[0], q[1] + box.y * D / 2]; }); });
+      if (satz) P.push({ i:i, richtung:n.richtung, text:L.woerter.join(' '), woerter:L.woerter, satz:satz });
+    });
+    /* Tarnlinien: Hat eine Nachricht keine Nachricht im rechten Winkel, kommt dorthin eine Tarnung (gleiche Farbe wie sie) */
+    T = [];
+    if (o.tarnung && o.form){
+      var belegt = P.map(function(n){ return n.richtung; }), rnd = Kern.zufall(Kern.streuwert(P.map(function(n){ return n.richtung + n.text; }).join('|') + o.form));
+      P.forEach(function(n){
+        var q = Kern.quer(n.richtung);
+        if (q.some(function(r){ return belegt.indexOf(r) >= 0; })) return;
+        var r = q[0], halb = belegt.indexOf(Kern.gegenueber(r)) >= 0; belegt.push(r);
+        var tz = Kern.tarnung(n.woerter, Z, rnd), box = Kern.rahmen(o.form, Kern.winkel(r), halb), satz = Kern.setzen(tz.woerter, tz.Z, box.b * D / 2 * 0.93, box.h * D / 2 * 0.93);
+        if (!satz) return;
+        satz.striche.forEach(function(s){ s.p = s.p.map(function(p){ return [p[0], p[1] + box.y * D / 2]; }); });
+        T.push({ i:n.i, richtung:r, satz:satz, tarnung:true });
+      });
+    }
+    $('#bwTarnInfo').textContent = !o.tarnung ? '' : T.length ? 'Tarnlinien aus Richtung ' + T.map(function(t){ return t.richtung; }).join(', ') + ' – beim flachen Blick werden sie zu feinen Strichen.' : P.length ? 'Nicht nötig: Die Nachrichten kreuzen sich schon.' : '';
+    if (weg.length) h += '<p class="warnung">' + esc(weg.join(' ')) + ' gibt es nicht – nur Buchstaben, Ziffern und . , ! ? - :</p>';
+    P.forEach(function(n){ if (n.satz.streckung > 12) h += '<p class="warnung">Nachricht ' + (n.i + 1) + ' ist lang – sehr stark gestreckt, schwer zu lesen. Kürzer ist besser.</p>'; });
+    $('#bwZaehler').innerHTML = h;
+    var leer = !!fehlt || !P.length;
+    ['#bwPdf', '#bwHerunterladen', '#bwZeigeLoesung'].forEach(function(s){ $(s).disabled = leer; });
+    $('#bwBlick').hidden = leer;
+    if (leer){ $('#bwBlatt').parentNode.hidden = true; $('#bwLoesung').classList.remove('zeigen'); meldung('info', '<p>Wähle links ' + (fehlt || 'eine Nachricht') + '.</p>'); return; }
+    meldung('', ''); $('#bwBlatt').parentNode.hidden = false;
+    var anleitung = 'Halte das Blatt waagrecht auf Augenhöhe und schau ganz flach darüber' + (o.marken ? ' – von den Zahlen am Rand aus' : '') + '. Dann werden die gestreckten Wörter lesbar. ' +
+      (P.length > 1 ? 'Aus jeder Richtung steht etwas anderes. ' : '') + 'Schreibe auf, was du liest.';
+    var linien = o.linien ? '<div class="bw-antworten">' + P.slice().sort(function(a, b){ return a.richtung - b.richtung; }).map(function(n){ return '<p class="bw-antwort">' + (o.marken ? '<b>' + n.richtung + '</b>' : '') + '<span class="bw-linie"></span></p>'; }).join('') + '</div>' : '';
+    $('#bwBlatt').innerHTML = (o.titelAn ? '<h2>Blickwinkel</h2>' : '') + (o.anleitungAn ? '<p class="bw-anleitung">' + esc(anleitung) + '</p>' : '') +
+      '<div class="bw-mitte">' + formSvg(D / 2, 0, 'b') + '</div>' + linien;
+    // Lösung: je Nachricht der flache Blick
+    $('#bwLoesung').innerHTML = (o.titelAn ? '<h2>Blickwinkel – Lösung</h2>' : '<p class="bw-anleitung"><b>Lösung</b></p>') +
+      '<div class="bw-loesungen">' + P.slice().sort(function(a, b){ return a.richtung - b.richtung; }).map(function(n){
+        return '<div class="bw-loesung"><p><b>' + n.richtung + '</b> von ' + RICHTUNG[n.richtung] + ': <b>' + esc(n.text) + '</b></p>' + formSvg(240, n.richtung, 'l' + n.richtung) + '</div>';
+      }).join('') + '</div>';
+    // Am Bildschirm: Blickrichtung wählen
+    if (!P.some(function(n){ return n.richtung === blick; })) blick = 0;
+    $('#bwBlickWahl').innerHTML = '<label><input type="radio" name="bwBlick" value="0"' + (blick ? '' : ' checked') + '><span>von oben</span></label>' +
+      P.slice().sort(function(a, b){ return a.richtung - b.richtung; }).map(function(n){ return '<label><input type="radio" name="bwBlick" value="' + n.richtung + '"' + (blick === n.richtung ? ' checked' : '') + '><span>' + n.richtung + ' · von ' + RICHTUNG[n.richtung] + '</span></label>'; }).join('');
+    blickZeigen();
+  }
+  function blickZeigen(){ $('#bwBlickBild').innerHTML = P && P.length ? formSvg(blick ? 260 : 180, blick, 'v') : ''; }
+  $('#bwBlickWahl').addEventListener('change', function(ev){ var r = ev.target.closest('input'); if (!r) return; blick = +r.value; blickZeigen(); });
+
+  /* ---------- PDF, Herunterladen ---------- */
+  function blaetter(){ return [$('#bwBlatt')].concat(st.opt.mitLoesung ? [$('#bwLoesung')] : []); }
+  function druckVorbereiten(){ document.body.classList.toggle('mit-loesung', !!st.opt.mitLoesung); }
+  window.addEventListener('beforeprint', druckVorbereiten);
+  function fehler(t){ meldung('fehler', '<p>' + esc(t) + '</p>'); }
+  Labor.pdfKnopf($('#bwPdf'), function(){ return P && P.length && { blaetter:blaetter(), name:Labor.pdfName('Blickwinkel', '') }; }, fehler);
+  var speicherOrt = null;
+  if (Labor.imArtefakt()){
+    $('#bwPdf').hidden = true;
+    Labor.claude('downloads').then(function(d){ if (!d || aus) return; speicherOrt = d; $('#bwHerunterladen').hidden = false; });
+  }
+  $('#bwHerunterladen').addEventListener('click', function(){
+    if (!speicherOrt || !P || !P.length) return;
+    var name = Labor.pdfName('Blickwinkel', '').replace(/\.pdf$/, '.html');
+    var inhalt = blaetter().map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); k.classList.remove('zeigen'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
+    speicherOrt.save({ filename:name, data:Labor.blattDatei('Blickwinkel', inhalt, '.bw-loesungsblatt{display:block}') }).catch(function(e){
+      if (e && e.code === 'declined') return;
+      meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+    });
+  });
+
+  zeichnen();
+  return function stopp(){ aus = true; if (timer) speichernJetzt(); clearTimeout(warte); window.removeEventListener('beforeprint', druckVorbereiten); document.body.classList.remove('mit-loesung'); };
+}
+})();
