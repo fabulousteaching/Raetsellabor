@@ -281,16 +281,16 @@ Kärtchen von 5 × 10 cm zum Ausschneiden: An den Kanten stehen Begriffe. Wer di
 
 ### Blickwinkel
 
-Wörter und kurze Sätze, stark in die Länge gezogen, liegen in einer Form übereinander. Von oben sieht man nur ein Gewirr von Strichen. Hält man das Blatt waagrecht auf Augenhöhe und schaut ganz flach darüber, staucht sich die Nachricht, die in diese Richtung zeigt, wieder zu normalen Buchstaben.
+Wörter und kurze Sätze, extrem in die Länge gezogen, füllen eine Form mit Strichen. Von oben sieht man nur Streifen. Hält man das Blatt waagrecht auf Augenhöhe und schaut ganz flach darüber (ein Auge zu), staucht sich die Nachricht, die in diese Richtung zeigt, wieder zu normalen Buchstaben.
 
 - **Nachrichten:** 1 bis 4, je ein Wort oder ein kurzer Satz (bis 40 Zeichen). Erst wenn Text da ist, klappt «Von wo schaut man?» auf: ein Kompass mit 8 Richtungen (1 = von unten, dann im Gegenuhrzeigersinn bis 8 = von unten links). Schon belegte Richtungen sind gesperrt. Buchstaben aus Strichen (dieselben wie beim Kettenrätsel, `window.KettenKern.ZEICHEN`), Ziffern und `. , ! ? - :`; Ä, Ö, Ü → AE, OE, UE, ß → SS.
-- **Streckung:** Jede Nachricht wird auf 1 bis 4 Zeilen verteilt, so dass sie etwa 8-fach gestreckt ist, mindestens 7-fach. Kurze Wörter werden dafür schmaler gesetzt, sonst könnte man sie von oben lesen. Der Stift ist quer zur Zeile dicker (Faktor √Streckung), damit die waagrechten Striche beim flachen Blick sichtbar bleiben. Sehr lange Nachrichten (über 12-fach) geben eine Warnung.
-- **Platz:** Jede Nachricht bekommt das grösste Rechteck, das in ihrer Richtung ganz in die Form passt. Ist auch die Richtung gegenüber belegt (z. B. 1 und 5), bekommt jede die Hälfte bei ihrem Betrachter. Sonst stünde die andere Nachricht verkehrt genau darüber.
-- **Tarnlinien** (Häkchen, Standard: an): Hat eine Nachricht keine andere im rechten Winkel, kommen dorthin «Wörter» aus Buchstaben-Bruchstücken, gleich lang und in derselben Farbe. Von oben sieht das aus wie eine weitere Nachricht, beim flachen Blick werden es feine Striche.
-- **Form:** Kreis, Quadrat, Raute, Fünfeck, Sechseck oder Achteck, 15 cm gross, mit feinem Umriss.
+- **Streckung:** überall mindestens 16-fach (`STRECKUNG`; flach geschaut etwa 3.5°). So werden die Buchstaben zu langen, fast parallelen Strichen, die man von oben nicht lesen kann. Die Buchstaben füllen die Form von oben bis unten: Jeder Punkt eines Zeichens liegt in der Sehne der Form an seiner Stelle, die Zeilen folgen also dem Rand (in der Mitte höher, am Rand niedriger). Waagrecht reicht der Satz so weit, wie die Form noch 60 % ihrer grössten Höhe hat. Kurze Wörter werden schmaler, lange füllen die Breite und werden noch stärker gestreckt; mehr Zeilen (bis 3) nur, wenn die Buchstaben damit grösser werden. Werden die Buchstaben beim flachen Blick kleiner als 3 mm, kommt eine Warnung; füllt eine kurze Nachricht weniger als die halbe Breite, ein Tipp. Der Stift ist quer zur Zeile dicker (Faktor Streckung^0.65), damit die waagrechten Striche beim flachen Blick sichtbar bleiben.
+- **Gegenüber:** Ist auch die Richtung gegenüber belegt (z. B. 1 und 5), bekommt jede Nachricht die Hälfte der Form bei ihrem Betrachter. Sonst stünde die andere Nachricht verkehrt genau darüber.
+- **Tarnlinien** (Häkchen, Standard: an): Hat eine Nachricht keine andere im rechten Winkel, kommen dorthin «Wörter» aus Buchstaben-Bruchstücken, so viele, dass sie die Form füllen – mit dünnem Stift und in den Farben der Nachricht. Von oben sieht das aus wie eine weitere Nachricht, beim flachen Blick werden es feine Striche.
+- **Form:** Kreis, Quadrat, Raute, Fünfeck, Sechseck oder Achteck, je so gross wie möglich in 15 × 15 cm, mit feinem Umriss.
 - **Farben:** schwarz-weiss, jede Nachricht eine Farbe (bei der Nachricht änderbar) oder jedes Wort eine Farbe.
 - **Blatt:** Strichdicke fein, mittel oder dick (ohne Wahl mittel); auf Wunsch die Nummern der Blickrichtungen am Rand und Linien für die Antworten. Keine Vorauswahl: Die Meldung rechts sagt, was noch fehlt.
-- **Am Bildschirm:** «Flach darüber schauen» zeigt die Form so, wie man sie flach von einer Seite sieht (zurückgedreht und um die Streckung gestaucht). Lösungsblatt: jede Nachricht mit Richtung, Text und dieser Ansicht; «Lösung zeigen» blendet es oben ein. PDF (zwei Seiten).
+- **Am Bildschirm:** «Flach darüber schauen» zeigt die Form so, wie man sie flach von einer Seite sieht (zurückgedreht und um die Streckung in der Mitte gestaucht). Lösungsblatt: jede Nachricht mit Richtung, Text und dieser Ansicht; «Lösung zeigen» blendet es oben ein. PDF (zwei Seiten).
 
 ## Aufbau
 
@@ -331,7 +331,7 @@ raetsel/rotfolie/               der Generator «Rotfolienrätsel» (Kern: Farben
 raetsel/folien/                 der Generator «Überlappende Folien» (Kern: Zeichen auf zwei Karten teilen, Eindeutigkeit prüfen und reparieren; Karten, Ziehen am Bildschirm)
 raetsel/schiebefenster/         der Generator «Schiebefenster» (Kern: Streifen aus Negativ-Zeichen, Ablenkung, Prüfen aller Fensterstellen; Streifen, Fensterfolie, Schieben am Bildschirm)
 raetsel/legekaertchen/          der Generator «Legekärtchen» (Kern: Figuren aus Feldern, Auslegen mit Kärtchen, Kanten, Paare belegen; Kärtchenblätter, Lösung)
-raetsel/blickwinkel/            der Generator «Blickwinkel» (Kern: Strichschrift, Zeilen setzen und strecken, grösstes Rechteck in der Form, Richtungen, Tarnlinien; Form als SVG, flacher Blick)
+raetsel/blickwinkel/            der Generator «Blickwinkel» (Kern: Strichschrift, Sätze in die Form setzen und strecken, Sehnen der Form, Richtungen, Tarnlinien; Form als SVG, flacher Blick)
 raetsel/triomino/               der Generator «Triomino» (Kern: Formen, Kanten, Aufgaben, Belegung; Zeichnen mit Schriftanpassung)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)

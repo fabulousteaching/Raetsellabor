@@ -99,3 +99,4 @@
   .bw-loesungsblatt.zeigen{display:none}
   body.mit-loesung .bw-loesungsblatt{display:block;break-before:page;margin-top:0}
 }
+.bw-zaehler .bw-info{color:var(--muted)}

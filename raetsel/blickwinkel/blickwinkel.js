@@ -1,6 +1,6 @@
 /* Rätsellabor – Generator «Blickwinkel»
-   Wörter und Sätze, stark in die Länge gezogen, liegen in verschiedenen Richtungen übereinander in einer Form (Kreis,
-   Quadrat, Achteck …). Von oben sieht man nur ein Gewirr von Strichen. Hält man das Blatt auf Augenhöhe und schaut flach
+   Wörter und Sätze, extrem in die Länge gezogen (mindestens 16-fach), füllen eine Form (Kreis,
+   Quadrat, Achteck …) mit Strichen. Von oben sieht man nur Streifen. Hält man das Blatt auf Augenhöhe und schaut flach
    darüber («aus der Schnauzenperspektive»), staucht sich die Nachricht, die in diese Richtung zeigt, wieder zu normalen
    Buchstaben – die anderen bleiben ein Gewirr. Bis zu 4 Nachrichten in 8 Blickrichtungen (1 = von unten, dann im
    Gegenuhrzeigersinn). Buchstaben aus Strichen (window.KettenKern.ZEICHEN, Raster 4 × 6). Farben je Nachricht, je Wort
@@ -24,7 +24,7 @@ var Kern = (function(){
     var woerter = t.split(/\s+/).map(function(w){ return Array.from(w).filter(function(c){ if (Z[c]) return true; if (weg.indexOf(c) < 0) weg.push(c); return false; }).join(''); }).filter(Boolean);
     return { woerter:woerter, weg:weg };
   }
-  var BUCHSTABE = 4, ABSTAND = 1.1, LEER = 3;   // in Rastereinheiten: Breite eines Zeichens, Abstand dazwischen, Wortabstand
+  var BUCHSTABE = 4, ABSTAND = 0.8, LEER = 4.2;   // in Rastereinheiten: Breite eines Zeichens, Abstand dazwischen, Wortabstand
   function zeilenBreite(z){ return z.reduce(function(s, w, i){ return s + w.length * BUCHSTABE + (w.length - 1) * ABSTAND + (i ? LEER : 0); }, 0); }
   // Wörter auf k Zeilen verteilen, so dass die längste Zeile möglichst kurz ist (alle Aufteilungen der Reihe nach)
   function aufteilen(woerter, k){
@@ -35,65 +35,95 @@ var Kern = (function(){
     })(0, []);
     return best;
   }
-  /* Satz setzen in ein Feld (breite × hoehe Pixel, Mitte 0, 0): so viele Zeilen (1–4), dass die Streckung (Höhe : Breite
-     einer Rastereinheit) nahe bei ZIEL liegt. Zu wenig gestreckt (kurze Wörter) → schmaler setzen, so dass sie mindestens
-     MIN_STRECKUNG beträgt; sonst könnte man das Wort von oben lesen. → { zeilen, striche:[{ wort, p:[[x, y] …] }], streckung, k } */
-  var ZIEL = 8, MIN_STRECKUNG = 7;
-  function setzen(woerter, Z, breite, hoehe){
+  /* Satz in die Form setzen (Einheit: Radius der Form = 1, Rahmen der Nachricht). Die Buchstaben füllen die Form von
+     oben bis unten: Jeder Punkt eines Zeichens liegt in der senkrechten Sehne der Form bei seinem x – so folgen die Zeilen
+     dem Rand der Form (in der Mitte höher, am Rand niedriger). Waagrecht reicht der Satz höchstens so weit, wie die Sehne
+     noch KANTE · die längste ist. Die Streckung (Zeilenhöhe : Breite einer Rastereinheit) ist überall mindestens S – so
+     werden die Buchstaben zu langen, fast parallelen Strichen, die man von oben nicht lesen kann. Kurze Wörter werden
+     dafür schmaler. Mehr Zeilen (bis 3) nur, wenn die Buchstaben damit grösser werden.
+     sf: Sehne bei x → [oben, unten] oder null. → { striche:[{ wort, p:[[x, y] …] }], ux, streckung (in der Mitte), k, zeilen } */
+  var RAND = 0.035, ZWISCHEN = 0.05, KANTE = 0.6;
+  function bereich(sf){
+    var N = 400, lang = [], cmax = 0;
+    for (var i = 0; i <= N; i++){ var c = sf(-1 + 2 * i / N), l = c ? c[1] - c[0] : 0; lang.push(l); if (l > cmax) cmax = l; }
+    var ia = 0, ib = N; while (lang[ia] < KANTE * cmax) ia++; while (lang[ib] < KANTE * cmax) ib--;
+    return { xa:-1 + 2 * ia / N, xb:-1 + 2 * ib / N, cmax:cmax };
+  }
+  function band(l, k){ return (l - 2 * RAND - (k - 1) * ZWISCHEN) / k; }
+  function setzen(woerter, Z, sf, S){
     if (!woerter.length) return null;
-    var best = null;
-    for (var k = 1; k <= Math.min(4, woerter.length); k++){
-      var a = aufteilen(woerter, k), lueck = hoehe * 0.06, h = (hoehe - (k - 1) * lueck) / k, uy = h / 6, ux = Math.min(breite / a.m, uy / MIN_STRECKUNG), s = uy / ux;
-      var guete = Math.abs(Math.log(s / ZIEL)) + (k > 1 && h < hoehe * 0.2 ? 1 : 0);
-      if (!best || guete < best.guete - 1e-9) best = { guete:guete, k:k, z:a.z, ux:ux, uy:uy, h:h, lueck:lueck, s:s };
+    var B = bereich(sf), mitte = (B.xa + B.xb) / 2, best = null;
+    function kuerzeste(x0, x1){ var m = Infinity; for (var j = 0; j <= 40; j++){ var c = sf(x0 + (x1 - x0) * j / 40); m = Math.min(m, c ? c[1] - c[0] : 0); } return m; }
+    for (var k = 1; k <= Math.min(3, woerter.length); k++){
+      var a = aufteilen(woerter, k), ux = (B.xb - B.xa) / a.m, l = 0, ok = true;
+      for (var t = 0; t < 40; t++){
+        l = kuerzeste(mitte - a.m * ux / 2, mitte + a.m * ux / 2);
+        if (band(l, k) <= 0){ ok = false; break; }
+        var st = band(l, k) / (6 * ux);
+        if (st >= S * 0.999) break;
+        ux *= st / S;
+      }
+      if (ok && (!best || ux > best.ux * 1.03)) best = { k:k, z:a.z, ux:ux };
     }
-    var striche = [], y0 = -hoehe / 2, n = 0;
+    if (!best) return null;
+    var striche = [], n = 0, ux = best.ux;
     best.z.forEach(function(zeile, j){
-      var b = zeilenBreite(zeile) * best.ux, x = -b / 2, oben = y0 + j * (best.h + best.lueck);
+      function punkt(x, gy){ var c = sf(x) || sf(mitte), b = band(c[1] - c[0], best.k); return [x, c[0] + RAND + j * (b + ZWISCHEN) + gy / 6 * b]; }
+      var x = mitte - zeilenBreite(zeile) * ux / 2;
       zeile.forEach(function(wort, wi){
-        if (wi) x += LEER * best.ux;
+        if (wi) x += LEER * ux;
         Array.from(wort).forEach(function(c, ci){
-          if (ci) x += ABSTAND * best.ux;
-          (Z[c] || []).forEach(function(st){ striche.push({ wort:n, p:st.map(function(q){ return [x + q[0] * best.ux, oben + q[1] * best.uy]; }) }); });
-          x += BUCHSTABE * best.ux;
+          if (ci) x += ABSTAND * ux;
+          var x0 = x;
+          (Z[c] || []).forEach(function(st){
+            var p = [];
+            st.forEach(function(q, qi){
+              if (qi){ var v = st[qi - 1], teile = Math.max(1, Math.ceil(Math.abs(q[0] - v[0]) * ux / 0.01));
+                for (var m = 1; m < teile; m++) p.push(punkt(x0 + (v[0] + (q[0] - v[0]) * m / teile) * ux, v[1] + (q[1] - v[1]) * m / teile)); }
+              p.push(punkt(x0 + q[0] * ux, q[1]));
+            });
+            striche.push({ wort:n, p:p });
+          });
+          x += BUCHSTABE * ux;
         });
         n++;
       });
     });
-    return { zeilen:best.z.map(function(z){ return z.join(' '); }), striche:striche, streckung:best.s, k:best.k, woerter:n };
+    var cm = sf(mitte);
+    return { zeilen:best.z.map(function(z){ return z.join(' '); }), striche:striche, ux:ux, streckung:band(cm[1] - cm[0], best.k) / (6 * ux), k:best.k, woerter:n,
+      fuellung:Math.max.apply(null, best.z.map(zeilenBreite)) * ux / (B.xb - B.xa) };
+  }
+  // So viele Tarnzeichen, dass sie die Form etwa füllen
+  function tarnAnzahl(sf, S){
+    var B = bereich(sf), ux = band(B.cmax * 0.85, 1) / (6 * S * 1.05);
+    return Math.max(3, Math.min(40, Math.round((B.xb - B.xa) / (ux * (BUCHSTABE + ABSTAND)))));
   }
   /* Blickrichtung 1–8: 1 = von unten, dann im Gegenuhrzeigersinn (2 unten rechts, 3 rechts … 8 unten links).
      Winkel, um den die Nachricht gedreht wird (im Uhrzeigersinn, Bildschirm-Koordinaten): −(r − 1) · 45° */
   function winkel(r){ return -(r - 1) * 45; }
   function drehen(p, grad){ var w = grad * Math.PI / 180, c = Math.cos(w), s = Math.sin(w); return [p[0] * c - p[1] * s, p[0] * s + p[1] * c]; }
-  /* Grösstes Rechteck, das ganz in der Form liegt, wenn die Form um −grad gedreht ist (= im Rahmen der Nachricht; y zeigt
-     zum Betrachter). Form mit Radius 1. halb: nur in der Hälfte beim Betrachter (y ≥ LUECKE) – dann, wenn die
-     gegenüberliegende Richtung auch belegt ist; sonst stünden die beiden Nachrichten verkehrt übereinander.
-     → { b, h, y } (y = Mitte des Rechtecks) */
-  var LUECKE = 0.05;
-  function rahmen(name, grad, halb){
-    var e = form(name), kanten = [];
+  /* Ränder der Form im Rahmen der Nachricht (Form um −grad gedreht; y zeigt zum Betrachter): Kanten n · p ≤ d, n nach
+     aussen; der Kreis als 360-Eck */
+  function kanten(name, grad){
+    var e = form(name), k = [];
     if (e){
       var q = e.map(function(p){ return drehen(p, -grad); });
       q.forEach(function(p, i){ var n = q[(i + 1) % q.length], nx = n[1] - p[1], ny = p[0] - n[0], l = Math.hypot(nx, ny); nx /= l; ny /= l;
-        var d = nx * p[0] + ny * p[1]; if (d < 0){ nx = -nx; ny = -ny; d = -d; } kanten.push([nx, ny, d]); });
-    } else for (var i = 0; i < 180; i++){ var w = i * Math.PI / 90; kanten.push([Math.cos(w), Math.sin(w), 1]); }   // Kreis als 180-Eck (innen)
-    // halbe Breite, wenn das Rechteck von y0 bis y1 reicht (Mitte x = 0)
-    function halbeBreite(y0, y1){
-      var m = Infinity;
-      kanten.forEach(function(k){ [y0, y1].forEach(function(y){ var rest = k[2] - k[1] * y;
-        if (Math.abs(k[0]) > 1e-9) m = Math.min(m, rest / Math.abs(k[0])); else if (rest < 0) m = -1; }); });
-      return m;
-    }
-    var best = null;
-    if (halb) for (var h = 0.05; h <= 1.0001; h += 0.01){ var hb = halbeBreite(LUECKE, LUECKE + h); if (hb > 0 && (!best || 2 * hb * h > best.f + 1e-9)) best = { f:2 * hb * h, b:2 * hb, h:h, y:LUECKE + h / 2 }; }
-    else for (var v = 0.5; v <= 2.0001; v += 0.02){   // v = Höhe : Breite, Rechteck in der Mitte
-      // grösstes t mit halber Breite t und halber Höhe v·t: Halbierung
-      var lo = 0, hi = 1;
-      for (var n = 0; n < 40; n++){ var t = (lo + hi) / 2; if (halbeBreite(-v * t, v * t) >= t) lo = t; else hi = t; }
-      if (!best || lo * lo * v > best.f + 1e-9) best = { f:lo * lo * v, b:2 * lo, h:2 * lo * v, y:0 };
-    }
-    return { b:best.b, h:best.h, y:best.y };
+        var d = nx * p[0] + ny * p[1]; if (d < 0){ nx = -nx; ny = -ny; d = -d; } k.push([nx, ny, d]); });
+    } else for (var i = 0; i < 360; i++){ var w = i * Math.PI / 180; k.push([Math.cos(w), Math.sin(w), 1]); }
+    return k;
+  }
+  /* Senkrechte Sehne der Form bei x → [oben, unten] oder null. halb: nur die Hälfte beim Betrachter (y ≥ LUECKE) – dann,
+     wenn die gegenüberliegende Richtung auch belegt ist; sonst stünden die beiden Nachrichten verkehrt übereinander. */
+  var LUECKE = 0.04;
+  function sehne(k, halb){
+    return function(x){
+      var lo = halb ? LUECKE : -Infinity, hi = Infinity;
+      for (var i = 0; i < k.length; i++){ var nx = k[i][0], ny = k[i][1], r = k[i][2] - nx * x;
+        if (Math.abs(ny) < 1e-12){ if (r < 0) return null; }
+        else if (ny > 0) hi = Math.min(hi, r / ny); else lo = Math.max(lo, r / ny); }
+      return hi - lo > 1e-6 ? [lo, hi] : null;
+    };
   }
   function gegenueber(r){ return (r + 3) % 8 + 1; }
   function quer(r){ return [(r + 1) % 8 + 1, (r + 5) % 8 + 1]; }   // die zwei Richtungen im rechten Winkel
@@ -115,10 +145,20 @@ var Kern = (function(){
     return { woerter:woerter, Z:Z2 };
   }
   // Dicke des Stifts senkrecht zur Zeile: so bleiben waagrechte Striche beim flachen Blick sichtbar
-  function stift(s){ return Math.sqrt(s); }
-  // Formen: Ecken (Mitte 0, 0, Radius 1); Kreis = null
+  function stift(s){ return Math.pow(s, 0.65); }
+  var STRECKUNG = 16;
+  // Wie weit reicht die Form in Richtung u (Länge 1)? Für die Nummern am Rand
+  function reichweite(name, u){ var e = form(name); return e ? Math.max.apply(null, e.map(function(p){ return p[0] * u[0] + p[1] * u[1]; })) : 1; }   // mindestens so stark gestreckt: Blickwinkel etwa 3.5°, ganz flach über das Blatt
+  /* Formen: Ecken, so verschoben und vergrössert, dass sie das Quadrat von −1 bis 1 ausfüllen (gleich gross wie der Kreis
+     mit Radius 1, so breit oder hoch wie möglich); Kreis = null */
   function form(name){
-    function eck(n, start){ var l = []; for (var i = 0; i < n; i++){ var w = (start + i * 360 / n) * Math.PI / 180; l.push([Math.sin(w), -Math.cos(w)]); } return l; }
+    function eck(n, start){
+      var l = []; for (var i = 0; i < n; i++){ var w = (start + i * 360 / n) * Math.PI / 180; l.push([Math.sin(w), -Math.cos(w)]); }
+      var xs = l.map(function(p){ return p[0]; }), ys = l.map(function(p){ return p[1]; });
+      var mx = (Math.min.apply(null, xs) + Math.max.apply(null, xs)) / 2, my = (Math.min.apply(null, ys) + Math.max.apply(null, ys)) / 2;
+      var m = Math.max.apply(null, l.map(function(p){ return Math.max(Math.abs(p[0] - mx), Math.abs(p[1] - my)); }));
+      return l.map(function(p){ return [(p[0] - mx) / m, (p[1] - my) / m]; });
+    }
     if (name === 'quadrat') return eck(4, 45);
     if (name === 'raute') return eck(4, 0);
     if (name === 'fuenfeck') return eck(5, 0);
@@ -126,7 +166,7 @@ var Kern = (function(){
     if (name === 'achteck') return eck(8, 22.5);
     return null;
   }
-  return { EXTRA:EXTRA, zeichenSatz:zeichenSatz, lesen:lesen, zeilenBreite:zeilenBreite, aufteilen:aufteilen, setzen:setzen, winkel:winkel, drehen:drehen, form:form, rahmen:rahmen, gegenueber:gegenueber, quer:quer, zufall:zufall, streuwert:streuwert, tarnung:tarnung, stift:stift, MIN_STRECKUNG:MIN_STRECKUNG };
+  return { EXTRA:EXTRA, zeichenSatz:zeichenSatz, lesen:lesen, zeilenBreite:zeilenBreite, aufteilen:aufteilen, setzen:setzen, winkel:winkel, drehen:drehen, form:form, kanten:kanten, sehne:sehne, bereich:bereich, tarnAnzahl:tarnAnzahl, gegenueber:gegenueber, quer:quer, zufall:zufall, streuwert:streuwert, tarnung:tarnung, stift:stift, reichweite:reichweite, STRECKUNG:STRECKUNG };
 })();
 /* KERN-ENDE */
 
@@ -146,7 +186,7 @@ function chips(name, l){ return l.map(function(x){ return '<label><input type="r
 
 var VORLAGE = '<div class="bw">' +
   '<header class="bw-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Blickwinkel</h1>' +
-    '<p>Gestreckte Wörter, übereinander in einer Form: Von oben ein Gewirr – schaut man flach über das Blatt, wird eine Nachricht lesbar.</p></header>' +
+    '<p>Extrem gestreckte Wörter füllen eine Form mit Streifen: Von oben unlesbar – schaut man ganz flach über das Blatt, wird eine Nachricht lesbar.</p></header>' +
   '<div class="bw-layout"><section class="bw-eingabe" aria-label="Eingaben">' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Nachrichten</h2><p>Bis zu vier Wörter oder kurze Sätze – jede aus einer anderen Richtung lesbar.</p></div></div>' +
       '<div class="bw-nachrichten" id="bwNachrichten"></div>' +
@@ -191,7 +231,7 @@ Labor.registriere({
   id:'blickwinkel',
   titel:'Blickwinkel',
   kurz:'Gestreckte Wörter – nur flach über das Blatt geschaut lesbar',
-  beschreibung:'Wörter und Sätze, stark in die Länge gezogen, liegen in bis zu vier Richtungen übereinander. Von oben ein Gewirr; schaut man flach über das Blatt, wird eine Nachricht lesbar. Formen und Farben wählbar, mit Lösungsblatt.',
+  beschreibung:'Wörter und Sätze, extrem in die Länge gezogen, füllen eine Form mit Streifen – in bis zu vier Richtungen. Von oben unlesbar; schaut man ganz flach über das Blatt, wird eine Nachricht lesbar. Formen und Farben wählbar, mit Lösungsblatt.',
   merkmale:['Eigene Wörter und Sätze', 'Bis 4 Blickrichtungen', 'Mit Lösungsblatt'],
   symbol:SYMBOL,
   css:'raetsel/blickwinkel/blickwinkel.css',
@@ -290,18 +330,22 @@ function starte(bereich){
      vorher entsprechend gestaucht). ansicht: Richtung, aus der flach geschaut wird (0 = von oben); dann wird alles
      zurückgedreht und in Blickrichtung um die Streckung dieser Nachricht gestaucht. */
   function formSvg(r, ansicht, id){
-    var cx = r + 30, cy = r + 30, W = 2 * r + 60, dicke = DICKE[st.opt.dicke] || DICKE.mittel, faktor = r / (D / 2), t = '';
+    // Punkte in Tausendsteln des Radius; die Gruppe skaliert auf r Pixel. Strichdicke gilt für die Form in Originalgrösse (D).
+    var cx = r + 30, cy = r + 30, W = 2 * r + 60, dicke = (DICKE[st.opt.dicke] || DICKE.mittel) * 1000 / (D / 2), faktor = r / 1000, t = '';
     P.concat(T).forEach(function(n, i){
-      var f = Kern.stift(n.satz.streckung), g = '';
+      // Tarnlinien: dünner Stift, nicht dicker quer zur Zeile (sie muss niemand lesen)
+      var f = n.tarnung ? 1 : Kern.stift(n.satz.streckung), g = '';
       n.satz.striche.forEach(function(s){
-        var farbe = st.opt.farbmodus === 'sw' ? TINTE : st.opt.farbmodus === 'wort' ? FARBEN[(i * 3 + s.wort) % FARBEN.length] : farbeVon(n.i);
-        g += '<path d="' + s.p.map(function(q, k){ return (k ? 'L' : 'M') + f1(q[0]) + ' ' + f1(q[1] / f); }).join('') + '" stroke="' + farbe + '"/>';
+        // Tarnlinien nehmen die Farben ihrer Nachricht (sonst verriete die Farbe, was Tarnung ist)
+        var b = n.tarnung ? n.basis : i, w = n.tarnung ? s.wort % P[n.basis].satz.woerter : s.wort;
+        var farbe = st.opt.farbmodus === 'sw' ? TINTE : st.opt.farbmodus === 'wort' ? FARBEN[(b * 3 + w) % FARBEN.length] : farbeVon(n.i);
+        g += '<path d="' + s.p.map(function(q, k){ return (k ? 'L' : 'M') + f1(q[0] * 1000) + ' ' + f1(q[1] * 1000 / f); }).join('') + '" stroke="' + farbe + '"/>';
       });
-      t += '<g transform="translate(' + f1(cx) + ' ' + f1(cy) + ') rotate(' + Kern.winkel(n.richtung) + ') scale(' + faktor.toFixed(4) + ' ' + (faktor * f).toFixed(4) + ')">' + g + '</g>';
+      t += '<g transform="translate(' + f1(cx) + ' ' + f1(cy) + ') rotate(' + Kern.winkel(n.richtung) + ') scale(' + faktor.toFixed(4) + ' ' + (faktor * f).toFixed(4) + ')"' + (n.tarnung ? ' stroke-width="' + f1(dicke * 0.7) + '"' : '') + '>' + g + '</g>';
     });
     var clip = 'bwc' + id, umriss = '<path d="' + formPfad(cx, cy, r) + '" fill="none" stroke="#B9AFA8" stroke-width="1.2"/>';
     var inhalt = '<clipPath id="' + clip + '"><path d="' + formPfad(cx, cy, r) + '"/></clipPath>' +
-      '<g clip-path="url(#' + clip + ')" fill="none" stroke-width="' + dicke + '" stroke-linecap="round" stroke-linejoin="round">' + t + '</g>' + umriss;
+      '<g clip-path="url(#' + clip + ')" fill="none" stroke-width="' + f1(dicke) + '" stroke-linecap="round" stroke-linejoin="round">' + t + '</g>' + umriss;
     if (ansicht){
       var n = P.filter(function(x){ return x.richtung === ansicht; })[0], s = n ? n.satz.streckung : 5;
       inhalt = '<g transform="translate(' + f1(cx) + ' ' + f1(cy) + ') scale(1 ' + (1 / s).toFixed(4) + ') rotate(' + (-Kern.winkel(ansicht)) + ') translate(' + f1(-cx) + ' ' + f1(-cy) + ')">' + inhalt + '</g>';
@@ -310,7 +354,7 @@ function starte(bereich){
     }
     var marken = '';
     if (st.opt.marken) P.forEach(function(n){
-      var p = Kern.drehen([0, r + 17], Kern.winkel(n.richtung));
+      var u = Kern.drehen([0, 1], Kern.winkel(n.richtung)), a = Kern.reichweite(st.opt.form, u) * r + 17, p = [u[0] * a, u[1] * a];
       marken += '<circle cx="' + f1(cx + p[0]) + '" cy="' + f1(cy + p[1]) + '" r="11" fill="#fff" stroke="' + TINTE + '" stroke-width="1.4"/>' +
         '<text x="' + f1(cx + p[0]) + '" y="' + f1(cy + p[1] + 4.5) + '" font-size="13" font-weight="700" text-anchor="middle" fill="' + TINTE + '">' + n.richtung + '</text>';
     });
@@ -335,8 +379,7 @@ function starte(bereich){
       if (!n.text.trim() || !n.richtung) return;
       var L = Kern.lesen(n.text, Z); L.weg.forEach(function(c){ if (weg.indexOf(c) < 0) weg.push(c); });
       var halb = st.nachrichten.some(function(m){ return m.text.trim() && m.richtung === Kern.gegenueber(n.richtung); });
-      var box = Kern.rahmen(o.form, Kern.winkel(n.richtung), halb), satz = Kern.setzen(L.woerter, Z, box.b * D / 2 * 0.93, box.h * D / 2 * 0.93);
-      if (satz) satz.striche.forEach(function(s){ s.p = s.p.map(function(q){ return [q[0], q[1] + box.y * D / 2]; }); });
+      var satz = Kern.setzen(L.woerter, Z, Kern.sehne(Kern.kanten(o.form, Kern.winkel(n.richtung)), halb), Kern.STRECKUNG);
       if (satz) P.push({ i:i, richtung:n.richtung, text:L.woerter.join(' '), woerter:L.woerter, satz:satz });
     });
     /* Tarnlinien: Hat eine Nachricht keine Nachricht im rechten Winkel, kommt dorthin eine Tarnung (gleiche Farbe wie sie) */
@@ -347,22 +390,25 @@ function starte(bereich){
         var q = Kern.quer(n.richtung);
         if (q.some(function(r){ return belegt.indexOf(r) >= 0; })) return;
         var r = q[0], halb = belegt.indexOf(Kern.gegenueber(r)) >= 0; belegt.push(r);
-        var tz = Kern.tarnung(n.woerter, Z, rnd), box = Kern.rahmen(o.form, Kern.winkel(r), halb), satz = Kern.setzen(tz.woerter, tz.Z, box.b * D / 2 * 0.93, box.h * D / 2 * 0.93);
+        var sf = Kern.sehne(Kern.kanten(o.form, Kern.winkel(r)), halb), anzahl = Kern.tarnAnzahl(sf, Kern.STRECKUNG), vorlage = [];
+        while (anzahl > 0){ var l = Math.min(anzahl, 3 + Math.floor(rnd() * 4)); vorlage.push(new Array(l + 1).join('X')); anzahl -= l; }
+        var tz = Kern.tarnung(vorlage, Z, rnd), satz = Kern.setzen(tz.woerter, tz.Z, sf, Kern.STRECKUNG);
         if (!satz) return;
-        satz.striche.forEach(function(s){ s.p = s.p.map(function(p){ return [p[0], p[1] + box.y * D / 2]; }); });
-        T.push({ i:n.i, richtung:r, satz:satz, tarnung:true });
+        T.push({ i:n.i, basis:P.indexOf(n), richtung:r, satz:satz, tarnung:true });
       });
     }
     $('#bwTarnInfo').textContent = !o.tarnung ? '' : T.length ? 'Tarnlinien aus Richtung ' + T.map(function(t){ return t.richtung; }).join(', ') + ' – beim flachen Blick werden sie zu feinen Strichen.' : P.length ? 'Nicht nötig: Die Nachrichten kreuzen sich schon.' : '';
     if (weg.length) h += '<p class="warnung">' + esc(weg.join(' ')) + ' gibt es nicht – nur Buchstaben, Ziffern und . , ! ? - :</p>';
-    P.forEach(function(n){ if (n.satz.streckung > 12) h += '<p class="warnung">Nachricht ' + (n.i + 1) + ' ist lang – sehr stark gestreckt, schwer zu lesen. Kürzer ist besser.</p>'; });
+    // Höhe der Buchstaben beim flachen Blick (Mitte): 6 Rastereinheiten; Radius = 75 mm
+    P.forEach(function(n){ var mm = 6 * n.satz.ux * 75; if (mm < 3) h += '<p class="warnung">Nachricht ' + (n.i + 1) + ' ist lang – beim flachen Blick sind die Buchstaben nur etwa ' + mm.toFixed(1) + ' mm hoch. Kürzer ist besser.</p>';
+      else if (n.satz.fuellung < 0.5) h += '<p class="bw-info">Tipp: Nachricht ' + (n.i + 1) + ' ist kurz und füllt nur einen schmalen Streifen. Längere Sätze füllen die Form besser.</p>'; });
     $('#bwZaehler').innerHTML = h;
     var leer = !!fehlt || !P.length;
     ['#bwPdf', '#bwHerunterladen', '#bwZeigeLoesung'].forEach(function(s){ $(s).disabled = leer; });
     $('#bwBlick').hidden = leer;
     if (leer){ $('#bwBlatt').parentNode.hidden = true; $('#bwLoesung').classList.remove('zeigen'); meldung('info', '<p>Wähle links ' + (fehlt || 'eine Nachricht') + '.</p>'); return; }
     meldung('', ''); $('#bwBlatt').parentNode.hidden = false;
-    var anleitung = 'Halte das Blatt waagrecht auf Augenhöhe und schau ganz flach darüber' + (o.marken ? ' – von den Zahlen am Rand aus' : '') + '. Dann werden die gestreckten Wörter lesbar. ' +
+    var anleitung = 'Halte das Blatt waagrecht auf Augenhöhe, schliesse ein Auge und schau ganz flach darüber' + (o.marken ? ' – von den Zahlen am Rand aus' : '') + '. Dann werden die gestreckten Wörter lesbar. ' +
       (P.length > 1 ? 'Aus jeder Richtung steht etwas anderes. ' : '') + 'Schreibe auf, was du liest.';
     var linien = o.linien ? '<div class="bw-antworten">' + P.slice().sort(function(a, b){ return a.richtung - b.richtung; }).map(function(n){ return '<p class="bw-antwort">' + (o.marken ? '<b>' + n.richtung + '</b>' : '') + '<span class="bw-linie"></span></p>'; }).join('') + '</div>' : '';
     $('#bwBlatt').innerHTML = (o.titelAn ? '<h2>Blickwinkel</h2>' : '') + (o.anleitungAn ? '<p class="bw-anleitung">' + esc(anleitung) + '</p>' : '') +
@@ -370,7 +416,7 @@ function starte(bereich){
     // Lösung: je Nachricht der flache Blick
     $('#bwLoesung').innerHTML = (o.titelAn ? '<h2>Blickwinkel – Lösung</h2>' : '<p class="bw-anleitung"><b>Lösung</b></p>') +
       '<div class="bw-loesungen">' + P.slice().sort(function(a, b){ return a.richtung - b.richtung; }).map(function(n){
-        return '<div class="bw-loesung"><p><b>' + n.richtung + '</b> von ' + RICHTUNG[n.richtung] + ': <b>' + esc(n.text) + '</b></p>' + formSvg(240, n.richtung, 'l' + n.richtung) + '</div>';
+        return '<div class="bw-loesung"><p><b>' + n.richtung + '</b> von ' + RICHTUNG[n.richtung] + ': <b>' + esc(n.text) + '</b></p>' + formSvg(280, n.richtung, 'l' + n.richtung) + '</div>';
       }).join('') + '</div>';
     // Am Bildschirm: Blickrichtung wählen
     if (!P.some(function(n){ return n.richtung === blick; })) blick = 0;
@@ -378,7 +424,7 @@ function starte(bereich){
       P.slice().sort(function(a, b){ return a.richtung - b.richtung; }).map(function(n){ return '<label><input type="radio" name="bwBlick" value="' + n.richtung + '"' + (blick === n.richtung ? ' checked' : '') + '><span>' + n.richtung + ' · von ' + RICHTUNG[n.richtung] + '</span></label>'; }).join('');
     blickZeigen();
   }
-  function blickZeigen(){ $('#bwBlickBild').innerHTML = P && P.length ? formSvg(blick ? 260 : 180, blick, 'v') : ''; }
+  function blickZeigen(){ $('#bwBlickBild').innerHTML = P && P.length ? formSvg(blick ? 380 : 200, blick, 'v') : ''; }
   $('#bwBlickWahl').addEventListener('change', function(ev){ var r = ev.target.closest('input'); if (!r) return; blick = +r.value; blickZeigen(); });
 
   /* ---------- PDF, Herunterladen ---------- */
