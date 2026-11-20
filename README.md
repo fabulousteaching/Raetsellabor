@@ -2,7 +2,7 @@
 
 Eine Webseite mit Rätselgeneratoren für Schule und Freizeit. Man wählt einen Generator, gibt eigene Inhalte ein, und das Labor baut daraus ein Rätsel, das man am Bildschirm lösen oder als PDF-Arbeitsblatt mit Lösungsblatt herunterladen kann.
 
-Die Startseite erklärt kurz, was das Labor kann, und zeigt alle Generatoren als Karten: oben ein gelöstes Beispielrätsel (nur das Rätsel selbst, mit eingezeichneter Lösung), darunter Titel, ein kurzer Satz und «Öffnen». Die Beispielbilder liegen als WebP in `gemeinsam/vorschau/<id>.<sprache>.webp` (640 × 400); fehlt eins in der gewählten Sprache, kommt das deutsche. Rechts neben «Rätsel im Labor» steht eine **Suche**: Sie sucht im Titel der Generatoren, und mit jedem Buchstaben bleiben weniger Karten übrig (Gross/klein, Umlaute – «rae» findet «Rätsel» –, Leerzeichen und Bindestriche spielen keine Rolle). Die Eingabetaste öffnet den ersten Treffer, Esc oder × leert die Suche. Über das Menü oben rechts wechselt man jederzeit zwischen Startseite und Generatoren. Ganz oben im Menü (und in der Kopfleiste) wählt man die **Sprache: Deutsch, English, Français**. Das Labor wird Schritt für Schritt um weitere Generatoren erweitert.
+Die Startseite erklärt kurz, was das Labor kann, und zeigt alle Generatoren als Karten: oben rechts ein Beispielrätsel (ungelöst, nur das Rätsel selbst, mit durchsichtigem Grund), das nach unten und nach links in einen hellblauen Verlauf ausblendet; unten Titel, ein kurzer Satz und «Öffnen». Generatoren mit mehreren Arten haben ein eigenes Bild: Geheimschriften ein gezeichnetes Symbol (Geheimscheibe mit Schlüsselloch und ein Zettel mit Freimaurer-Zeichen, Morsecode und Blindenschrift), Suchsel, Labyrinth und QR-Code eine Collage ihrer Arten. Die Bilder liegen als WebP mit Transparenz in `gemeinsam/vorschau/<id>.<sprache>.webp` (längste Seite 560 px); fehlt eins in der gewählten Sprache, kommt das deutsche. Rechts neben «Rätsel im Labor» steht eine **Suche**: Sie sucht im Titel der Generatoren, und mit jedem Buchstaben bleiben weniger Karten übrig (Gross/klein, Umlaute – «rae» findet «Rätsel» –, Leerzeichen und Bindestriche spielen keine Rolle). Die Eingabetaste öffnet den ersten Treffer, Esc oder × leert die Suche. Über das Menü oben rechts wechselt man jederzeit zwischen Startseite und Generatoren. Ganz oben im Menü (und in der Kopfleiste) wählt man die **Sprache: Deutsch, English, Français**. Das Labor wird Schritt für Schritt um weitere Generatoren erweitert.
 
 ## Für alle Arbeitsblätter
 
@@ -17,7 +17,11 @@ Die Startseite erklärt kurz, was das Labor kann, und zeigt alle Generatoren als
 
 ## Generatoren
 
-### Zahlen-Suchsel
+### Suchsel
+
+Wörter verstecken und finden. Die erste Karte wählt – wie beim Labyrinth – die **Art des Suchsels**: *Wörter suchen* (das klassische Suchsel, unten) oder *Zahlen-Suchsel*. Jede Art hat ihre eigene Oberfläche und ihr eigenes Stylesheet (`raetsel/suchsel/`, `raetsel/zahlen-suchsel/` – dieses meldet sich als `window.ZahlenSuchsel` an, nicht als eigener Generator). Alte Links …/#zahlen-suchsel öffnen das Suchsel mit dem Zahlen-Suchsel.
+
+#### Zahlen-Suchsel
 
 Ein Suchsel mit Lösungszahl: Die versteckten Wörter bilden zusammen die Ziffern einer Zahl, ähnlich wie auf einer Digitalanzeige.
 
@@ -48,7 +52,7 @@ Eigene Wörter gehen immer; sie bleiben so geschrieben, wie man sie eingibt.
 
 Thema, Wörter, Lösungszahl und Einstellungen bleiben erhalten, solange die Seite offen ist (auch beim Wechsel zu einem anderen Generator); beim Neuladen beginnt alles frisch.
 
-### Suchsel
+#### Wörter suchen
 
 Das klassische Wortsuchrätsel: Die Wörter liegen kreuz und quer im Buchstabenfeld. Thema und Wörter wie beim Zahlen-Suchsel (Vorschläge zum Thema oder eigene Wörter).
 
@@ -134,12 +138,6 @@ Rechenrätsel, in denen Emojis für Zahlen stehen: Gleiche Emojis haben den glei
 - **Emoji-Themen:** Früchte, Tiere, Meer, Süsses, Gemüse, Natur, Fahrzeuge, Sport, Schule, Musik, Weltall, Gesichter oder gemischt – ohne Emojis, die sich in klein zu ähnlich sehen.
 - **Blatt:** 1, 2, 4 oder 6 Rätsel pro Blatt, auf Wunsch mit Hilfsfeldern für die Werte der Emojis («🍎 = …»). Am Bildschirm lassen sich Werte und Ergebnis eintippen (richtige werden grün), Lösung zeigen, neue Rätsel; PDF mit Lösungsblatt.
 
-### Text spiegeln
-
-Ein eigener Text (auch mehrere Zeilen) in fünf Fassungen: **horizontal gespiegelt** (Spiegelschrift, von rechts nach links), **vertikal gespiegelt** (an einer waagrechten Linie umgeklappt), **auf den Kopf gedreht** (beides, um 180°), **rückwärts** und **Wörter rückwärts** (jedes Wort rückwärts, Reihenfolge und Satzzeichen bleiben).
-
-- **Kopieren mit einem Klick:** Ein Klick auf eine Fassung legt sie in die Zwischenablage (sonst wird der Text markiert, damit man ihn selbst kopieren kann). Die gespiegelten Fassungen bestehen aus ähnlich aussehenden Unicode-Zeichen (z. B. b → d, R → Я, a → ɐ, Umlaute mit Pünktchen oben bzw. unten) – so lassen sie sich überall einfügen; nicht jeder Buchstabe hat ein perfektes Gegenstück.
-- Bewusst ein reines Werkzeug zum Kopieren – ohne Arbeitsblatt und PDF.
 
 ### Puzzle
 
@@ -152,11 +150,12 @@ Ein eigenes Bild wird zum Online-Puzzle mit klassischen Puzzle-Teilen (Nasen und
 
 ### Geheimschriften
 
-Ein eigener Text in einer von zwanzig Geheimschriften, jeweils mit Schlüssel:
+Ein eigener Text in einer von einundzwanzig Geheimschriften, jeweils mit Schlüssel:
 
 - **Menüs nacheinander** (gegen Überforderung): zuerst die Geheimschrift (keine Vorauswahl; danach klappt die Liste zu, nur die gewählte bleibt, «Andere Geheimschrift wählen» öffnet sie wieder), dann erscheint das Textfeld (mit dem Cursor drin), erst mit Text die Karte «Blatt». Einstellungen einer Schrift stehen dort, wo sie hingehören: Verschiebung, Aufgabe, B und S bei der Schrift; Notenwörter und ▶ Anhören beim Text; Audio/QR-Code beim Blatt. Geheimtext und Schlüssel erscheinen erst nach der Wahl.
 
 - **Caesar-Verschiebung** (Verschiebung 1–25; im Schlüssel Tabelle und auf Wunsch eine **Caesar-Scheibe zum Basteln**) · **Rückwärts-Alphabet** (A ↔ Z) · **Zahlen-Code** (A = 1 … Z = 26) · **Handy-Tasten** (B = 22, mit Tastenfeld) · **Koordinaten-Gitter** (Polybios-Quadrat, Zeile und Spalte; I/J teilen sich ein Feld) · **Freimaurer-Code** (Pigpen: A–I im Gitter #, J–R im Gitter # mit Punkt, S–V im X, W–Z im X mit Punkt; Schlüssel mit den vier Figuren und einer Tabelle A–Z – früher ein eigener Generator, alte Links …/#freimaurer öffnen die Geheimschriften mit dem Freimaurer-Code) · **Vögel auf dem Draht** (Birds on a Wire, eigene Zeichnungen nach einem System: Blickrichtung, Schwanz kurz/lang/schräg, Haltung sitzend A–F, Flügel hoch G–L, pickend M–R, Küken S–X, liegend Y/Z; im Geheimtext sitzen alle Vögel einer Zeile auf einem durchgehenden Draht, auch über die Wortabstände) · **Kreis-Code** (Circles, genau nach der Vorlage von kryptografie.de nachgebaut: jedes Zeichen aus Kreisbögen und Strecken, auch Ziffern 0–9; 5 und S sehen wie in der Vorlage gleich aus) · **Bücher-Code** (das Bücher-Alphabet aus der Vorlage der Lehrperson: A–Z sowie Punkt, Komma, Ausrufezeichen und Bindestrich, ausgeschnitten als Bilder in `raetsel/geheimschrift/buecher/`, alle im gleichen Massstab mit gemeinsamer Grundlinie) · **Bärte-Code** (das Bärte-Alphabet aus der Vorlage der Lehrperson: 26 Gesichter A–Z, ohne Kartenrahmen ausgeschnitten, alle im gleichen Massstab und an der gleichen Stelle wie auf der Karte, in `raetsel/geheimschrift/baerte/`) · **Segment-Code** (14-Segment-Anzeige a–f, g1, g2, h–m wie in der Vorlage, gezeichnet als SVG; A–Z und 0–9 mit eindeutigen Zeichen. Aufgabe wählbar: *Segmente ausmalen* (Standard) – über jeder leeren Anzeige stehen die Namen der Segmente, im Lösungsblatt leuchten sie – oder *Anzeige lesen* – die leuchtenden Segmente sind gezeichnet. Schlüssel mit beschrifteter Anzeige und Tabelle) · **Bausteine** (jeder Buchstabe ein Baustein von oben, gezeichnet als SVG: A–I mit 2 × 2 Noppen, J–R mit 2 × 3, S–Z mit 2 × 4; in jeder Gruppe dieselbe Farbfolge rot, orange, gelb, hellgrün, dunkelgrün, hellblau, blau, violett, rosa – eigene, systematische Zuordnung; Schlüssel mit Tabelle und Farbnamen) · **Altlatein** (selbst neu gezeichnet als Linien, mit dem Aufbau der Zeichen aus der Vorlage – welche Striche, wo, in welchem Winkel –, ohne Teile der Vorlage zu übernehmen; gleiche Höhe und Grundlinie, eigene Breite, Daten in `STRICHZEICHEN` in geheimschrift.js; C/G, I/J/Y und U/V/W haben wie in der Vorlage dasselbe Zeichen – steht im Schlüssel) · **Runen** (ebenso neu gezeichnet, mit Haupt- und Seitenstrichen, Bögen, Punkten und den Querbalken oben und unten; I/J und U/V/W gleich) · **Fingeralphabet** (Deutschschweizer Gebärdensprache, Darstellung des SGB-FSS Schweizerischer Gehörlosenbund aus dessen PDF «fingeralphabet-dsgs.pdf»: die Vektorgrafik ohne blauen Hintergrund gerendert und jede Hand einzeln ausgeschnitten, alle gleich hoch und unten bündig, in `raetsel/geheimschrift/finger/`; A–Z sowie eigene Zeichen für Ä, Ö, Ü, CH und SCH – CH und SCH werden im Text automatisch als ein Zeichen erkannt, ß wird zu SS; im Schlüssel steht die Quelle «© SGB-FSS») · **Morse-Code** (mit Ä, Ö, Ü, ß, Ziffern und Satzzeichen) · **Blindenschrift** (deutsche Basisschrift mit Umlauten und Zahlzeichen) · **Hieroglyphen** (Einkonsonantenzeichen; C/K, E/I, F/V, U/W teilen sich ein Zeichen – steht im Schlüssel).
+- **Spiegelschrift** (früher der Generator «Text spiegeln»; alte Links …/#text-spiegeln öffnen sie): Der Text bleibt, wie er ist (Gross-/Kleinschreibung, Umlaute, Satzzeichen), wird aber *gespiegelt* (von rechts nach links, rechtsbündig), *auf den Kopf* gedreht, *vertikal gespiegelt*, *rückwärts* oder *Wörter rückwärts* geschrieben. Auf dem Blatt wird die echte Schrift mit CSS gespiegelt bzw. gedreht; der Schlüssel zeigt A–Z und a–z normal und gespiegelt und erklärt, wie man liest (z. B. mit einem Spiegel). «Als Text kopieren» liefert wie früher eine Fassung aus ähnlich aussehenden Unicode-Zeichen zum Einfügen in WhatsApp, Word oder eine E-Mail.
 - Umlaute werden als AE, OE, UE geschrieben (ausser bei Morse und Blindenschrift, die eigene Zeichen haben); Ziffern und Satzzeichen bleiben sonst stehen.
 - **Geheimscheibe:** ein Eintrag in der Liste; darin wählt man zuerst die Scheibe (keine Vorauswahl): Buchstaben (Caesar-Verschiebung), Emojis oder Regenbogen-Farben. Auf der kleinen Bastelscheibe markiert ein ★ das erste Feld (es dreht sich mit); die Anleitung sagt, unter welchen Buchstaben der ★ gedreht wird (Verschiebung s → unter den Buchstaben 26 − s, ohne Verschiebung unter das A) – so finden Kinder die Ausgangsstellung auch bei Emojis und Farben.
 - **Emoji-Scheibe und Regenbogen-Scheibe** (Caesar für die Unterstufe): Aussen die Buchstaben, innen 26 Emojis zu einem Thema (keine Vorauswahl: Tiere, Essen, Weltall & Wetter, Sport & Spiel, Natur & Garten, Fahrzeuge – je 26 gut unterscheidbare, verbreitete Emojis) oder 26 Farben im Regenbogen (13 Farbtöne, je dunkel und hell abwechselnd, damit Nachbarn gut zu unterscheiden sind; die Buchstaben ebenfalls im Regenbogen, helle mit dunklem Rand). Verschiebung 0–25 (0 = keine). Auf dem Blatt Emojis bzw. Farbpunkte; im Schlüssel die Tabelle und auf Wunsch die Scheibe zum Basteln (innen Emojis bzw. Farbfelder) mit Anleitung, wie man sie einstellt. Nacheinander: Schrift → Thema → Text. Dabei korrigiert: die Anleitung der Caesar-Scheibe (die kleine Scheibe so drehen, dass ihr verschobener Buchstabe unter dem A steht).
@@ -419,7 +418,7 @@ Schachfiguren ziehen über ein Brett (A–H, 1–8). Wer jeden Zug als Linie von
 
 ```
 index.html                      Rätsellabor: Kopfleiste mit Menü, Startseite, Platz für den Generator
-gemeinsam/labor.css             gemeinsames Aussehen (Farben, Schriften, Kopfleiste, Menü, Karten, Knöpfe)
+gemeinsam/labor.css             gemeinsames Aussehen (Farben – Blau #0075BA aus dem Logo «Puzzle-Kolben» –, Schriften, Kopfleiste, Menü, Karten, Knöpfe)
 gemeinsam/labor.js              Menü, Startseite und Wechsel zwischen den Generatoren; Sprachwahl und Übersetzen (Labor.woerter, Labor.uebersetzer)
 gemeinsam/sprachen/<name>.js    Wörterbücher: deutscher Text → [Englisch, Französisch]; labor.js (gemeinsam), bausteine.js (Wortwahl, Paarliste, Gitter) und eines je Generator
 gemeinsam/vorschau/             Beispielbilder der Startseiten-Karten: <id>.de.webp, <id>.en.webp, <id>.fr.webp
@@ -429,10 +428,10 @@ gemeinsam/pixelschrift.js       Baustein «Pixelschrift»: Ziffern und A–Z als
 gemeinsam/toene.js              Baustein «Töne»: weiche Töne als selbst berechnete WAV-Dateien, abgespielt mit einem Audio-Element (Notenschrift und ihre Hörseite)
 api/woerter.php                 Server-Teil (PHP): fragt Mistral für Wortvorschläge; Schlüssel in api/geheim.php (entsteht beim Hochladen)
 api/uebersetzen.php             Server-Teil (PHP): übersetzt Wörter für das Triomino (Deutsch ↔ Englisch/Französisch), gleiche KI und gleicher Schlüssel
-raetsel/zahlen-suchsel/         der Generator «Zahlen-Suchsel»
+raetsel/zahlen-suchsel/         Art «Zahlen-Suchsel» des Suchsels (window.ZahlenSuchsel)
   zahlen-suchsel.js             Kern (Ziffern bauen, Wörter verteilen), Oberfläche, Bedienung
   zahlen-suchsel.css            Aussehen dieses Generators (nur aktiv, solange er offen ist)
-raetsel/suchsel/                der Generator «Suchsel» (Wörter setzen, Oberfläche, Bedienung)
+raetsel/suchsel/                der Generator «Suchsel»: Art wählen; Art «Wörter suchen» (Wörter setzen, Oberfläche, Bedienung)
 raetsel/rebus/                  der Generator «Rebus»
   rebus.js                      Bilderliste, Kern (Zerlegung), Oberfläche, Bedienung
   rebus.css                     Aussehen dieses Generators
@@ -442,7 +441,6 @@ raetsel/labyrinth/              der Generator «Labyrinth»
   labyrinth-satz.js             Art «Mit Lösungssatz» (Buchstaben in jedem Feld)
   labyrinth-schrift.js          Art «Weg schreibt den Satz» (Blockschrift, Umlauf um die Buchstaben, Irrwege)
 raetsel/emoji-rechnen/          der Generator «Emoji-Rechnen» (Kern: Rätsel bauen und prüfen; Oberfläche)
-raetsel/text-spiegeln/          der Generator «Text spiegeln» (Kern: Unicode-Spiegelung; Oberfläche zum Kopieren)
 raetsel/puzzle/                 der Generator «Puzzle»
   puzzle-spiel.js               das Spiel selbst (Teile, Mischen, Ziehen, Einrasten); auch für die Puzzle-Seite /P/<ID>/
   puzzle.js                     Oberfläche: Bild, Schwierigkeit, QR-Code
@@ -488,7 +486,7 @@ api/puzzle.php                  Server-Teil (PHP): speichert Puzzles für QR-Cod
 - Beim Hochladen hängt der GitHub-Workflow eine Versionsnummer an alle Skripte und Stile (`…/labor.js?v=1a2b3c4d`, auch für die Stile der Generatoren). Nach jeder Änderung lädt der Browser so sicher die neuen Dateien.
 - Ist die Seite schon offen, wenn eine neue Version hochgeladen wird (das Labor wechselt zwischen den Generatoren ohne Neuladen), merkt sie das: Der Workflow schreibt die Versionsnummer in `version.txt`, die Seite fragt sie ab, wenn man zu ihr zurückkehrt und alle 10 Minuten. Bei einer neuen Version erscheint ein Hinweis «Neu laden», und der nächste Wechsel zu einem Generator lädt die Seite von selbst neu.
 
-Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und den mitgelieferten Bibliotheken in `gemeinsam/extern/` keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#zahlen-suchsel`, `…/#suchsel`, `…/#rebus`, `…/#qr-code`, `…/#labyrinth`, `…/#emoji-rechnen`, `…/#text-spiegeln`, `…/#puzzle`, `…/#geheimschrift`, `…/#triomino`, `…/#kreuzwort`, `…/#fleissner`, `…/#kettenraetsel`, `…/#drehscheiben`, `…/#code-schloss`, `…/#regenbogen`, `…/#rotfolie`, `…/#folien`, `…/#schiebefenster` oder `…/#legekaertchen` öffnet direkt einen Generator, `…/#start` die Startseite.
+Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fonts und den mitgelieferten Bibliotheken in `gemeinsam/extern/` keine Abhängigkeiten. Für Wortvorschläge fragt die Seite den eigenen Server (`api/woerter.php`), der Mistral fragt. Die Seite wechselt über die Adresse: `…/#suchsel`, `…/#rebus`, `…/#qr-code`, `…/#labyrinth`, `…/#emoji-rechnen`, `…/#puzzle`, `…/#geheimschrift`, `…/#triomino`, `…/#kreuzwort`, `…/#fleissner`, `…/#kettenraetsel`, `…/#drehscheiben`, `…/#code-schloss`, `…/#regenbogen`, `…/#rotfolie`, `…/#folien`, `…/#schiebefenster` oder `…/#legekaertchen` öffnet direkt einen Generator, `…/#start` die Startseite.
 
 ## Einen neuen Generator hinzufügen
 

@@ -239,28 +239,27 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input[type=checkbox]:
 .suche-leer[hidden]{display:none}
 @media (max-width:640px){ .suche{flex:1 1 100%} }
 .raetsel-karten{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr));gap:18px;align-items:stretch}   /* alle Karten gleich gross */
-.raetsel-karte{position:relative;display:flex;flex-direction:column;min-width:0;padding:0;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:16px;
+.raetsel-karte{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-width:0;min-height:330px;padding:0;overflow:hidden;border:1px solid var(--line);border-radius:16px;
+  background:linear-gradient(180deg,#E6F1FA 0%,#F3F8FC 42%,var(--card) 72%);
   color:inherit;text-decoration:none;box-shadow:0 1px 2px rgba(16,24,40,.05);transition:border-color .15s,box-shadow .2s,transform .2s}
 a.raetsel-karte:hover{border-color:var(--accent);box-shadow:0 12px 30px rgba(0,117,186,.22);transform:translateY(-2px)}
 a.raetsel-karte:focus-visible{outline:3px solid var(--accent-2);outline-offset:2px}
-/* Beispielrätsel oben in der Kachel */
-.karte-bild{position:relative;display:block;border-bottom:1px solid var(--line)}
-.karte-bild-innen{display:block;aspect-ratio:16/10;background:#fff;overflow:hidden}
-.karte-bild img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .35s ease}
-a.raetsel-karte:hover .karte-bild img{transform:scale(1.04)}
-.karte-bild .sym{position:absolute;left:16px;bottom:-20px;z-index:1;width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:var(--accent);color:var(--auf-akzent);
-  border:3px solid var(--card);box-shadow:0 2px 8px rgba(16,24,40,.16)}
-.karte-bild .sym svg{width:20px;height:20px}
-.karte-bild.ohne .karte-bild-innen{background:var(--accent-soft)}
-.karte-bild.ohne img{display:none}
-.karte-text{display:grid;gap:6px;padding:28px 18px 8px}
+/* Beispielrätsel oben rechts: etwa 60 % breit, blendet nach unten und nach links in die Kachel aus.
+   Die Bilder haben einen durchsichtigen Grund (gemeinsam/vorschau/*.webp). */
+.karte-bild{position:absolute;top:0;right:0;width:62%;height:66%;display:block;pointer-events:none;
+  -webkit-mask-image:linear-gradient(to bottom,#000 30%,transparent 90%),linear-gradient(to right,transparent 0%,#000 28%);
+  -webkit-mask-composite:source-in;mask-image:linear-gradient(to bottom,#000 30%,transparent 90%),linear-gradient(to right,transparent 0%,#000 28%);mask-composite:intersect}
+.karte-bild img{position:absolute;top:14px;right:14px;width:calc(100% - 14px);height:calc(100% - 14px);object-fit:contain;object-position:top right;
+  transform-origin:top right;transition:transform .35s ease}
+a.raetsel-karte:hover .karte-bild img{transform:scale(1.05)}
+.karte-bild.ohne{display:none}
+.karte-text{position:relative;z-index:1;display:grid;gap:6px;padding:0 18px 8px}
 .raetsel-karte h3{font-family:var(--display);font-weight:600;font-size:1.25rem;letter-spacing:-.005em;line-height:1.2;margin:0;color:var(--ink)}
 .raetsel-karte p{margin:0;font-size:.92rem;line-height:1.45;color:#4B5563}
-.oeffnen{align-self:flex-start;margin:auto 18px 18px;display:inline-flex;align-items:center;padding:8px 16px;border-radius:999px;background:var(--accent-soft);
+.oeffnen{position:relative;z-index:1;align-self:flex-start;margin:4px 18px 18px;display:inline-flex;align-items:center;padding:8px 16px;border-radius:999px;background:var(--accent-soft);
   color:var(--accent-2);font-weight:650;font-size:.9rem;transition:background .15s,color .15s}
-.karte-text + .oeffnen{margin-top:auto}
 a.raetsel-karte:hover .oeffnen{background:var(--accent);color:var(--auf-akzent)}
-.raetsel-karte.bald{padding:20px;gap:12px;background:transparent;border-style:dashed;border-color:var(--line-2);box-shadow:none;color:var(--muted)}
+.raetsel-karte.bald{justify-content:flex-start;min-height:0;padding:20px;gap:12px;background:transparent;border-style:dashed;border-color:var(--line-2);box-shadow:none;color:var(--muted)}
 .raetsel-karte.bald .sym{width:44px;height:44px;border-radius:11px;display:grid;place-items:center;background:#ECEFF3;color:var(--muted)}
 .raetsel-karte.bald h3{color:#4B5563}
 .schritte{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;counter-reset:schritt}

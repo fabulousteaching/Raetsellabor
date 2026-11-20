@@ -149,10 +149,10 @@ var Labor = (function(){
     var karten = '';
     liste.forEach(function(r){
       // Suche: übersetzter und deutscher Titel
-      // Kachel: Beispielrätsel (Bild aus gemeinsam/vorschau/<id>.<sprache>.webp), Titel, kurzer Erklärtext, Knopf
+      // Kachel: Beispielrätsel oben rechts (Bild aus gemeinsam/vorschau/<id>.<sprache>.webp, blendet nach unten und links aus),
+      // darunter Titel, kurzer Erklärtext und Knopf
       karten += '<a class="raetsel-karte" href="#' + r.id + '" data-suche="' + esc(titelSuche(titelVon(r)) + ' ' + titelSuche(r.titel)) + '" title="' + esc(uebersetze(r.id, r.beschreibung)) + '">' +
-        '<span class="karte-bild" aria-hidden="true"><span class="karte-bild-innen"><img src="' + vorschauBild(r.id, SPRACHE) + '" alt="" loading="lazy" decoding="async" data-id="' + r.id + '"></span>' +
-        '<span class="sym">' + r.symbol + '</span></span>' +
+        '<span class="karte-bild" aria-hidden="true"><img src="' + vorschauBild(r.id, SPRACHE) + '" alt="" loading="lazy" decoding="async" data-id="' + r.id + '"></span>' +
         '<span class="karte-text"><h3>' + esc(titelVon(r)) + '</h3><p>' + esc(uebersetze(r.id, r.kurz)) + '</p></span>' +
         '<span class="oeffnen">' + txL('Öffnen →') + '</span></a>';
     });
