@@ -366,6 +366,15 @@ Ein Satz steht in einem Raster; ein Teil der Buchstaben ist nach unten gefallen.
 - **Herunterfallen** (keine Vorauswahl): ein Viertel, die Hälfte, drei Viertel, alle oder eine eigene Anzahl. Welche Buchstaben fallen, ist zufällig («Neu mischen»). Unter jeder Spalte stehen die gefallenen Buchstaben alphabetisch, unten ausgerichtet. Getestet an 22 400 Rastern (Zeilen, Satz wieder lesbar, Buchstaben je Spalte = Lücken je Spalte).
 - **Blätter:** Raster als SVG, so gross, wie es aufs Blatt passt (Felder höchstens 46 px). Lösungsblatt mit den gefallenen Buchstaben farbig im Raster und dem Satz darunter. PDF.
 
+### Buchstaben-Teile
+
+Ein Satz ist in gleich lange Teile zerschnitten (die Abstände zwischen den Wörtern zählen mit). Die Teile stehen gemischt oben, darunter so viele leere Felder, wie es Teile hat – in der richtigen Reihenfolge ergeben sie den Satz.
+
+- **Satz:** eintippen (bis 200 Zeichen) oder vorschlagen lassen. Mehrere Abstände werden zu einem.
+- **Teile** (keine Vorauswahl): 2, 3, 4 oder 5 Zeichen je Teil; Schreibweise wie geschrieben oder GROSS. Das letzte Teil wird mit leeren Kästchen aufgefüllt. Mischen: kein Teil an seinem Platz und keine zwei Teile, die auch im Satz aufeinander folgen, nebeneinander (bestes von 300 Versuchen; getestet an 2940 Rätseln – nur bei drei Teilen geht das nicht immer). «Neu mischen».
+- **Optionen:** Abstände sichtbar (␣), erstes Teil schon eingesetzt (leichter), Felder mit Kästchen je Zeichen, Teile gestrichelt zum Ausschneiden. Teile und Felder sind genau gleich gross – ausgeschnittene Teile passen in die Felder.
+- **Blätter:** Grösse automatisch (höchstens 34 px je Zeichen, so dass das Blatt eine A4-Seite bleibt). Lösungsblatt mit den ausgefüllten Feldern und dem Satz. PDF.
+
 ## Aufbau
 
 ```
@@ -413,6 +422,7 @@ raetsel/morsecode/              der Generator «Morsecode» (Kern: Alphabet, Tex
 raetsel/plaettchen/             der Generator «Plättchenrätsel» (Kern: Zeichen aufs Raster, Rechenaufgaben, Antworten aufteilen, Raster belegen und prüfen, Silbentrennung)
 raetsel/schuettelwoerter/       der Generator «Schüttelwörter» (Kern: Zufall, Wort schütteln mit Prüfung, Wort in Teile zerlegen)
 raetsel/fallbuchstaben/         der Generator «Fallende Buchstaben» (Kern: Satz in Zellen, Zeilen umbrechen, Buchstaben fallen lassen, automatische Breite)
+raetsel/buchstabenteile/        der Generator «Buchstaben-Teile» (Kern: Satz in Zeichen, in Teile schneiden, mischen ohne verratene Nachbarn)
 raetsel/triomino/               der Generator «Triomino» (Kern: Formen, Kanten, Aufgaben, Belegung; Zeichnen mit Schriftanpassung)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)
