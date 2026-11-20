@@ -388,6 +388,16 @@ Eine Nachricht auf einem Papierband: um einen runden Gegenstand gewickelt (Windu
 - **Kopiervorlage in echten Millimetern:** A4 quer (1032 px = 273 mm; jede Seite höchstens 186 mm hoch, damit das PDF nicht verkleinert). Die Buchstaben stehen um 90° gedreht – aufgewickelt sind sie aufrecht. Lange Bänder werden in nummerierte Streifen geteilt; am Ende jedes Streifens eine graue Klebefläche mit der Nummer des nächsten. Streifen 1 beginnt mit einem schraffierten Anfangsstück ▶ (zum Festkleben). Kontrolllinie 10 cm und Hinweis «in Originalgrösse drucken». Anleitung zum Ausschneiden, Zusammenkleben und Aufwickeln.
 - **Lösungsblatt:** so steht es auf dem Gegenstand – alle Reihen rundherum, die Nachricht farbig, dazu der Text. «Neu mischen» gibt andere Füllbuchstaben. PDF.
 
+### Richtungs-Suchsel
+
+Ein Satz steht immer wieder im Buchstabenfeld – Satz an Satz wie eine Schlange. Die Richtung jedes Satzes (rechts, unten, links, oben) ergibt der Reihe nach den Code für ein Richtungsschloss.
+
+- **Eingaben (nacheinander):** zuerst der Satz (bis 40 Zeichen; Grossbuchstaben ohne Abstände, Umlaute bleiben); dann klappt der Richtungscode auf: vier Pfeilknöpfe wie ein Steuerkreuz (auch mit den Pfeiltasten), bis 12 Richtungen, «Letzte löschen» und «Alle löschen».
+- **Schlange:** Jede Richtung ist ein ganzer Satz, gerade in diese Richtung; der nächste beginnt direkt neben dem letzten Buchstaben (in seiner Richtung weiter oder seitlich daneben). So gehen auch gleiche Richtungen hintereinander (→ →) und Umkehrungen (→ ←). Gesucht wird die Lage mit dem kleinsten Feld (höchstens 30 × 38, Rand 1–3 Felder, mindestens 10 × 10); «Neu mischen» gibt eine andere Lage.
+- **Füllbuchstaben:** zufällig wie im Deutschen oder nur aus dem Satz (schwieriger); zufällige zweite Vorkommen des Satzes werden aufgelöst. Sätze, die vorwärts und rückwärts gleich sind, gehen nicht (die Richtung wäre nicht eindeutig). Wird das Feld zu gross, steht, wie lang der Satz mit diesem Code höchstens sein darf.
+- **Getestet** an 552 Fällen (6 Sätze, 46 Codes mit gleichen Richtungen und Umkehrungen, beide Füllarten): Jeder Satz läuft in seiner Code-Richtung und beginnt direkt neben dem vorigen, nichts überlappt, der Satz steht sonst nirgends im Feld.
+- **Blatt:** Anleitung mit dem Satz (abschaltbar), Anfang mit einem Kreis (abschaltbar), Kästchen für den Code. Am Bildschirm lassen sich die Sätze markieren (wie beim Suchsel). Lösungsblatt: die Schlange farbig, jeder Satz mit Nummer und Pfeil, der Code als Pfeile und Wörter. PDF.
+
 ## Aufbau
 
 ```
@@ -438,6 +448,7 @@ raetsel/schuettelwoerter/       der Generator «Schüttelwörter» (Kern: Zufall
 raetsel/fallbuchstaben/         der Generator «Fallende Buchstaben» (Kern: Satz in Zellen, Zeilen umbrechen, Buchstaben fallen lassen, automatische Breite)
 raetsel/buchstabenteile/        der Generator «Buchstaben-Teile» (Kern: Satz in Zeichen, in Teile schneiden, mischen ohne verratene Nachbarn)
 raetsel/skytale/                der Generator «Skytale» (Kern: Geometrie des schrägen Bands, Nachricht in Reihen anordnen, Füllbuchstaben, Band-Reihenfolge)
+raetsel/richtungssuchsel/       der Generator «Richtungs-Suchsel» (Kern: Schlange aus Sätzen legen, Vorkommen zählen, Feld füllen; Zeichnen und Markieren mit gemeinsam/gitter.js)
 raetsel/triomino/               der Generator «Triomino» (Kern: Formen, Kanten, Aufgaben, Belegung; Zeichnen mit Schriftanpassung)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)
