@@ -355,6 +355,15 @@ Wörter, deren Buchstaben durcheinandergeschüttelt sind. Wer sie richtig ordnet
 - **Häkchen «Kästchen»:** Hinter jedem Schüttelwort so viele Kästchen, wie das Wort Buchstaben hat; die Kästchen beginnen alle an derselben Stelle. Bei langen Wörtern stehen die Kästchen unter dem Schüttelwort. Ohne Häkchen: eine Schreiblinie, die Wörter in zwei Spalten, wenn sie schmal genug sind.
 - **Blätter:** Buchstaben als Kärtchen oder einfach mit Abstand; mehrere Seiten, wenn die Wörter nicht auf ein Blatt passen. Lösungsblatt mit Schüttelwort und Wort. «Neu schütteln» mischt anders. PDF.
 
+### Fallende Buchstaben
+
+Ein Satz steht in einem Raster; ein Teil der Buchstaben ist nach unten gefallen. Unter jeder Spalte stehen ihre fehlenden Buchstaben – in welche Zeile sie gehören, muss man selbst herausfinden.
+
+- **Satz:** eintippen (bis 240 Zeichen) oder vorschlagen lassen. Schwarze Felder trennen die Wörter; Satzzeichen stehen auf Wunsch in einem eigenen Feld (schon ausgefüllt). Ziffern bleiben stehen, nur Buchstaben fallen.
+- **Raster** (keine Vorauswahl): Buchstaben in GROSSBUCHSTABEN oder wie geschrieben. Felder pro Zeile automatisch (in der Nähe von «doppelt so breit wie hoch» die Breite mit den wenigsten schwarzen Feldern am Zeilenende) oder mit dem Schieber 6 bis 30. Wörter kommen ganz in die nächste Zeile; mit Häkchen läuft der Satz einfach weiter (schwieriger).
+- **Herunterfallen** (keine Vorauswahl): ein Viertel, die Hälfte, drei Viertel, alle oder eine eigene Anzahl. Welche Buchstaben fallen, ist zufällig («Neu mischen»). Unter jeder Spalte stehen die gefallenen Buchstaben alphabetisch, unten ausgerichtet. Getestet an 22 400 Rastern (Zeilen, Satz wieder lesbar, Buchstaben je Spalte = Lücken je Spalte).
+- **Blätter:** Raster als SVG, so gross, wie es aufs Blatt passt (Felder höchstens 46 px). Lösungsblatt mit den gefallenen Buchstaben farbig im Raster und dem Satz darunter. PDF.
+
 ## Aufbau
 
 ```
@@ -401,6 +410,7 @@ raetsel/textformen/             der Generator «Textformen» (Kern: Formen als R
 raetsel/morsecode/              der Generator «Morsecode» (Kern: Alphabet, Text lesen, Ablauf in Einheiten, Ton als Abtastwerte; Abspielen mit Web Audio, MP3 mit lamejs)
 raetsel/plaettchen/             der Generator «Plättchenrätsel» (Kern: Zeichen aufs Raster, Rechenaufgaben, Antworten aufteilen, Raster belegen und prüfen, Silbentrennung)
 raetsel/schuettelwoerter/       der Generator «Schüttelwörter» (Kern: Zufall, Wort schütteln mit Prüfung, Wort in Teile zerlegen)
+raetsel/fallbuchstaben/         der Generator «Fallende Buchstaben» (Kern: Satz in Zellen, Zeilen umbrechen, Buchstaben fallen lassen, automatische Breite)
 raetsel/triomino/               der Generator «Triomino» (Kern: Formen, Kanten, Aufgaben, Belegung; Zeichnen mit Schriftanpassung)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)

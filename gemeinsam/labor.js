@@ -438,7 +438,10 @@ var Labor = (function(){
   function schriftLinkHtml(){ var s = aktuelleSchrift(); return s.gf ? '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=' + s.gf + '&display=swap">\n' : ''; }
 
   // Dateinamen-tauglicher Text
-  function dateiname(t){ return String(t || '').trim().replace(/[^\p{L}\p{N} _-]+/gu, '').replace(/\s+/g, '-').slice(0, 40); }
+  // Dateiname nur aus ASCII (Umlaute als ae/oe/ue, andere Akzente weg) – manche Browser und Systeme verlieren sonst den Namen
+  var UMLAUT = { 'ä':'ae', 'ö':'oe', 'ü':'ue', 'Ä':'Ae', 'Ö':'Oe', 'Ü':'Ue', 'ß':'ss' };
+  function dateiname(t){ return String(t || '').trim().replace(/[äöüÄÖÜß]/g, function(c){ return UMLAUT[c]; }).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^A-Za-z0-9 _-]+/g, '').replace(/\s+/g, '-').slice(0, 40); }
 
   /* ---------- Arbeitsblätter als PDF herunterladen (für alle Generatoren) ----------
      Jedes übergebene Blatt (z. B. Arbeitsblatt und Lösungsblatt) wird zu einer A4-Seite. html2canvas zeichnet das Blatt
