@@ -2,76 +2,88 @@
    Jede Ziffer besteht aus 2 × 3 Uhren. Unter jeder Uhr steht eine Uhrzeit; die Kinder zeichnen die Zeiger ein und
    verbinden dann die Zeiger, die genau aufeinander zeigen – so entsteht die Ziffer. Die Ziffer wird wie eine
    Sieben-Segment-Ziffer auf den 6 Uhren gebaut: Jeder Strich verbindet zwei benachbarte Uhren, je ein Zeiger zeigt zur
-   anderen Uhr. Jede Uhr hat nur zwei Zeiger – darum gehen nur 0, 1, 2, 5 und 7 (bei 3, 4, 6, 8, 9 bräuchte eine Uhr in
-   der Mitte drei). Uhren, die nichts zeigen, bekommen eine «schräge» Zeit (beide Zeiger schräg) – sonst verrieten leere
-   Uhren die Form. Zeitangabe 3:00, 15:00 oder in Worten. Uhren schwarz-weiss oder farbig. Blatt(e), Lösungsblatt, PDF. */
+   anderen Uhr. Jede Uhr hat nur zwei Zeiger – darum gehen 0, 1, 2, 3, 4, 5 und 7 (3 und 4 mit einem schrägen Strich),
+   aber nie 6, 8, 9 (dort treffen sich drei Striche in einer Uhr). Uhren, die nichts zeigen, bekommen eine «schräge» Zeit
+   (beide Zeiger zeigen zu keiner Nachbaruhr) – sonst verrieten leere Uhren die Form; bei der 1 bleibt die linke Spalte
+   leer. Auf Wunsch sind die Zifferblätter gedreht (schwieriger). Zeitangabe 3:00, 15:00 oder in Worten. Uhren
+   schwarz-weiss oder farbig (jede Uhr eine eigene Farbe). Blätter, Lösungsblatt, PDF. */
 (function(){
 'use strict';
 
 /* KERN-START */
 var Kern = (function(){
-  // Uhren einer Ziffer: [Spalte, Zeile]; 0 oben links, 1 oben rechts, 2 Mitte links, 3 Mitte rechts, 4 unten links, 5 unten rechts
+  // Uhren einer Ziffer: [Spalte, Zeile]; 0 oben links, 1 oben rechts, 2 Mitte links, 3 Mitte rechts, 4 unten links, 5 unten rechts.
+  // Die Uhren stehen in einem quadratischen Raster – so liegen schräge Striche genau auf 45°.
   var UHREN = [[0, 0], [1, 0], [0, 1], [1, 1], [0, 2], [1, 2]];
-  // Striche (wie bei einer Sieben-Segment-Anzeige): a oben, b rechts oben, c rechts unten, d unten, e links unten, f links oben, g Mitte
-  var STRICHE = { a:[0, 1], b:[1, 3], c:[3, 5], d:[4, 5], e:[2, 4], f:[0, 2], g:[2, 3] };
-  var ZIFFERN = { '0':'abcdef', '1':'bc', '2':'abged', '3':'abgcd', '4':'fgbc', '5':'afgcd', '6':'afgedc', '7':'abc', '8':'abcdefg', '9':'abcdfg' };
-  // Richtungen: o (oben, 12), r (rechts, 3), u (unten, 6), l (links, 9) – als Winkel im Uhrzeigersinn ab 12
-  var GRAD = { o:0, r:90, u:180, l:270 };
-  function richtung(von, nach){ var a = UHREN[von], b = UHREN[nach]; return b[0] > a[0] ? 'r' : b[0] < a[0] ? 'l' : b[1] > a[1] ? 'u' : 'o'; }
-  // Für jede Uhr: in welche Richtungen müssen Zeiger zeigen?
+  /* Striche wie bei einer Sieben-Segment-Anzeige (a oben, b rechts oben, c rechts unten, d unten, e links unten,
+     f links oben, g Mitte) und ein schräger: h von oben rechts zur Mitte links */
+  var STRICHE = { a:[0, 1], b:[1, 3], c:[3, 5], d:[4, 5], e:[2, 4], f:[0, 2], g:[2, 3], h:[1, 2] };
+  /* Ziffern: 3 mit flachem Kopf (oben, schräg zur Mitte, Bogen unten), 4 mit schrägem Strich (schräg, Querstrich,
+     nach unten). 6, 8 und 9 gehen nicht: Dort treffen sich drei (bei 8 vier) Striche in einer Uhr. */
+  var ZIFFERN = { '0':'abcdef', '1':'bc', '2':'abged', '3':'ahgcd', '4':'hgc', '5':'afgcd', '6':'afgedc', '7':'abc', '8':'abcdefg', '9':'abcdfg' };
+  // Uhren, die gar nicht gebraucht werden (die 1 ist nur ein Strich rechts): bleiben leer, ohne Uhr
+  var WEG = { '1':[0, 2, 4] };
+  // Richtung von einer Uhr zur anderen: Winkel im Uhrzeigersinn ab oben (12)
+  function richtung(von, nach){ var a = UHREN[von], b = UHREN[nach]; return ((Math.atan2(b[0] - a[0], a[1] - b[1]) * 180 / Math.PI) % 360 + 360) % 360; }
+  // Für jede Uhr: in welche Richtungen (Winkel) müssen Zeiger zeigen?
   function richtungen(z){
     var r = UHREN.map(function(){ return []; });
     (ZIFFERN[z] || '').split('').forEach(function(s){ var p = STRICHE[s]; r[p[0]].push(richtung(p[0], p[1])); r[p[1]].push(richtung(p[1], p[0])); });
     return r;
   }
-  // Geht die Ziffer mit zwei Zeigern je Uhr? → null oder Grund
+  // Geht die Ziffer mit zwei Zeigern je Uhr? → null oder die Uhren mit zu vielen Strichen
   function grund(z){
     var r = richtungen(z), zu = r.map(function(l, i){ return l.length > 2 ? i : -1; }).filter(function(i){ return i >= 0; });
     return zu.length ? zu : null;
   }
   function moeglich(z){ return !!ZIFFERN[z] && !grund(z); }
-  // Winkel der Zeiger (Grad ab 12, im Uhrzeigersinn)
+  // Winkel der Zeiger auf dem Zifferblatt (Grad ab 12, im Uhrzeigersinn)
   function stundenWinkel(h, m){ return (h % 12) * 30 + m * 0.5; }
   function minutenWinkel(m){ return m * 6; }
   function abstand(a, b){ var d = Math.abs(((a - b) % 360 + 360) % 360); return Math.min(d, 360 - d); }
-  // Wie schräg ist ein Winkel? (Abstand zur nächsten Achse 12/3/6/9, 0 … 45)
-  function schraeg(a){ var d = ((a % 90) + 90) % 90; return Math.min(d, 90 - d); }
-  function nimm(l, rnd){ return l[Math.floor(rnd() * l.length)]; }
-  /* Zeit für eine Uhr mit den Richtungen dirs:
-     – zwei Richtungen: volle, halbe oder Viertelstunde, der grosse Zeiger auf der einen, der kleine (fast) auf der anderen
-       Richtung; die mit der kleinsten Abweichung des kleinen Zeigers (bei :00 genau, :15 7.5°, :30 15°, :45 22.5°)
-     – eine Richtung: der grosse Zeiger zeigt hin (:00, :15, :30, :45), der kleine schräg (mindestens 25° neben jeder Achse)
-     – keine: beide Zeiger schräg (5-Minuten-Schritte, nie auf 12/3/6/9) – oder null, wenn ohne Ablenkung
-     → { h (1–12), m, art } */
-  function zeit(dirs, rnd, ablenkung){
-    var l = [], h, m;
-    if (dirs.length === 2){
-      var best = Infinity;
-      for (h = 1; h <= 12; h++) [0, 15, 30, 45].forEach(function(m){
-        var mw = minutenWinkel(m), hw = stundenWinkel(h, m);
-        [[0, 1], [1, 0]].forEach(function(p){
-          if (abstand(mw, GRAD[dirs[p[0]]]) > 0.01) return;
-          var ab = abstand(hw, GRAD[dirs[p[1]]]);
-          if (ab > 23) return;
-          if (ab < best - 0.01){ best = ab; l = []; }
-          if (ab <= best + 0.01) l.push({ h:h, m:m, art:'zwei' });
-        });
-      });
-      return l.length ? nimm(l, rnd) : null;
+  // Zeigt ein Zeiger «nirgendwohin»? Mindestens FREI Grad neben jeder Richtung zu einer Nachbaruhr (Vielfache von 45°)
+  var FREI = 15, GENAU = 7.5;
+  function frei(w){ var d = ((w % 45) + 45) % 45; return d >= FREI && 45 - d >= FREI; }
+  /* Zeit (und Drehung des Zifferblatts) für eine Uhr mit den Richtungen dirs (Winkel auf dem Blatt):
+     – zwei Richtungen: ein Zeiger genau auf der einen, der andere höchstens GENAU° neben der anderen
+     – eine Richtung: ein Zeiger zeigt hin, der andere «frei»
+     – keine: beide frei (oder null ohne Ablenkung)
+     Aufrecht: am liebsten volle, halbe, Viertelstunden, die genauste Lösung. Gedreht (drehen): Zifferblatt um ein
+     Vielfaches von 15° gedreht (nie 0°), 5-Minuten-Schritte; zufällig unter den guten Lösungen. → { h, m, dreh, fehler } */
+  function zeit(dirs, rnd, o){
+    o = o || {};
+    if (!dirs.length && !o.ablenkung) return null;
+    var drehs = [0], l = [], h, m, i;
+    if (o.drehen){ drehs = []; for (i = 15; i < 360; i += 15) drehs.push(i); }
+    for (var di = 0; di < drehs.length; di++) for (h = 1; h <= 12; h++) for (m = 0; m < 60; m += 5){
+      var dr = drehs[di], hw = stundenWinkel(h, m) + dr, mw = minutenWinkel(m) + dr, f = -1;
+      if (dirs.length === 2){
+        if (abstand(mw, dirs[0]) < 0.01) f = abstand(hw, dirs[1]);
+        else if (abstand(mw, dirs[1]) < 0.01) f = abstand(hw, dirs[0]);
+        if (f > GENAU) f = -1;
+      } else if (dirs.length === 1){
+        if (abstand(mw, dirs[0]) < 0.01 && frei(hw)) f = 0;
+        else if (abstand(hw, dirs[0]) <= GENAU && frei(mw)) f = abstand(hw, dirs[0]) + 1;   // kleiner Zeiger zeigt hin: etwas weniger gern
+      } else if (frei(hw) && frei(mw)) f = 0;
+      if (f < 0) continue;
+      // Punkte: Abweichung, dazu (aufrecht) Strafe für 5-Minuten-Zeiten bei Uhren mit Strichen
+      var punkte = f + (m % 15 && dirs.length ? (o.drehen ? 1 : 6) : 0);
+      l.push({ h:h, m:m, dreh:dr, fehler:f, punkte:punkte });
     }
-    if (dirs.length === 1){
-      m = { o:0, r:15, u:30, l:45 }[dirs[0]];
-      for (h = 1; h <= 12; h++) if (schraeg(stundenWinkel(h, m)) >= 25) l.push({ h:h, m:m, art:'eins' });
-      return nimm(l, rnd);
-    }
-    if (!ablenkung) return null;
-    for (h = 1; h <= 12; h++) [5, 10, 20, 25, 35, 40, 50, 55].forEach(function(m){ if (schraeg(stundenWinkel(h, m)) >= 25) l.push({ h:h, m:m, art:'leer' }); });
-    return nimm(l, rnd);
+    if (!l.length) return null;
+    var min = Math.min.apply(null, l.map(function(x){ return x.punkte; }));
+    var gut = l.filter(function(x){ return x.punkte <= min + (o.drehen ? 6 : 0.01); });
+    return nimm(gut, rnd);
   }
-  // Alle Uhren einer Zahl (mehrere Ziffern) → [{ ziffer, uhren:[{ dirs, zeit }] }]
-  function planen(code, rnd, ablenkung){
+  function nimm(l, rnd){ return l[Math.floor(rnd() * l.length)]; }
+  // Alle Uhren einer Zahl (mehrere Ziffern) → [{ ziffer, uhren:[{ dirs, zeit, weg }] }]; weg: keine Uhr an dieser Stelle
+  function planen(code, rnd, o){
+    o = o || {};
     return String(code).split('').map(function(z){
-      return { ziffer:z, uhren:richtungen(z).map(function(d){ return { dirs:d, zeit:zeit(d, rnd, ablenkung) }; }) };
+      return { ziffer:z, uhren:richtungen(z).map(function(d, u){
+        var weg = (WEG[z] || []).indexOf(u) >= 0, t = weg ? null : zeit(d, rnd, o);
+        return { dirs:d, zeit:t, weg:weg || !t };
+      }) };
     });
   }
   /* Zeit als Text: '12' → 3:05, '24' → 15:05 (Nachmittag zufällig, aber fest je Uhr: nachmittags), 'worte' → «fünf nach drei» */
@@ -99,14 +111,26 @@ var Kern = (function(){
     return h + ':' + mm;
   }
   function zufall(seed){ var a = seed >>> 0; return function(){ a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
-  return { UHREN:UHREN, STRICHE:STRICHE, ZIFFERN:ZIFFERN, GRAD:GRAD, richtungen:richtungen, grund:grund, moeglich:moeglich, stundenWinkel:stundenWinkel,
-    minutenWinkel:minutenWinkel, abstand:abstand, schraeg:schraeg, zeit:zeit, planen:planen, text:text, zufall:zufall };
+  return { UHREN:UHREN, STRICHE:STRICHE, ZIFFERN:ZIFFERN, WEG:WEG, richtung:richtung, richtungen:richtungen, grund:grund, moeglich:moeglich, stundenWinkel:stundenWinkel,
+    minutenWinkel:minutenWinkel, abstand:abstand, frei:frei, FREI:FREI, GENAU:GENAU, zeit:zeit, planen:planen, text:text, zufall:zufall };
 })();
 /* KERN-ENDE */
 
 var TINTE = '#1C1714', B = 639, MM = 703 / 186, MAX = 4;
 // Farben der Uhren (Rand) – das Zifferblatt bekommt einen hellen Hauch davon
-var UHRFARBEN = ['#E53935', '#FB8C00', '#F2B705', '#43A047', '#00897B', '#1E88E5', '#3949AB', '#8E24AA', '#D81B60'];
+var UHRFARBEN = ['#E53935', '#FB8C00', '#F2B705', '#7CB342', '#43A047', '#00897B', '#00ACC1', '#1E88E5', '#3949AB', '#8E24AA', '#D81B60', '#6D4C41'];
+function hslHex(h, s, l){ s /= 100; l /= 100; var k = function(n){ return (n + h / 30) % 12; }, a = s * Math.min(l, 1 - l);
+  var f = function(n){ return Math.round(255 * (l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1))))).toString(16).padStart(2, '0'); };
+  return '#' + f(0) + f(8) + f(4); }
+/* n Farben, keine zweimal: bis 12 aus der Liste oben (gemischt), sonst Farbtöne gleichmässig über den Farbkreis
+   verteilt, abwechselnd heller und dunkler, gemischt */
+function farbenListe(n, rnd){
+  var l = [], i;
+  if (n <= UHRFARBEN.length) l = UHRFARBEN.slice();
+  else { var start = rnd() * 360; for (i = 0; i < n; i++) l.push(hslHex((start + i * 360 / n) % 360, 72, i % 2 ? 36 : 47)); }
+  for (i = l.length - 1; i > 0; i--){ var j = Math.floor(rnd() * (i + 1)), x = l[i]; l[i] = l[j]; l[j] = x; }
+  return l.slice(0, n);
+}
 var ARTEN = [['12', '3:00'], ['24', '15:00'], ['worte', 'in Worten']];
 var LOESUNGSFARBE = '#F28C38';
 function esc(t){ return Labor.esc(t); }
@@ -120,7 +144,7 @@ var VORLAGE = '<div class="ur">' +
   '<div class="ur-layout"><section class="ur-eingabe" aria-label="Eingaben">' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Zahl</h2><p>Ziffern antippen – 1 bis 4. Jede Ziffer besteht aus 6 Uhren.</p></div></div>' +
       '<div class="ur-ziffern" id="urZiffern"></div>' +
-      '<p class="hinweis">Möglich sind 0, 1, 2, 5 und 7: Jede Uhr hat nur zwei Zeiger – bei 3, 4, 6, 8 und 9 bräuchte eine Uhr in der Mitte drei.</p>' +
+      '<p class="hinweis">Möglich sind 0, 1, 2, 3, 4, 5 und 7 (die 3 mit flachem Kopf und die 4 mit einem schrägen Strich). 6, 8 und 9 gehen nicht: Dort treffen sich drei Striche in einer Uhr – jede Uhr hat aber nur zwei Zeiger.</p>' +
       '<div class="ur-gewaehlt" id="urGewaehlt" aria-live="polite"></div>' +
       '<div class="ur-zeile"><button type="button" class="btn klein" id="urZurueck">⌫ Letzte weg</button><button type="button" class="btn klein" id="urLeeren">Leeren</button><button type="button" class="btn klein" id="urZufall">Zufällige Zahl</button></div>' +
     '</div>' +
@@ -129,9 +153,10 @@ var VORLAGE = '<div class="ur">' +
       '<p class="hinweis" id="urArtInfo"></p>' +
     '</div>' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Uhren und Blatt</h2></div></div>' +
-      '<label class="opt"><input type="checkbox" id="urFarbig"><span>Farbige Uhren</span></label>' +
+      '<label class="opt"><input type="checkbox" id="urFarbig"><span>Farbige Uhren (jede Uhr eine eigene Farbe)</span></label>' +
+      '<label class="opt"><input type="checkbox" id="urDrehen"><span>Uhren gedreht – die 12 ist nicht oben (schwieriger; ein Dreieck zeigt die 12)</span></label>' +
       '<label class="opt"><input type="checkbox" id="urZahlen"><span>Zahlen 1–12 auf den Uhren</span></label>' +
-      '<label class="opt"><input type="checkbox" id="urAblenkung"><span>Auch Uhren, die nichts zeigen, bekommen eine Zeit (beide Zeiger schräg) – sonst verraten leere Uhren die Zahl</span></label>' +
+      '<label class="opt"><input type="checkbox" id="urAblenkung"><span>Auch Uhren, die nichts zeigen, bekommen eine Zeit (beide Zeiger zeigen zu keiner Nachbaruhr) – sonst fehlen sie und verraten die Zahl. Bei der 1 bleibt die linke Spalte immer leer.</span></label>' +
       '<label class="opt"><input type="checkbox" id="urLinie"><span>Linie für die Lösung</span></label>' +
     '</div>' +
   '</section>' +
@@ -158,7 +183,7 @@ Labor.registriere({
   titel:'Uhrenrätsel',
   kurz:'Zeiger einzeichnen und verbinden – eine Zahl erscheint',
   beschreibung:'Je 6 Uhren bilden eine Ziffer: Zeiten lesen, Zeiger einzeichnen, die Zeiger verbinden, die aufeinander zeigen – und die Zahl erscheint. Zeit als 3:00, 15:00 oder in Worten, Uhren farbig oder schwarz-weiss, mit Lösungsblatt.',
-  merkmale:['Uhrzeit lesen', 'Ziffern 0, 1, 2, 5, 7', 'Mit Lösungsblatt'],
+  merkmale:['Uhrzeit lesen', 'Auch gedrehte Uhren', 'Mit Lösungsblatt'],
   symbol:SYMBOL,
   css:'raetsel/uhren/uhren.css',
   html:VORLAGE,
@@ -170,7 +195,7 @@ function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false;
   var TAB = 'uhrenraetsel-eingaben', OPT = 'uhrenraetsel-einstellungen';
   // Keine Vorauswahl: Zahl und Zeitangabe wählt man selbst
-  var STANDARD = { art:'', farbig:false, zahlen:true, ablenkung:true, linie:true, mitLoesung:true, titelAn:true, anleitungAn:true };
+  var STANDARD = { art:'', farbig:false, drehen:false, zahlen:true, ablenkung:true, linie:true, mitLoesung:true, titelAn:true, anleitungAn:true };
   var st = { code:'', seed:Math.floor(Math.random() * 1e9), opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
   try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.code = String(e.code || '').split('').filter(Kern.moeglich).slice(0, MAX).join(''); st.seed = +e.seed || st.seed; } } catch(x){}
@@ -185,7 +210,7 @@ function starte(bereich){
   /* ---------- Ziffern antippen ---------- */
   $('#urZiffern').innerHTML = '0123456789'.split('').map(function(z){
     var ok = Kern.moeglich(z);
-    return '<button type="button" class="ur-ziffer' + (ok ? '' : ' nie') + '" data-z="' + z + '"' + (ok ? ' title="' + z + ' anhängen"' : ' disabled title="' + z + ' geht nicht – eine Uhr bräuchte drei Zeiger"') + '>' + z + '</button>';
+    return '<button type="button" class="ur-ziffer' + (ok ? '' : ' nie') + '" data-z="' + z + '"' + (ok ? ' title="' + z + ' anhängen"' : ' disabled title="' + z + ' geht nicht – in einer Uhr träfen sich drei Striche"') + '>' + z + '</button>';
   }).join('');
   function gewaehltZeigen(){
     $('#urGewaehlt').innerHTML = st.code ? 'Zahl: <b>' + st.code.split('').join(' ') + '</b>' + (st.code.length >= MAX ? ' <span class="ur-voll">(höchstens ' + MAX + ' Ziffern)</span>' : '') : 'Noch keine Ziffer gewählt.';
@@ -199,7 +224,7 @@ function starte(bereich){
   $('#urZurueck').addEventListener('click', function(){ st.code = st.code.slice(0, -1); speichern(); gewaehltZeigen(); zeichnen(); });
   $('#urLeeren').addEventListener('click', function(){ st.code = ''; speichern(); gewaehltZeigen(); zeichnen(); });
   $('#urZufall').addEventListener('click', function(){
-    var l = '01257', n = 2 + Math.floor(Math.random() * 3), c = '';
+    var l = '0123457', n = 2 + Math.floor(Math.random() * 3), c = '';
     for (var i = 0; i < n; i++) c += l[Math.floor(Math.random() * l.length)];
     if (n > 1 && c[0] === '0') c = '1' + c.slice(1);
     st.code = c; st.seed = Math.floor(Math.random() * 1e9); speichern(); gewaehltZeigen(); zeichnen();
@@ -208,7 +233,7 @@ function starte(bereich){
     r.checked = r.value === st.opt.art;
     r.addEventListener('change', function(){ if (r.checked){ st.opt.art = r.value; speichern(); zeichnen(); } });
   });
-  [['#urFarbig', 'farbig'], ['#urZahlen', 'zahlen'], ['#urAblenkung', 'ablenkung'], ['#urLinie', 'linie'], ['#urMitLoesung', 'mitLoesung']].forEach(function(x){
+  [['#urFarbig', 'farbig'], ['#urDrehen', 'drehen'], ['#urZahlen', 'zahlen'], ['#urAblenkung', 'ablenkung'], ['#urLinie', 'linie'], ['#urMitLoesung', 'mitLoesung']].forEach(function(x){
     $(x[0]).checked = !!st.opt[x[1]];
     $(x[0]).addEventListener('change', function(){ st.opt[x[1]] = this.checked; speichern(); if (x[1] !== 'mitLoesung') zeichnen(); });
   });
@@ -221,8 +246,8 @@ function starte(bereich){
   gewaehltZeigen();
 
   /* ---------- Uhr zeichnen ---------- */
-  // Uhr mit Mitte (x, y) und Radius r; farbe: Randfarbe oder null
-  function uhr(x, y, r, farbe){
+  // Uhr mit Mitte (x, y) und Radius r; farbe: Randfarbe oder null; dreh: Zifferblatt um so viele Grad gedreht
+  function uhr(x, y, r, farbe, dreh){
     var rand = farbe || '#2E2A27', blatt = farbe ? hell(farbe, 0.07) : '#FFFFFF', t = '';
     t += '<circle cx="' + f1(x) + '" cy="' + f1(y) + '" r="' + f1(r * 0.96) + '" fill="' + blatt + '" stroke="' + rand + '" stroke-width="' + f1(r * 0.08) + '"/>';
     t += '<circle cx="' + f1(x) + '" cy="' + f1(y) + '" r="' + f1(r * 0.87) + '" fill="none" stroke="' + rand + '" stroke-opacity="0.22" stroke-width="' + f1(Math.max(0.6, r * 0.012)) + '"/>';
@@ -231,25 +256,31 @@ function starte(bereich){
     for (var i = 0; i < 60; i++){
       var w = i * 6 * Math.PI / 180, s = Math.sin(w), c = -Math.cos(w), innen = i % 15 === 0 ? 0.68 : i % 5 === 0 ? 0.72 : 0.8, aussen = 0.85;
       var seg = 'M' + f1(x + s * r * innen) + ' ' + f1(y + c * r * innen) + 'L' + f1(x + s * r * aussen) + ' ' + f1(y + c * r * aussen);
+      if (i === 0) continue;   // bei der 12 steht ein Dreieck
       if (i % 15 === 0) dq += seg; else if (i % 5 === 0) dh += seg; else d += seg;
     }
-    t += '<path d="' + d + '" stroke="#A39A93" stroke-width="' + f1(Math.max(0.5, r * 0.014)) + '"/>';
+    var innen = '<path d="' + d + '" stroke="#A39A93" stroke-width="' + f1(Math.max(0.5, r * 0.014)) + '"/>';
+    // Dreieck bei der 12 – so findet man oben auch auf gedrehten Uhren
+    innen += '<path d="M' + f1(x) + ' ' + f1(y - r * 0.66) + 'L' + f1(x - r * 0.075) + ' ' + f1(y - r * 0.85) + 'L' + f1(x + r * 0.075) + ' ' + f1(y - r * 0.85) + 'Z" fill="' + (farbe || TINTE) + '" stroke="' + TINTE + '" stroke-width="' + f1(r * 0.012) + '"/>';
+    t += '<g' + (dreh ? ' transform="rotate(' + dreh + ' ' + f1(x) + ' ' + f1(y) + ')"' : '') + '>' + innen;
     t += '<path d="' + dh + '" stroke="' + TINTE + '" stroke-width="' + f1(r * 0.03) + '" stroke-linecap="round"/>';
     t += '<path d="' + dq + '" stroke="' + TINTE + '" stroke-width="' + f1(r * 0.045) + '" stroke-linecap="round"/>';
-    if (st.opt.zahlen){
+    var zahlenOben = st.opt.zahlen;
+    if (zahlenOben){
       var g = r * 0.17;
       for (var h = 1; h <= 12; h++){
         var a = h * 30 * Math.PI / 180;
         t += '<text x="' + f1(x + Math.sin(a) * r * 0.53) + '" y="' + f1(y - Math.cos(a) * r * 0.53 + g * 0.36) + '" font-size="' + f1(g) + '" font-weight="700" text-anchor="middle" fill="' + TINTE + '">' + h + '</text>';
       }
     }
+    t += '</g>';
     return t;
   }
   // Zeiger und Mittelpunkt (für die Lösung über den Verbindungen)
   function zeiger(x, y, r, farbe, zeit){
     var t = '';
     if (zeit){
-      var hw = Kern.stundenWinkel(zeit.h, zeit.m) * Math.PI / 180, mw = Kern.minutenWinkel(zeit.m) * Math.PI / 180;
+      var hw = (Kern.stundenWinkel(zeit.h, zeit.m) + zeit.dreh) * Math.PI / 180, mw = (Kern.minutenWinkel(zeit.m) + zeit.dreh) * Math.PI / 180;
       t += '<path d="M' + f1(x) + ' ' + f1(y) + 'L' + f1(x + Math.sin(hw) * r * 0.48) + ' ' + f1(y - Math.cos(hw) * r * 0.48) + '" stroke="' + TINTE + '" stroke-width="' + f1(r * 0.075) + '" stroke-linecap="round"/>';
       t += '<path d="M' + f1(x) + ' ' + f1(y) + 'L' + f1(x + Math.sin(mw) * r * 0.76) + ' ' + f1(y - Math.cos(mw) * r * 0.76) + '" stroke="' + TINTE + '" stroke-width="' + f1(r * 0.045) + '" stroke-linecap="round"/>';
     }
@@ -261,10 +292,10 @@ function starte(bereich){
     var g = Math.min(gr, breite / Math.max(1, txt.length * 0.56));
     return '<text x="' + f1(x) + '" y="' + f1(y + g * 0.36) + '" font-size="' + f1(g) + '" font-weight="700" text-anchor="middle" fill="' + TINTE + '">' + esc(txt) + '</text>';
   }
-  /* Ziffern (Plan-Teile) als SVG: d = Durchmesser der Uhr, gx = Lücke zwischen den Spalten einer Ziffer, G = Lücke zwischen
-     Ziffern, zeile = Abstand der Zeilen; loesung: Zeiger und Verbindungen */
-  function ziffernSvg(teile, start, d, gx, G, zeile, loesung, farben){
-    var r = d / 2, breite = teile.length * (2 * d + gx) + (teile.length - 1) * G, x0 = (B - breite) / 2, hoehe = 3 * zeile, t = '', unten = '', oben = '';
+  /* Ziffern (Plan-Teile) als SVG: d = Durchmesser der Uhr, zeile = Abstand der Uhren (waagrecht und senkrecht gleich –
+     quadratisches Raster, schräge Striche auf 45°), G = Lücke zwischen Ziffern; loesung: Zeiger und Verbindungen */
+  function ziffernSvg(teile, d, zeile, G, loesung){
+    var gx = zeile - d, r = d / 2, breite = teile.length * (2 * d + gx) + (teile.length - 1) * G, x0 = (B - breite) / 2, hoehe = 3 * zeile, t = '', unten = '', oben = '';
     teile.forEach(function(Zf, k){
       var xz = x0 + k * (2 * d + gx + G);
       function mitte(u){ var p = Kern.UHREN[u]; return [xz + r + p[0] * (d + gx), r + 4 + p[1] * zeile]; }
@@ -273,10 +304,11 @@ function starte(bereich){
         unten += '<path d="M' + f1(a[0]) + ' ' + f1(a[1]) + 'L' + f1(b[0]) + ' ' + f1(b[1]) + '" stroke="' + LOESUNGSFARBE + '" stroke-opacity="0.55" stroke-width="' + f1(d * 0.13) + '" stroke-linecap="round"/>';
       });
       Zf.uhren.forEach(function(U, u){
-        var m = mitte(u), farbe = st.opt.farbig ? farben[(start + k) * 6 + u] : null;
-        t += uhr(m[0], m[1], r, farbe);
+        if (U.weg) return;
+        var m = mitte(u), farbe = st.opt.farbig ? U.farbe : null;
+        t += uhr(m[0], m[1], r, farbe, U.zeit.dreh);
         oben += zeiger(m[0], m[1], r, farbe, loesung ? U.zeit : null);
-        oben += etikett(m[0], m[1] + r + Math.max(10, d * 0.1), d + gx - 4, U.zeit ? Kern.text(U.zeit, st.opt.art, U.nachmittags) : '–', Math.max(11, d * 0.12));
+        oben += etikett(m[0], m[1] + r + Math.max(10, d * 0.1), d + gx - 4, Kern.text(U.zeit, st.opt.art, U.nachmittags), Math.max(11, d * 0.12));
       });
     });
     return '<svg class="ur-uhren" width="' + B + '" height="' + f1(hoehe) + '" viewBox="0 0 ' + B + ' ' + f1(hoehe) + '"><g fill="none">' + t + '</g>' + unten + oben + '</svg>';
@@ -295,29 +327,30 @@ function starte(bereich){
     if (fehlt){ PLAN = null; $('#urSeiten').innerHTML = ''; $('#urLoesung').parentNode.hidden = true; $('#urLoesung').classList.remove('zeigen'); meldung('info', '<p>Wähle links ' + fehlt + '.</p>'); return; }
     meldung('', ''); $('#urLoesung').parentNode.hidden = false;
     var rnd = Kern.zufall(st.seed);
-    PLAN = Kern.planen(st.code, rnd, o.ablenkung);
-    PLAN.forEach(function(Zf){ Zf.uhren.forEach(function(U){ U.nachmittags = rnd() < 0.5; }); });
-    // Farben: gemischt, nebeneinander nie gleich
-    var farben = [], vor = '';
-    for (var i = 0; i < PLAN.length * 6; i++){ var f; do { f = UHRFARBEN[Math.floor(rnd() * UHRFARBEN.length)]; } while (f === vor || (i >= 2 && f === farben[i - 2])); farben.push(f); vor = f; }
-    var anleitung = 'Zeichne bei jeder Uhr die Zeiger ein: den kurzen Stundenzeiger und den langen Minutenzeiger. Verbinde dann mit dem Lineal die Zeiger von zwei Uhren, die genau aufeinander zeigen. ' +
+    PLAN = Kern.planen(st.code, rnd, { ablenkung:o.ablenkung, drehen:o.drehen });
+    // Farben: jede Uhr eine eigene – keine Farbe zweimal
+    var alle = [];
+    PLAN.forEach(function(Zf){ Zf.uhren.forEach(function(U){ U.nachmittags = rnd() < 0.5; if (!U.weg) alle.push(U); }); });
+    var farben = farbenListe(alle.length, rnd);
+    alle.forEach(function(U, i){ U.farbe = farben[i]; });
+    var anleitung = (o.drehen ? 'Achtung, die Uhren sind gedreht: Das Dreieck zeigt, wo die 12 ist. ' : '') + 'Zeichne bei jeder Uhr die Zeiger ein: den kurzen Stundenzeiger und den langen Minutenzeiger. Verbinde dann mit dem Lineal die Zeiger von zwei Uhren, die genau aufeinander zeigen. ' +
       (PLAN.length > 1 ? 'Welche Zahl entsteht?' : 'Welche Ziffer entsteht?');
-    // Blätter: höchstens zwei Ziffern je Seite (1 Ziffer: Uhren 52 mm, 2 Ziffern: 34 mm)
+    // Blätter: höchstens zwei Ziffern je Seite (1 Ziffer: Uhren 52 mm, Abstand 67 mm; 2 Ziffern: 32 mm, Abstand 44 mm)
     var html = '', seiten = [];
     for (var s = 0; s < PLAN.length; s += 2) seiten.push(PLAN.slice(s, s + 2));
     seiten.forEach(function(teile, si){
-      var eins = teile.length === 1 && PLAN.length === 1, d = (eins ? 52 : 34) * MM, gx = (eins ? 16 : 6) * MM, G = 13 * MM, zeile = d + (eins ? 15 : 12) * MM;
+      var eins = teile.length === 1 && PLAN.length === 1, d = (eins ? 52 : 32) * MM, zeile = (eins ? 67 : 44) * MM;
       var kopf = si === 0 ? (o.titelAn ? '<h2>Uhrenrätsel</h2>' : '') + (o.anleitungAn ? '<p class="ur-anleitung">' + esc(anleitung) + '</p>' : '')
         : '<p class="ur-seitenkopf">Uhrenrätsel – Seite ' + (si + 1) + ' von ' + seiten.length + '</p>';
       var fuss = si === seiten.length - 1 && o.linie ? '<p class="ur-antwort">' + (PLAN.length > 1 ? 'Zahl' : 'Ziffer') + ': ' + PLAN.map(function(){ return '<span class="ur-kaestchen"></span>'; }).join('') + '</p>' : '';
-      html += '<div class="ur-rahmen"><article class="ur-blatt ur-seite">' + kopf + ziffernSvg(teile, si * 2, d, gx, G, zeile, false, farben) + fuss + '</article></div>';
+      html += '<div class="ur-rahmen"><article class="ur-blatt ur-seite">' + kopf + ziffernSvg(teile, d, zeile, 13 * MM, false) + fuss + '</article></div>';
     });
     $('#urSeiten').innerHTML = html;
     // Lösung: alle Ziffern auf einer Seite (bis 2 je Zeile)
     var lh = '';
     for (var z = 0; z < PLAN.length; z += 2){
       var teile = PLAN.slice(z, z + 2), d2 = (PLAN.length === 1 ? 40 : PLAN.length === 2 ? 30 : 25) * MM;
-      lh += ziffernSvg(teile, z, d2, 5 * MM, 13 * MM, d2 + 9 * MM, true, farben);
+      lh += ziffernSvg(teile, d2, d2 + 9 * MM, 13 * MM, true);
     }
     $('#urLoesung').innerHTML = (o.titelAn ? '<h2>Uhrenrätsel – Lösung</h2>' : '<p class="ur-anleitung"><b>Lösung</b></p>') + lh +
       '<p class="ur-loesung-text">' + (PLAN.length > 1 ? 'Zahl' : 'Ziffer') + ': <b>' + esc(st.code) + '</b></p>';
