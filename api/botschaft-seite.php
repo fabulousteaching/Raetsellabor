@@ -16,13 +16,24 @@ function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
 $titel = is_array($b) ? (string)($b['titel'] ?? '') : '';
 $text = is_array($b) ? (string)($b['text'] ?? '') : '';
 $symbol = is_array($b) ? (string)($b['symbol'] ?? '🎉') : '🔍';
+/* Sprache: wie im Generator beim Speichern gewählt; fehlt die Botschaft, die Sprache des Browsers */
+$sprache = is_array($b) ? (string)($b['sprache'] ?? 'de') : strtolower(substr((string)($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? 'de'), 0, 2));
+if (!in_array($sprache, ['de', 'en', 'fr'], true)) $sprache = 'de';
+$TEXTE = [
+  'botschaft' => ['Botschaft', 'Message', 'Message'],
+  'nicht'     => ['Botschaft nicht gefunden', 'Message not found', 'Message introuvable'],
+  'gibtsnicht' => ['Diese Botschaft gibt es nicht', 'This message does not exist', 'Ce message n’existe pas'],
+  'pruefen'   => ['Vielleicht wurde der Code nicht ganz richtig ausgemalt? Prüfe die Felder und scanne nochmals.', 'Maybe the code was not coloured in quite right? Check the squares and scan again.', 'Le code n’a peut-être pas été colorié tout à fait correctement ? Vérifie les cases et scanne à nouveau.'],
+  'labor'     => ['Zum Rätsellabor', 'To Rätsellabor', 'Vers Rätsellabor'],
+];
+function t(string $k): string { global $TEXTE, $sprache; return $TEXTE[$k][['de' => 0, 'en' => 1, 'fr' => 2][$sprache]]; }
 ?><!DOCTYPE html>
-<html lang="de">
+<html lang="<?= h($sprache) ?>">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<title><?= h($titel !== '' ? $titel : (is_array($b) ? 'Botschaft' : 'Botschaft nicht gefunden')) ?></title>
+<title><?= h($titel !== '' ? $titel : (is_array($b) ? t('botschaft') : t('nicht'))) ?></title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Inter:wght@400;600&display=swap">
 <style>
@@ -60,9 +71,9 @@ $symbol = is_array($b) ? (string)($b['symbol'] ?? '🎉') : '🔍';
 <?php else: ?>
 <main>
   <p class="symbol" aria-hidden="true">🔍</p>
-  <h1>Diese Botschaft gibt es nicht</h1>
-  <p class="text kurz">Vielleicht wurde der Code nicht ganz richtig ausgemalt? Prüfe die Felder und scanne nochmals.</p>
-  <footer><a href="../../">Zum Rätsellabor</a></footer>
+  <h1><?= h(t('gibtsnicht')) ?></h1>
+  <p class="text kurz"><?= h(t('pruefen')) ?></p>
+  <footer><a href="../../"><?= h(t('labor')) ?></a></footer>
 </main>
 <?php endif; ?>
 </body>

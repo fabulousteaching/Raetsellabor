@@ -57,6 +57,9 @@ if (!ordner($ablage) || !ordner($seiten)) antwort(500, ['fehler' => 'speichern']
 
 $inhalt = ['titel' => $titel, 'text' => $text, 'symbol' => $symbol];
 $json = json_encode($inhalt, JSON_UNESCAPED_UNICODE);
+// Sprache der Seite, die sich beim Scannen öffnet (nur Englisch/Französisch wird gespeichert; zählt nicht für die ID)
+$sprache = (string)($e['sprache'] ?? 'de');
+$extra = in_array($sprache, ['en', 'fr'], true) ? ['sprache' => $sprache] : [];
 $hash = sha1($json, true);
 
 // ID aus dem Inhalt; ist sie schon für etwas anderes vergeben, die nächsten Zeichen nehmen
@@ -78,7 +81,7 @@ for ($k = 0; $k <= 16; $k++) {
       || !zaehlen($zaehler . '/botschaft-tag-' . date('Ymd') . '.txt', PRO_TAG)) antwort(429, ['fehler' => 'zuViele']);
   $f = @fopen($datei, 'x');
   if (!$f) continue;
-  fwrite($f, (string)json_encode($inhalt + ['erstellt' => date('c')], JSON_UNESCAPED_UNICODE));
+  fwrite($f, (string)json_encode($inhalt + $extra + ['erstellt' => date('c')], JSON_UNESCAPED_UNICODE));
   fclose($f);
   if (!seite($seiten, $id)) antwort(500, ['fehler' => 'speichern']);
   antwort(200, ['id' => $id]);
