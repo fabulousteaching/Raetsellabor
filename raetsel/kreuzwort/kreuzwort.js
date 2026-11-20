@@ -16,8 +16,10 @@ var Kern = (function(){
     for (var i = 0; i < 8; i++) n();
     return n;
   }
-  // Wort fürs Gitter: Grossbuchstaben, ß → SS, Umlaute bleiben ein Feld, alles andere (Leerzeichen, Bindestriche) fällt weg
-  function wort(t){ return String(t || '').replace(/ẞ/g, 'ß').toUpperCase().replace(/[^A-ZÄÖÜ]/g, ''); }
+  // Wort fürs Gitter: Grossbuchstaben, ß → SS, Umlaute bleiben ein Feld, alles andere (Leerzeichen, Bindestriche) fällt weg;
+  // andere Akzente fallen weg (É → E, Ç → C, Œ → OE) – so schreibt man auch französische Kreuzworträtsel
+  function wort(t){ return String(t || '').normalize('NFC').replace(/ẞ/g, 'ß').toUpperCase().replace(/Œ/g, 'OE').replace(/Æ/g, 'AE')
+    .replace(/[^A-ZÄÖÜ]/g, function(c){ var o = c.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); return /^[A-Z]$/.test(o) ? o : ''; }); }
   // eingegebene Paare [{ w, h }] prüfen → { liste:[{ wort, hinweis }], ohne (Hinweis fehlt), kurz, doppelt }
   function pruefen(paare){
     var liste = [], ohne = 0, kurz = 0, doppelt = 0, gesehen = {};
@@ -268,7 +270,7 @@ function starte(bereich){
   function zeileHtml(p, i){
     return '<div class="kw-zeile" role="listitem"><input type="text" class="kw-w" value="' + esc(p.w) + tx('" maxlength="30" autocomplete="off" spellcheck="false" aria-label="Wort ') + (i + 1) + '">' +
       '<input type="text" class="kw-h" value="' + esc(p.h) + tx('" maxlength="120" autocomplete="off" aria-label="Hinweis ') + (i + 1) + '">' +
-      tx('<button type="button" class="kw-x" aria-label="Zeile ') + (i + 1) + tx(' löschen" title="Zeile löschen">×</button></div>');
+      '<button type="button" class="kw-x" aria-label="' + esc(tx('Zeile {i} löschen', { i:i + 1 })) + '" title="' + tx('Zeile löschen') + '">×</button></div>';
   }
   function zeilenZeigen(fokus){
     while (st.paare.length && !st.paare[st.paare.length - 1].w && !st.paare[st.paare.length - 1].h) st.paare.pop();
@@ -351,15 +353,15 @@ function starte(bereich){
   }
   $('#kwDatei').addEventListener('change', function(){ bilderLaden(this.files); this.value = ''; });
   var ablage = $('#kwAblage');
-  ablage.addEventListener('dragover', function(ev){ if (ev.dataTransfer && [].indexOf.call(ev.dataTransfer.types, tx('Files')) >= 0){ ev.preventDefault(); ablage.classList.add('ziehen'); } });
+  ablage.addEventListener('dragover', function(ev){ if (ev.dataTransfer && [].indexOf.call(ev.dataTransfer.types, 'Files') >= 0){ ev.preventDefault(); ablage.classList.add('ziehen'); } });
   ablage.addEventListener('dragleave', function(){ ablage.classList.remove('ziehen'); });
   ablage.addEventListener('drop', function(ev){ ablage.classList.remove('ziehen'); if (!ev.dataTransfer || !ev.dataTransfer.files.length) return; ev.preventDefault(); bilderLaden(ev.dataTransfer.files); });
 
   /* ---------- Rätsel erzeugen ---------- */
   function zaehler(info){
-    var n = info.liste.length, h = '<p class="kw-zaehler-haupt ' + (n >= 2 ? 'ok' : 'fehlt') + '"><b>' + n + '</b> ' + (n === 1 ? tx('Wort') : tx('Wörter')) + (n < 2 ? tx(' – es braucht mindestens 2.') : '') + '</p>';
-    if (info.ohne) h += '<p class="warnung">' + info.ohne + tx(' Wort') + (info.ohne > 1 ? 'e' : '') + tx(' ohne Hinweis – bitte rechts den Hinweis ergänzen.</p>');
-    if (info.doppelt) h += '<p class="warnung">' + info.doppelt + tx(' Wort') + (info.doppelt > 1 ? 'e' : '') + tx(' doppelt – nur einmal verwendet.</p>');
+    var n = info.liste.length, h = '<p class="kw-zaehler-haupt ' + (n >= 2 ? 'ok' : 'fehlt') + '"><b>' + n + '</b> ' + (n === 1 ? tx('Wort') : tx('Wörter')) + (n < 2 ? ' ' + tx('– es braucht mindestens 2.') : '') + '</p>';
+    if (info.ohne) h += '<p class="warnung">' + tx(info.ohne > 1 ? '{n} Wörter ohne Hinweis – bitte rechts den Hinweis ergänzen.' : '1 Wort ohne Hinweis – bitte rechts den Hinweis ergänzen.', { n:info.ohne }) + '</p>';
+    if (info.doppelt) h += '<p class="warnung">' + tx(info.doppelt > 1 ? '{n} Wörter doppelt – nur einmal verwendet.' : '1 Wort doppelt – nur einmal verwendet.', { n:info.doppelt }) + '</p>';
     if (info.kurz) h += tx('<p class="warnung">Wörter mit nur einem Buchstaben werden weggelassen.</p>');
     if (n > 30) h += tx('<p class="warnung">Mehr als 30 Wörter passen kaum auf ein Blatt – es werden die ersten 30 verwendet.</p>');
     $('#kwZaehler').innerHTML = h;
@@ -422,13 +424,13 @@ function starte(bereich){
   /* ---------- Bilder auf dem Blatt ---------- */
   function bildStil(b, p){
     var h = p.w * b.h / b.b;
-    return tx('left:') + (p.x - p.w / 2).toFixed(1) + tx('px;top:') + (p.y - h / 2).toFixed(1) + tx('px;width:') + p.w.toFixed(1) + tx('px;height:') + h.toFixed(1) + 'px' +
-      (p.d ? ';transform:rotate(' + p.d.toFixed(1) + 'deg)' : '') + (b.z ? tx(';z-index:') + b.z : '');
+    return 'left:' + (p.x - p.w / 2).toFixed(1) + 'px;top:' + (p.y - h / 2).toFixed(1) + 'px;width:' + p.w.toFixed(1) + 'px;height:' + h.toFixed(1) + 'px' +
+      (p.d ? ';transform:rotate(' + p.d.toFixed(1) + 'deg)' : '') + (b.z ? ';z-index:' + b.z : '');
   }
   // griffe: auf dem Arbeitsblatt am Bildschirm anfassbar (Rahmen mit Ecken zum Vergrössern und Griff zum Drehen)
   function bildHtml(b, i, p, griffe){
-    return '<div class="kw-bild' + (griffe && i === gewaehlt ? tx(' gewaehlt') : '') + '" data-i="' + i + '" style="' + bildStil(b, p) + '"' +
-      (griffe ? tx(' tabindex="0" role="button" aria-label="Bild ') + (i + 1) + tx(' – ziehen oder Pfeiltasten zum Verschieben, Plus und Minus für die Grösse"') : '') + '>' +
+    return '<div class="kw-bild' + (griffe && i === gewaehlt ? ' gewaehlt' : '') + '" data-i="' + i + '" style="' + bildStil(b, p) + '"' +
+      (griffe ? ' tabindex="0" role="button" aria-label="' + esc(tx('Bild {i} – ziehen oder Pfeiltasten zum Verschieben, Plus und Minus für die Grösse', { i:i + 1 })) + '"' : '') + '>' +
       '<img src="' + b.src + '" alt="" draggable="false">' +
       (griffe ? tx('<span class="kw-dreh-stiel nur-bildschirm" aria-hidden="true"></span><span class="kw-griff kw-dreh nur-bildschirm" data-griff="dreh" title="Drehen" aria-hidden="true"></span>') +
         ['lo', 'ro', 'lu', 'ru'].map(function(e){ return '<span class="kw-griff kw-ecke-' + e + tx(' nur-bildschirm" data-griff="gross" title="Grösse ändern" aria-hidden="true"></span>'); }).join('') : '') +
@@ -477,19 +479,19 @@ function starte(bereich){
       return schneiden(P, [[r[0], r[1]], [r[0] + r[2], r[1]], [r[0] + r[2], r[1] + r[3]], [r[0], r[1] + r[3]]]);
     });
   }
-  function aufzaehlen(n){ return n.length === 1 ? tx('Bild ') + n[0] : tx('die Bilder ') + n.slice(0, -1).join(', ') + tx(' und ') + n[n.length - 1]; }
+  function aufzaehlen(n){ return n.length === 1 ? tx('Bild {n}', { n:n[0] }) : tx('die Bilder {a} und {b}', { a:n.slice(0, -1).join(', '), b:n[n.length - 1] }); }
   var letzte = null;   // letzter Aufbau: { R, belegt (Gitter und Texte), zuHoch }
   function meldungen(){
     if (!letzte) return;
     var R = letzte.R, m = [];
-    if (R.fehlend.length) m.push(tx('<p>Nicht eingebaut (passt nirgends über Kreuz): <b>') + R.fehlend.map(function(e){ return esc(e.wort); }).join(', ') + tx('</b>. «Neu anordnen» probiert eine andere Anordnung.</p>'));
+    if (R.fehlend.length) m.push('<p>' + tx('Nicht eingebaut (passt nirgends über Kreuz): <b>{w}</b>. «Neu anordnen» probiert eine andere Anordnung.', { w:R.fehlend.map(function(e){ return esc(e.wort); }).join(', ') }) + '</p>');
     var kein = [], ueber = [];
     bilder.forEach(function(b, i){
       if (b.notfall && !b.lage) kein.push(i + 1);
       else if (liegtUeber(b, b.lage || b.auto, letzte.belegt)) ueber.push(i + 1);
     });
-    if (kein.length) m.push(tx('<p>Für ') + aufzaehlen(kein) + tx(' hat es keinen freien Platz – ') + (kein.length === 1 ? tx('es liegt') : tx('sie liegen')) + tx(' klein unten rechts. Verschiebe oder verkleinere die Bilder, oder nimm weniger Wörter.</p>'));
-    if (ueber.length){ var t = aufzaehlen(ueber); m.push('<p>' + t.charAt(0).toUpperCase() + t.slice(1) + (ueber.length === 1 ? tx(' liegt') : tx(' liegen')) + tx(' über dem Rätsel oder den Hinweisen. Verschiebe ') + (ueber.length === 1 ? 'es' : 'sie') + tx(' oder klicke links «Bilder automatisch verteilen».</p>')); }
+    if (kein.length) m.push('<p>' + tx(kein.length === 1 ? 'Für {b} hat es keinen freien Platz – es liegt klein unten rechts. Verschiebe oder verkleinere die Bilder, oder nimm weniger Wörter.' : 'Für {b} hat es keinen freien Platz – sie liegen klein unten rechts. Verschiebe oder verkleinere die Bilder, oder nimm weniger Wörter.', { b:aufzaehlen(kein) }) + '</p>');
+    if (ueber.length){ var t = tx(ueber.length === 1 ? '{b} liegt über dem Rätsel oder den Hinweisen. Verschiebe es oder klicke links «Bilder automatisch verteilen».' : '{b} liegen über dem Rätsel oder den Hinweisen. Verschiebe sie oder klicke links «Bilder automatisch verteilen».', { b:aufzaehlen(ueber) }); m.push('<p>' + t.charAt(0).toUpperCase() + t.slice(1) + '</p>'); }
     if (letzte.zuHoch) m.push(tx('<p>Das Rätsel ist für eine A4-Seite sehr gross – im PDF wird das Blatt verkleinert.</p>'));
     meldung(m.length ? 'warnung' : '', m.join(''));
   }

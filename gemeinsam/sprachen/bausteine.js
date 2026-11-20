@@ -185,5 +185,6 @@ Labor.woerter('labor', {
   'Gerade zu viele Übersetzungen – bitte in einer Minute nochmals versuchen (Feld anklicken und wieder verlassen).': ['Too many translations right now – please try again in a minute (click the field and leave it again).', 'Trop de traductions en ce moment – veuillez réessayer dans une minute (cliquez dans le champ puis quittez-le).'],
   'Die Übersetzung hat gerade nicht geklappt. Bitte das andere Feld selbst ausfüllen oder es später nochmals versuchen.': ['The translation did not work just now. Please fill in the other field yourself or try again later.', 'La traduction n’a pas fonctionné. Remplissez vous-même l’autre champ ou réessayez plus tard.'],
   // Buchstabenfeld
-  'Buchstabenfeld mit {s} Spalten und {z} Zeilen': ['Letter grid with {s} columns and {z} rows', 'Grille de lettres de {s} colonnes et {z} lignes']
+  'Buchstabenfeld mit {s} Spalten und {z} Zeilen': ['Letter grid with {s} columns and {z} rows', 'Grille de lettres de {s} colonnes et {z} lignes'],
+  'Zeile {i} löschen': ['Delete row {i}', 'Supprimer la ligne {i}']
 });

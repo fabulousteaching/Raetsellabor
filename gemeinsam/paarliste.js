@@ -193,7 +193,7 @@ var tx = Labor.uebersetzer('labor');
           ' aria-label="' + esc(name) + ' ' + (i + 1) + '"' + (auto ? tx(' title="Automatisch übersetzt – bitte prüfen"') : '') + (laedt ? ' aria-busy="true"' : '') + '>';
       }
       return '<div class="pl-zeile" role="listitem">' + feld('a', z.a, k[0]) + feld('b', z.b, k[1]) +
-        tx('<button type="button" class="pl-x" aria-label="Zeile ') + (i + 1) + tx(' löschen" title="Zeile löschen">×</button></div>');
+        '<button type="button" class="pl-x" aria-label="' + esc(tx('Zeile {i} löschen', { i:i + 1 })) + '" title="' + tx('Zeile löschen') + '">×</button></div>';
     }
     function zeilenZeigen(fokus){
       var l = liste();
