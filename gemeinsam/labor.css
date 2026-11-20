@@ -277,3 +277,11 @@ a.raetsel-karte:hover{border-color:var(--accent);box-shadow:0 10px 28px rgba(242
 /* Bruch im Text: Zähler über Nenner (statt 3/5) – <span class="bruch"><span>3</span><span>5</span></span> */
 .bruch{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.05;font-size:.82em;margin:0 .1em}
 .bruch > span + span{border-top:1.5px solid currentColor;padding-top:1px;margin-top:1px;align-self:stretch;text-align:center}
+/* Paarliste: Datei wählen oder hineinziehen */
+.pl-datei{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:2px 0 8px}
+.pl-dateiknopf{position:relative;cursor:pointer}
+.pl-dateiknopf input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
+.pl-dateihinweis{font-size:.8rem;color:var(--muted)}
+[data-fach].pl-ziehen,.pl-ziehen{position:relative;outline:2px dashed var(--accent);outline-offset:4px;border-radius:10px;background:var(--accent-soft)}
+.pl-ziehen::after{content:"Loslassen: Liste übernehmen";position:absolute;inset:0;display:grid;place-items:center;font-weight:700;color:var(--accent-2);background:rgba(255,244,233,.86);border-radius:10px;pointer-events:none;z-index:2}
+.pl-meldung.pl-gut{background:var(--ok-soft);color:var(--ok)}

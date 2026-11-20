@@ -1,7 +1,10 @@
 /* Rätsellabor – Baustein «Paarliste»: Wortpaare in Zeilen mit zwei Feldern (Triomino, Kettenrätsel)
    Unten steht immer eine leere Zeile; sobald man hineinschreibt, kommt eine neue dazu. Eingabetaste: links → rechts →
    nächste Zeile; × löscht eine Zeile. Eine eingefügte Liste (z. B. aus Excel oder Word, oder Zeilen wie «Hund = dog»)
-   wird auf Zeilen verteilt.
+   wird auf Zeilen verteilt. Eine Datei (Excel .xlsx, Word .docx, Text .txt/.csv/.tsv) oder markierter Text lässt sich
+   auf die Liste ziehen (oder mit «Liste aus Datei» wählen – auf Tablet und Handy); die ersten zwei Spalten werden zu
+   Paaren, eine Kopfzeile fällt weg. Steht bei Englisch/Französisch die Fremdsprache links (wie bei Vokaboom
+   «apple – Apfel»), werden die Spalten getauscht, damit Deutsch links steht.
    Englisch und Französisch: Ist nur ein Feld ausgefüllt, kommt beim Verlassen die Übersetzung automatisch ins andere
    (orange hinterlegt, bis man sie ändert) – auf der Website über api/uebersetzen.php, im Claude-Artefakt über Claude.
 
@@ -24,8 +27,113 @@ var Paarliste = (function(){
   function html(){
     return '<div class="pl-kopf" aria-hidden="true"><span data-pl="a"></span><span data-pl="b"></span></div>' +
       '<div class="pl-zeilen" role="list" aria-label="Paare"></div>' +
+      '<div class="pl-datei"><label class="btn klein pl-dateiknopf"><input type="file" data-pl="datei" accept=".xlsx,.docx,.csv,.tsv,.txt,text/plain,text/csv">Liste aus Datei</label>' +
+        '<span class="pl-dateihinweis">Excel, Word oder Text – oder die Datei auf die Liste ziehen</span></div>' +
       '<p class="hinweis pl-hilfe" data-pl="hilfe"></p>' +
       '<p class="pl-meldung" data-pl="meldung" aria-live="polite" hidden></p>';
+  }
+
+  /* ---------- Listen aus Dateien (Excel, Word, Text) ---------- */
+  // Zip-Archiv (xlsx, docx) lesen: Inhaltsverzeichnis am Ende, Einträge mit «deflate» entpackt der Browser (DecompressionStream)
+  function entpacken(puffer){
+    var d = new DataView(puffer), u8 = new Uint8Array(puffer), i = u8.length - 22, ende = Math.max(0, u8.length - 65557), liste = {};
+    while (i >= ende && d.getUint32(i, true) !== 0x06054b50) i--;
+    if (i < ende) return null;
+    var n = d.getUint16(i + 10, true), p = d.getUint32(i + 16, true);
+    for (var k = 0; k < n; k++){
+      if (d.getUint32(p, true) !== 0x02014b50) break;
+      var methode = d.getUint16(p + 10, true), gepackt = d.getUint32(p + 20, true), ln = d.getUint16(p + 28, true), le = d.getUint16(p + 30, true), lk = d.getUint16(p + 32, true), off = d.getUint32(p + 42, true);
+      liste[new TextDecoder().decode(u8.subarray(p + 46, p + 46 + ln))] = { methode:methode, gepackt:gepackt, off:off };
+      p += 46 + ln + le + lk;
+    }
+    return function lesen(name){
+      var e = liste[name]; if (!e) return Promise.resolve(null);
+      var start = e.off + 30 + d.getUint16(e.off + 26, true) + d.getUint16(e.off + 28, true), daten = u8.subarray(start, start + e.gepackt);
+      if (e.methode === 0) return Promise.resolve(new TextDecoder().decode(daten));
+      if (e.methode !== 8 || !window.DecompressionStream) return Promise.reject(new Error('entpacken'));
+      return new Response(new Blob([daten]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+    };
+  }
+  function xml(t){ return new DOMParser().parseFromString(t, 'application/xml'); }
+  function kinder(el, name){ return [].filter.call(el.getElementsByTagName('*'), function(x){ return x.localName === name; }); }
+  // Excel: erstes Blatt → Zeilen (Spalten nach Buchstaben)
+  function xlsxZeilen(lesen){
+    return Promise.all([lesen('xl/sharedStrings.xml'), lesen('xl/worksheets/sheet1.xml')]).then(function(r){
+      var texte = r[0] ? kinder(xml(r[0]).documentElement, 'si').map(function(si){ return kinder(si, 't').map(function(t){ return t.textContent; }).join(''); }) : [];
+      if (!r[1]) throw new Error('blatt');
+      return kinder(xml(r[1]).documentElement, 'row').map(function(row){
+        var zeile = [];
+        kinder(row, 'c').forEach(function(c){
+          var ref = c.getAttribute('r') || '', buch = (/^[A-Z]+/.exec(ref) || ['A'])[0], sp = 0;
+          for (var i = 0; i < buch.length; i++) sp = sp * 26 + buch.charCodeAt(i) - 64;
+          var typ = c.getAttribute('t'), v = kinder(c, 'v')[0], wert = '';
+          if (typ === 's' && v) wert = texte[+v.textContent] || '';
+          else if (typ === 'inlineStr') wert = kinder(c, 't').map(function(t){ return t.textContent; }).join('');
+          else if (v) wert = v.textContent;
+          zeile[sp - 1] = wert;
+        });
+        return zeile;
+      });
+    });
+  }
+  // Word: Tabellen → Zeilen aus Zellen; ohne Tabelle die Absätze (wie eingefügter Text)
+  function docxZeilen(lesen){
+    return lesen('word/document.xml').then(function(t){
+      if (!t) throw new Error('dokument');
+      var doc = xml(t).documentElement, tabellen = kinder(doc, 'tbl');
+      function text(el){ return kinder(el, 't').map(function(x){ return x.textContent; }).join(''); }
+      if (tabellen.length){
+        var zeilen = [];
+        tabellen.forEach(function(tb){ kinder(tb, 'tr').forEach(function(tr){ zeilen.push(kinder(tr, 'tc').map(text)); }); });
+        return zeilen;
+      }
+      return kinder(doc, 'p').map(text).filter(function(z){ return z.trim(); }).map(teilen);
+    });
+  }
+  // Text, CSV, TSV: UTF-8, sonst Windows-Zeichensatz; Trennzeichen erkennen (Tabulator, Semikolon, Komma, sonst wie beim Einfügen)
+  function textZeilen(puffer){
+    var t;
+    try { t = new TextDecoder('utf-8', { fatal:true }).decode(puffer); } catch(e){ t = new TextDecoder('windows-1252').decode(puffer); }
+    var zeilen = t.replace(/^﻿/, '').split(/\r?\n/).filter(function(z){ return z.trim(); });
+    var proben = zeilen.slice(0, 20), trenn = ['\t', ';', ','].filter(function(c){ return proben.length && proben.every(function(z){ return z.indexOf(c) >= 0; }); })[0];
+    return zeilen.map(function(z){
+      if (!trenn) return teilen(z);
+      return z.split(trenn).map(function(x){ return x.trim().replace(/^"(.*)"$/, '$1').replace(/""/g, '"'); });
+    });
+  }
+  var KOPF = /^(deutsch|englisch|französisch|franzoesisch|english|german|french|français|francais|allemand|anglais|wort|wörter|word|words|vokabel|vokabeln|übersetzung|begriff|partner|frage|antwort|aufgabe|lösung|loesung)$/i;
+  /* Zeilen (Listen von Zellen) → Paare: die ersten zwei Spalten, die etwas enthalten; Kopfzeile weg */
+  function zuPaaren(zeilen){
+    var voll = [];
+    zeilen.forEach(function(z){ (z || []).forEach(function(c, i){ if (c && String(c).trim()) voll[i] = (voll[i] || 0) + 1; }); });
+    var sp = []; voll.forEach(function(n, i){ if (n && sp.length < 2) sp.push(i); });
+    if (!sp.length) return { paare:[], kopf:null };
+    var paare = zeilen.map(function(z){ return [String((z || [])[sp[0]] || '').trim(), sp[1] !== undefined ? String((z || [])[sp[1]] || '').trim() : '']; }).filter(function(p){ return p[0] || p[1]; });
+    var kopf = null;
+    if (paare.length && KOPF.test(paare[0][0]) && (!paare[0][1] || KOPF.test(paare[0][1]))) kopf = paare.shift();
+    return { paare:paare, kopf:kopf };
+  }
+  function dateiLesen(datei){
+    var name = (datei.name || '').toLowerCase();
+    if (/\.(xls|doc|ods|odt|pages|numbers|pdf)$/.test(name)) return Promise.reject(new Error('format'));
+    return datei.arrayBuffer().then(function(puffer){
+      if (/\.(xlsx|docx)$/.test(name)){
+        var lesen = entpacken(puffer); if (!lesen) throw new Error('zip');
+        return /\.xlsx$/.test(name) ? xlsxZeilen(lesen) : docxZeilen(lesen);
+      }
+      return textZeilen(puffer);
+    }).then(zuPaaren);
+  }
+  // Steht die Fremdsprache links? (Artikel und «to» vorne, deutsche Nomen gross – zählt Zeilen, die eindeutig sind)
+  function fremdLinks(paare, sprache){
+    var art = sprache === 'franzoesisch' ? /^(le|la|les|l'|l’|un|une|des|du)\s?/i : /^(the|a|an|to)\s/i, deArt = /^(der|die|das|ein|eine)\s/i, links = 0, rechts = 0;
+    paare.forEach(function(p){
+      if (!p[0] || !p[1]) return;
+      if (art.test(p[0]) || deArt.test(p[1])) links++;
+      if (art.test(p[1]) || deArt.test(p[0])) rechts++;
+      if (sprache === 'englisch'){ if (/^[A-ZÄÖÜ]/.test(p[1]) && /^[a-z]/.test(p[0])) links += 0.5; if (/^[A-ZÄÖÜ]/.test(p[0]) && /^[a-z]/.test(p[1])) rechts += 0.5; }
+    });
+    return links > rechts * 1.5 && links >= 2;
   }
 
   /* ---------- Übersetzen (gemeinsam für alle Listen) ---------- */
@@ -134,6 +242,42 @@ var Paarliste = (function(){
       if (ev.target.classList.contains('pl-a')) el.querySelector('.pl-b').focus();
       else if (zeilenEl.children[i + 1]) zeilenEl.children[i + 1].querySelector('.pl-a').focus();
     });
+    /* Paare hinten an die Liste hängen (statt der leeren letzten Zeile), fehlende Seite übersetzen */
+    function anhaengen(paare, woher){
+      var sprache = o.sprache(o.art()), getauscht = false;
+      if (sprache && fremdLinks(paare, sprache)){ paare = paare.map(function(p){ return [p[1], p[0]]; }); getauscht = true; }
+      var neu = paare.map(function(p){ return { a:p[0], b:p[1], auto:'' }; });
+      if (!neu.length){ melden('In ' + woher + ' wurden keine Wortpaare gefunden.'); return; }
+      var l = liste();
+      while (l.length && !l[l.length - 1].a && !l[l.length - 1].b) l.pop();
+      var i = l.length;
+      l.push.apply(l, neu);
+      zeilenZeigen(); o.geaendert();
+      neu.forEach(function(z, k){ if (!z.b) uebersetzen(i + k, 'a'); else if (!z.a) uebersetzen(i + k, 'b'); });
+      melden(neu.length + (neu.length === 1 ? ' Paar' : ' Paare') + ' aus ' + woher + ' übernommen.' + (getauscht ? ' Die Spalten wurden getauscht, damit Deutsch links steht.' : ''), true);
+    }
+    var FEHLER = { format:'Diese Datei kann ich nicht lesen. Bitte als Excel (.xlsx), Word (.docx) oder Text (.txt, .csv) speichern – oder die Liste kopieren und einfügen.',
+      zip:'Die Datei ist beschädigt oder kein Excel-/Word-Dokument.', entpacken:'Dieser Browser kann die Datei nicht entpacken – bitte die Liste kopieren und einfügen.',
+      blatt:'In der Excel-Datei wurde kein Blatt gefunden.', dokument:'Im Word-Dokument wurde kein Text gefunden.' };
+    function dateiNehmen(datei){
+      melden('Liste wird gelesen …', true);
+      dateiLesen(datei).then(function(r){ anhaengen(r.paare, '«' + datei.name + '»'); }, function(e){ melden(FEHLER[e && e.message] || FEHLER.format); });
+    }
+    // Ziehen: Datei oder markierten Text auf die Liste
+    var tiefe = 0;
+    function ziehbar(ev){ var t = ev.dataTransfer && ev.dataTransfer.types; return !!t && ([].indexOf.call(t, 'Files') >= 0 || [].indexOf.call(t, 'text/plain') >= 0); }
+    wurzel.addEventListener('dragenter', function(ev){ if (!ziehbar(ev)) return; ev.preventDefault(); tiefe++; wurzel.classList.add('pl-ziehen'); });
+    wurzel.addEventListener('dragover', function(ev){ if (!ziehbar(ev)) return; ev.preventDefault(); ev.dataTransfer.dropEffect = 'copy'; });
+    wurzel.addEventListener('dragleave', function(){ if (--tiefe <= 0){ tiefe = 0; wurzel.classList.remove('pl-ziehen'); } });
+    wurzel.addEventListener('drop', function(ev){
+      if (!ziehbar(ev)) return;
+      ev.preventDefault(); tiefe = 0; wurzel.classList.remove('pl-ziehen');
+      var f = ev.dataTransfer.files && ev.dataTransfer.files[0];
+      if (f){ dateiNehmen(f); return; }
+      var t = ev.dataTransfer.getData('text/plain') || '';
+      anhaengen(t.split(/\r?\n/).filter(function(z){ return z.trim(); }).map(teilen), 'dem gezogenen Text');
+    });
+    q('datei').addEventListener('change', function(){ var f = this.files && this.files[0]; if (f) dateiNehmen(f); this.value = ''; });
     zeilenEl.addEventListener('paste', function(ev){
       var t = ev.clipboardData && ev.clipboardData.getData('text');
       if (!t || !/[\r\n\t]/.test(t.trim())) return;   // einzelnes Wort: normal einfügen
@@ -148,7 +292,7 @@ var Paarliste = (function(){
 
     function hilfeZeigen(){
       var k = o.kopf(), h = q('hilfe'), art = o.art(), sprache = o.sprache(art);
-      var listeText = o.einfuegen === false ? '' : ' Eine Liste mit zwei Spalten (aus Excel oder Word, oder Zeilen wie «' + esc(k[2]) + '») lässt sich auf einmal einfügen.';
+      var listeText = o.einfuegen === false ? '' : ' Eine Liste mit zwei Spalten (aus Excel oder Word, oder Zeilen wie «' + esc(k[2]) + '») lässt sich auf einmal einfügen – oder als Datei hierher ziehen.';
       if (!sprache){ h.innerHTML = o.hilfe() + listeText; h.hidden = !h.innerHTML; return; }
       h.hidden = false;
       h.innerHTML = 'Schreib ein Wort auf Deutsch oder ' + esc(k[1]) + ' – die Übersetzung erscheint im anderen Feld.' + listeText;
@@ -158,7 +302,7 @@ var Paarliste = (function(){
           : 'Beide Felder selbst ausfüllen. (Die automatische Übersetzung gibt es auf raetsellabor.fabulousteaching.ch.)' + listeText;
       });
     }
-    function melden(t){ var m = q('meldung'); m.textContent = t; m.hidden = !t; }
+    function melden(t, gut){ var m = q('meldung'); m.textContent = t; m.hidden = !t; m.classList.toggle('pl-gut', !!gut); }
     function uebersetzen(i, seite){
       var art = o.art(), sprache = o.sprache(art), z = liste()[i];
       if (!sprache || !z) return;
@@ -210,5 +354,5 @@ var Paarliste = (function(){
   }
   // Zeilen aus gespeicherten Daten (ohne «lädt …»)
   function aufraeumen(l){ return (Array.isArray(l) ? l : []).map(function(z){ return { a:String(z.a || ''), b:String(z.b || ''), auto:z.auto === 'a' || z.auto === 'b' ? z.auto : '' }; }); }
-  return { html:html, teilen:teilen, starte:starte, aufraeumen:aufraeumen };
+  return { html:html, teilen:teilen, starte:starte, aufraeumen:aufraeumen, dateiLesen:dateiLesen, zuPaaren:zuPaaren, fremdLinks:fremdLinks, textZeilen:textZeilen };
 })();
