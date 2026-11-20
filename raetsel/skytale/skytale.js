@@ -13,8 +13,11 @@ var tx = Labor.uebersetzer('skytale');
 /* KERN-START */
 var Kern = (function(){
   function zufall(seed){ var a = seed >>> 0; return function(){ a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
-  // Füllbuchstaben: Häufigkeit wie im Deutschen, damit sie nicht auffallen
-  var HAEUFIG = { E:17, N:10, I:8, S:7, R:7, A:6.5, T:6, D:5, H:4.8, U:4.2, L:3.4, C:3, G:3, M:2.5, O:2.5, B:1.9, W:1.9, F:1.7, K:1.2, Z:1.1, P:0.8, V:0.7, J:0.3, Y:0.1, X:0.1, Q:0.05 };
+  // Füllbuchstaben: Häufigkeit wie in der Sprache der Seite, damit sie nicht auffallen
+  var SPR = typeof Labor !== 'undefined' && Labor.sprache ? Labor.sprache : 'de';
+  var HAEUFIG = SPR === 'en' ? { E:12.7, T:9.1, A:8.2, O:7.5, I:7, N:6.7, S:6.3, H:6.1, R:6, D:4.3, L:4, C:2.8, U:2.8, M:2.4, W:2.4, F:2.2, G:2, Y:2, P:1.9, B:1.5, V:1, K:0.8, J:0.15, X:0.15, Q:0.1, Z:0.07 }
+    : SPR === 'fr' ? { E:14.7, S:7.9, A:7.6, I:7.5, T:7.2, N:7.1, R:6.6, U:6.3, O:5.8, L:5.5, D:3.7, C:3.3, M:3, P:3, V:1.6, Q:1.4, F:1.1, G:1, B:0.9, H:0.7, J:0.6, X:0.4, Y:0.1, Z:0.1, K:0.05, W:0.04 }
+    : { E:17, N:10, I:8, S:7, R:7, A:6.5, T:6, D:5, H:4.8, U:4.2, L:3.4, C:3, G:3, M:2.5, O:2.5, B:1.9, W:1.9, F:1.7, K:1.2, Z:1.1, P:0.8, V:0.7, J:0.3, Y:0.1, X:0.1, Q:0.05 };
   function fueller(rnd){
     var b = Object.keys(HAEUFIG), s = b.reduce(function(a, c){ return a + HAEUFIG[c]; }, 0);
     return function(){ var x = rnd() * s; for (var i = 0; i < b.length; i++){ x -= HAEUFIG[b[i]]; if (x <= 0) return b[i]; } return 'E'; };
@@ -28,10 +31,11 @@ var Kern = (function(){
     var k = Math.max(1, Math.floor(L / (0.95 * b)));
     return { U:U, L:L, p:p, k:k, a:L / k, Tmax:Math.floor(laenge / p) };
   }
-  /* Nachricht → Wörter aus Grossbuchstaben (Umlaute bleiben, ß wird SS), Ziffern und ?!.,; andere Zeichen fallen weg */
+  /* Nachricht → Wörter aus Grossbuchstaben (Umlaute bleiben, ß wird SS, andere Akzente fallen weg: É → E, Œ → OE),
+     Ziffern und ?!.,; andere Zeichen fallen weg */
   function woerter(text){
-    return String(text || '').normalize('NFC').toLocaleUpperCase('de-CH').split(/\s+/)
-      .map(function(w){ return Array.from(w.replace(/[^A-ZÄÖÜ0-9?!.,]/g, '')); }).filter(function(w){ return w.length; });
+    return String(text || '').normalize('NFC').toLocaleUpperCase('de-CH').replace(/Œ/g, 'OE').replace(/Æ/g, 'AE').split(/\s+/)
+      .map(function(w){ return Array.from(w.replace(/[^A-ZÄÖÜ0-9?!.,]/g, function(c){ var o = c.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); return /^[A-Z]$/.test(o) ? o : ''; })); }).filter(function(w){ return w.length; });
   }
   /* Wörter in Reihen zu je T Feldern, ein freies Feld zwischen Wörtern. Ein Wort, das in eine Reihe passt, wird nicht
      geteilt; ein längeres beginnt in einer neuen Reihe und geht in der nächsten weiter. → Reihen */
@@ -219,33 +223,33 @@ function starte(bereich){
     var o = st.opt, t = [], W = Kern.woerter(st.text);
     function passt(gg){ if (gg.fehler) return false; var a = Kern.anordnen(st.text, gg, farbig, Math.random); return !a.fehler; }
     // schmaleres Band
-    for (var b = o.b - 1; b >= 6; b--){ var gb = Kern.geometrie(o.d, o.l, b); if (passt(gb)){ t.push(tx('ein schmaleres Band: ') + b + ' mm'); break; } }
+    for (var b = o.b - 1; b >= 6; b--){ var gb = Kern.geometrie(o.d, o.l, b); if (passt(gb)){ t.push(tx('ein schmaleres Band: {b} mm', { b:b })); break; } }
     // längerer Gegenstand
-    for (var l = Math.ceil(o.l / 10) * 10 + 10; l <= 3000; l += 10){ if (passt(Kern.geometrie(o.d, l, o.b))){ t.push(tx('ein längerer Gegenstand: mindestens ') + l + tx(' mm lang') + (l > 400 ? tx(' (z. B. ein Besenstiel)') : '')); break; } }
+    for (var l = Math.ceil(o.l / 10) * 10 + 10; l <= 3000; l += 10){ if (passt(Kern.geometrie(o.d, l, o.b))){ t.push(l > 400 ? tx('ein längerer Gegenstand: mindestens {l} mm lang (z. B. ein Besenstiel)', { l:l }) : tx('ein längerer Gegenstand: mindestens {l} mm lang', { l:l })); break; } }
     // dickerer Gegenstand
-    for (var d = Math.ceil(o.d) + 1; d <= 200; d++){ if (passt(Kern.geometrie(d, o.l, o.b))){ t.push(tx('ein dickerer Gegenstand: mindestens ') + d + tx(' mm Durchmesser')); break; } }
-    t.push(farbig ? tx('eine kürzere Nachricht') : tx('eine kürzere Nachricht: höchstens ') + g.k * g.Tmax + tx(' Zeichen (ohne Abstände)'));
+    for (var d = Math.ceil(o.d) + 1; d <= 200; d++){ if (passt(Kern.geometrie(d, o.l, o.b))){ t.push(tx('ein dickerer Gegenstand: mindestens {d} mm Durchmesser', { d:d })); break; } }
+    t.push(farbig ? tx('eine kürzere Nachricht') : tx('eine kürzere Nachricht: höchstens {n} Zeichen (ohne Abstände)', { n:g.k * g.Tmax }));
     return t;
   }
   function zeichnen(){
     if (aus) return;
     var o = st.opt, W = Kern.woerter(st.text), n = W.reduce(function(a, w){ return a + w.length; }, 0);
-    $('#skTextInfo').textContent = n ? n + tx(' Zeichen in ') + W.length + (W.length === 1 ? tx(' Wort') : tx(' Wörtern')) + (o.farbig ? '' : tx(' – ohne Farbe stehen sie ohne Abstand hintereinander')) : '';
+    $('#skTextInfo').textContent = n ? (W.length === 1 ? tx('{n} Zeichen in 1 Wort', { n:n }) : tx('{n} Zeichen in {w} Wörtern', { n:n, w:W.length })) + (o.farbig ? '' : tx(' – ohne Farbe stehen sie ohne Abstand hintereinander')) : '';
     $('#skMasse').hidden = !o.ding;
     $('#skBWert').textContent = o.b + ' mm';
     $('#skFarbwahl').hidden = !o.farbig;
     var g = o.ding ? Kern.geometrie(o.d, o.l, o.b) : null;
-    $('#skGeoInfo').textContent = g && !g.fehler ? tx('Rundherum ') + g.k + (g.k === 1 ? tx(' Reihe') : tx(' Reihen')) + tx(' · der Länge nach ') + g.Tmax + tx(' Windungen · eine Windung braucht ') + f1(g.L / 10) + tx(' cm Band.') : '';
+    $('#skGeoInfo').textContent = g && !g.fehler ? (g.k === 1 ? tx('Rundherum 1 Reihe') : tx('Rundherum {k} Reihen', { k:g.k })) + ' · ' + tx('der Länge nach {t} Windungen', { t:g.Tmax }) + ' · ' + tx('eine Windung braucht {c} cm Band.', { c:f1(g.L / 10) }) : '';
     var fehlt = !n ? tx('Schreib links eine Nachricht.') : !o.ding ? tx('Wähle links, um welchen Gegenstand das Band gewickelt wird.') : '';
     ['#skPdf', '#skHerunterladen', '#skZeigeLoesung', '#skNeu'].forEach(function(s){ $(s).disabled = true; });
     function leer(art, html){ R = null; $('#skSeiten').innerHTML = ''; $('#skLoesung').parentNode.hidden = true; meldung(art, html); }
     if (fehlt) return leer('info', '<p>' + fehlt + '</p>');
     if (g.fehler === 'masse') return leer('fehler', tx('<p>Gib den Durchmesser und die Länge des Gegenstands in Millimetern ein.</p>'));
-    if (g.fehler === 'duenn') return leer('fehler', tx('<h3>Der Gegenstand ist zu dünn für dieses Band</h3><p>Bei ') + f1(o.d) + tx(' mm Durchmesser darf das Band höchstens ') + f1(g.bMax) + tx(' mm breit sein. Nimm ein schmaleres Band oder einen dickeren Gegenstand.</p>'));
+    if (g.fehler === 'duenn') return leer('fehler', tx('<h3>Der Gegenstand ist zu dünn für dieses Band</h3>') + '<p>' + tx('Bei {d} mm Durchmesser darf das Band höchstens {b} mm breit sein. Nimm ein schmaleres Band oder einen dickeren Gegenstand.', { d:f1(o.d), b:f1(g.bMax) }) + '</p>');
     var A = Kern.anordnen(st.text, g, o.farbig, Kern.zufall(st.seed));
     if (A.fehler){
-      var warum = tx('Die Nachricht hat ') + A.n + tx(' Zeichen. Auf den Gegenstand passen ') + g.k + (g.k === 1 ? tx(' Reihe') : tx(' Reihen')) + tx(' rundherum mit je ') + g.Tmax + tx(' Windungen (') + f1(o.l) + tx(' mm lang, je Windung ') + f1(g.p) + ' mm)' +
-        (o.farbig ? tx(' – mit den Abständen zwischen den Wörtern reicht das nicht.') : tx(' – höchstens ') + g.k * g.Tmax + tx(' Zeichen.'));
+      var warum = tx('Die Nachricht hat {n} Zeichen.', { n:A.n }) + ' ' + tx('Auf den Gegenstand passen {k} Reihen rundherum mit je {t} Windungen ({l} mm lang, je Windung {p} mm)', { k:g.k, t:g.Tmax, l:f1(o.l), p:f1(g.p) }) +
+        (o.farbig ? tx(' – mit den Abständen zwischen den Wörtern reicht das nicht.') : tx(' – höchstens {n} Zeichen.', { n:g.k * g.Tmax }));
       return leer('fehler', tx('<h3>Die Nachricht passt so nicht</h3><p>') + warum + tx('</p><p>Was hilft:</p><ul>') + tipps(A.n, g, o.farbig).map(function(t){ return '<li>' + t + '</li>'; }).join('') + '</ul>' +
         '');
     }
@@ -255,9 +259,9 @@ function starte(bereich){
     var laenge = A.T * g.L, html = blaetterHtml();
     $('#skSeiten').innerHTML = html.seiten;
     $('#skLoesung').innerHTML = html.loesung;
-    meldung('erfolg', tx('<p><b>Passt!</b> ') + A.T + (A.T === 1 ? tx(' Windung') : tx(' Windungen')) + ' (' + f1(A.T * g.p) + tx(' von ') + f1(o.l) + ' mm), ' + A.R + tx(' von ') + g.k + (g.k === 1 ? tx(' Reihe') : tx(' Reihen')) + tx(' rundherum mit Nachricht. ') +
-      tx('Das Band ist ') + f1(laenge / 10) + tx(' cm lang: ') + html.streifen + (html.streifen === 1 ? tx(' Streifen') : tx(' Streifen')) + tx(' auf ') + html.blaetter + (html.blaetter === 1 ? tx(' Blatt') : tx(' Blättern')) + tx(' (A4 quer).') +
-      (A.fuell ? tx(' Die übrigen ') + A.fuell + tx(' Felder haben zufällige Buchstaben') + (o.farbig ? '' : tx(' – ohne Farbe muss man die Reihen mit der Nachricht finden')) + '.' : '') + '</p>' +
+    meldung('erfolg', tx('<p><b>Passt!</b> ') + (A.T === 1 ? tx('1 Windung') : tx('{n} Windungen', { n:A.T })) + ' (' + tx('{a} von {b} mm', { a:f1(A.T * g.p), b:f1(o.l) }) + '), ' + tx('{a} von {b} Reihen rundherum mit Nachricht.', { a:A.R, b:g.k }) + ' ' +
+      tx('Das Band ist {c} cm lang:', { c:f1(laenge / 10) }) + ' ' + (html.streifen === 1 ? tx('1 Streifen') : tx('{n} Streifen', { n:html.streifen })) + ' ' + (html.blaetter === 1 ? tx('auf 1 Blatt (A4 quer).') : tx('auf {n} Blättern (A4 quer).', { n:html.blaetter })) +
+      (A.fuell ? ' ' + tx('Die übrigen {n} Felder haben zufällige Buchstaben', { n:A.fuell }) + (o.farbig ? '' : tx(' – ohne Farbe muss man die Reihen mit der Nachricht finden')) + '.' : '') + '</p>' +
       tx('<p class="sk-druckhinweis">Wichtig: In Originalgrösse drucken (100 %, nicht «an Seite anpassen») – sonst passen die Buchstaben nicht aufeinander. Die Kontrolllinie auf dem Blatt muss 10 cm lang sein.</p>'));
   }
 
@@ -295,7 +299,7 @@ function starte(bereich){
     var ding = dingName();
     var anleitung = '<ol class="sk-anleitung">' +
       tx('<li>Schneide die Streifen aus') + (streifen.length > 1 ? tx(' und klebe sie der Reihe nach zusammen: Streifen 2 genau auf die graue Fläche am Ende von Streifen 1, Streifen 3 auf die von Streifen 2 und so weiter') : '') + '.</li>' +
-      tx('<li>Wickle das Band um einen Gegenstand mit <b>') + f1(o.d) + tx(' mm Durchmesser</b>') + (ding ? ' (' + esc(ding) + ')' : '') + tx('. Halte den Gegenstand waagrecht und das Band so, dass die Buchstaben aufrecht stehen – das Anfangsstück mit ▶ ist unten. ') +
+      '<li>' + tx('Wickle das Band um einen Gegenstand mit {d} mm Durchmesser{ding}.', { d:'<b>' + f1(o.d) + '</b>', ding:ding ? ' (' + esc(ding) + ')' : '' }) + ' ' + tx('Halte den Gegenstand waagrecht und das Band so, dass die Buchstaben aufrecht stehen – das Anfangsstück mit ▶ ist unten. ') +
         tx('Klebe es links vorne am Gegenstand fest und wickle das Band nach oben und hinten herum. Jede Windung kommt knapp rechts neben die vorherige: Rand an Rand, ohne Lücke und ohne Überlappung. Klebe auch das Ende fest.</li>') +
       tx('<li>Drehe den Gegenstand langsam, bis du die Nachricht lesen kannst') + (o.farbig ? tx(' – sie ist farbig') : '') + '.</li></ol>';
     var kontrolle = '<div class="sk-kontrolle"><svg width="' + (100 * MM + 2).toFixed(1) + '" height="14" aria-hidden="true"><path d="M1 2V12M' + (100 * MM + 1).toFixed(2) + ' 2V12M1 7H' + (100 * MM + 1).toFixed(2) + '" stroke="' + TINTE + '" stroke-width="1.2" fill="none"/></svg>' +
@@ -304,11 +308,11 @@ function starte(bereich){
     var html = '';
     seiten.forEach(function(liste, si){
       var hS = liste.length * hoch;
-      var svg = '<svg class="sk-svg" width="' + BREIT + '" height="' + hS.toFixed(1) + '" viewBox="0 0 ' + BREIT + ' ' + hS.toFixed(1) + tx('" role="img" aria-label="Streifen ') + (liste[0] + 1) + tx(' bis ') + (liste[liste.length - 1] + 1) + '">' + defs +
+      var svg = '<svg class="sk-svg" width="' + BREIT + '" height="' + hS.toFixed(1) + '" viewBox="0 0 ' + BREIT + ' ' + hS.toFixed(1) + '" role="img" aria-label="' + tx('Streifen {a} bis {b}', { a:liste[0] + 1, b:liste[liste.length - 1] + 1 }) + '">' + defs +
         '<g style="font-family:var(--blatt-buchstaben)" font-weight="700" font-size="' + fs.toFixed(1) + '" fill="' + TINTE + '" text-anchor="middle">' +
         liste.map(function(i, zi){ return '<g transform="translate(0 ' + (zi * hoch + 2).toFixed(2) + ')">' + streifenSvg(i + 1, streifen[i], i === streifen.length - 1) + '</g>'; }).join('') + '</g></svg>';
       var kopf = si === 0 ? (o.titelAn ? tx('<h2>Skytale – Geheimband</h2>') : '') + (o.anleitungAn ? anleitung + kontrolle : '')
-        : tx('<p class="sk-seitenkopf">Skytale – Streifen ') + (liste[0] + 1) + tx(' bis ') + (liste[liste.length - 1] + 1) + '</p>';
+        : '<p class="sk-seitenkopf">' + tx('Skytale – Streifen {a} bis {b}', { a:liste[0] + 1, b:liste[liste.length - 1] + 1 }) + '</p>';
       html += '<div class="sk-rahmen"><article class="sk-blatt sk-seite blatt-quer">' + kopf + svg + '</article></div>';
     });
     // Lösung: so steht es auf dem Gegenstand – Reihen rundherum, Windungen der Länge nach
@@ -321,7 +325,7 @@ function starte(bereich){
       }).join('') + '</g></svg>';
     var loesung = (o.titelAn ? tx('<h2>Skytale – Lösung</h2>') : tx('<p class="sk-anleitung"><b>Lösung</b></p>')) +
       '<p class="sk-loesung-text">' + esc(Kern.woerter(st.text).map(function(w){ return w.join(''); }).join(' ')) + '</p>' +
-      tx('<p class="sk-erklaerung">So steht es auf dem Gegenstand (') + f1(o.d) + tx(' mm Durchmesser): ') + k + (k === 1 ? tx(' Reihe') : tx(' Reihen')) + tx(' rundherum, ') + T + (T === 1 ? tx(' Windung') : tx(' Windungen')) + tx(' der Länge nach. ') +
+      '<p class="sk-erklaerung">' + tx('So steht es auf dem Gegenstand ({d} mm Durchmesser): {k} Reihen rundherum, {t} Windungen der Länge nach.', { d:f1(o.d), k:k, t:T }) + ' ' +
       (o.farbig ? tx('Die Nachricht steht in den farbigen Reihen, alles andere sind Füllbuchstaben.') : tx('Die Nachricht beginnt in Reihe 1 und geht in den nächsten Reihen weiter.')) + '</p>' + gitter;
     return { seiten:html, loesung:loesung, streifen:streifen.length, blaetter:seiten.length };
   }
@@ -344,7 +348,7 @@ function starte(bereich){
     var inhalt = blaetter().map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); k.removeAttribute('hidden'); k.classList.remove('zeigen'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
     speicherOrt.save({ filename:name, data:Labor.blattDatei(tx('Skytale'), inhalt, '.sk-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', '<p>' + tx('Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 
