@@ -150,12 +150,16 @@ var FARBLISTE = [
   '#00A99D', /* türkis */ '#808000', /* oliv */ '#C9971C', /* ocker */ '#1B5E20', /* dunkelgrün */ '#CFCFCF', /* hellgrau */ '#5B3FBF' /* violett */
 ];
 function mischen(l, rnd){ l = l.slice(); for (var i = l.length - 1; i > 0; i--){ var j = Math.floor(rnd() * (i + 1)), x = l[i]; l[i] = l[j]; l[j] = x; } return l; }
-var ARTEN = [['12', '3:00'], ['24', '15:00'], ['worte', tx('in Worten')], ['en', tx('Englisch')], ['fr', tx('Französisch')]];
+/* «In Worten» ist die Sprache der Seite; die beiden anderen Sprachen folgen */
+var EIGEN = Labor.sprache === 'en' ? 'en' : Labor.sprache === 'fr' ? 'fr' : 'worte';
+var ART_NAME = { worte:tx('Deutsch'), en:tx('Englisch'), fr:tx('Französisch') };
+ART_NAME[EIGEN] = tx('in Worten');
+var ARTEN = [['12', '3:00'], ['24', '15:00'], [EIGEN, ART_NAME[EIGEN]]].concat(['worte', 'en', 'fr'].filter(function(k){ return k !== EIGEN; }).map(function(k){ return [k, ART_NAME[k]]; }));
 var LOESUNGSFARBE = '#F28C38';
 function esc(t){ return Labor.esc(t); }
 function f1(x){ return (Math.round(x * 10) / 10).toString(); }
 function hell(hex, anteil){ var n = parseInt(hex.slice(1), 16), r = n >> 16, g = n >> 8 & 255, b = n & 255;
-  function k(c){ return Math.round(c * anteil + 255 * (1 - anteil)); } return tx('rgb(') + k(r) + ',' + k(g) + ',' + k(b) + ')'; }
+  function k(c){ return Math.round(c * anteil + 255 * (1 - anteil)); } return 'rgb(' + k(r) + ',' + k(g) + ',' + k(b) + ')'; }
 
 var VORLAGE = '<div class="ur">' +
   tx('<header class="ur-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Uhrenrätsel</h1>') +
@@ -230,10 +234,10 @@ function starte(bereich){
   /* ---------- Ziffern antippen ---------- */
   $('#urZiffern').innerHTML = '0123456789'.split('').map(function(z){
     var ok = Kern.moeglich(z);
-    return '<button type="button" class="ur-ziffer' + (ok ? '' : tx(' nie')) + '" data-z="' + z + '"' + (ok ? ' title="' + z + tx(' anhängen"') : ' disabled title="' + z + tx(' geht nicht – in einer Uhr träfen sich drei Striche"')) + '>' + z + '</button>';
+    return '<button type="button" class="ur-ziffer' + (ok ? '' : ' nie') + '" data-z="' + z + '"' + (ok ? ' title="' + esc(tx('{z} anhängen', { z:z })) + '"' : ' disabled title="' + esc(tx('{z} geht nicht – in einer Uhr träfen sich drei Striche', { z:z })) + '"') + '>' + z + '</button>';
   }).join('');
   function gewaehltZeigen(){
-    $('#urGewaehlt').innerHTML = st.code ? tx('Zahl: <b>') + st.code.split('').join(' ') + '</b>' + (st.code.length >= MAX ? tx(' <span class="ur-voll">(höchstens ') + MAX + tx(' Ziffern)</span>') : '') : tx('Noch keine Ziffer gewählt.');
+    $('#urGewaehlt').innerHTML = st.code ? tx('Zahl:') + ' <b>' + st.code.split('').join(' ') + '</b>' + (st.code.length >= MAX ? ' <span class="ur-voll">' + tx('(höchstens {n} Ziffern)', { n:MAX }) + '</span>' : '') : tx('Noch keine Ziffer gewählt.');
     $('#urZurueck').disabled = $('#urLeeren').disabled = !st.code;
     [].forEach.call(bereich.querySelectorAll('.ur-ziffer'), function(b){ if (Kern.moeglich(b.getAttribute('data-z'))) b.disabled = st.code.length >= MAX; });
   }
@@ -352,7 +356,7 @@ function starte(bereich){
     return t;
   }
   function dunkel(hex, anteil){ var n = parseInt(hex.slice(1), 16), r = n >> 16, g = n >> 8 & 255, b = n & 255;
-    function k(c){ return Math.round(c * (1 - anteil)); } return tx('rgb(') + k(r) + ',' + k(g) + ',' + k(b) + ')'; }
+    function k(c){ return Math.round(c * (1 - anteil)); } return 'rgb(' + k(r) + ',' + k(g) + ',' + k(b) + ')'; }
   // Ein Wecker auf einem Kärtchen (x, y, Breite W, Höhe H)
   function wecker(x, y, W, H, U){
     var farbe = st.opt.farbig ? U.farbe : '#E9E4DF', rand = st.opt.farbig ? dunkel(U.farbe, 0.28) : TINTE, t = '';
@@ -374,7 +378,7 @@ function starte(bereich){
       zif.split('').forEach(function(z, k){ var xx = x0 + k * (zw + abst) + (k >= 2 ? zw * 0.5 : 0); g += z === ' ' ? segZiffer(xx, y0, zw, zh, '', dicke, TINTE, '#DCE2D2') : segZiffer(xx, y0, zw, zh, z, dicke, '#1E2A22', '#DCE2D2'); });
       var kx = x0 + 2 * (zw + abst) - abst / 2 + zw * 0.25 - abst * 0.1;
       g += '<circle cx="' + f1(kx) + '" cy="' + f1(y0 + zh * 0.3) + '" r="' + f1(dicke * 0.6) + '" fill="#1E2A22"/><circle cx="' + f1(kx) + '" cy="' + f1(y0 + zh * 0.7) + '" r="' + f1(dicke * 0.6) + '" fill="#1E2A22"/>';
-      t += '<g transform="translate(' + f1(dx + dw / 2) + ' ' + f1(dy + dh / 2) + tx(') skewX(-7) translate(') + f1(-dx - dw / 2) + ' ' + f1(-dy - dh / 2) + ')">' + g + '</g>';
+      t += '<g transform="translate(' + f1(dx + dw / 2) + ' ' + f1(dy + dh / 2) + ') skewX(-7) translate(' + f1(-dx - dw / 2) + ' ' + f1(-dy - dh / 2) + ')">' + g + '</g>';
     } else {
       // in Worten: auf eine oder zwei Zeilen verteilt
       var woerter = txt.split(' '), zeilen = [txt];
@@ -395,7 +399,7 @@ function starte(bereich){
       var teil = l.slice(s * PRO, s * PRO + PRO), zeilen = Math.ceil(teil.length / sp), x0 = (B - sp * W) / 2, t = '';
       teil.forEach(function(U, k){ t += wecker(x0 + (k % sp) * W, 1 + Math.floor(k / sp) * H, W, H, U); });
       html += '<div class="ur-rahmen"><article class="ur-blatt ur-seite ur-weckerblatt">' +
-        tx('<p class="ur-seitenkopf">✂ Wecker zum Ausschneiden') + (seiten > 1 ? tx(' – Seite ') + (s + 1) + tx(' von ') + seiten : '') + ' · ' + (st.opt.farbig ? tx('jeder gehört zur Uhr mit der gleichen Farbe') : tx('jeder gehört zur Uhr mit der gleichen Nummer')) + '</p>' +
+        tx('<p class="ur-seitenkopf">✂ Wecker zum Ausschneiden') + (seiten > 1 ? ' – ' + tx('Seite {i} von {n}', { i:s + 1, n:seiten }) : '') + ' · ' + (st.opt.farbig ? tx('jeder gehört zur Uhr mit der gleichen Farbe') : tx('jeder gehört zur Uhr mit der gleichen Nummer')) + '</p>' +
         '<svg class="ur-wecker" width="' + B + '" height="' + f1(zeilen * H + 2) + '" viewBox="0 0 ' + B + ' ' + f1(zeilen * H + 2) + '">' + t + '</svg></article></div>';
     }
     return html;

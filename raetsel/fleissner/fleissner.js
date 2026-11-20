@@ -38,7 +38,9 @@ var Kern = (function(){
   }
   // Text → Zeichen fürs Raster: Grossbuchstaben (Ä, Ö, Ü bleiben ein Feld), ß → SS, Ziffern bleiben, alles andere fällt weg
   function zeichen(t){
-    return Array.from(String(t || '').normalize('NFC').replace(/ẞ/g, 'ß').replace(/ß/g, 'SS').toUpperCase())
+    // andere Akzente fallen weg (É → E, Ç → C, Œ → OE)
+    return Array.from(String(t || '').normalize('NFC').replace(/ẞ/g, 'ß').replace(/ß/g, 'SS').toUpperCase().replace(/Œ/g, 'OE').replace(/Æ/g, 'AE')
+      .replace(/[^A-ZÄÖÜ0-9]/g, function(c){ var o = c.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); return /^[A-Z]$/.test(o) ? o : c; }))
       .filter(function(c){ return /[A-ZÄÖÜ0-9]/.test(c); });
   }
   /* Verschlüsseln → { gitter[r][c]: { b, stellung (0–3), nr, fuell }, zeichen, zuLang, aufgefuellt }
@@ -76,7 +78,7 @@ function gitterSvg(g, n, feld, loesung){
   h += '<rect x="0.015" y="0.015" width="' + (n - 0.03) + '" height="' + (n - 0.03) + '" fill="none" stroke="' + TINTE + '" stroke-width="0.03"/>';
   for (var r = 0; r < n; r++) for (var c = 0; c < n; c++){
     var z = g.gitter[r][c];
-    h += '<text x="' + (c + 0.5) + '" y="' + (r + 0.53) + '" class="fl-b' + (z.fuell ? tx(' fl-fuell') : '') + '" fill="' + (loesung ? (z.fuell ? '#A0968E' : FARBEN[z.stellung]) : TINTE) + '"' +
+    h += '<text x="' + (c + 0.5) + '" y="' + (r + 0.53) + '" class="fl-b' + (z.fuell ? ' fl-fuell' : '') + '" fill="' + (loesung ? (z.fuell ? '#A0968E' : FARBEN[z.stellung]) : TINTE) + '"' +
       ' data-s="' + z.stellung + '">' + esc(z.b) + '</text>';
     if (loesung && !z.fuell) h += '<text x="' + (c + 0.08) + '" y="' + (r + 0.2) + '" class="fl-nr" fill="' + FARBEN[z.stellung] + '">' + (z.stellung + 1) + '</text>';
   }
@@ -229,16 +231,16 @@ function starte(bereich){
     var o = st.opt, n = o.n, f = FELD;
     g = Kern.verschluesseln(st.text, n, o.fuell, Kern.zufall(st.seed));
     var anzahl = Kern.zeichen(st.text).length, felder = n * n;
-    $('#flZaehler').innerHTML = !anzahl ? '' : '<p class="fl-zaehler-haupt ' + (g.zuLang ? 'fehlt' : 'ok') + '"><b>' + anzahl + tx('</b> von ') + felder + tx(' Feldern') +
-      (g.zuLang ? ' – <b>' + g.zuLang + tx(' zu viel</b>') : g.aufgefuellt ? ' · ' + g.aufgefuellt + tx(' werden aufgefüllt') : ' ✓') + '</p>' +
+    $('#flZaehler').innerHTML = !anzahl ? '' : '<p class="fl-zaehler-haupt ' + (g.zuLang ? 'fehlt' : 'ok') + '">' + tx('<b>{a}</b> von {f} Feldern', { a:anzahl, f:felder }) +
+      (g.zuLang ? ' – <b>' + tx('{n} zu viel', { n:g.zuLang }) + '</b>' : g.aufgefuellt ? ' · ' + tx('{n} werden aufgefüllt', { n:g.aufgefuellt }) : ' ✓') + '</p>' +
       '<p class="fl-zeichen">' + esc(g.zeichen.join('')) + '</p>';
     $('#flNeu').hidden = !(g.aufgefuellt && o.fuell === 'zufall' && anzahl);
     var leer = !anzahl;
     ['#flZeigeLoesung', '#flPdf', '#flHerunterladen'].forEach(function(s){ $(s).disabled = leer; });
     if (g.zuLang){
       var groesser = GROESSEN.filter(function(x){ return x[0] * x[0] >= anzahl; })[0];
-      meldung('warnung', tx('<p>Der Text hat ') + anzahl + tx(' Buchstaben, die Schablone ') + n + ' × ' + n + tx(' nur ') + felder + tx(' Felder. Die letzten ') + g.zuLang + tx(' fehlen im Rätsel. ') +
-        (groesser ? tx('Wähle ') + groesser[1] + tx(' oder kürze den Text.') : tx('Kürze den Text.')) + '</p>');
+      meldung('warnung', '<p>' + tx('Der Text hat {a} Buchstaben, die Schablone {n} × {n} nur {f} Felder. Die letzten {z} fehlen im Rätsel.', { a:anzahl, n:n, f:felder, z:g.zuLang }) + ' ' +
+        (groesser ? tx('Wähle {g} oder kürze den Text.', { g:groesser[1] }) : tx('Kürze den Text.')) + '</p>');
     } else meldung(leer ? 'info' : '', leer ? tx('<p>Schreibe links deinen geheimen Text – er erscheint hier im Buchstabenfeld. Die Schablone unten kannst du schon jetzt herunterladen.</p>') : '');
     var zeige = $('#flZeigeLoesung').getAttribute('aria-pressed') === 'true';
     $('#flBlatt').parentNode.hidden = leer;
@@ -254,7 +256,7 @@ function starte(bereich){
     $('#flSchablone').innerHTML = (o.titelAn ? tx('<h2>Schablone ') + n + ' × ' + n + '</h2>' : '') +
       tx('<p class="fl-anleitung">Auf festen Karton kleben, aussen entlang der Linie und die grauen Felder ausschneiden. Die Ziffer, die oben steht, zeigt die Stellung: Start mit der 1 oben, dann im Uhrzeigersinn drehen.</p>') +
       '<div class="fl-mitte">' + schabloneSvg(n, f) + '</div>' +
-      tx('<p class="fl-kontrolle">Kontrolle: Das Buchstabenfeld ist ') + fmt(n * f) + tx(' mm breit, ein Feld ') + fmt(f) + tx(' mm (wie im Excel). Diese Linie muss genau ') + fmt(n * f) + tx(' mm lang sein: ') +
+      '<p class="fl-kontrolle">' + tx('Kontrolle: Das Buchstabenfeld ist {b} mm breit, ein Feld {f} mm (wie im Excel). Diese Linie muss genau {b} mm lang sein:', { b:fmt(n * f), f:fmt(f) }) + ' ' +
       '<span class="fl-mass" style="width:' + (n * f) + 'mm"></span></p>';
   }
   function fmt(x){ return String(Math.round(x * 10) / 10); }   // Dezimalzahlen mit Punkt
@@ -268,7 +270,7 @@ function starte(bereich){
   // vor dem PDF «Lösung zeigen» ausschalten, damit das Arbeitsblatt ohne Lösung ins PDF kommt
   function ohneLoesung(){ var k = $('#flZeigeLoesung'); if (k.getAttribute('aria-pressed') === 'true'){ k.setAttribute('aria-pressed', 'false'); zeichnen(); } }
   Labor.pdfKnopf($('#flPdf'), function(){ ohneLoesung(); return hatText() && { blaetter:blaetter(), name:Labor.pdfName('Fleissner', st.titel) }; }, fehler);
-  Labor.pdfKnopf($('#flSchablonePdf'), function(){ return { blaetter:[$('#flSchablone')], name:tx('Fleissner-Schablone-') + st.opt.n + 'x' + st.opt.n + '.pdf' }; }, fehler);
+  Labor.pdfKnopf($('#flSchablonePdf'), function(){ return { blaetter:[$('#flSchablone')], name:'Fleissner-Schablone-' + st.opt.n + 'x' + st.opt.n + '.pdf' }; }, fehler);
   var speicherOrt = null;
   if (Labor.imArtefakt()){
     ['#flPdf', '#flSchablonePdf'].forEach(function(s){ $(s).hidden = true; });
@@ -283,7 +285,7 @@ function starte(bereich){
     });
   }
   $('#flHerunterladen').addEventListener('click', function(){ ohneLoesung(); if (hatText()) htmlSpeichern(blaetter(), Labor.pdfName('Fleissner', st.titel).replace(/\.pdf$/, '.html')); });
-  $('#flSchabloneHerunterladen').addEventListener('click', function(){ htmlSpeichern([$('#flSchablone')], tx('Fleissner-Schablone-') + st.opt.n + 'x' + st.opt.n + '.html'); });
+  $('#flSchabloneHerunterladen').addEventListener('click', function(){ htmlSpeichern([$('#flSchablone')], 'Fleissner-Schablone-' + st.opt.n + 'x' + st.opt.n + '.html'); });
 
   zeichnen();
   return function stopp(){ aus = true; if (timer) speichernJetzt(); window.removeEventListener('beforeprint', druckVorbereiten); document.body.classList.remove('mit-loesung'); };

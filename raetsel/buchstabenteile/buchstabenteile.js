@@ -37,7 +37,7 @@ var Kern = (function(){
 })();
 /* KERN-ENDE */
 
-var SCHREIB = [['wie', tx('wie geschrieben')], ['gross', 'GROSSBUCHSTABEN']];
+var SCHREIB = [['wie', tx('wie geschrieben')], ['gross', tx('GROSSBUCHSTABEN')]];
 var GROESSEN = [[2, '2'], [3, '3'], [4, '4'], [5, '5']];
 var SAETZE = [tx('Das ist ein Test.'), tx('Heute scheint die Sonne.'), tx('Wir gehen morgen in den Zoo.'), tx('Meine Katze schläft auf dem Sofa.'), tx('Im Herbst fallen die Blätter.'),
   tx('Der Hund bellt laut im Garten.'), tx('Lesen macht Spass.'), tx('Am Wochenende backen wir einen Kuchen.'), tx('Die Klasse singt ein Lied.'), tx('Im Wald wohnen Füchse und Rehe.'),
@@ -146,14 +146,14 @@ function starte(bereich){
   // Ein Teil (oben, gemischt) und ein Feld (unten, leer oder in der Lösung ausgefüllt)
   function zelle(c){ return '<span class="bt-z">' + (c === null ? '' : c === ' ' ? (st.opt.leer ? '<i class="bt-abstand">␣</i>' : '') : esc(c)) + '</span>'; }
   function teilHtml(t){ return '<span class="bt-teil">' + t.map(zelle).join('') + '</span>'; }
-  function feldHtml(t, voll){ return '<span class="bt-feld' + (voll ? tx(' bt-voll') : '') + '">' + (t || new Array(+st.opt.k).fill(null)).map(zelle).join('') + '</span>'; }
+  function feldHtml(t, voll){ return '<span class="bt-feld' + (voll ? ' bt-voll' : '') + '">' + (t || new Array(+st.opt.k).fill(null)).map(zelle).join('') + '</span>'; }
   function zeichnen(){
     if (aus) return;
     var o = st.opt, k = +o.k, z = Kern.zeichen(st.satz, o.schreib === 'gross');
     var buchst = z.filter(function(c){ return c !== ' '; }).length;
-    $('#btInfo').textContent = z.length ? z.length + tx(' Zeichen (') + buchst + tx(' ohne Abstände)') : '';
+    $('#btInfo').textContent = z.length ? tx('{n} Zeichen ({b} ohne Abstände)', { n:z.length, b:buchst }) : '';
     var T = k && z.length ? Kern.teile(z, k) : [];
-    $('#btTeileInfo').textContent = T.length ? T.length + tx(' Teile zu je ') + k + tx(' Zeichen') + (z.length % k ? tx('; das letzte ist kürzer.') : '.') : '';
+    $('#btTeileInfo').textContent = T.length ? tx('{n} Teile zu je {k} Zeichen', { n:T.length, k:k }) + (z.length % k ? tx('; das letzte ist kürzer.') : '.') : '';
     var fehlt = !z.length ? tx('Schreib links einen Satz oder lass dir einen vorschlagen.') : !k ? tx('Wähle links, wie viele Zeichen ein Teil hat.') : !o.schreib ? tx('Wähle links die Schreibweise.') : T.length < 3 ? tx('Der Satz ist zu kurz für so grosse Teile – schreib einen längeren Satz oder nimm kleinere Teile.') : '';
     ['#btPdf', '#btHerunterladen', '#btZeigeLoesung', '#btNeu'].forEach(function(s){ $(s).disabled = !!fehlt; });
     if (fehlt){ R = null; $('#btBlatt').hidden = true; $('#btBlatt').innerHTML = ''; $('#btTeileRahmen').hidden = true; $('#btLoesung').parentNode.hidden = true; meldung('info', '<p>' + fehlt + '</p>'); return; }
@@ -162,11 +162,11 @@ function starte(bereich){
     var reihe = Kern.mischen(T.length, Kern.zufall(st.seed));
     if (o.erstes) reihe = reihe.filter(function(i){ return i !== 0; });
     R = { T:T, reihe:reihe };
-    var anleitung = tx('Der Satz ist in Teile zu je ') + k + tx(' Zeichen zerschnitten – auch die Abstände zwischen den Wörtern sind darin. ') +
+    var anleitung = tx('Der Satz ist in Teile zu je {k} Zeichen zerschnitten – auch die Abstände zwischen den Wörtern sind darin.', { k:k }) + ' ' +
       (o.schneiden ? tx('Schneide die Teile aus (zweites Blatt), bringe sie in die richtige Reihenfolge und lege oder klebe sie in die Felder.') : tx('Bringe die Teile in die richtige Reihenfolge und schreibe sie in die Felder.')) +
       tx(' Dann kannst du den Satz lesen.') + (o.leer ? tx(' ␣ steht für einen Abstand.') : '') + (o.erstes ? tx(' Das erste Teil ist schon eingesetzt.') : '');
     var kopf = (o.titelAn ? tx('<h2>Buchstaben-Teile</h2>') : '') + (o.anleitungAn ? '<p class="bt-anleitung">' + esc(anleitung) + '</p>' : '');
-    var klassen = 'bt-inhalt' + (o.unterteilt ? tx(' bt-unterteilt') : '') + (o.schneiden ? tx(' bt-schneiden') : '');
+    var klassen = 'bt-inhalt' + (o.unterteilt ? ' bt-unterteilt' : '') + (o.schneiden ? ' bt-schneiden' : '');
     var teileHtml = '<div class="bt-teile">' + reihe.map(function(i){ return teilHtml(T[i]); }).join('') + '</div>';
     var felderHtml = '<div class="bt-felder">' + T.map(function(t, i){ return feldHtml(o.erstes && i === 0 ? t : null, o.erstes && i === 0); }).join('') + '</div>';
     // Zum Ausschneiden: Felder auf dem ersten Blatt, die Teile auf einem eigenen zweiten; sonst beides auf einem Blatt
