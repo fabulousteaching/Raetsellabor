@@ -26,18 +26,19 @@
 .bw-stufe{margin:10px 0 0;padding:2px 0 2px 12px;border-left:3px solid var(--accent-line);display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 16px}
 .bw-stufe[hidden]{display:none}
 .bw-stufe .feld-label{width:100%;margin:2px 0 0}
-.bw-kompass{display:grid;grid-template-columns:repeat(3,34px);grid-template-rows:repeat(3,34px);gap:4px;padding:6px;border-radius:50%;background:radial-gradient(circle,var(--accent-soft) 0 30%,transparent 31%)}
-.bw-ri{border:1px solid var(--line-2);border-radius:8px;background:#fff;font:inherit;font-size:.92rem;font-weight:700;color:var(--muted);cursor:pointer;transition:border-color .15s,background .15s,color .15s}
+.bw-kompass{position:relative;width:150px;height:150px;flex:none}
+.bw-kompass svg{position:absolute;inset:0;width:150px;height:150px;fill:var(--accent-soft);stroke:var(--accent-line);stroke-width:1.5}
+.bw-ri{position:absolute;width:30px;height:30px;padding:0;border:1px solid var(--line-2);border-radius:50%;background:#fff;font:inherit;font-size:.88rem;font-weight:700;color:var(--muted);cursor:pointer;transition:border-color .15s,background .15s,color .15s}
 .bw-ri:hover:not(:disabled){border-color:var(--accent-line);color:var(--ink)}
 .bw-ri[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--alk-akzent)}
 .bw-ri:disabled{opacity:.3;cursor:not-allowed}
 .bw-ri:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
-.bw-kompass-mitte{display:block;align-self:center;justify-self:center;width:12px;height:12px;border-radius:50%;background:var(--accent-line)}
 .bw-farbe{display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 4px;border:1px solid var(--line-2);border-radius:999px;background:#fff;font-size:.85rem;color:var(--muted);cursor:pointer}
 .bw-farbe input{width:24px;height:24px;padding:0;border:0;background:none;cursor:pointer;-webkit-appearance:none;appearance:none}
 .bw-farbe input::-webkit-color-swatch-wrapper{padding:0}
 .bw-farbe input::-webkit-color-swatch{border:1px solid rgba(0,0,0,.15);border-radius:50%}
 .bw-farbe input::-moz-color-swatch{border:1px solid rgba(0,0,0,.15);border-radius:50%}
+#bwNachrichtenTeil[hidden],#bwFormZuerst[hidden]{display:none}
 .bw-zaehler{font-size:.88rem}
 .bw-zaehler p{margin:8px 0 0}
 .bw-zaehler .warnung{color:var(--accent-2)}

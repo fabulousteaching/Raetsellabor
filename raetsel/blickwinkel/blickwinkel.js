@@ -2,7 +2,7 @@
    Wörter und Sätze, extrem in die Länge gezogen (mindestens 16-fach), füllen eine Form (Kreis,
    Quadrat, Achteck …) mit Strichen. Von oben sieht man nur Streifen. Hält man das Blatt auf Augenhöhe und schaut flach
    darüber («aus der Schnauzenperspektive»), staucht sich die Nachricht, die in diese Richtung zeigt, wieder zu normalen
-   Buchstaben – die anderen bleiben ein Gewirr. Bis zu 4 Nachrichten in 8 Blickrichtungen (1 = von unten, dann im
+   Buchstaben – die anderen bleiben ein Gewirr. Bis zu 8 Nachrichten, je nach Form 5, 6 oder 8 Blickrichtungen (1 = von unten, dann im
    Gegenuhrzeigersinn). Buchstaben aus Strichen (window.KettenKern.ZEICHEN, Raster 4 × 6). Farben je Nachricht, je Wort
    oder schwarz-weiss. Am Bildschirm lässt sich der flache Blick nachahmen. Blatt, Lösungsblatt, PDF. */
 (function(){
@@ -55,15 +55,12 @@ var Kern = (function(){
     var B = bereich(sf), mitte = (B.xa + B.xb) / 2, best = null;
     function kuerzeste(x0, x1){ var m = Infinity; for (var j = 0; j <= 40; j++){ var c = sf(x0 + (x1 - x0) * j / 40); m = Math.min(m, c ? c[1] - c[0] : 0); } return m; }
     for (var k = 1; k <= Math.min(3, woerter.length); k++){
-      var a = aufteilen(woerter, k), ux = (B.xb - B.xa) / a.m, l = 0, ok = true;
-      for (var t = 0; t < 40; t++){
-        l = kuerzeste(mitte - a.m * ux / 2, mitte + a.m * ux / 2);
-        if (band(l, k) <= 0){ ok = false; break; }
-        var st = band(l, k) / (6 * ux);
-        if (st >= S * 0.999) break;
-        ux *= st / S;
-      }
-      if (ok && (!best || ux > best.ux * 1.03)) best = { k:k, z:a.z, ux:ux };
+      // grösstes ux, bei dem die Streckung überall mindestens S ist (je schmaler, desto stärker gestreckt: Halbierung)
+      var a = aufteilen(woerter, k), hi = (B.xb - B.xa) / a.m, lo = 0;
+      var passt = function(ux){ var b = band(kuerzeste(mitte - a.m * ux / 2, mitte + a.m * ux / 2), k); return b > 0 && b / (6 * ux) >= S; };
+      if (passt(hi)) lo = hi; else for (var t = 0; t < 40; t++){ var m = (lo + hi) / 2; if (passt(m)) lo = m; else hi = m; }
+      var ux = lo;
+      if (ux > 0 && (!best || ux > best.ux * 1.03)) best = { k:k, z:a.z, ux:ux };
     }
     if (!best) return null;
     var striche = [], n = 0, ux = best.ux;
@@ -98,9 +95,31 @@ var Kern = (function(){
     var B = bereich(sf), ux = band(B.cmax * 0.85, 1) / (6 * S * 1.05);
     return Math.max(3, Math.min(40, Math.round((B.xb - B.xa) / (ux * (BUCHSTABE + ABSTAND)))));
   }
-  /* Blickrichtung 1–8: 1 = von unten, dann im Gegenuhrzeigersinn (2 unten rechts, 3 rechts … 8 unten links).
-     Winkel, um den die Nachricht gedreht wird (im Uhrzeigersinn, Bildschirm-Koordinaten): −(r − 1) · 45° */
-  function winkel(r){ return -(r - 1) * 45; }
+  /* Blickrichtungen je nach Form: Fünfeck 5, Sechseck 6 (je eine Seite), sonst 8 (Seiten und Ecken).
+     Richtung 1 = von unten, dann im Gegenuhrzeigersinn. Winkel, um den die Nachricht gedreht wird (im Uhrzeigersinn,
+     Bildschirm-Koordinaten): −(r − 1) · 360° / n */
+  var RICHTUNGEN = { kreis:8, quadrat:8, raute:8, fuenfeck:5, sechseck:6, achteck:8 };
+  function anzahl(form){ return RICHTUNGEN[form] || 8; }
+  function winkel(r, n){ return -(r - 1) * 360 / (n || 8); }
+  var NAMEN = ['unten', 'unten rechts', 'rechts', 'oben rechts', 'oben', 'oben links', 'links', 'unten links'];
+  function richtungsName(r, n){ return NAMEN[Math.round((r - 1) * 360 / (n || 8) / 45) % 8]; }
+  // Richtung genau gegenüber (nur bei gerader Anzahl), sonst 0
+  function gegenueber(r, n){ n = n || 8; return n % 2 ? 0 : (r - 1 + n / 2) % n + 1; }
+  /* Tarnlinien: Winkel, die möglichst weit weg von allen Leserichtungen liegen (auch von der Gegenrichtung, darum
+     modulo 180°): jeweils die Mitte der grössten Lücke. Eine Schicht, wenn alle Nachrichten auf einer Achse liegen
+     (eine Nachricht oder zwei gegenüber) – dann quer dazu –, sonst zwei. */
+  function tarnWinkel(liste){
+    var achsen = [];
+    liste.forEach(function(g){ var a = ((g % 180) + 180) % 180; if (!achsen.some(function(b){ return Math.abs(a - b) < 1e-6; })) achsen.push(a); });
+    if (!achsen.length) return [];
+    var aus = [], wie = achsen.length > 1 ? 2 : 1;
+    for (var k = 0; k < wie; k++){
+      var l = achsen.concat(aus).sort(function(a, b){ return a - b; }), best = null;
+      l.forEach(function(a, i){ var b = i + 1 < l.length ? l[i + 1] : l[0] + 180, luecke = b - a; if (!best || luecke > best.l + 1e-6) best = { l:luecke, m:(a + luecke / 2) % 180 }; });
+      aus.push(best.m);
+    }
+    return aus;
+  }
   function drehen(p, grad){ var w = grad * Math.PI / 180, c = Math.cos(w), s = Math.sin(w); return [p[0] * c - p[1] * s, p[0] * s + p[1] * c]; }
   /* Ränder der Form im Rahmen der Nachricht (Form um −grad gedreht; y zeigt zum Betrachter): Kanten n · p ≤ d, n nach
      aussen; der Kreis als 360-Eck */
@@ -125,8 +144,6 @@ var Kern = (function(){
       return hi - lo > 1e-6 ? [lo, hi] : null;
     };
   }
-  function gegenueber(r){ return (r + 3) % 8 + 1; }
-  function quer(r){ return [(r + 1) % 8 + 1, (r + 5) % 8 + 1]; }   // die zwei Richtungen im rechten Winkel
   function zufall(seed){ var a = seed >>> 0; return function(){ a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
   function streuwert(t){ var h = 2166136261; for (var i = 0; i < t.length; i++){ h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
   /* Tarnlinien: «Wörter» aus Buchstaben-Bruchstücken (ein Teil eines Buchstabens und ein Strich eines anderen), gleich
@@ -166,7 +183,7 @@ var Kern = (function(){
     if (name === 'achteck') return eck(8, 22.5);
     return null;
   }
-  return { EXTRA:EXTRA, zeichenSatz:zeichenSatz, lesen:lesen, zeilenBreite:zeilenBreite, aufteilen:aufteilen, setzen:setzen, winkel:winkel, drehen:drehen, form:form, kanten:kanten, sehne:sehne, bereich:bereich, tarnAnzahl:tarnAnzahl, gegenueber:gegenueber, quer:quer, zufall:zufall, streuwert:streuwert, tarnung:tarnung, stift:stift, reichweite:reichweite, STRECKUNG:STRECKUNG };
+  return { EXTRA:EXTRA, zeichenSatz:zeichenSatz, lesen:lesen, zeilenBreite:zeilenBreite, aufteilen:aufteilen, setzen:setzen, winkel:winkel, anzahl:anzahl, richtungsName:richtungsName, tarnWinkel:tarnWinkel, drehen:drehen, form:form, kanten:kanten, sehne:sehne, bereich:bereich, tarnAnzahl:tarnAnzahl, gegenueber:gegenueber, zufall:zufall, streuwert:streuwert, tarnung:tarnung, stift:stift, reichweite:reichweite, STRECKUNG:STRECKUNG };
 })();
 /* KERN-ENDE */
 
@@ -176,10 +193,6 @@ var FORMEN = [['kreis', 'Kreis'], ['quadrat', 'Quadrat'], ['raute', 'Raute'], ['
 var FARBMODI = [['sw', 'schwarz-weiss'], ['nachricht', 'jede Nachricht eine Farbe'], ['wort', 'jedes Wort eine Farbe']];
 var DICKEN = [['fein', 'fein'], ['mittel', 'mittel'], ['dick', 'dick']], DICKE = { fein:2.4, mittel:3.6, dick:5.2 };
 var FARBEN = ['#E53935', '#1E88E5', '#43A047', '#FB8C00', '#8E24AA', '#00897B', '#D81B60', '#6D4C41'];
-var RICHTUNG = { 1:'unten', 2:'unten rechts', 3:'rechts', 4:'oben rechts', 5:'oben', 6:'oben links', 7:'links', 8:'unten links' };
-// Kompass 3 × 3 (Mitte leer): so liegen die Richtungen ums Blatt
-var KOMPASS = [6, 5, 4, 7, 0, 3, 8, 1, 2];
-var MAX = 4;
 function esc(t){ return Labor.esc(t); }
 function f1(x){ return (Math.round(x * 10) / 10).toString(); }
 function chips(name, l){ return l.map(function(x){ return '<label><input type="radio" name="' + name + '" value="' + x[0] + '"><span>' + x[1] + '</span></label>'; }).join(''); }
@@ -188,13 +201,15 @@ var VORLAGE = '<div class="bw">' +
   '<header class="bw-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Blickwinkel</h1>' +
     '<p>Extrem gestreckte Wörter füllen eine Form mit Streifen: Von oben unlesbar – schaut man ganz flach über das Blatt, wird eine Nachricht lesbar.</p></header>' +
   '<div class="bw-layout"><section class="bw-eingabe" aria-label="Eingaben">' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Nachrichten</h2><p>Bis zu vier Wörter oder kurze Sätze – jede aus einer anderen Richtung lesbar.</p></div></div>' +
-      '<div class="bw-nachrichten" id="bwNachrichten"></div>' +
-      '<button type="button" class="btn klein" id="bwMehr">+ weitere Nachricht</button>' +
-      '<div class="bw-zaehler" id="bwZaehler" aria-live="polite"></div>' +
-    '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Form</h2></div></div>' +
+    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Form</h2><p>Die Form bestimmt, aus wie vielen Richtungen man schauen kann.</p></div></div>' +
       '<div class="bw-chips" role="radiogroup" aria-label="Form">' + chips('bwForm', FORMEN) + '</div>' +
+      '<p class="hinweis" id="bwFormInfo"></p>' +
+    '</div>' +
+    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Nachrichten</h2><p id="bwNachrichtenText">Wörter oder kurze Sätze – jede aus einer anderen Richtung lesbar.</p></div></div>' +
+      '<p class="hinweis" id="bwFormZuerst">Wähle zuerst oben eine Form.</p>' +
+      '<div id="bwNachrichtenTeil" hidden><div class="bw-nachrichten" id="bwNachrichten"></div>' +
+      '<button type="button" class="btn klein" id="bwMehr">+ weitere Nachricht</button></div>' +
+      '<div class="bw-zaehler" id="bwZaehler" aria-live="polite"></div>' +
     '</div>' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Farben</h2></div></div>' +
       '<div class="bw-chips" role="radiogroup" aria-label="Farben">' + chips('bwFarbmodus', FARBMODI) + '</div>' +
@@ -203,7 +218,7 @@ var VORLAGE = '<div class="bw">' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">4</span><div><h2>Blatt</h2></div></div>' +
       '<p class="feld-label">Strichdicke</p><div class="bw-chips" role="radiogroup" aria-label="Strichdicke">' + chips('bwDicke', DICKEN) + '</div>' +
       '<p class="hinweis" id="bwDickeInfo"></p>' +
-      '<label class="opt"><input type="checkbox" id="bwTarnung"><span>Tarnlinien quer zu den Nachrichten (von oben schwerer zu lesen)</span></label>' +
+      '<label class="opt"><input type="checkbox" id="bwTarnung"><span>Tarnlinien schräg zu den Nachrichten (füllen die Form, von oben schwerer zu lesen)</span></label>' +
       '<p class="hinweis" id="bwTarnInfo"></p>' +
       '<label class="opt"><input type="checkbox" id="bwMarken"><span>Blickrichtungen am Rand markieren (Nummern)</span></label>' +
       '<label class="opt"><input type="checkbox" id="bwLinien"><span>Linien für die Antworten</span></label>' +
@@ -231,8 +246,8 @@ Labor.registriere({
   id:'blickwinkel',
   titel:'Blickwinkel',
   kurz:'Gestreckte Wörter – nur flach über das Blatt geschaut lesbar',
-  beschreibung:'Wörter und Sätze, extrem in die Länge gezogen, füllen eine Form mit Streifen – in bis zu vier Richtungen. Von oben unlesbar; schaut man ganz flach über das Blatt, wird eine Nachricht lesbar. Formen und Farben wählbar, mit Lösungsblatt.',
-  merkmale:['Eigene Wörter und Sätze', 'Bis 4 Blickrichtungen', 'Mit Lösungsblatt'],
+  beschreibung:'Wörter und Sätze, extrem in die Länge gezogen, füllen eine Form mit Streifen – in bis zu acht Richtungen (je nach Form). Von oben unlesbar; schaut man ganz flach über das Blatt, wird eine Nachricht lesbar. Formen und Farben wählbar, mit Lösungsblatt.',
+  merkmale:['Eigene Wörter und Sätze', 'Bis 8 Blickrichtungen', 'Mit Lösungsblatt'],
   symbol:SYMBOL,
   css:'raetsel/blickwinkel/blickwinkel.css',
   html:VORLAGE,
@@ -247,9 +262,12 @@ function starte(bereich){
   var STANDARD = { form:'', farbmodus:'', dicke:'', tarnung:true, marken:true, linien:true, mitLoesung:true, titelAn:true, anleitungAn:true };
   var st = { nachrichten:[{ text:'', richtung:0, farbe:'' }], opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
-  try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e && Array.isArray(e.nachrichten) && e.nachrichten.length) st.nachrichten = e.nachrichten.slice(0, MAX).map(function(n){ return { text:String(n.text || ''), richtung:+n.richtung || 0, farbe:/^#[0-9a-f]{6}$/i.test(n.farbe) ? n.farbe : '' }; }); } catch(x){}
+  try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e && Array.isArray(e.nachrichten) && e.nachrichten.length) st.nachrichten = e.nachrichten.slice(0, 8).map(function(n){ return { text:String(n.text || ''), richtung:+n.richtung || 0, farbe:/^#[0-9a-f]{6}$/i.test(n.farbe) ? n.farbe : '' }; }); } catch(x){}
   function gueltig(k, l){ if (!l.some(function(x){ return x[0] === st.opt[k]; })) st.opt[k] = ''; }
   gueltig('form', FORMEN); gueltig('farbmodus', FARBMODI); gueltig('dicke', DICKEN);
+  function nR(){ return Kern.anzahl(st.opt.form); }
+  // Richtungen, die es bei dieser Form nicht gibt oder doppelt sind, zurücksetzen
+  (function(){ var n = nR(), da = []; st.nachrichten.forEach(function(m){ if (m.richtung > n || da.indexOf(m.richtung) >= 0) m.richtung = 0; if (m.richtung) da.push(m.richtung); }); })();
   var timer = 0;
   function speichernJetzt(){ clearTimeout(timer); timer = 0;
     try { sessionStorage.setItem(TAB, JSON.stringify({ nachrichten:st.nachrichten })); } catch(x){}
@@ -262,18 +280,23 @@ function starte(bereich){
   /* ---------- Nachrichten: Text, «Von wo schaut man?» (Kompass), Farbe ---------- */
   function farbeVon(i){ return st.nachrichten[i].farbe || FARBEN[i % FARBEN.length]; }
   function nachrichtenZeigen(){
-    var belegt = st.nachrichten.map(function(n){ return n.richtung; });
+    var belegt = st.nachrichten.map(function(n){ return n.richtung; }), N = nR(), MAX = N;
+    $('#bwFormZuerst').hidden = !!st.opt.form; $('#bwNachrichtenTeil').hidden = !st.opt.form;
+    $('#bwNachrichtenText').textContent = st.opt.form ? 'Bis zu ' + N + ' Wörter oder kurze Sätze – jede aus einer anderen Richtung lesbar.' : 'Wörter oder kurze Sätze – jede aus einer anderen Richtung lesbar.';
+    // kleine Form in der Mitte des Kompasses
+    var e = Kern.form(st.opt.form), mini = e ? '<path d="' + e.map(function(p, k){ return (k ? 'L' : 'M') + f1(75 + p[0] * 34) + ' ' + f1(75 + p[1] * 34); }).join('') + 'Z"/>' : '<circle cx="75" cy="75" r="34"/>';
     $('#bwNachrichten').innerHTML = st.nachrichten.map(function(n, i){
       return '<div class="bw-nachricht" data-i="' + i + '">' +
         '<div class="bw-nachricht-kopf"><label class="feld-label" for="bwText' + i + '">Nachricht ' + (i + 1) + '</label>' +
           (st.nachrichten.length > 1 ? '<button type="button" class="bw-weg" data-weg="' + i + '" aria-label="Nachricht ' + (i + 1) + ' entfernen">×</button>' : '') + '</div>' +
         '<input type="text" class="bw-text" id="bwText' + i + '" data-i="' + i + '" maxlength="40" autocomplete="off" spellcheck="false" value="' + esc(n.text) + '">' +
         '<div class="bw-stufe"' + (n.text.trim() ? '' : ' hidden') + '><p class="feld-label">Von wo schaut man?</p>' +
-          '<div class="bw-kompass" role="radiogroup" aria-label="Blickrichtung für Nachricht ' + (i + 1) + '">' + KOMPASS.map(function(r){
-            if (!r) return '<span class="bw-kompass-mitte" aria-hidden="true"></span>';
-            var weg = belegt.indexOf(r) >= 0 && n.richtung !== r;
-            return '<button type="button" class="bw-ri" data-i="' + i + '" data-r="' + r + '" aria-pressed="' + (n.richtung === r) + '"' + (weg ? ' disabled' : '') + ' title="von ' + RICHTUNG[r] + (weg ? ' – schon belegt' : '') + '">' + r + '</button>';
-          }).join('') + '</div>' +
+          '<div class="bw-kompass" role="radiogroup" aria-label="Blickrichtung für Nachricht ' + (i + 1) + '"><svg viewBox="0 0 150 150" aria-hidden="true">' + mini + '</svg>' +
+            Array.apply(null, Array(N)).map(function(_, k){
+              var r = k + 1, u = Kern.drehen([0, 1], Kern.winkel(r, N)), weg = belegt.indexOf(r) >= 0 && n.richtung !== r;
+              return '<button type="button" class="bw-ri" style="left:' + f1(60 + u[0] * 57) + 'px;top:' + f1(60 + u[1] * 57) + 'px" data-i="' + i + '" data-r="' + r + '" aria-pressed="' + (n.richtung === r) + '"' + (weg ? ' disabled' : '') +
+                ' title="von ' + Kern.richtungsName(r, N) + (weg ? ' – schon belegt' : '') + '">' + r + '</button>';
+            }).join('') + '</div>' +
           (st.opt.farbmodus === 'nachricht' ? '<label class="bw-farbe"><input type="color" data-farbe="' + i + '" value="' + farbeVon(i) + '"><span>Farbe</span></label>' : '') +
         '</div></div>';
     }).join('');
@@ -295,7 +318,7 @@ function starte(bereich){
     if (w){ st.nachrichten.splice(+w.getAttribute('data-weg'), 1); speichern(); nachrichtenZeigen(); zeichnen(); }
   });
   $('#bwMehr').addEventListener('click', function(){
-    if (st.nachrichten.length >= MAX) return;
+    if (st.nachrichten.length >= nR()) return;
     st.nachrichten.push({ text:'', richtung:0, farbe:'' }); speichern(); nachrichtenZeigen();
     var f = $('#bwText' + (st.nachrichten.length - 1)); if (f) f.focus();
   });
@@ -305,7 +328,16 @@ function starte(bereich){
       r.addEventListener('change', function(){ if (r.checked){ st.opt[k] = r.value; speichern(); if (nachher) nachher(); zeichnen(); } });
     });
   }
-  radios('bwForm', 'form'); radios('bwFarbmodus', 'farbmodus', nachrichtenZeigen); radios('bwDicke', 'dicke');
+  var nVorher = nR();
+  radios('bwForm', 'form', function(){
+    // gleiche Richtung behalten, so gut es geht (nach dem Winkel); doppelte zurücksetzen
+    var n = nR(), da = [];
+    st.nachrichten.forEach(function(m){
+      if (m.richtung){ m.richtung = Math.round((m.richtung - 1) * n / nVorher) % n + 1; if (da.indexOf(m.richtung) >= 0) m.richtung = 0; else da.push(m.richtung); }
+    });
+    nVorher = n; speichern(); nachrichtenZeigen();
+  });
+  radios('bwFarbmodus', 'farbmodus', nachrichtenZeigen); radios('bwDicke', 'dicke');
   [['#bwTarnung', 'tarnung'], ['#bwMarken', 'marken'], ['#bwLinien', 'linien'], ['#bwMitLoesung', 'mitLoesung']].forEach(function(x){
     $(x[0]).checked = !!st.opt[x[1]];
     $(x[0]).addEventListener('change', function(){ st.opt[x[1]] = this.checked; speichern(); if (x[1] !== 'mitLoesung') zeichnen(); });
@@ -344,30 +376,31 @@ function starte(bereich){
         var farbe = st.opt.farbmodus === 'sw' ? TINTE : st.opt.farbmodus === 'wort' ? FARBEN[(b * 3 + w) % FARBEN.length] : farbeVon(m.i);
         g += '<path d="' + s.p.map(function(q, k){ return (k ? 'L' : 'M') + f1(q[0] * 1000) + ' ' + f1(q[1] * 1000 / f); }).join('') + '" stroke="' + farbe + '"/>';
       });
-      t += '<g transform="translate(' + f1(cx) + ' ' + f1(cy) + ') rotate(' + Kern.winkel(n.richtung) + ') scale(' + faktor.toFixed(4) + ' ' + (faktor * f).toFixed(4) + ')"' + (n.tarnung ? ' stroke-width="' + f1(dicke * 0.7) + '"' : '') + '>' + g + '</g>';
+      t += '<g transform="translate(' + f1(cx) + ' ' + f1(cy) + ') rotate(' + f1(n.grad) + ') scale(' + faktor.toFixed(4) + ' ' + (faktor * f).toFixed(4) + ')"' + (n.tarnung ? ' stroke-width="' + f1(dicke * 0.7) + '"' : '') + '>' + g + '</g>';
     });
     var clip = 'bwc' + id, umriss = '<path d="' + formPfad(cx, cy, r) + '" fill="none" stroke="#B9AFA8" stroke-width="1.2"/>';
     var inhalt = '<clipPath id="' + clip + '"><path d="' + formPfad(cx, cy, r) + '"/></clipPath>' +
       '<g clip-path="url(#' + clip + ')" fill="none" stroke-width="' + f1(dicke) + '" stroke-linecap="round" stroke-linejoin="round">' + t + '</g>' + umriss;
     if (ansicht){
       var n = P.filter(function(x){ return x.richtung === ansicht; })[0], s = n ? n.satz.streckung : 5;
-      inhalt = '<g transform="translate(' + f1(cx) + ' ' + f1(cy) + ') scale(1 ' + (1 / s).toFixed(4) + ') rotate(' + (-Kern.winkel(ansicht)) + ') translate(' + f1(-cx) + ' ' + f1(-cy) + ')">' + inhalt + '</g>';
+      inhalt = '<g transform="translate(' + f1(cx) + ' ' + f1(cy) + ') scale(1 ' + (1 / s).toFixed(4) + ') rotate(' + f1(n ? -n.grad : 0) + ') translate(' + f1(-cx) + ' ' + f1(-cy) + ')">' + inhalt + '</g>';
       var h = 2 * r / s + 24;
       return '<svg class="bw-form" width="' + f1(W) + '" height="' + f1(h) + '" viewBox="0 ' + f1(cy - h / 2) + ' ' + f1(W) + ' ' + f1(h) + '">' + inhalt + '</svg>';
     }
     var marken = '';
     if (st.opt.marken) P.forEach(function(n){
-      var u = Kern.drehen([0, 1], Kern.winkel(n.richtung)), a = Kern.reichweite(st.opt.form, u) * r + 17, p = [u[0] * a, u[1] * a];
+      var u = Kern.drehen([0, 1], n.grad), a = Kern.reichweite(st.opt.form, u) * r + 17, p = [u[0] * a, u[1] * a];
       marken += '<circle cx="' + f1(cx + p[0]) + '" cy="' + f1(cy + p[1]) + '" r="11" fill="#fff" stroke="' + TINTE + '" stroke-width="1.4"/>' +
         '<text x="' + f1(cx + p[0]) + '" y="' + f1(cy + p[1] + 4.5) + '" font-size="13" font-weight="700" text-anchor="middle" fill="' + TINTE + '">' + n.richtung + '</text>';
     });
     return '<svg class="bw-form" width="' + f1(W) + '" height="' + f1(W) + '" viewBox="0 0 ' + f1(W) + ' ' + f1(W) + '">' + inhalt + marken + '</svg>';
   }
   function fehltNoch(){
+    if (!st.opt.form) return 'eine Form';
     var mitText = st.nachrichten.filter(function(n){ return n.text.trim(); });
+    if (mitText.length > nR()) return 'höchstens ' + nR() + ' Nachrichten – diese Form hat nur ' + nR() + ' Richtungen';
     if (!mitText.length) return 'eine Nachricht (ein Wort oder einen kurzen Satz)';
     if (mitText.some(function(n){ return !n.richtung; })) return 'bei jeder Nachricht, von wo man schaut';
-    if (!st.opt.form) return 'eine Form';
     if (!st.opt.farbmodus) return 'die Farben';
     return '';
   }
@@ -381,36 +414,24 @@ function starte(bereich){
     st.nachrichten.forEach(function(n, i){
       if (!n.text.trim() || !n.richtung) return;
       var L = Kern.lesen(n.text, Z); L.weg.forEach(function(c){ if (weg.indexOf(c) < 0) weg.push(c); });
-      var halb = st.nachrichten.some(function(m){ return m.text.trim() && m.richtung === Kern.gegenueber(n.richtung); });
-      var satz = Kern.setzen(L.woerter, Z, Kern.sehne(Kern.kanten(o.form, Kern.winkel(n.richtung)), halb), Kern.STRECKUNG);
-      if (satz) P.push({ i:i, richtung:n.richtung, text:L.woerter.join(' '), woerter:L.woerter, satz:satz });
+      var gg = Kern.gegenueber(n.richtung, nR()), grad = Kern.winkel(n.richtung, nR());
+      var halb = !!gg && st.nachrichten.some(function(m){ return m.text.trim() && m.richtung === gg; });
+      var satz = Kern.setzen(L.woerter, Z, Kern.sehne(Kern.kanten(o.form, grad), halb), Kern.STRECKUNG);
+      if (satz) P.push({ i:i, richtung:n.richtung, grad:grad, text:L.woerter.join(' '), woerter:L.woerter, satz:satz });
     });
-    /* Tarnlinien füllen die Form: Hat eine Nachricht keine Nachricht im rechten Winkel, kommt dorthin eine Tarnung (in
-       ihren Farben). Kreuzen sich alle Nachrichten schon, kommen Tarnungen aus freien Richtungen, deren Gegenüber auch frei
-       ist (dann füllen sie die ganze Form; höchstens zwei), sonst eine aus einer freien Richtung – in den Farben aller Nachrichten. */
+    /* Tarnlinien füllen die ganze Form, schräg zu allen Leserichtungen (Kern.tarnWinkel) – in den Farben aller Nachrichten.
+       Beim flachen Blick auf eine Nachricht werden sie zu feinen Strichen. */
     T = [];
     if (o.tarnung && o.form && P.length){
-      var belegt = P.map(function(n){ return n.richtung; }), rnd = Kern.zufall(Kern.streuwert(P.map(function(n){ return n.richtung + n.text; }).join('|') + o.form));
-      var schicht = function(r, basis){
-        var halb = belegt.indexOf(Kern.gegenueber(r)) >= 0; belegt.push(r);
-        var sf = Kern.sehne(Kern.kanten(o.form, Kern.winkel(r)), halb), anzahl = Kern.tarnAnzahl(sf, Kern.STRECKUNG), vorlage = [];
+      var rnd = Kern.zufall(Kern.streuwert(P.map(function(n){ return n.richtung + n.text; }).join('|') + o.form));
+      Kern.tarnWinkel(P.map(function(n){ return n.grad; })).forEach(function(g){
+        var sf = Kern.sehne(Kern.kanten(o.form, g), false), anzahl = Kern.tarnAnzahl(sf, Kern.STRECKUNG), vorlage = [];
         while (anzahl > 0){ var l = Math.min(anzahl, 3 + Math.floor(rnd() * 4)); vorlage.push(new Array(l + 1).join('X')); anzahl -= l; }
         var tz = Kern.tarnung(vorlage, Z, rnd), satz = Kern.setzen(tz.woerter, tz.Z, sf, Kern.STRECKUNG);
-        if (satz) T.push({ i:basis < 0 ? P[0].i : P[basis].i, basis:basis, richtung:r, satz:satz, tarnung:true });
-      };
-      P.forEach(function(n){
-        var q = Kern.quer(n.richtung);
-        if (!q.some(function(r){ return belegt.indexOf(r) >= 0; })) schicht(q[0], P.indexOf(n));
+        if (satz) T.push({ i:P[0].i, basis:-1, grad:g, satz:satz, tarnung:true });
       });
-      if (!T.length){
-        var frei = [1, 2, 3, 4, 5, 6, 7, 8].filter(function(r){ return belegt.indexOf(r) < 0; });
-        var ganz = frei.filter(function(r){ return frei.indexOf(Kern.gegenueber(r)) >= 0; });
-        // je freies Paar (Richtung und Gegenüber) eine Schicht, höchstens zwei – sie kreuzen sich und füllen die Form gleichmässig
-        if (ganz.length) ganz.filter(function(r){ return r < Kern.gegenueber(r); }).slice(0, 2).forEach(function(r){ schicht(r, -1); });
-        else if (frei.length) schicht(frei[0], -1);
-      }
     }
-    $('#bwTarnInfo').textContent = !o.tarnung || !T.length ? '' : 'Tarnlinien aus Richtung ' + T.map(function(t){ return t.richtung; }).join(', ') + ' – beim flachen Blick werden sie zu feinen Strichen.';
+    $('#bwTarnInfo').textContent = !o.tarnung || !T.length ? '' : (T.length > 1 ? 'Zwei Schichten Tarnlinien' : 'Eine Schicht Tarnlinien') + ', schräg zu den Nachrichten – beim flachen Blick werden sie zu feinen Strichen.';
     if (weg.length) h += '<p class="warnung">' + esc(weg.join(' ')) + ' gibt es nicht – nur Buchstaben, Ziffern und . , ! ? - :</p>';
     // Höhe der Buchstaben beim flachen Blick (Mitte): 6 Rastereinheiten; Radius = 75 mm
     P.forEach(function(n){ var mm = 6 * n.satz.ux * 75; if (mm < 3) h += '<p class="warnung">Nachricht ' + (n.i + 1) + ' ist lang – beim flachen Blick sind die Buchstaben nur etwa ' + mm.toFixed(1) + ' mm hoch. Kürzer ist besser.</p>';
@@ -429,12 +450,12 @@ function starte(bereich){
     // Lösung: je Nachricht der flache Blick
     $('#bwLoesung').innerHTML = (o.titelAn ? '<h2>Blickwinkel – Lösung</h2>' : '<p class="bw-anleitung"><b>Lösung</b></p>') +
       '<div class="bw-loesungen">' + P.slice().sort(function(a, b){ return a.richtung - b.richtung; }).map(function(n){
-        return '<div class="bw-loesung"><p><b>' + n.richtung + '</b> von ' + RICHTUNG[n.richtung] + ': <b>' + esc(n.text) + '</b></p>' + formSvg(280, n.richtung, 'l' + n.richtung) + '</div>';
+        return '<div class="bw-loesung"><p><b>' + n.richtung + '</b> von ' + Kern.richtungsName(n.richtung, nR()) + ': <b>' + esc(n.text) + '</b></p>' + formSvg(280, n.richtung, 'l' + n.richtung) + '</div>';
       }).join('') + '</div>';
     // Am Bildschirm: Blickrichtung wählen
     if (!P.some(function(n){ return n.richtung === blick; })) blick = 0;
     $('#bwBlickWahl').innerHTML = '<label><input type="radio" name="bwBlick" value="0"' + (blick ? '' : ' checked') + '><span>von oben</span></label>' +
-      P.slice().sort(function(a, b){ return a.richtung - b.richtung; }).map(function(n){ return '<label><input type="radio" name="bwBlick" value="' + n.richtung + '"' + (blick === n.richtung ? ' checked' : '') + '><span>' + n.richtung + ' · von ' + RICHTUNG[n.richtung] + '</span></label>'; }).join('');
+      P.slice().sort(function(a, b){ return a.richtung - b.richtung; }).map(function(n){ return '<label><input type="radio" name="bwBlick" value="' + n.richtung + '"' + (blick === n.richtung ? ' checked' : '') + '><span>' + n.richtung + ' · von ' + Kern.richtungsName(n.richtung, nR()) + '</span></label>'; }).join('');
     blickZeigen();
   }
   function blickZeigen(){ $('#bwBlickBild').innerHTML = P && P.length ? formSvg(blick ? 380 : 200, blick, 'v') : ''; }
