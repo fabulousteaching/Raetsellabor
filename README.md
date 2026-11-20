@@ -403,6 +403,16 @@ Ein Satz steht immer wieder im Buchstabenfeld und bildet eine Schlange. Die gera
 - **Getestet:** Schlange mit Ecken an 720 Fällen (8 Sätze, 45 Codes, beide Füllarten): Die Schlange ist zusammenhängend, die Stücke laufen in Code-Richtung, sie berührt sich nicht, und ein Kind, das vom Kreis aus dem Satz folgt, hat bei jedem Buchstaben genau eine Möglichkeit. Ganze Sätze je Stück an 552 Fällen (auch → → und → ←).
 - **Blatt:** Anleitung mit dem Satz (abschaltbar), Anfang mit einem Kreis (abschaltbar), Kästchen für den Code. Am Bildschirm lassen sich die geraden Stücke markieren. Lösungsblatt: die Schlange farbig, jedes Stück mit Nummer und Pfeil, der Code als Pfeile und Wörter. PDF.
 
+### Schachrätsel
+
+Schachfiguren ziehen über ein Brett (A–H, 1–8). Wer jeden Zug als Linie von Feldmitte zu Feldmitte einzeichnet, sieht am Schluss eine Ziffer oder einen Buchstaben.
+
+- **Eingaben (nacheinander):** zuerst der Code mit 1 bis 4 Ziffern (0–9) oder Buchstaben (A–Z, ohne Umlaute) – je ein Brett; andere Zeichen werden genannt. Dann klappen die Züge auf: «Von – nach» (♖ Turm von A3 nach A6) oder «Richtung und Felder» (♖ Turm auf A3: 3 Felder nach oben), keine Vorauswahl.
+- **Zeichen:** jedes Zeichen ist eine Strichfigur auf 5 × 7 Feldern aus geraden und schrägen (45°) Linien; die Null hat einen Schrägstrich, damit sie nicht wie ein O aussieht. Die Lage auf dem Brett ist zufällig («Neu mischen»).
+- **Nur echte Züge:** gerade Linien laufen Turm oder Dame, schräge Läufer oder Dame, ein Feld auch der König, ein Feld nach oben (von Reihe 2 auch zwei) der Bauer. Häkchen «Auch Dame, König und Bauer» (Standard) – sonst nur Turm und Läufer. Den Springer gibt es nicht, weil er springt und keine Linie zieht.
+- **Getestet:** alle 36 Zeichen an 14'400 Brettern (je 200 Lagen, beide Figuren-Arten): jede Linie bleibt auf dem Brett, jeder Zug ist für seine Figur erlaubt, «Richtung und Felder» führt genau ins Zielfeld.
+- **Blatt:** Anleitung (abschaltbar) mit den Zugregeln der Figuren (abschaltbar), je Brett die nummerierten Züge und eine Linie fürs Zeichen, bei mehreren Brettern eine Linie für den Code. Die Bretter werden nach ihrer Höhe auf A4-Seiten verteilt. Lösungsblatt: alle Bretter mit den Linien, das Zeichen und der Code. PDF.
+
 ## Aufbau
 
 ```
@@ -454,6 +464,7 @@ raetsel/fallbuchstaben/         der Generator «Fallende Buchstaben» (Kern: Sat
 raetsel/buchstabenteile/        der Generator «Buchstaben-Teile» (Kern: Satz in Zeichen, in Teile schneiden, mischen ohne verratene Nachbarn)
 raetsel/skytale/                der Generator «Skytale» (Kern: Geometrie des schrägen Bands, Nachricht in Reihen anordnen, Füllbuchstaben, Band-Reihenfolge)
 raetsel/richtungssuchsel/       der Generator «Richtungs-Suchsel» (Kern: Schlange aus Sätzen legen, Vorkommen zählen, Feld füllen; Zeichnen und Markieren mit gemeinsam/gitter.js)
+raetsel/schachraetsel/          der Generator «Schachrätsel» (Kern: Strichfiguren 0–9 und A–Z, erlaubte Figuren je Zug, Zeichen aufs Brett legen und in Züge zerlegen)
 raetsel/triomino/               der Generator «Triomino» (Kern: Formen, Kanten, Aufgaben, Belegung; Zeichnen mit Schriftanpassung)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)
