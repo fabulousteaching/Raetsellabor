@@ -623,7 +623,7 @@ function vorschauHtml(art){
 function qrSvg(text){
   qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
   var q = qrcode(0, 'M'); q.addData(text, 'Byte'); q.make();
-  var n = q.getModuleCount(), d = '', R = 2;
+  var n = q.getModuleCount(), d = '', R = 0;   // ohne weissen Rand: die gewählte Grösse ist die des sichtbaren Codes (das Blatt ist rundherum weiss)
   for (var y = 0; y < n; y++) for (var x = 0; x < n; x++) if (q.isDark(y, x)) d += 'M' + (x + R) + ' ' + (y + R) + 'h1v1h-1z';
   return '<svg class="gs-qr" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + (n + 2 * R) + ' ' + (n + 2 * R) + '" shape-rendering="crispEdges" role="img" aria-label="QR-Code zur Hörseite">' +
     '<rect width="100%" height="100%" fill="#fff"/><path d="' + d + '" fill="#000"/></svg>';
@@ -772,7 +772,8 @@ var VORLAGE = '<div class="gs">' +
           Kern.NOTEN_WOERTER_BS.map(function(w){ return '<button type="button" class="gs-wortchip gs-bs" data-wort="' + w + '">' + w + '</button>'; }).join('') + '</div>' +
         '<p class="hinweis" id="gsNotenHinweis"></p>' +
         '<div class="gs-noten-ton"><button type="button" class="btn klein" id="gsNotenSpielen">▶ Anhören</button><button type="button" class="btn klein" id="gsNotenStopp">■ Stopp</button></div>' +
-        '<label class="opt"><input type="checkbox" id="gsNotenAudio"><span>Mit Audio: QR-Code auf dem Blatt – er führt zu einer Hörseite mit allen Tönen der Botschaft und dem Tonalphabet zum Vergleichen</span></label>' +
+        '<label class="opt"><input type="checkbox" id="gsNotenAudio"><span>Mit Audio: Auf dem Blatt steht nur ein QR-Code zur Hörseite (alle Töne der Botschaft und das Tonalphabet zum Vergleichen); die Lösung kommt auf ein eigenes Blatt</span></label>' +
+        '<div class="gs-einzug gs-qr-groesse" id="gsQrGroesseFeld" hidden><label class="feld-label" for="gsQrGroesse">Grösse des QR-Codes: <b id="gsQrGroesseWert"></b></label><input type="range" id="gsQrGroesse" min="3" max="16" step="0.5"></div>' +
         '<p class="hinweis gs-einzug" id="gsNotenSeiteZeile" hidden><a id="gsNotenSeite" href="#" target="_blank" rel="noopener">Hörseite öffnen</a> (so sehen es die Kinder nach dem Scannen)</p>' +
       '</div>' +
       '<div class="gs-caesar" id="gsErpresser">' +
@@ -798,7 +799,7 @@ var VORLAGE = '<div class="gs">' +
         Labor.blattSchalterHtml() +
         '<label class="gs-nur-geheim" title="Linien unter den Zeichen zum Hinschreiben der Buchstaben"><input type="checkbox" id="gsLinien"> Schreiblinien</label>' +
         '<label class="gs-nur-geheim"><input type="checkbox" id="gsMitLoesung"> mit Lösungsblatt</label>' +
-        '<label class="gs-nur-geheim"><input type="checkbox" id="gsMitSchluessel"> mit Schlüssel</label>' +
+        '<label class="gs-nur-geheim gs-mit-schluessel"><input type="checkbox" id="gsMitSchluessel"> mit Schlüssel</label>' +
         '<button type="button" class="btn klein" id="gsCodeBild">Als Bild</button>' +
         '<button type="button" class="btn klein primary" id="gsPdf">PDF herunterladen</button>' +
         '<button type="button" class="btn klein primary" id="gsHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
@@ -845,7 +846,7 @@ window.addEventListener('hashchange', alterLink);
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false;
   var TAB = 'geheimschrift-eingaben', OPT = 'geheimschrift-einstellungen';
-  var STANDARD = { art:'caesar', verschiebung:3, scheibe:true, segArt:'ausmalen', erpSeed:1, erpMisch:true, notenBS:false, notenAudio:false, groesse:'mittel', linien:true, mitLoesung:true, mitSchluessel:true, titelAn:true, anleitungAn:true };
+  var STANDARD = { art:'caesar', verschiebung:3, scheibe:true, segArt:'ausmalen', erpSeed:1, erpMisch:true, notenBS:false, notenAudio:false, qrCm:6, groesse:'mittel', linien:true, mitLoesung:true, mitSchluessel:true, titelAn:true, anleitungAn:true };
   var st = { text:'', titel:'', opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
   try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.text = String(e.text || ''); st.titel = String(e.titel || ''); } } catch(x){}
@@ -921,6 +922,8 @@ function starte(bereich){
     Toene.folge(m, { beiTon:function(i){ noten.forEach(function(n, k){ n.classList.toggle('gs-spielt', k === i); }); },
       fertig:function(){ knopf.disabled = false; noten.forEach(function(n){ n.classList.remove('gs-spielt'); }); } });
   });
+  $('#gsQrGroesse').value = st.opt.qrCm;
+  $('#gsQrGroesse').addEventListener('input', function(){ st.opt.qrCm = +this.value; speichern(); zeichnen(); });
   $('#gsNotenStopp').addEventListener('click', function(){ if (window.Toene) Toene.stopp(); $('#gsNotenSpielen').disabled = false; [].forEach.call(bereich.querySelectorAll('.gs-spielt'), function(n){ n.classList.remove('gs-spielt'); }); });
   $('#gsErpNeu').addEventListener('click', function(){ st.opt.erpSeed = erpNeuerZufall(); speichern(); alles(); });
   $('#gsVerschiebung').value = String(st.opt.verschiebung);
@@ -959,6 +962,8 @@ function starte(bereich){
     var melodie = o.art === 'noten' ? notenMelodie() : [];
     $('#gsNotenSeiteZeile').hidden = !melodie.length; $('#gsNotenSeite').href = melodie.length ? hoerUrl() : '#';
     $('#gsNotenSpielen').disabled = !melodie.length;
+    $('#gsQrGroesseFeld').hidden = !(o.art === 'noten' && o.notenAudio); $('#gsQrGroesseWert').textContent = o.qrCm + ' cm';
+    bereich.querySelector('.gs').classList.toggle('gs-nur-qr', o.art === 'noten' && !!o.notenAudio);
     // Notenschrift: Wörter mit anderen Buchstaben gehen nicht – sagen, welche und warum
     var nichtNoten = o.art === 'noten' ? Kern.notenFalsch(st.text, o.notenBS) : [];
     var tonnamen = o.notenBS ? 'C, D, E, F, G, A, H, B und S' : 'C, D, E, F, G, A und H';
@@ -993,16 +998,25 @@ function starte(bereich){
     var name = schriftName(o.art, o);
     var anleitung = o.art === 'segmente' && o.segArt === 'ausmalen' ? 'Male in jeder Anzeige die genannten Segmente an und lies den Buchstaben ab' + (o.linien ? '. Schreibe ihn auf die Linie' : '') + '. Der Schlüssel zeigt, wo welches Segment liegt.'
       : 'Entschlüssle die Geheimschrift (' + esc(name) + ') mit dem Schlüssel' + (o.linien ? ' und schreibe die Buchstaben auf die Linien' : '') + '.';
+    // Notenschrift mit Audio: auf dem Blatt nur der QR-Code (Grösse in cm) und Schreiblinien je Wort; die Noten stehen im Lösungsblatt
     var mitTon = o.art === 'noten' && o.notenAudio;
+    if (mitTon){
+      anleitung = 'Scanne den QR-Code mit dem Tablet oder Handy. Dort hörst du die Töne der Geheimbotschaft. Vergleiche jeden Ton mit dem Tonalphabet – klingen zwei Töne gleich, hast du den Buchstaben.' +
+        (o.linien ? ' Schreibe die Buchstaben auf die Linien.' : '');
+      var woerter = []; zellen().forEach(function(z){ z.forEach(function(w){ var b = w.filter(function(c){ return c.code && c.code.note; }).map(function(c){ return c.b; }); if (b.length) woerter.push(b); }); });
+      var qrPx = o.qrCm * 10 * 703 / 186;   // echte Grösse: 703 px = 186 mm
+      $('#gsBlatt').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + '</h2>' : '') + (o.anleitungAn ? '<p class="gs-anleitung">' + anleitung + '</p>' : '') +
+        '<div class="gs-code gs-qr-code"><div class="gs-qr-gross" style="width:' + qrPx.toFixed(1) + 'px">' + qrSvg(hoerUrl()) + '</div></div>' +
+        (o.linien ? '<div class="gs-hoer-linien">' + woerter.map(function(w, i){ return '<span class="gs-hoer-wort"><small>Wort ' + (i + 1) + '</small><span>' +
+          w.map(function(b){ return '<span class="gs-linie"><b class="gs-loes">' + esc(b) + '</b></span>'; }).join('') + '</span></span>'; }).join('') + '</div>' : '');
+    } else
     $('#gsBlatt').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + '</h2>' : '') +
-      (o.anleitungAn ? '<p class="gs-anleitung">' + anleitung + '</p>' : '') + codeHtml() +
-      (mitTon ? '<div class="gs-hoeren"><div class="gs-hoeren-qr">' + qrSvg(hoerUrl()) + '</div><div><p class="gs-hoeren-titel">Hör genau hin!</p>' +
-        '<p>Scanne den QR-Code mit dem Tablet oder Handy. Dort kannst du jeden Ton der Botschaft anhören und mit dem Tonalphabet vergleichen. Klingen zwei Töne gleich, hast du den Buchstaben.</p></div></div>' : '');
+      (o.anleitungAn ? '<p class="gs-anleitung">' + anleitung + '</p>' : '') + codeHtml();
     $('#gsLoesung').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + ' – Lösung</h2>' : '<p class="gs-anleitung"><b>Lösung</b></p>') + codeHtml();
     $('#gsBlatt').classList.toggle('zeige-loesung', $('#gsZeigeLoesung').getAttribute('aria-pressed') === 'true');
     var code = $('#gsBlatt .gs-code');
     code.setAttribute('role', 'button'); code.setAttribute('tabindex', '0'); code.title = 'Klicken: als Bild kopieren (zum Einfügen in Word)';
-    code.setAttribute('aria-label', 'Geheimtext – klicken, um ihn als Bild zu kopieren');
+    code.setAttribute('aria-label', (mitTon ? 'QR-Code' : 'Geheimtext') + ' – klicken, um ihn als Bild zu kopieren');
     var b = $('#gsBlatt');
     if (b.offsetWidth && b.scrollHeight / b.offsetWidth > 1.5) meldung('warnung', '<p>Der Text ist lang für eine A4-Seite – im PDF wird das Blatt verkleinert. Wähle kleinere Zeichen oder kürze den Text.</p>');
   }
@@ -1019,7 +1033,9 @@ function starte(bereich){
 
   /* ---------- PDF, Bild, Herunterladen ---------- */
   function dateiName(art, endung){ return Labor.pdfName(art, st.titel).replace(/\.pdf$/, '.' + endung); }
-  function codeBlaetter(){ if (st.opt.art === 'erpresser') return [$('#gsBlatt')]; return [$('#gsBlatt'), st.opt.mitSchluessel && $('#gsSchluessel'), st.opt.mitLoesung && $('#gsLoesung')].filter(Boolean); }
+  function codeBlaetter(){ if (st.opt.art === 'erpresser') return [$('#gsBlatt')];
+    if (st.opt.art === 'noten' && st.opt.notenAudio) return [$('#gsBlatt'), st.opt.mitLoesung && $('#gsLoesung')].filter(Boolean);   // QR-Blatt und Lösung, ohne Schlüssel
+    return [$('#gsBlatt'), st.opt.mitSchluessel && $('#gsSchluessel'), st.opt.mitLoesung && $('#gsLoesung')].filter(Boolean); }
   function druckVorbereiten(){ document.body.classList.toggle('mit-loesung', !!st.opt.mitLoesung && st.opt.art !== 'erpresser'); }
   window.addEventListener('beforeprint', druckVorbereiten);
   function fehler(t){ meldung('fehler', '<p>' + esc(t) + '</p>'); }
