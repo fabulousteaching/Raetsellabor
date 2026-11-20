@@ -144,18 +144,28 @@ var Labor = (function(){
 
   /* ---------- Startseite ---------- */
   function titelVon(r){ return uebersetze(r.id, r.titel); }
+  function vorschauBild(id, l){ return 'gemeinsam/vorschau/' + id + '.' + l + '.webp' + (VERSION ? '?v=' + VERSION : ''); }
   function baueStartseite(){
     var karten = '';
     liste.forEach(function(r){
       // Suche: übersetzter und deutscher Titel
-      karten += '<a class="raetsel-karte" href="#' + r.id + '" data-suche="' + esc(titelSuche(titelVon(r)) + ' ' + titelSuche(r.titel)) + '"><span class="sym" aria-hidden="true">' + r.symbol + '</span>' +
-        '<h3>' + esc(titelVon(r)) + '</h3><p>' + esc(uebersetze(r.id, r.beschreibung)) + '</p>' +
-        (r.merkmale && r.merkmale.length ? '<ul class="merkmale">' + r.merkmale.map(function(m){ return '<li>' + esc(uebersetze(r.id, m)) + '</li>'; }).join('') + '</ul>' : '') +
+      // Kachel: Beispielrätsel (Bild aus gemeinsam/vorschau/<id>.<sprache>.webp), Titel, kurzer Erklärtext, Knopf
+      karten += '<a class="raetsel-karte" href="#' + r.id + '" data-suche="' + esc(titelSuche(titelVon(r)) + ' ' + titelSuche(r.titel)) + '" title="' + esc(uebersetze(r.id, r.beschreibung)) + '">' +
+        '<span class="karte-bild" aria-hidden="true"><span class="karte-bild-innen"><img src="' + vorschauBild(r.id, SPRACHE) + '" alt="" loading="lazy" decoding="async" data-id="' + r.id + '"></span>' +
+        '<span class="sym">' + r.symbol + '</span></span>' +
+        '<span class="karte-text"><h3>' + esc(titelVon(r)) + '</h3><p>' + esc(uebersetze(r.id, r.kurz)) + '</p></span>' +
         '<span class="oeffnen">' + txL('Öffnen →') + '</span></a>';
     });
     karten += '<div class="raetsel-karte bald"><span class="sym" aria-hidden="true">' + PLUS + '</span><h3>' + txL('Weitere Generatoren') + '</h3>' +
       '<p>' + txL('Neue Rätselarten kommen Schritt für Schritt dazu. Sie erscheinen dann hier und im Menü.') + '</p></div>';
     $('#raetselKarten').innerHTML = karten;
+    // Fehlt das Bild in der Sprache: deutsches Bild; fehlt auch das: nur das Symbol
+    [].forEach.call(document.querySelectorAll('#raetselKarten .karte-bild img'), function(img){
+      img.addEventListener('error', function(){
+        if (SPRACHE !== 'de' && img.src.indexOf('.de.webp') < 0){ img.src = vorschauBild(img.getAttribute('data-id'), 'de'); return; }
+        img.closest('.karte-bild').classList.add('ohne');
+      });
+    });
   }
   /* Suche auf der Startseite: nach dem Titel des Generators. Mit jedem Buchstaben bleiben weniger Karten übrig.
      Gross/klein, Umlaute (ä = a = ae), ß, Leerzeichen und Bindestriche spielen keine Rolle. */

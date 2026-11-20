@@ -238,18 +238,30 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input[type=checkbox]:
 .suche-leer{margin:0;padding:18px 20px;border:1px dashed var(--line-2);border-radius:14px;color:var(--muted)}
 .suche-leer[hidden]{display:none}
 @media (max-width:640px){ .suche{flex:1 1 100%} }
-.raetsel-karten{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr));grid-auto-rows:1fr;gap:16px;align-items:stretch}   /* alle Karten gleich gross */
-.raetsel-karte{display:flex;flex-direction:column;gap:12px;min-width:0;padding:20px;background:var(--card);border:1px solid var(--line);border-radius:14px;
-  box-shadow:var(--schatten);color:var(--text);text-decoration:none;transition:border-color .15s,transform .15s,box-shadow .15s}
-a.raetsel-karte:hover{border-color:var(--accent);box-shadow:0 10px 28px rgba(242,140,56,.22);transform:translateY(-2px)}
-.raetsel-karte .sym{width:44px;height:44px;border-radius:11px;display:grid;place-items:center;background:var(--accent);color:var(--auf-akzent)}
-.raetsel-karte h3{font-family:var(--display);font-weight:600;font-size:1.3rem;letter-spacing:-.005em;margin:0;color:var(--ink)}
-.raetsel-karte p{margin:0;font-size:.92rem;color:#554C45}
-.merkmale{display:flex;flex-wrap:wrap;gap:6px;list-style:none;margin:0;padding:0}
-.merkmale li{font-size:.76rem;color:#3D3530;background:#F4EFEA;border-radius:999px;padding:3px 9px}
-.oeffnen{margin-top:auto;padding-top:4px;font-weight:600;font-size:.92rem;color:var(--accent-2)}
-.raetsel-karte.bald{background:transparent;border-style:dashed;border-color:var(--line-2);box-shadow:none;color:var(--muted)}
-.raetsel-karte.bald .sym{background:#EFE9E3;color:var(--muted)}
+.raetsel-karten{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr));gap:18px;align-items:stretch}   /* alle Karten gleich gross */
+.raetsel-karte{position:relative;display:flex;flex-direction:column;min-width:0;padding:0;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:16px;
+  color:inherit;text-decoration:none;box-shadow:0 1px 2px rgba(45,28,12,.05);transition:border-color .15s,box-shadow .2s,transform .2s}
+a.raetsel-karte:hover{border-color:var(--accent);box-shadow:0 12px 30px rgba(242,140,56,.22);transform:translateY(-2px)}
+a.raetsel-karte:focus-visible{outline:3px solid var(--accent-2);outline-offset:2px}
+/* Beispielrätsel oben in der Kachel */
+.karte-bild{position:relative;display:block;border-bottom:1px solid var(--line)}
+.karte-bild-innen{display:block;aspect-ratio:16/10;background:#fff;overflow:hidden}
+.karte-bild img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .35s ease}
+a.raetsel-karte:hover .karte-bild img{transform:scale(1.04)}
+.karte-bild .sym{position:absolute;left:16px;bottom:-20px;z-index:1;width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:var(--accent);color:var(--auf-akzent);
+  border:3px solid var(--card);box-shadow:0 2px 8px rgba(45,28,12,.16)}
+.karte-bild .sym svg{width:20px;height:20px}
+.karte-bild.ohne .karte-bild-innen{background:var(--accent-soft)}
+.karte-bild.ohne img{display:none}
+.karte-text{display:grid;gap:6px;padding:28px 18px 8px}
+.raetsel-karte h3{font-family:var(--display);font-weight:600;font-size:1.25rem;letter-spacing:-.005em;line-height:1.2;margin:0;color:var(--ink)}
+.raetsel-karte p{margin:0;font-size:.92rem;line-height:1.45;color:#554C45}
+.oeffnen{align-self:flex-start;margin:auto 18px 18px;display:inline-flex;align-items:center;padding:8px 16px;border-radius:999px;background:var(--accent-soft);
+  color:var(--accent-2);font-weight:650;font-size:.9rem;transition:background .15s,color .15s}
+.karte-text + .oeffnen{margin-top:auto}
+a.raetsel-karte:hover .oeffnen{background:var(--accent);color:var(--auf-akzent)}
+.raetsel-karte.bald{padding:20px;gap:12px;background:transparent;border-style:dashed;border-color:var(--line-2);box-shadow:none;color:var(--muted)}
+.raetsel-karte.bald .sym{width:44px;height:44px;border-radius:11px;display:grid;place-items:center;background:#EFE9E3;color:var(--muted)}
 .raetsel-karte.bald h3{color:#554C45}
 .schritte{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;counter-reset:schritt}
 .schritte li{counter-increment:schritt;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;align-items:start}
@@ -273,7 +285,7 @@ a.raetsel-karte:hover{border-color:var(--accent);box-shadow:0 10px 28px rgba(242
 @media (max-width:640px){ .labor-fuss-innen{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))} }
 
 @media (prefers-reduced-motion: reduce){
-  .raetsel-karte{transition:none} a.raetsel-karte:hover{transform:none}
+  .raetsel-karte{transition:none} a.raetsel-karte:hover{transform:none} .karte-bild img{transition:none} a.raetsel-karte:hover .karte-bild img{transform:none}
   .lade{animation-duration:2.5s}
 }
 @media print{
