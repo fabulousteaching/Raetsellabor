@@ -135,11 +135,12 @@ var Kern = (function(){
 /* KERN-ENDE */
 
 /* ===== Vorlage: Oberfläche des Generators =====
-   Zwei Arten wie beim Labyrinth: «Wörter suchen» (diese Datei) und «Zahlen-Suchsel» (raetsel/zahlen-suchsel/, window.ZahlenSuchsel).
+   Drei Arten wie beim Labyrinth: «Wörter suchen» (diese Datei), «Zahlen-Suchsel» (raetsel/zahlen-suchsel/, window.ZahlenSuchsel)
+   und «Richtungs-Suchsel» (raetsel/richtungssuchsel/, window.RichtungsSuchsel).
    Karte 1 wählt die Art; darunter steht die Oberfläche der gewählten Art. */
 function kopfHtml(klasse){
   return '<header class="' + klasse + '"><p class="augenbraue">' + tx('Rätselgenerator') + '</p><h1>' + tx('Suchsel') + '</h1>' +
-    '<p>' + tx('Wörter verstecken und finden – klassisch kreuz und quer, auf Wunsch mit versteckter Nachricht, oder als Zahlen-Suchsel, bei dem die markierten Wörter eine Zahl bilden.') + '</p></header>';
+    '<p>' + tx('Wörter verstecken und finden – klassisch kreuz und quer, auf Wunsch mit versteckter Nachricht, als Zahlen-Suchsel, bei dem die markierten Wörter eine Zahl bilden, oder als Richtungs-Suchsel, dessen Satz-Schlange den Code für ein Richtungsschloss verrät.') + '</p></header>';
 }
 function artKarte(art){
   function wahl(wert, titel, text){ return '<label><input type="radio" name="sbArt" value="' + wert + '"' + (art === wert ? ' checked' : '') + '><span><b>' + titel + '</b><small>' + text + '</small></span></label>'; }
@@ -147,6 +148,7 @@ function artKarte(art){
     '<div class="sb-art" role="radiogroup" aria-label="' + tx('Art des Suchsels') + '">' +
       wahl('woerter', tx('Wörter suchen'), tx('Das klassische Suchsel: Wörter kreuz und quer, auf Wunsch mit versteckter Nachricht')) +
       wahl('zahl', tx('Zahlen-Suchsel'), tx('Die markierten Wörter bilden zusammen eine Zahl')) +
+      wahl('richtung', tx('Richtungs-Suchsel'), tx('Ein Satz als Schlange – seine Richtungen öffnen das Schloss')) +
     '</div></div>';
 }
 function vorlage(karte){ return '<div class="sb">' + kopfHtml('sb-kopf') +
@@ -200,49 +202,54 @@ var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke
 Labor.registriere({
   id:'suchsel',
   titel:'Suchsel',
-  kurz:'Wörter kreuz und quer – klassisch oder als Zahlen-Suchsel',
-  beschreibung:'Wörter verstecken und finden: klassisch kreuz und quer im Buchstabenfeld, auf Wunsch mit versteckter Nachricht – oder als Zahlen-Suchsel, bei dem die markierten Wörter zusammen eine Zahl bilden. Passende Wörter zum Thema lassen sich vorschlagen.',
-  merkmale:['Klassisch oder mit Lösungszahl', 'Drei Schwierigkeitsstufen', 'Mit Lösungsblatt'],
+  kurz:'Wörter kreuz und quer – klassisch, als Zahlen- oder Richtungs-Suchsel',
+  beschreibung:'Wörter verstecken und finden: klassisch kreuz und quer im Buchstabenfeld, auf Wunsch mit versteckter Nachricht – als Zahlen-Suchsel, bei dem die markierten Wörter zusammen eine Zahl bilden – oder als Richtungs-Suchsel, dessen Satz-Schlange den Code für ein Richtungsschloss verrät.',
+  merkmale:['Klassisch, mit Lösungszahl oder Richtungscode', 'Drei Schwierigkeitsstufen', 'Mit Lösungsblatt'],
   symbol:SYMBOL,
   css:'raetsel/suchsel/suchsel.css',
   html:'<div class="sb-art-ort"></div>',
   start:starteArt
 });
 
-/* alte Adresse #zahlen-suchsel (früher eigener Generator) → Suchsel, Art «Zahlen-Suchsel» */
+/* alte Adressen (früher eigene Generatoren) → Suchsel mit der passenden Art */
 var vorwahl = null;
-function alterLink(){ if (location.hash === '#zahlen-suchsel'){ vorwahl = 'zahl'; location.replace(location.pathname + location.search + '#suchsel'); } }
+function alterLink(){
+  var alt = { '#zahlen-suchsel':'zahl', '#richtungssuchsel':'richtung' }[location.hash];
+  if (alt){ vorwahl = alt; location.replace(location.pathname + location.search + '#suchsel'); }
+}
 alterLink();
 window.addEventListener('hashchange', alterLink);
 
 /* ===== Art wählen: die passende Oberfläche einsetzen; das Zahlen-Suchsel bringt sein eigenes Stylesheet mit ===== */
 function starteArt(bereich){
-  var OPT = 'suchsel-art', ort = bereich.querySelector('.sb-art-ort') || bereich, art = 'woerter', stopp = null, zsCss = null;
-  try { var a = localStorage.getItem(OPT); if (a === 'zahl' || a === 'woerter') art = a; } catch(x){}
+  var OPT = 'suchsel-art', ort = bereich.querySelector('.sb-art-ort') || bereich, art = 'woerter', stopp = null;
+  var MODULE = { zahl:window.ZahlenSuchsel, richtung:window.RichtungsSuchsel }, eigene = {};   // Arten mit eigener Datei und eigenem Stylesheet
+  try { var a = localStorage.getItem(OPT); if (a === 'woerter' || MODULE[a]) art = a; } catch(x){}
   if (vorwahl){ art = vorwahl; vorwahl = null; }
   function eigenesCss(){ return document.querySelector('link[href*="raetsel/suchsel/suchsel.css"]'); }
+  // nur das Stylesheet der gewählten Art ist aktiv (die Arten benutzen teils dieselben Klassennamen)
   function cssFuer(neu){
-    var zs = window.ZahlenSuchsel, l = eigenesCss();
-    if (neu === 'zahl' && zs){
-      if (!zsCss){ zsCss = document.createElement('link'); zsCss.rel = 'stylesheet'; zsCss.href = zs.css + (Labor.version ? '?v=' + Labor.version : ''); document.head.appendChild(zsCss); }
-      zsCss.disabled = false;
-    } else if (zsCss) zsCss.disabled = true;
-    if (l) l.disabled = neu === 'zahl';
+    Object.keys(MODULE).forEach(function(k){
+      var m = MODULE[k]; if (!m) return;
+      if (k === neu && !eigene[k]){ var l = eigene[k] = document.createElement('link'); l.rel = 'stylesheet'; l.href = m.css + (Labor.version ? '?v=' + Labor.version : ''); document.head.appendChild(l); }
+      if (eigene[k]) eigene[k].disabled = k !== neu;
+    });
+    var l = eigenesCss(); if (l) l.disabled = neu !== 'woerter';
   }
   function zeige(neu){
     if (stopp){ try { stopp(); } catch(e){ console.error(e); } stopp = null; }
-    art = neu === 'zahl' && window.ZahlenSuchsel ? 'zahl' : 'woerter';
+    art = MODULE[neu] ? neu : 'woerter';
     try { localStorage.setItem(OPT, art); } catch(x){}
     cssFuer(art);
     var karte = artKarte(art);
-    ort.innerHTML = art === 'zahl' ? window.ZahlenSuchsel.vorlage(karte) : vorlage(karte);
+    ort.innerHTML = MODULE[art] ? MODULE[art].vorlage(karte, kopfHtml(art === 'zahl' ? 'zs-kopf' : 'rs-kopf')) : vorlage(karte);
     [].forEach.call(ort.querySelectorAll('input[name="sbArt"]'), function(r){
       r.addEventListener('change', function(){ if (r.checked && r.value !== art){ zeige(r.value); var f = ort.querySelector('input[name="sbArt"]:checked'); if (f) f.focus(); } });
     });
-    try { stopp = art === 'zahl' ? window.ZahlenSuchsel.starte(ort) : starte(ort); } catch(e){ console.error(e); }
+    try { stopp = MODULE[art] ? MODULE[art].starte(ort) : starte(ort); } catch(e){ console.error(e); }
   }
   zeige(art);
-  return function(){ if (stopp) stopp(); if (zsCss) zsCss.disabled = true; var l = eigenesCss(); if (l) l.disabled = false; };
+  return function(){ if (stopp) stopp(); Object.keys(eigene).forEach(function(k){ eigene[k].disabled = true; }); var l = eigenesCss(); if (l) l.disabled = false; };
 }
 
 /* ===== Bedienung ===== */

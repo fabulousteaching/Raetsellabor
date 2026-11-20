@@ -19,7 +19,7 @@ Die Startseite erklärt kurz, was das Labor kann, und zeigt alle Generatoren als
 
 ### Suchsel
 
-Wörter verstecken und finden. Die erste Karte wählt – wie beim Labyrinth – die **Art des Suchsels**: *Wörter suchen* (das klassische Suchsel, unten) oder *Zahlen-Suchsel*. Jede Art hat ihre eigene Oberfläche und ihr eigenes Stylesheet (`raetsel/suchsel/`, `raetsel/zahlen-suchsel/` – dieses meldet sich als `window.ZahlenSuchsel` an, nicht als eigener Generator). Alte Links …/#zahlen-suchsel öffnen das Suchsel mit dem Zahlen-Suchsel.
+Wörter verstecken und finden. Die erste Karte wählt – wie beim Labyrinth – die **Art des Suchsels**: *Wörter suchen* (das klassische Suchsel), *Zahlen-Suchsel* oder *Richtungs-Suchsel*. Jede Art hat ihre eigene Oberfläche und ihr eigenes Stylesheet (`raetsel/suchsel/`, `raetsel/zahlen-suchsel/`, `raetsel/richtungssuchsel/` – die beiden letzten melden sich als `window.ZahlenSuchsel` und `window.RichtungsSuchsel` an, nicht als eigene Generatoren); aktiv ist immer nur das Stylesheet der gewählten Art. Die gewählte Art bleibt, solange die Seite offen ist. Alte Links …/#zahlen-suchsel und …/#richtungssuchsel öffnen das Suchsel mit der passenden Art.
 
 #### Zahlen-Suchsel
 
@@ -60,6 +60,17 @@ Das klassische Wortsuchrätsel: Die Wörter liegen kreuz und quer im Buchstabenf
 - **Feldgrösse:** automatisch (so klein wie möglich) oder fest 10 × 10 bis 20 × 20.
 - **Versteckte Nachricht** (Häkchen, darunter das Eingabefeld): Die Buchstaben, die übrig bleiben, wenn alle Wörter angestrichen sind, ergeben – Zeile für Zeile von links nach rechts gelesen – den eingegebenen Satz. Dafür wird das Feld automatisch so gewählt (auch rechteckig, bis 24 × 24), dass genau so viele Felder frei bleiben, wie der Satz Buchstaben hat: Zeilen · Spalten = Buchstaben der Wörter + Nachricht − geteilte Felder. Die Zahl der Kreuzungen wird dabei genau gesteuert; sind Kreuzungen nicht erlaubt, teilen sich Wörter nur so viele Buchstaben wie nötig (mit Hinweis). Ist die Nachricht zu kurz für die Wörter, sagt das Suchsel, ab wie vielen Buchstaben es klappt. Auf dem Blatt Kästchen für die Nachricht (zeigen die Wortlängen) oder Schreiblinien; im Lösungsblatt sind die Buchstaben der Nachricht farbig. Getestet mit 6, 10 und 14 Wörtern, allen Stufen, mit und ohne Kreuzungen und Nachrichten von einem Zehntel bis anderthalb Mal so vielen Buchstaben wie die Wörter: Die übrigen Buchstaben ergeben immer genau die Nachricht; ab 10 Wörtern klappt es praktisch immer.
 - Markieren am Bildschirm, Lösung zeigen, PDF mit Lösungsblatt.
+
+#### Richtungs-Suchsel
+
+Ein Satz steht immer wieder im Buchstabenfeld und bildet eine Schlange. Die geraden Stücke der Schlange zeigen der Reihe nach die Richtungen (rechts, unten, links, oben) – das ist der Code für ein Richtungsschloss.
+
+- **Eingaben (nacheinander, nach der Karte «Art des Suchsels»):** zuerst der Satz (bis 40 Zeichen; Grossbuchstaben ohne Abstände, Umlaute bleiben); dann klappt der Richtungscode auf: vier Pfeilknöpfe wie ein Steuerkreuz (auch mit den Pfeiltasten), bis 12 Richtungen, «Letzte löschen» und «Alle löschen».
+- **Schlange mit Ecken (Standard):** Der Satz läuft durchgehend weiter, auch um die Ecken; jedes gerade Stück ist mindestens 3 Buchstaben lang. Die Schlange endet genau am Ende eines Satzes (sie enthält ihn 1-, 2-, 3-mal …) und berührt sich nirgends selbst. Weil sie bei jeder neuen Richtung abbiegt, kommt nach → oder ← immer ↑ oder ↓ (die anderen Pfeilknöpfe sind dann gesperrt, mit Hinweis). Aus vielen Versuchen gewinnt das kleinste Feld – im Mittel etwa dreimal kleiner als mit ganzen Sätzen je Stück.
+- **Jedes Stück ein ganzer Satz (Häkchen):** für Codes mit gleicher Richtung hintereinander (→ →) oder Umkehr (→ ←). Jede Richtung ist dann ein ganzer, gerader Satz; der nächste beginnt direkt neben dem letzten Buchstaben. Das Feld wird grösser; Sätze, die vorwärts und rückwärts gleich sind, gehen hier nicht.
+- **Eindeutig:** Neben der Schlange steht nie ein Füllbuchstabe, der der nächste oder vorige Buchstabe des Satzes ist – vom Kreis aus gibt es immer genau einen Weg. Füllbuchstaben zufällig wie im Deutschen oder nur aus dem Satz (schwieriger); zufällige gerade Vorkommen des Satzes ausserhalb der Schlange werden aufgelöst. Feld höchstens 30 × 38, mindestens 10 × 10; ist es zu gross, steht, wie lang der Satz höchstens sein darf.
+- **Getestet:** Schlange mit Ecken an 720 Fällen (8 Sätze, 45 Codes, beide Füllarten): Die Schlange ist zusammenhängend, die Stücke laufen in Code-Richtung, sie berührt sich nicht, und ein Kind, das vom Kreis aus dem Satz folgt, hat bei jedem Buchstaben genau eine Möglichkeit. Ganze Sätze je Stück an 552 Fällen (auch → → und → ←).
+- **Blatt:** Anleitung mit dem Satz (abschaltbar), Anfang mit einem Kreis (abschaltbar), Kästchen für den Code. Am Bildschirm lassen sich die geraden Stücke markieren. Lösungsblatt: die Schlange farbig, jedes Stück mit Nummer und Pfeil, der Code als Pfeile und Wörter. PDF.
 
 ### Rebus
 
@@ -393,17 +404,6 @@ Eine Nachricht auf einem Papierband: um einen runden Gegenstand gewickelt (Windu
 - **Kopiervorlage in echten Millimetern:** A4 quer (1032 px = 273 mm; jede Seite höchstens 186 mm hoch, damit das PDF nicht verkleinert). Die Buchstaben stehen um 90° gedreht – aufgewickelt sind sie aufrecht. Lange Bänder werden in nummerierte Streifen geteilt; am Ende jedes Streifens eine graue Klebefläche mit der Nummer des nächsten. Streifen 1 beginnt mit einem schraffierten Anfangsstück ▶ (zum Festkleben). Kontrolllinie 10 cm und Hinweis «in Originalgrösse drucken». Anleitung zum Ausschneiden, Zusammenkleben und Aufwickeln.
 - **Lösungsblatt:** so steht es auf dem Gegenstand – alle Reihen rundherum, die Nachricht farbig, dazu der Text. «Neu mischen» gibt andere Füllbuchstaben. PDF.
 
-### Richtungs-Suchsel
-
-Ein Satz steht immer wieder im Buchstabenfeld und bildet eine Schlange. Die geraden Stücke der Schlange zeigen der Reihe nach die Richtungen (rechts, unten, links, oben) – das ist der Code für ein Richtungsschloss.
-
-- **Eingaben (nacheinander):** zuerst der Satz (bis 40 Zeichen; Grossbuchstaben ohne Abstände, Umlaute bleiben); dann klappt der Richtungscode auf: vier Pfeilknöpfe wie ein Steuerkreuz (auch mit den Pfeiltasten), bis 12 Richtungen, «Letzte löschen» und «Alle löschen».
-- **Schlange mit Ecken (Standard):** Der Satz läuft durchgehend weiter, auch um die Ecken; jedes gerade Stück ist mindestens 3 Buchstaben lang. Die Schlange endet genau am Ende eines Satzes (sie enthält ihn 1-, 2-, 3-mal …) und berührt sich nirgends selbst. Weil sie bei jeder neuen Richtung abbiegt, kommt nach → oder ← immer ↑ oder ↓ (die anderen Pfeilknöpfe sind dann gesperrt, mit Hinweis). Aus vielen Versuchen gewinnt das kleinste Feld – im Mittel etwa dreimal kleiner als mit ganzen Sätzen je Stück.
-- **Jedes Stück ein ganzer Satz (Häkchen):** für Codes mit gleicher Richtung hintereinander (→ →) oder Umkehr (→ ←). Jede Richtung ist dann ein ganzer, gerader Satz; der nächste beginnt direkt neben dem letzten Buchstaben. Das Feld wird grösser; Sätze, die vorwärts und rückwärts gleich sind, gehen hier nicht.
-- **Eindeutig:** Neben der Schlange steht nie ein Füllbuchstabe, der der nächste oder vorige Buchstabe des Satzes ist – vom Kreis aus gibt es immer genau einen Weg. Füllbuchstaben zufällig wie im Deutschen oder nur aus dem Satz (schwieriger); zufällige gerade Vorkommen des Satzes ausserhalb der Schlange werden aufgelöst. Feld höchstens 30 × 38, mindestens 10 × 10; ist es zu gross, steht, wie lang der Satz höchstens sein darf.
-- **Getestet:** Schlange mit Ecken an 720 Fällen (8 Sätze, 45 Codes, beide Füllarten): Die Schlange ist zusammenhängend, die Stücke laufen in Code-Richtung, sie berührt sich nicht, und ein Kind, das vom Kreis aus dem Satz folgt, hat bei jedem Buchstaben genau eine Möglichkeit. Ganze Sätze je Stück an 552 Fällen (auch → → und → ←).
-- **Blatt:** Anleitung mit dem Satz (abschaltbar), Anfang mit einem Kreis (abschaltbar), Kästchen für den Code. Am Bildschirm lassen sich die geraden Stücke markieren. Lösungsblatt: die Schlange farbig, jedes Stück mit Nummer und Pfeil, der Code als Pfeile und Wörter. PDF.
-
 ### Schachrätsel
 
 Schachfiguren ziehen über ein Brett (A–H, 1–8). Wer jeden Zug als Linie von Feldmitte zu Feldmitte einzeichnet, sieht am Schluss eine Ziffer oder einen Buchstaben.
@@ -430,7 +430,8 @@ api/woerter.php                 Server-Teil (PHP): fragt Mistral für Wortvorsch
 api/uebersetzen.php             Server-Teil (PHP): übersetzt Wörter für das Triomino (Deutsch ↔ Englisch/Französisch), gleiche KI und gleicher Schlüssel
 raetsel/zahlen-suchsel/         Art «Zahlen-Suchsel» des Suchsels (window.ZahlenSuchsel)
   zahlen-suchsel.js             Kern (Ziffern bauen, Wörter verteilen), Oberfläche, Bedienung
-  zahlen-suchsel.css            Aussehen dieses Generators (nur aktiv, solange er offen ist)
+  zahlen-suchsel.css            Aussehen dieser Art (nur aktiv, solange sie gewählt ist)
+raetsel/richtungssuchsel/       Art «Richtungs-Suchsel» des Suchsels (window.RichtungsSuchsel; Kern: Schlange aus Sätzen legen, Vorkommen zählen, Feld füllen; Zeichnen und Markieren mit gemeinsam/gitter.js)
 raetsel/suchsel/                der Generator «Suchsel»: Art wählen; Art «Wörter suchen» (Wörter setzen, Oberfläche, Bedienung)
 raetsel/rebus/                  der Generator «Rebus»
   rebus.js                      Bilderliste, Kern (Zerlegung), Oberfläche, Bedienung
@@ -465,7 +466,6 @@ raetsel/schuettelwoerter/       der Generator «Schüttelwörter» (Kern: Zufall
 raetsel/fallbuchstaben/         der Generator «Fallende Buchstaben» (Kern: Satz in Zellen, Zeilen umbrechen, Buchstaben fallen lassen, automatische Breite)
 raetsel/buchstabenteile/        der Generator «Buchstaben-Teile» (Kern: Satz in Zeichen, in Teile schneiden, mischen ohne verratene Nachbarn)
 raetsel/skytale/                der Generator «Skytale» (Kern: Geometrie des schrägen Bands, Nachricht in Reihen anordnen, Füllbuchstaben, Band-Reihenfolge)
-raetsel/richtungssuchsel/       der Generator «Richtungs-Suchsel» (Kern: Schlange aus Sätzen legen, Vorkommen zählen, Feld füllen; Zeichnen und Markieren mit gemeinsam/gitter.js)
 raetsel/schachraetsel/          der Generator «Schachrätsel» (Kern: Strichfiguren 0–9 und A–Z, erlaubte Figuren je Zug, Zeichen aufs Brett legen und in Züge zerlegen)
 raetsel/triomino/               der Generator «Triomino» (Kern: Formen, Kanten, Aufgaben, Belegung; Zeichnen mit Schriftanpassung)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)

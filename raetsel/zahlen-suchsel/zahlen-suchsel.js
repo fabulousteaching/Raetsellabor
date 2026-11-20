@@ -683,14 +683,10 @@ var VORLAGE = tx(`<div class="zs">
 var SYMBOL = '<svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true"><g fill="currentColor" opacity=".45"><circle cx="4" cy="4" r="1.6"/><circle cx="11" cy="4" r="1.6"/><circle cx="18" cy="4" r="1.6"/><circle cx="4" cy="11" r="1.6"/><circle cx="11" cy="11" r="1.6"/><circle cx="18" cy="11" r="1.6"/><circle cx="4" cy="18" r="1.6"/><circle cx="11" cy="18" r="1.6"/><circle cx="18" cy="18" r="1.6"/></g><path d="M4 4h14v14" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 /* Kein eigener Generator mehr: das Suchsel (raetsel/suchsel/suchsel.js) zeigt diese Oberfläche als Art «Zahlen-Suchsel».
-   vorlage(karte): Oberfläche mit der Karte «Art des Suchsels» vorne; Kopf wie beim Suchsel */
+   vorlage(karte, kopf): Oberfläche mit der Karte «Art des Suchsels» vorne und dem gemeinsamen Kopf des Suchsels */
 window.ZahlenSuchsel = {
   css:'raetsel/zahlen-suchsel/zahlen-suchsel.css',
-  vorlage:function(karte){
-    var kopf = '<header class="zs-kopf"><p class="augenbraue">' + tx('Rätselgenerator') + '</p><h1>' + tx('Suchsel') + '</h1>' +
-      '<p>' + tx('Wörter verstecken und finden – klassisch kreuz und quer, auf Wunsch mit versteckter Nachricht, oder als Zahlen-Suchsel, bei dem die markierten Wörter eine Zahl bilden.') + '</p></header>';
-    return VORLAGE.replace('<!--KOPF-->', kopf).replace('<!--ART-->', karte);
-  },
+  vorlage:function(karte, kopf){ return VORLAGE.replace('<!--KOPF-->', kopf).replace('<!--ART-->', karte); },
   starte:starte
 };
 

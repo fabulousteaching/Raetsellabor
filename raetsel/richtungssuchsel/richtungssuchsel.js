@@ -205,16 +205,14 @@ var Kern = (function(){
 var MAXCODE = 12;
 function esc(t){ return Labor.esc(t); }
 
-var VORLAGE = '<div class="rs">' +
-  tx('<header class="rs-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Richtungs-Suchsel</h1>') +
-    tx('<p>Ein Satz steht immer wieder im Buchstabenfeld – Satz an Satz wie eine Schlange. In welche Richtung läuft jeder Satz? Das ist der Code für das Richtungsschloss.</p></header>') +
-  tx('<div class="rs-layout"><section class="rs-eingabe" aria-label="Eingaben">') +
-    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Satz</h2><p>Er wiederholt sich in der Schlange – kurze Sätze geben ein handliches Feld.</p></div></div>') +
+var VORLAGE = '<div class="rs"><!--KOPF-->' +
+  tx('<div class="rs-layout"><section class="rs-eingabe" aria-label="Eingaben">') + '<!--ART-->' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Satz</h2><p>Er wiederholt sich in der Schlange – kurze Sätze geben ein handliches Feld.</p></div></div>') +
       tx('<label class="feld-label" for="rsSatz">Satz</label>') +
       '<textarea id="rsSatz" class="rs-text" rows="2" maxlength="40" spellcheck="true"></textarea>' +
       '<p class="hinweis" id="rsSatzInfo"></p>' +
     '</div>' +
-    '<div class="karte" id="rsCodeKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>' + tx('Richtungscode') + '</h2><p>' + tx('So, wie man das Richtungsschloss öffnet – bis {n} Richtungen.', { n:MAXCODE }) + '</p></div></div>' +
+    '<div class="karte" id="rsCodeKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>' + tx('Richtungscode') + '</h2><p>' + tx('So, wie man das Richtungsschloss öffnet – bis {n} Richtungen.', { n:MAXCODE }) + '</p></div></div>' +
       tx('<div class="rs-steuer"><div class="rs-kreuz" role="group" aria-label="Richtung anhängen">') +
         [['U', 'oben'], ['L', 'links'], ['R', 'rechts'], ['D', 'unten']].map(function(x){ return '<button type="button" class="rs-pfeil rs-' + x[0] + '" data-r="' + x[0] + '" aria-label="' + tx(x[1]) + '">' + { U:'↑', L:'←', R:'→', D:'↓' }[x[0]] + '</button>'; }).join('') +
       '</div><div class="rs-codefeld"><div class="rs-codeliste" id="rsCode" aria-live="polite"></div>' +
@@ -245,20 +243,13 @@ var VORLAGE = '<div class="rs">' +
     '<article class="rs-blatt rs-loesungsblatt" id="rsLoesung" aria-hidden="true"></article>' +
   '</section></div></div>';
 
-var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-  '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 7h8v5H9v5h8" stroke-width="2.6" opacity=".55"/><path d="M15 15l2 2-2 2"/></svg>';
-
-Labor.registriere({
-  id:'richtungssuchsel',
-  titel:'Richtungs-Suchsel',
-  kurz:'Ein Satz als Schlange im Buchstabenfeld – ihre Richtungen öffnen das Schloss',
-  beschreibung:'Ein Satz steht immer wieder im Feld, Satz an Satz wie eine Schlange. Die Richtung jedes Satzes (rechts, unten, links, oben) ergibt den Code für ein Richtungsschloss. Code mit Pfeilknöpfen eingeben. Mit Lösungsblatt.',
-  merkmale:['Code mit Pfeilknöpfen', 'Für Richtungsschlösser', 'Mit Lösungsblatt'],
-  symbol:SYMBOL,
+/* Kein eigener Generator mehr: das Suchsel (raetsel/suchsel/suchsel.js) zeigt diese Oberfläche als Art «Richtungs-Suchsel».
+   vorlage(karte, kopf): Oberfläche mit der Karte «Art des Suchsels» vorne und dem gemeinsamen Kopf des Suchsels */
+window.RichtungsSuchsel = {
   css:'raetsel/richtungssuchsel/richtungssuchsel.css',
-  html:VORLAGE,
-  start:starte
-});
+  vorlage:function(karte, kopf){ return VORLAGE.replace('<!--KOPF-->', kopf).replace('<!--ART-->', karte); },
+  starte:starte
+};
 
 /* ===== Bedienung ===== */
 function starte(bereich){
