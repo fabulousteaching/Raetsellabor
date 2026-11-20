@@ -134,13 +134,25 @@ var Kern = (function(){
 })();
 /* KERN-ENDE */
 
-/* ===== Vorlage: Oberfläche des Generators ===== */
-var VORLAGE = '<div class="sb">' +
-  tx('<header class="sb-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Suchsel</h1>') +
-    tx('<p>Das klassische Wortsuchrätsel: Die Wörter liegen kreuz und quer im Buchstabenfeld.</p></header>') +
-  tx('<div class="sb-layout"><section class="sb-eingabe" aria-label="Eingaben">') +
-    Wortwahl.html(1) +
-    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Feld und Schwierigkeit</h2><p>In welche Richtungen die Wörter laufen.</p></div></div>') +
+/* ===== Vorlage: Oberfläche des Generators =====
+   Zwei Arten wie beim Labyrinth: «Wörter suchen» (diese Datei) und «Zahlen-Suchsel» (raetsel/zahlen-suchsel/, window.ZahlenSuchsel).
+   Karte 1 wählt die Art; darunter steht die Oberfläche der gewählten Art. */
+function kopfHtml(klasse){
+  return '<header class="' + klasse + '"><p class="augenbraue">' + tx('Rätselgenerator') + '</p><h1>' + tx('Suchsel') + '</h1>' +
+    '<p>' + tx('Wörter verstecken und finden – klassisch kreuz und quer, auf Wunsch mit versteckter Nachricht, oder als Zahlen-Suchsel, bei dem die markierten Wörter eine Zahl bilden.') + '</p></header>';
+}
+function artKarte(art){
+  function wahl(wert, titel, text){ return '<label><input type="radio" name="sbArt" value="' + wert + '"' + (art === wert ? ' checked' : '') + '><span><b>' + titel + '</b><small>' + text + '</small></span></label>'; }
+  return '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>' + tx('Art des Suchsels') + '</h2></div></div>' +
+    '<div class="sb-art" role="radiogroup" aria-label="' + tx('Art des Suchsels') + '">' +
+      wahl('woerter', tx('Wörter suchen'), tx('Das klassische Suchsel: Wörter kreuz und quer, auf Wunsch mit versteckter Nachricht')) +
+      wahl('zahl', tx('Zahlen-Suchsel'), tx('Die markierten Wörter bilden zusammen eine Zahl')) +
+    '</div></div>';
+}
+function vorlage(karte){ return '<div class="sb">' + kopfHtml('sb-kopf') +
+  tx('<div class="sb-layout"><section class="sb-eingabe" aria-label="Eingaben">') + karte +
+    Wortwahl.html(2) +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Feld und Schwierigkeit</h2><p>In welche Richtungen die Wörter laufen.</p></div></div>') +
       tx('<div class="sb-stufen" role="radiogroup" aria-label="Schwierigkeit">') +
         tx('<label class="sb-stufe"><input type="radio" name="sbStufe" value="leicht"><span><b>Leicht</b><small>waagrecht → und senkrecht ↓</small></span></label>') +
         tx('<label class="sb-stufe"><input type="radio" name="sbStufe" value="mittel"><span><b>Mittel</b><small>dazu schräg ↘ ↗</small></span></label>') +
@@ -180,7 +192,7 @@ var VORLAGE = '<div class="sb">' +
     '</div>' +
     '<article class="sb-blatt" id="sbBlatt" hidden></article>' +
     '<article class="sb-blatt sb-loesungsblatt" id="sbLoesung" aria-hidden="true"></article>' +
-  '</section></div></div>';
+  '</section></div></div>'; }
 
 var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
   '<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M7 8h10" stroke-width="3" opacity=".55"/><path d="M8 12l8 5" stroke-width="3" opacity=".55"/></svg>';
@@ -188,14 +200,50 @@ var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke
 Labor.registriere({
   id:'suchsel',
   titel:'Suchsel',
-  kurz:'Wörter kreuz und quer im Buchstabenfeld',
-  beschreibung:'Das klassische Wortsuchrätsel: Die Wörter liegen waagrecht, senkrecht, schräg oder rückwärts im Feld. Passende Wörter zum Thema lassen sich vorschlagen.',
-  merkmale:['Drei Schwierigkeitsstufen', 'Wörter dürfen sich kreuzen', 'Mit Lösungsblatt'],
+  kurz:'Wörter kreuz und quer – klassisch oder als Zahlen-Suchsel',
+  beschreibung:'Wörter verstecken und finden: klassisch kreuz und quer im Buchstabenfeld, auf Wunsch mit versteckter Nachricht – oder als Zahlen-Suchsel, bei dem die markierten Wörter zusammen eine Zahl bilden. Passende Wörter zum Thema lassen sich vorschlagen.',
+  merkmale:['Klassisch oder mit Lösungszahl', 'Drei Schwierigkeitsstufen', 'Mit Lösungsblatt'],
   symbol:SYMBOL,
   css:'raetsel/suchsel/suchsel.css',
-  html:VORLAGE,
-  start:starte
+  html:'<div class="sb-art-ort"></div>',
+  start:starteArt
 });
+
+/* alte Adresse #zahlen-suchsel (früher eigener Generator) → Suchsel, Art «Zahlen-Suchsel» */
+var vorwahl = null;
+function alterLink(){ if (location.hash === '#zahlen-suchsel'){ vorwahl = 'zahl'; location.replace(location.pathname + location.search + '#suchsel'); } }
+alterLink();
+window.addEventListener('hashchange', alterLink);
+
+/* ===== Art wählen: die passende Oberfläche einsetzen; das Zahlen-Suchsel bringt sein eigenes Stylesheet mit ===== */
+function starteArt(bereich){
+  var OPT = 'suchsel-art', ort = bereich.querySelector('.sb-art-ort') || bereich, art = 'woerter', stopp = null, zsCss = null;
+  try { var a = localStorage.getItem(OPT); if (a === 'zahl' || a === 'woerter') art = a; } catch(x){}
+  if (vorwahl){ art = vorwahl; vorwahl = null; }
+  function eigenesCss(){ return document.querySelector('link[href*="raetsel/suchsel/suchsel.css"]'); }
+  function cssFuer(neu){
+    var zs = window.ZahlenSuchsel, l = eigenesCss();
+    if (neu === 'zahl' && zs){
+      if (!zsCss){ zsCss = document.createElement('link'); zsCss.rel = 'stylesheet'; zsCss.href = zs.css + (Labor.version ? '?v=' + Labor.version : ''); document.head.appendChild(zsCss); }
+      zsCss.disabled = false;
+    } else if (zsCss) zsCss.disabled = true;
+    if (l) l.disabled = neu === 'zahl';
+  }
+  function zeige(neu){
+    if (stopp){ try { stopp(); } catch(e){ console.error(e); } stopp = null; }
+    art = neu === 'zahl' && window.ZahlenSuchsel ? 'zahl' : 'woerter';
+    try { localStorage.setItem(OPT, art); } catch(x){}
+    cssFuer(art);
+    var karte = artKarte(art);
+    ort.innerHTML = art === 'zahl' ? window.ZahlenSuchsel.vorlage(karte) : vorlage(karte);
+    [].forEach.call(ort.querySelectorAll('input[name="sbArt"]'), function(r){
+      r.addEventListener('change', function(){ if (r.checked && r.value !== art){ zeige(r.value); var f = ort.querySelector('input[name="sbArt"]:checked'); if (f) f.focus(); } });
+    });
+    try { stopp = art === 'zahl' ? window.ZahlenSuchsel.starte(ort) : starte(ort); } catch(e){ console.error(e); }
+  }
+  zeige(art);
+  return function(){ if (stopp) stopp(); if (zsCss) zsCss.disabled = true; var l = eigenesCss(); if (l) l.disabled = false; };
+}
 
 /* ===== Bedienung ===== */
 function starte(bereich){

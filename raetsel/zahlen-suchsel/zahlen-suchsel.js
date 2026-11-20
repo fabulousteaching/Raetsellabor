@@ -595,17 +595,14 @@ return { FORMEN:FORMEN, loese:loese, bauen:bauen, analyse:analyse, minWoerter:mi
 
 /* ===== Vorlage: Oberfläche des Generators ===== */
 var VORLAGE = tx(`<div class="zs">
-  <header class="zs-kopf">
-    <p class="augenbraue">Rätselgenerator</p>
-    <h1>Zahlen-Suchsel</h1>
-    <p>Wörter verstecken: Wer alle findet und markiert, sieht die Lösungszahl.</p>
-  </header>
+  <!--KOPF-->
   <div class="layout">
   <section class="spalte-eingabe" aria-label="Eingaben">
-    ${Wortwahl.html(1)}
+    <!--ART-->
+    ${Wortwahl.html(2)}
 
     <div class="karte">
-      <div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span>
+      <div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span>
         <div><h2>Lösungszahl</h2><p>Diese Zahl entsteht, wenn alle Wörter markiert sind.</p></div>
       </div>
       <ol class="liste" id="zahlListe"></ol>
@@ -685,17 +682,17 @@ var VORLAGE = tx(`<div class="zs">
 
 var SYMBOL = '<svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true"><g fill="currentColor" opacity=".45"><circle cx="4" cy="4" r="1.6"/><circle cx="11" cy="4" r="1.6"/><circle cx="18" cy="4" r="1.6"/><circle cx="4" cy="11" r="1.6"/><circle cx="11" cy="11" r="1.6"/><circle cx="18" cy="11" r="1.6"/><circle cx="4" cy="18" r="1.6"/><circle cx="11" cy="18" r="1.6"/><circle cx="18" cy="18" r="1.6"/></g><path d="M4 4h14v14" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
-Labor.registriere({
-  id:'zahlen-suchsel',
-  titel:'Zahlen-Suchsel',
-  kurz:'Versteckte Wörter ergeben markiert eine Zahl',
-  beschreibung:'Ein Suchsel mit Lösungszahl: Die versteckten Wörter bilden zusammen die Ziffern einer Zahl. Wörter selbst eingeben oder zu jedem Thema vorschlagen lassen.',
-  merkmale:['Wortvorschläge zum Thema', 'Lösungszahl frei wählbar', 'Mit Lösungsblatt'],
-  symbol:SYMBOL,
+/* Kein eigener Generator mehr: das Suchsel (raetsel/suchsel/suchsel.js) zeigt diese Oberfläche als Art «Zahlen-Suchsel».
+   vorlage(karte): Oberfläche mit der Karte «Art des Suchsels» vorne; Kopf wie beim Suchsel */
+window.ZahlenSuchsel = {
   css:'raetsel/zahlen-suchsel/zahlen-suchsel.css',
-  html:VORLAGE,
-  start:starte
-});
+  vorlage:function(karte){
+    var kopf = '<header class="zs-kopf"><p class="augenbraue">' + tx('Rätselgenerator') + '</p><h1>' + tx('Suchsel') + '</h1>' +
+      '<p>' + tx('Wörter verstecken und finden – klassisch kreuz und quer, auf Wunsch mit versteckter Nachricht, oder als Zahlen-Suchsel, bei dem die markierten Wörter eine Zahl bilden.') + '</p></header>';
+    return VORLAGE.replace('<!--KOPF-->', kopf).replace('<!--ART-->', karte);
+  },
+  starte:starte
+};
 
 /* ===== Bedienung ===== */
 function starte(bereich){

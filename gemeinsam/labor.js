@@ -756,5 +756,5 @@ var Labor = (function(){
   return { registriere:registriere, start:start, imArtefakt:imArtefakt, claude:claude, sammleCss:sammleCss, blattDatei:blattDatei, dateiname:dateiname, esc:esc,
     blattSchalterHtml:blattSchalterHtml, blattSchalter:blattSchalter, pdfHerunterladen:pdfHerunterladen, pdfKnopf:pdfKnopf, pdfName:pdfName,
     bildHerunterladen:bildHerunterladen, bildKnopf:bildKnopf, bildKopieren:bildKopieren, blattSchrift:blattSchrift,
-    sprache:SPRACHE, woerter:woerter, uebersetzer:uebersetzer, uebersetzeDom:uebersetzeDom, _fehlt:FEHLT, _liste:liste };
+    sprache:SPRACHE, version:VERSION, woerter:woerter, uebersetzer:uebersetzer, uebersetzeDom:uebersetzeDom, _fehlt:FEHLT, _liste:liste };
 })();

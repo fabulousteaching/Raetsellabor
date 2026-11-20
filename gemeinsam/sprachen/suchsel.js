@@ -74,5 +74,14 @@ Labor.woerter('suchsel', {
   'Versteckte Nachricht': ['Hidden message', 'Message caché'],
   '🎉 Geschafft! Alle {n} Wörter gefunden.': ['🎉 Done! All {n} words found.', '🎉 Bravo ! Les {n} mots sont trouvés.'],
   'Lies jetzt die übrigen Buchstaben – sie ergeben die Nachricht.': ['Now read the remaining letters – they spell the message.', 'Lis maintenant les lettres restantes – elles forment le message.'],
-  '{n} von {m} Wörtern gefunden.': ['{n} of {m} words found.', '{n} mots sur {m} trouvés.']
+  '{n} von {m} Wörtern gefunden.': ['{n} of {m} words found.', '{n} mots sur {m} trouvés.'],
+  'Wörter verstecken und finden – klassisch kreuz und quer, auf Wunsch mit versteckter Nachricht, oder als Zahlen-Suchsel, bei dem die markierten Wörter eine Zahl bilden.': ['Hide and find words – classic criss-cross, with a hidden message if you like, or as a number word search in which the marked words form a number.', 'Cacher et trouver des mots – classiques dans tous les sens, avec un message caché si on veut, ou en mots mêlés à nombre, où les mots marqués forment un nombre.'],
+  'Art des Suchsels': ['Type of word search', 'Type de mots mêlés'],
+  'Wörter suchen': ['Find words', 'Trouver des mots'],
+  'Das klassische Suchsel: Wörter kreuz und quer, auf Wunsch mit versteckter Nachricht': ['The classic word search: words criss-cross, with a hidden message if you like', 'Les mots mêlés classiques : des mots dans tous les sens, avec un message caché si on veut'],
+  'Zahlen-Suchsel': ['Number word search', 'Mots mêlés à nombre'],
+  'Die markierten Wörter bilden zusammen eine Zahl': ['The marked words together form a number', 'Les mots marqués forment ensemble un nombre'],
+  'Wörter kreuz und quer – klassisch oder als Zahlen-Suchsel': ['Words criss-cross – classic or as a number word search', 'Des mots dans tous les sens – classiques ou à nombre'],
+  'Wörter verstecken und finden: klassisch kreuz und quer im Buchstabenfeld, auf Wunsch mit versteckter Nachricht – oder als Zahlen-Suchsel, bei dem die markierten Wörter zusammen eine Zahl bilden. Passende Wörter zum Thema lassen sich vorschlagen.': ['Hide and find words: classic criss-cross in the letter grid, with a hidden message if you like – or as a number word search in which the marked words together form a number. Matching words for a topic can be suggested.', 'Cacher et trouver des mots : classiques dans tous les sens dans la grille, avec un message caché si on veut – ou en mots mêlés à nombre, où les mots marqués forment ensemble un nombre. Des mots adaptés au thème peuvent être proposés.'],
+  'Klassisch oder mit Lösungszahl': ['Classic or with a solution number', 'Classiques ou avec nombre solution']
 });
