@@ -377,6 +377,17 @@ Ein Satz ist in gleich lange Teile zerschnitten (die Abstände zwischen den Wör
 - **Eintragen oder ausschneiden:** Ohne Häkchen ist alles auf einem Blatt (Teile oben, Felder unten; höchstens 34 px je Zeichen). Mit «Zum Ausschneiden» kommen die Felder auf das erste Blatt und die Teile (gestrichelt) auf ein eigenes zweites Blatt – so gross wie möglich (bis 60 px ≈ 16 mm je Zeichen), auf beiden Blättern gleich. Jedes Blatt bleibt eine A4-Seite.
 - **Blätter:** Lösungsblatt mit den ausgefüllten Feldern und dem Satz. PDF (Felder, Teile, Lösung je eine Seite).
 
+### Skytale
+
+Eine Nachricht auf einem Papierband: um einen runden Gegenstand gewickelt (Windung an Windung), erscheint sie längs des Gegenstands – wie bei den alten Griechen.
+
+- **Eingaben:** Nachricht (Buchstaben, Ziffern, ? ! . , – bis 160 Zeichen), Gegenstand (keine Vorauswahl: Bleistift, dicker Filzstift, Leimstift, WC-Rollen-Kern, Küchenrollen-Kern, Besenstiel oder eigene Masse; Durchmesser und Länge in mm, änderbar) und Bandbreite (6–20 mm).
+- **Geometrie:** Umfang U = π · d. Das Band läuft schräg: eine Windung braucht L = U / cos α Band und rückt um p = b / cos α weiter (sin α = b / U). Rundherum k Reihen (Abstand L / k, mindestens 0,95 · b), der Länge nach Länge : p Windungen. Buchstabe j auf dem Band steht in Windung j div k, Reihe j mod k. Getestet mit 7 Gegenständen × 6 Bandbreiten × 6 Nachrichten, mit und ohne Farbe (480 Fälle, 421 passen): Beim simulierten Aufwickeln steht jeder Buchstabe in der richtigen Reihe und Windung, die Nachricht lässt sich Reihe für Reihe lesen.
+- **Anordnung:** Reihen mit höchstens etwa 16 Zeichen (gut lesbar, Band nicht unnötig lang), dann so wenige Windungen wie nötig. Ohne Farbe stehen alle Zeichen ohne Abstand hintereinander (klassisch); **mit Farbe** (Häkchen, Rot/Blau/Grün/Violett) bleiben die Abstände zwischen den Wörtern, ein Wort, das in eine Reihe passt, wird nicht geteilt. Alle übrigen Felder bekommen zufällige Buchstaben (Häufigkeit wie im Deutschen).
+- **Prüfung:** Passt die Nachricht, steht, wie viele Windungen und Reihen sie braucht und wie lang das Band wird. Sonst steht, warum nicht und was hilft – mit ausgerechneten Werten: schmaleres Band, längerer oder dickerer Gegenstand, kürzere Nachricht. Ist der Gegenstand zu dünn für das Band, steht die grösste mögliche Bandbreite.
+- **Kopiervorlage in echten Millimetern:** A4 quer (1032 px = 273 mm; jede Seite höchstens 186 mm hoch, damit das PDF nicht verkleinert). Die Buchstaben stehen um 90° gedreht – aufgewickelt sind sie aufrecht. Lange Bänder werden in nummerierte Streifen geteilt; am Ende jedes Streifens eine graue Klebefläche mit der Nummer des nächsten. Streifen 1 beginnt mit einem schraffierten Anfangsstück ▶ (zum Festkleben). Kontrolllinie 10 cm und Hinweis «in Originalgrösse drucken». Anleitung zum Ausschneiden, Zusammenkleben und Aufwickeln.
+- **Lösungsblatt:** so steht es auf dem Gegenstand – alle Reihen rundherum, die Nachricht farbig, dazu der Text. «Neu mischen» gibt andere Füllbuchstaben. PDF.
+
 ## Aufbau
 
 ```
@@ -426,6 +437,7 @@ raetsel/plaettchen/             der Generator «Plättchenrätsel» (Kern: Zeich
 raetsel/schuettelwoerter/       der Generator «Schüttelwörter» (Kern: Zufall, Wort schütteln mit Prüfung, Wort in Teile zerlegen)
 raetsel/fallbuchstaben/         der Generator «Fallende Buchstaben» (Kern: Satz in Zellen, Zeilen umbrechen, Buchstaben fallen lassen, automatische Breite)
 raetsel/buchstabenteile/        der Generator «Buchstaben-Teile» (Kern: Satz in Zeichen, in Teile schneiden, mischen ohne verratene Nachbarn)
+raetsel/skytale/                der Generator «Skytale» (Kern: Geometrie des schrägen Bands, Nachricht in Reihen anordnen, Füllbuchstaben, Band-Reihenfolge)
 raetsel/triomino/               der Generator «Triomino» (Kern: Formen, Kanten, Aufgaben, Belegung; Zeichnen mit Schriftanpassung)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)
