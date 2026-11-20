@@ -33,7 +33,8 @@ var Kern = (function(){
     U:['#..#', '#..#', '#..#', '#..#', '####']
   };
   // warum ein Zeichen nicht geht
-  var NICHT = { B:'sieht aus wie 8', O:'sieht aus wie 0', D:'sieht aus wie 0', Q:'sieht aus wie 0', S:'sieht aus wie 5', Z:'sieht aus wie 2', I:'sieht aus wie 1', G:'sieht aus wie 6' };
+  // Buchstaben, die wie eine Ziffer aussehen (→ diese Ziffer)
+  var NICHT = { B:'8', O:'0', D:'0', Q:'0', S:'5', Z:'2', I:'1', G:'6' };
   function lesen(text, max){
     var t = String(text || '').toUpperCase(), z = [], weg = [];
     Array.from(t).forEach(function(c){ if (FIGUREN[c]) z.push(c); else if (/\S/.test(c) && weg.indexOf(c) < 0) weg.push(c); });
@@ -119,7 +120,10 @@ var Kern = (function(){
     'ALPENO|STRAND ALTER|STEILZEIT VERS|ENDUNG TAL|ENTFÖRDERUNG';
   function trennungen(){ return TRENNUNGEN.split(' ').map(function(x){ var t = x.split('|'); return { a:t[0], b:t[1] }; }); }
   // Mathe: Vorsilben der Masseinheiten ↔ Zahl (Tausender mit ', Dezimalzahlen immer mit Punkt)
-  var VORSILBEN = 'KILO=1\'000 HEKTO=100 DEKA=10 DEZI=0.1 ZENTI=0.01 MILLI=0.001 MEGA=1\'000\'000 GIGA=1\'000\'000\'000 MIKRO=0.000001 NANO=0.000000001';
+  var SPR = typeof Labor !== 'undefined' && Labor.sprache ? Labor.sprache : 'de';
+  var VORSILBEN = SPR === 'en' ? 'KILO=1,000 HECTO=100 DECA=10 DECI=0.1 CENTI=0.01 MILLI=0.001 MEGA=1,000,000 GIGA=1,000,000,000 MICRO=0.000001 NANO=0.000000001'
+    : SPR === 'fr' ? 'KILO=1\'000 HECTO=100 DÉCA=10 DÉCI=0.1 CENTI=0.01 MILLI=0.001 MÉGA=1\'000\'000 GIGA=1\'000\'000\'000 MICRO=0.000001 NANO=0.000000001'
+    : 'KILO=1\'000 HEKTO=100 DEKA=10 DEZI=0.1 ZENTI=0.01 MILLI=0.001 MEGA=1\'000\'000 GIGA=1\'000\'000\'000 MIKRO=0.000001 NANO=0.000000001';
   function vorsilben(){ return VORSILBEN.split(' ').map(function(x){ var t = x.split('='); return { a:t[0], b:t[1] }; }); }
   // Bilder: Emojis, die halbiert gut zu erkennen sind
   var BILDER = {
@@ -140,13 +144,16 @@ var MM = 703 / 186, K = 50 * MM;     // Pixel je Millimeter; 5 cm (ein Feld, Kä
 var TINTE = '#1C1714', RAND = '#8A8079', B = 639;
 // Farben für die Schnittlinien (ohne Wahl: grau)
 var LINIENFARBEN = [['#8A8079', tx('Grau')], ['#1C1714', tx('Schwarz')], ['#E53935', tx('Rot')], ['#1E88E5', tx('Blau')], ['#43A047', tx('Grün')], ['#FB8C00', tx('Orange')], ['#8E24AA', tx('Violett')]];
-var FARBEN = [['#FCE4EC', 'rosa'], ['#E3F2E6', tx('grün')], ['#E1EEFB', 'blau'], ['#FFF0D9', 'orange'], ['#EFE4F8', 'violett'], ['#DDF4F2', tx('türkis')]];
-var FAECHER = [['deutsch', tx('Deutsch')], ['mathe', tx('Mathe')], ['englisch', tx('Englisch')], ['franzoesisch', tx('Französisch')], ['bilder', tx('Bilder')], ['eigene', tx('Eigene Paare')]];
-var DEUTSCH = [['trennung', tx('Lustige Worttrennungen')], ['reime', tx('Reimwörter')], ['mehrzahl', tx('Einzahl – Mehrzahl')], ['gegenteile', tx('Gegenteile')]];
+var FARBEN = [['#FCE4EC', tx('rosa')], ['#E3F2E6', tx('grün')], ['#E1EEFB', tx('blau')], ['#FFF0D9', tx('orange')], ['#EFE4F8', tx('violett')], ['#DDF4F2', tx('türkis')]];
+// Fach «deutsch» = Sprache der Seite (Reime, Mehrzahl, Gegenteile in dieser Sprache); Englisch und Französisch = Wörter mit deutscher Übersetzung
+var SPRACHFACH = { en:'English', fr:'Français' }[Labor.sprache] || 'Deutsch';
+var FAECHER = [['deutsch', SPRACHFACH], ['mathe', tx('Mathe')], ['englisch', Labor.sprache === 'de' ? tx('Englisch') : tx('Deutsch – Englisch')], ['franzoesisch', Labor.sprache === 'de' ? tx('Französisch') : tx('Deutsch – Französisch')], ['bilder', tx('Bilder')], ['eigene', tx('Eigene Paare')]];
+// Lustige Worttrennungen gibt es nur auf Deutsch
+var DEUTSCH = (Labor.sprache === 'de' ? [['trennung', tx('Lustige Worttrennungen')]] : []).concat([['reime', tx('Reimwörter')], ['mehrzahl', tx('Einzahl – Mehrzahl')], ['gegenteile', tx('Gegenteile')]]);
 var MATHE = [['plusminus', tx('Plus & Minus')], ['einmaleins', tx('Einmaleins')], ['dezimal', tx('Dezimalzahlen')], ['brueche', tx('Brüche')], ['vorsilben', tx('Vorsilben (kilo, milli …)')]];
-var BILDTHEMEN = [['tiere', tx('Tiere')], ['essen', tx('Essen')], ['fahrzeuge', tx('Fahrzeuge')], ['gemischt', 'gemischt']];
+var BILDTHEMEN = [['tiere', tx('Tiere')], ['essen', tx('Essen')], ['fahrzeuge', tx('Fahrzeuge')], ['gemischt', tx('gemischt')]];
 var KOEPFE = { englisch:[tx('Deutsch'), tx('Englisch'), tx('Körper = body')], franzoesisch:[tx('Deutsch'), tx('Französisch'), tx('Pferd = le cheval')], eigene:[tx('Wort'), tx('Partner'), tx('Albert = Einstein')] };
-var ABLENKER = [['keine', 'keine'], ['wenige', 'wenige'], ['viele', 'viele']];
+var ABLENKER = [['keine', tx('keine')], ['wenige', tx('wenige')], ['viele', tx('viele')]];
 function esc(t){ return Labor.esc(t); }
 function f1(x){ return (Math.round(x * 10) / 10).toString(); }
 function chips(name, l){ return l.map(function(x){ return '<label><input type="radio" name="' + name + '" value="' + x[0] + '"><span>' + x[1] + '</span></label>'; }).join(''); }
@@ -171,10 +178,10 @@ function kartenInhalt(karte, farbe, z, linie){
     var w = WINKEL[x.s];
     if (x.bild){
       var dreh = x.rolle === 'b' || x.haelfte === 'b' ? 180 : 0;
-      bild += '<text x="0" y="0" font-size="' + f1(z * 0.5) + '" text-anchor="middle" dominant-baseline="central" transform="translate(' + f1(px) + ' ' + f1(py) + tx(') rotate(') + (w + dreh) + ')">' + x.t + '</text>';
+      bild += '<text x="0" y="0" font-size="' + f1(z * 0.5) + '" text-anchor="middle" dominant-baseline="central" transform="translate(' + f1(px) + ' ' + f1(py) + ') rotate(' + (w + dreh) + ')">' + x.t + '</text>';
       return;
     }
-    var trafo = ' transform="translate(' + f1(px) + ' ' + f1(py) + tx(') rotate(') + w + ')"', bruch = BRUCH.exec(x.t);
+    var trafo = ' transform="translate(' + f1(px) + ' ' + f1(py) + ') rotate(' + w + ')"', bruch = BRUCH.exec(x.t);
     if (bruch){
       // Bruch übereinander: Nenner näher an der Kante, Zähler darüber (im gedrehten Bild)
       var g2 = z * 0.085, bw = Math.max(breite(bruch[1], g2), breite(bruch[2], g2)) + g2 * 0.4, ym = -z * 0.07 - 1.2 * g2;
@@ -212,8 +219,8 @@ var VORLAGE = '<div class="lk">' +
     tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Paare</h2><p>Was steht sich an den Kanten gegenüber?</p></div></div>') +
       tx('<p class="feld-label">Fach</p>') +
       tx('<div class="lk-chips" role="radiogroup" aria-label="Fach">') + chips('lkFach', FAECHER) + '</div>' +
-      tx('<div class="lk-stufe lk-teil" data-fach="deutsch"><p class="feld-label">Deutsch: Art der Paare</p>') +
-        tx('<div class="lk-chips" role="radiogroup" aria-label="Deutsch">') + chips('lkDeutsch', DEUTSCH) + '</div>' +
+      '<div class="lk-stufe lk-teil" data-fach="deutsch"><p class="feld-label">' + tx('{fach}: Art der Paare', { fach:SPRACHFACH }) + '</p>' +
+        '<div class="lk-chips" role="radiogroup" aria-label="' + SPRACHFACH + '">' + chips('lkDeutsch', DEUTSCH) + '</div>' +
         tx('<p class="hinweis" data-deutsch="trennung">Zusammengesetzte Wörter, an einer lustigen Stelle getrennt: GEL | ÄCHTER, SIEB | ENTE, STAUB | ECKEN …</p></div>') +
       tx('<div class="lk-stufe lk-teil" data-fach="mathe"><p class="feld-label">Mathe: Thema</p>') +
         tx('<div class="lk-chips" role="radiogroup" aria-label="Mathe">') + chips('lkMathe', MATHE) + '</div>' +
@@ -310,7 +317,7 @@ function starte(bereich){
     $('#lkWahlTitel').textContent = m === 'zahl' ? tx('Ziffer antippen') : tx('Buchstabe antippen');
     $('#lkZeichenWahl').innerHTML = WAHL[m].map(function(c){
       var n = drin.filter(function(x){ return x === c; }).length;
-      return '<button type="button" class="lk-zeichen' + (n ? tx(' drin') : '') + '" data-c="' + c + '" aria-label="' + c + tx(' anhängen') + (n ? tx(' (schon ') + n + tx('-mal)') : '') + '">' + c + '</button>';
+      return '<button type="button" class="lk-zeichen' + (n ? ' drin' : '') + '" data-c="' + c + '" aria-label="' + (n ? tx('{c} anhängen (schon {n}-mal)', { c:c, n:n }) : tx('{c} anhängen', { c:c })) + '">' + c + '</button>';
     }).join('');
   }
   function codeSetzen(t){ st.code = t; $('#lkCode').value = t; speichern(); wahlZeigen(); zeichnen(); }
@@ -362,7 +369,7 @@ function starte(bereich){
     $('.lk-eigene').classList.toggle('gewaehlt', !!eigen);
     if (eigen) $('#lkSchnittEigen').value = st.opt.schnitt;
     var name = !f ? '' : eigen ? tx('eigene Farbe') : LINIENFARBEN.filter(function(x){ return x[0].toLowerCase() === f; })[0][1];
-    $('#lkSchnittInfo').textContent = f ? tx('Schnittlinien: ') + name + '.' : tx('Noch nichts gewählt: Schnittlinien grau.');
+    $('#lkSchnittInfo').textContent = f ? tx('Schnittlinien: {f}.', { f:name }) : tx('Noch nichts gewählt: Schnittlinien grau.');
   }
   [].forEach.call(bereich.querySelectorAll('input[name="lkSchnitt"]'), function(r){
     r.addEventListener('change', function(){ if (r.checked){ st.opt.schnitt = r.value; speichern(); schnittZeigen(); if (R){ seitenZeichnen(); loesungZeichnen(); } } });
@@ -402,7 +409,7 @@ function starte(bereich){
   function fehltNoch(){
     var o = st.opt;
     if (!o.fach) return tx('ein Fach');
-    if (o.fach === 'deutsch' && !o.deutschArt) return tx('bei Deutsch die Art der Paare');
+    if (o.fach === 'deutsch' && !o.deutschArt) return tx('bei {fach} die Art der Paare', { fach:SPRACHFACH });
     if (o.fach === 'bilder' && !o.bild) return tx('bei Bilder ein Thema');
     if (o.fach === 'mathe'){
       if (!o.matheArt) return tx('bei Mathe ein Thema');
@@ -435,16 +442,20 @@ function starte(bereich){
   var R = null, Z = [];
   function anleitung(){
     var mehrere = Z.length > 1, bild = st.opt.fach === 'bilder';
-    return tx('Schneide die Kärtchen aus. Lege sie so aneinander, dass sich immer ') + (bild ? tx('die zwei Hälften eines Bilds') : tx('zwei passende Begriffe')) + tx(' genau gegenüberliegen – gerade Kante an gerade Kante. ') +
-      (st.opt.ablenker !== 'keine' ? tx('Manche ') + (bild ? tx('Bildhälften') : tx('Begriffe')) + tx(' haben keinen Partner: Sie liegen aussen. ') : '') +
-      (mehrere ? (st.opt.farbig ? tx('Kärtchen mit gleicher Farbe gehören zusammen. ') : '') + tx('Es entstehen ') + Z.length + tx(' Figuren') + (st.opt.farbig ? tx(' – lies sie in der Reihenfolge der Farben unten.') : tx('. Welche Reihenfolge ergibt die Lösung?'))
-        : tx('Es entsteht eine Figur: Welche Ziffer oder welcher Buchstabe ist es?'));
+    return [
+      bild ? tx('Schneide die Kärtchen aus. Lege sie so aneinander, dass sich immer die zwei Hälften eines Bilds genau gegenüberliegen – gerade Kante an gerade Kante.')
+        : tx('Schneide die Kärtchen aus. Lege sie so aneinander, dass sich immer zwei passende Begriffe genau gegenüberliegen – gerade Kante an gerade Kante.'),
+      st.opt.ablenker === 'keine' ? '' : bild ? tx('Manche Bildhälften haben keinen Partner: Sie liegen aussen.') : tx('Manche Begriffe haben keinen Partner: Sie liegen aussen.'),
+      mehrere && st.opt.farbig ? tx('Kärtchen mit gleicher Farbe gehören zusammen.') : '',
+      !mehrere ? tx('Es entsteht eine Figur: Welche Ziffer oder welcher Buchstabe ist es?')
+        : st.opt.farbig ? tx('Es entstehen {n} Figuren – lies sie in der Reihenfolge der Farben unten.', { n:Z.length }) : tx('Es entstehen {n} Figuren. Welche Reihenfolge ergibt die Lösung?', { n:Z.length })
+    ].filter(Boolean).join(' ');
   }
   function zeichnen(){
     if (aus) return;
     var L = Kern.lesen(st.code, 4), h = '', o = st.opt;
     Z = L.zeichen;
-    var nicht = L.weg.map(function(c){ return c + (Kern.NICHT[c] ? ' (' + Kern.NICHT[c] + ')' : /[A-Z]/.test(c) ? tx(' (schräge Striche)') : ''); });
+    var nicht = L.weg.map(function(c){ return c + (Kern.NICHT[c] ? ' (' + tx('sieht aus wie {z}', { z:Kern.NICHT[c] }) + ')' : /[A-Z]/.test(c) ? ' (' + tx('schräge Striche') + ')' : ''); });
     if (nicht.length) h += tx('<p class="warnung">Nicht möglich: ') + esc(nicht.join(', ')) + '.</p>';
     if (L.zuViele) h += tx('<p class="warnung">Höchstens 4 Zeichen – es werden die ersten 4 verwendet.</p>');
     var leer = !Z.length;
@@ -453,17 +464,18 @@ function starte(bereich){
     if (leer || fehlt){
       R = null; $('#lkZaehler').innerHTML = h; $('#lkSeiten').innerHTML = ''; $('#lkLoesung').parentNode.hidden = true; $('#lkPaarInfo').innerHTML = '';
       ['#lkNeu', '#lkPdf', '#lkHerunterladen', '#lkZeigeLoesung'].forEach(function(s){ $(s).disabled = true; });
-      meldung('info', tx('<p>Wähle links ') + (leer ? tx('zuerst, ob eine Zahl oder ein Buchstabe entstehen soll, und dann die Zeichen') + (fehlt ? tx(' – danach ') + fehlt : '') : fehlt) + '.</p>');
+      meldung('info', '<p>' + (!leer ? tx('Wähle links {x}.', { x:fehlt }) : fehlt ? tx('Wähle links zuerst, ob eine Zahl oder ein Buchstabe entstehen soll, und dann die Zeichen – danach {x}.', { x:fehlt })
+        : tx('Wähle links zuerst, ob eine Zahl oder ein Buchstabe entstehen soll, und dann die Zeichen.')) + '</p>');
       return;
     }
     var be = Kern.bedarf(Z, o.ablenker), rnd = Kern.zufall(st.seed), liste = paare(rnd, be.innen + be.ablenker + 6);
     var karten = Z.reduce(function(s, c){ return s + Kern.felder(c).length / 2; }, 0);
-    $('#lkZaehler').innerHTML = tx('<p class="lk-zaehler-haupt ok">Lösung: <b>') + esc(Z.join('')) + '</b> · ' + karten + tx(' Kärtchen, ') + Math.ceil(karten / 6) + (Math.ceil(karten / 6) === 1 ? tx(' Seite') : tx(' Seiten')) + '</p>' + h;
-    var info = be.innen + tx(' Paare an den Kanten') + (be.ablenker ? ' + ' + be.ablenker + tx(' Ablenker') : '') + tx(' – vorhanden: ') + liste.length + '.';
+    $('#lkZaehler').innerHTML = '<p class="lk-zaehler-haupt ok">' + tx('Lösung:') + ' <b>' + esc(Z.join('')) + '</b> · ' + tx('{k} Kärtchen', { k:karten }) + ', ' + (Math.ceil(karten / 6) === 1 ? tx('1 Seite') : tx('{n} Seiten', { n:Math.ceil(karten / 6) })) + '</p>' + h;
+    var info = be.ablenker ? tx('{n} Paare an den Kanten + {a} Ablenker – vorhanden: {v}.', { n:be.innen, a:be.ablenker, v:liste.length }) : tx('{n} Paare an den Kanten – vorhanden: {v}.', { n:be.innen, v:liste.length });
     if (liste.length < be.innen){
-      $('#lkPaarInfo').innerHTML = '<p class="warnung">' + esc(info) + tx(' Es braucht mindestens ') + be.innen + tx(' Paare') + (KOEPFE[o.fach] ? tx(' – ergänze die Liste.') : tx(' – wähle mehr aus (z. B. einen grösseren Zahlenraum oder mehr Reihen).')) + '</p>';
+      $('#lkPaarInfo').innerHTML = '<p class="warnung">' + esc(info) + ' ' + (KOEPFE[o.fach] ? tx('Es braucht mindestens {n} Paare – ergänze die Liste.', { n:be.innen }) : tx('Es braucht mindestens {n} Paare – wähle mehr aus (z. B. einen grösseren Zahlenraum oder mehr Reihen).', { n:be.innen })) + '</p>';
       R = null; $('#lkSeiten').innerHTML = ''; $('#lkLoesung').parentNode.hidden = true; ['#lkPdf', '#lkHerunterladen'].forEach(function(s){ $(s).disabled = true; });
-      meldung('info', tx('<p>Für ') + esc(Z.join('')) + tx(' braucht es mindestens ') + be.innen + tx(' Paare.</p>')); return;
+      meldung('info', '<p>' + tx('Für {z} braucht es mindestens {n} Paare.', { z:esc(Z.join('')), n:be.innen }) + '</p>'); return;
     }
     $('#lkPaarInfo').innerHTML = '<p class="' + (liste.length < be.innen + be.ablenker ? 'warnung' : 'lk-info') + '">' + esc(info) + (liste.length < be.innen + be.ablenker ? tx(' Für alle Ablenker reicht es nicht – es gibt weniger.') : '') + '</p>';
     meldung('', '');
@@ -486,15 +498,15 @@ function starte(bereich){
       var x0 = (B - 3 * K) / 2, t = '';
       teil.forEach(function(e, i){
         var x = x0 + (i % 3) * K, y = Math.floor(i / 3) * 2 * K, I = kartenInhalt(e.k, e.farbe, K, st.opt.schnitt), tr;
-        if (I.waag) tr = e.dreh ? tx('translate(') + f1(x + K) + ' ' + f1(y) + tx(') rotate(90)') : tx('translate(') + f1(x) + ' ' + f1(y + 2 * K) + tx(') rotate(-90)');
-        else tr = e.dreh ? tx('translate(') + f1(x + K) + ' ' + f1(y + 2 * K) + tx(') rotate(180)') : tx('translate(') + f1(x) + ' ' + f1(y) + ')';
+        if (I.waag) tr = e.dreh ? 'translate(' + f1(x + K) + ' ' + f1(y) + ') rotate(90)' : 'translate(' + f1(x) + ' ' + f1(y + 2 * K) + ') rotate(-90)';
+        else tr = e.dreh ? 'translate(' + f1(x + K) + ' ' + f1(y + 2 * K) + ') rotate(180)' : 'translate(' + f1(x) + ' ' + f1(y) + ')';
         t += '<g transform="' + tr + '">' + I.svg + '</g>';
       });
       var hoehe = Math.ceil(teil.length / 3) * 2 * K + 2;
       var kopf = si === 0 ? (o.titelAn ? tx('<h2>Legekärtchen</h2>') : '') + (o.anleitungAn ? '<p class="lk-anleitung">' + esc(anleitung()) + '</p>' : '') +
           (Z.length > 1 && o.farbig ? '<p class="lk-farben">' + R.figuren.map(function(F, i){ return '<span><i style="background:' + farbe(i) + '"></i>' + (i + 1) + '. ' + FARBEN[i % FARBEN.length][1] + '</span>'; }).join('') + '</p>' : '') +
           (o.linie ? tx('<p class="lk-antwort">Lösung: <span class="lk-linie"></span></p>') : '')
-        : tx('<p class="lk-seitenkopf">Legekärtchen – Seite ') + (si + 1) + tx(' von ') + seiten.length + '</p>';
+        : '<p class="lk-seitenkopf">' + tx('Legekärtchen – Seite {i} von {n}', { i:si + 1, n:seiten.length }) + '</p>';
       html += '<div class="lk-rahmen"><article class="lk-blatt lk-kartenblatt">' + kopf +
         '<svg class="lk-karten" width="' + B + '" height="' + f1(hoehe) + '" viewBox="0 0 ' + B + ' ' + f1(hoehe) + '">' + t + '</svg>' +
         tx('<p class="lk-notiz">In Originalgrösse (100 %) drucken · Kärtchen 5 × 10 cm</p></article></div>');
@@ -509,7 +521,7 @@ function starte(bereich){
     var z = Math.min(96, (B - 4) / sumB, 760 / maxH), x = (B - sumB * z) / 2, t = '';
     R.figuren.forEach(function(F, i){
       F.karten.forEach(function(k){ var I = kartenInhalt(k, farbe(i), K, st.opt.schnitt), p = k.felder[0];
-        t += '<g transform="translate(' + f1(x + p[1] * z) + ' ' + f1(p[0] * z) + tx(') scale(') + (z / K).toFixed(4) + ')">' + I.svg + '</g>'; });
+        t += '<g transform="translate(' + f1(x + p[1] * z) + ' ' + f1(p[0] * z) + ') scale(' + (z / K).toFixed(4) + ')">' + I.svg + '</g>'; });
       x += (masse[i].b + 0.6) * z;
     });
     var h = maxH * z + 2;
@@ -536,7 +548,7 @@ function starte(bereich){
     var inhalt = blaetter().map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
     speicherOrt.save({ filename:name, data:Labor.blattDatei(tx('Legekärtchen'), inhalt, '.lk-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', '<p>' + tx('Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 
