@@ -292,6 +292,16 @@ Wörter und kurze Sätze, extrem in die Länge gezogen, füllen eine Form mit St
 - **Blatt:** Strichdicke fein, mittel oder dick (ohne Wahl mittel); auf Wunsch die Nummern der Blickrichtungen am Rand und Linien für die Antworten. Keine Vorauswahl: Die Meldung rechts sagt, was noch fehlt.
 - **Am Bildschirm:** «Flach darüber schauen» zeigt die Form so, wie man sie flach von einer Seite sieht (zurückgedreht und um die Streckung in der Mitte gestaucht). Lösungsblatt: jede Nachricht mit Richtung, Text und dieser Ansicht; «Lösung zeigen» blendet es oben ein. PDF (zwei Seiten).
 
+### Uhrenrätsel
+
+Je 6 Uhren (2 Spalten × 3 Zeilen) bilden eine Ziffer. Unter jeder Uhr steht eine Uhrzeit. Die Kinder zeichnen die Zeiger ein und verbinden dann mit dem Lineal die Zeiger von zwei Uhren, die genau aufeinander zeigen – so entsteht die Ziffer (wie bei Kunstwerken aus vielen Zeigeruhren).
+
+- **Zahl:** Ziffern antippen, 1 bis 4 (jedes Antippen hängt eine an; «Letzte weg», «Leeren», «Zufällige Zahl»). Die Ziffer wird wie eine Sieben-Segment-Anzeige auf den 6 Uhren gebaut: Jeder Strich verbindet zwei benachbarte Uhren, und von jeder zeigt ein Zeiger zur anderen. Jede Uhr hat nur zwei Zeiger – darum gehen nur **0, 1, 2, 5 und 7**. Bei 3, 4, 6, 8 und 9 bräuchte eine Uhr in der Mitte drei; diese Ziffern sind durchgestrichen und lassen sich nicht anwählen.
+- **Uhrzeiten:** Zeigt eine Uhr in zwei Richtungen, steht der grosse Zeiger genau auf der einen (:00, :15, :30, :45) und der kleine so nah wie möglich an der anderen – genau bei 3:00, 6:00, 9:00, sonst höchstens 7.5° daneben (z. B. 6:15, 5:45, 2:45). Zeigt eine Uhr nur in eine Richtung, zeigt der grosse Zeiger hin und der kleine schräg (mindestens 25° neben 12, 3, 6, 9). Uhren, die nichts zeigen, bekommen eine Zeit mit beiden Zeigern schräg (5-Minuten-Schritte, z. B. 10:10, 7:35) – abwählbar, dann steht dort «–» (das verrät aber die Form). Geprüft an 90'000 Uhren. «Neue Zeiten» würfelt andere Zeiten für dieselbe Zahl.
+- **Zeitangabe** (keine Vorauswahl): 3:00, 15:00 (vormittags und nachmittags gemischt) oder in Worten («Viertel nach sechs», «halb zehn», «fünf nach halb acht», «zehn vor vier»).
+- **Uhren:** Zifferblatt mit Minuten- und Stundenstrichen (12, 3, 6, 9 kräftiger), auf Wunsch die Zahlen 1–12; keine Städte oder anderen Beschriftungen in der Uhr. «Farbige Uhren»: jede Uhr mit farbigem Rand und einem Hauch der Farbe im Zifferblatt (neun Farben, nebeneinander nie gleich).
+- **Blätter:** 1 Ziffer mit grossen Uhren (52 mm), sonst zwei Ziffern je Seite (34 mm); 3 oder 4 Ziffern also auf zwei Seiten. Am Schluss Kästchen für die Zahl (abwählbar). Lösungsblatt: alle Uhren mit Zeigern, die Verbindungen orange, darunter die Zahl; «Lösung zeigen» blendet es oben ein. PDF.
+
 ## Aufbau
 
 ```
@@ -332,6 +342,7 @@ raetsel/folien/                 der Generator «Überlappende Folien» (Kern: Ze
 raetsel/schiebefenster/         der Generator «Schiebefenster» (Kern: Streifen aus Negativ-Zeichen, Ablenkung, Prüfen aller Fensterstellen; Streifen, Fensterfolie, Schieben am Bildschirm)
 raetsel/legekaertchen/          der Generator «Legekärtchen» (Kern: Figuren aus Feldern, Auslegen mit Kärtchen, Kanten, Paare belegen; Kärtchenblätter, Lösung)
 raetsel/blickwinkel/            der Generator «Blickwinkel» (Kern: Strichschrift, Sätze in die Form setzen und strecken, Sehnen der Form, Richtungen, Tarnlinien; Form als SVG, flacher Blick)
+raetsel/uhren/                  der Generator «Uhrenrätsel» (Kern: Ziffern als Striche zwischen 6 Uhren, Richtungen je Uhr, Uhrzeiten dazu, Zeit als Text; Uhren als SVG)
 raetsel/triomino/               der Generator «Triomino» (Kern: Formen, Kanten, Aufgaben, Belegung; Zeichnen mit Schriftanpassung)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)

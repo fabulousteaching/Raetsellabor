@@ -1,0 +1,76 @@
+/* Rätsellabor · Uhrenrätsel – nur aktiv, solange dieser Generator offen ist.
+   Gemeinsame Bausteine (Karten, Knöpfe, Eingabefelder, Meldungen) stehen in gemeinsam/labor.css.
+   Das Blatt ist 703 Pixel breit (= 186 mm im PDF). */
+.ur{max-width:1440px;margin:0 auto;padding-block:22px 48px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.ur-kopf{display:grid;gap:4px;margin:0 0 20px}
+.ur-kopf h1{font-family:var(--display);font-weight:600;font-size:clamp(1.7rem,3vw,2.2rem);letter-spacing:-.01em;line-height:1.1;margin:0;color:var(--ink)}
+.ur-kopf h1:focus{outline:none}
+.ur-kopf p:last-child{margin:2px 0 0;color:var(--muted);max-width:70ch}
+.ur-layout{display:grid;grid-template-columns:minmax(300px,400px) minmax(0,1fr);gap:24px;align-items:start}
+.ur-eingabe{display:grid;gap:16px;min-width:0}
+@media (min-width:961px){ .ur-eingabe{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--kopf-h) + 16px);max-height:calc(100vh - var(--kopf-h) - 32px);overflow:auto;padding:2px 4px 2px 2px;scrollbar-width:thin} }
+@media (max-width:960px){ .ur-layout{grid-template-columns:minmax(0,1fr);gap:18px} }
+@media (max-width:640px){ .ur{padding-block:18px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))} }
+
+/* ---------- Eingaben ---------- */
+.ur .feld-label{display:block;margin-top:8px}
+.ur-ziffern{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 8px}
+.ur-ziffer{width:40px;height:44px;border:1px solid var(--line-2);border-radius:9px;background:#fff;font:inherit;font-size:1.25rem;font-weight:700;color:var(--text);cursor:pointer;transition:border-color .15s,background .15s}
+.ur-ziffer:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+.ur-ziffer:disabled{opacity:.45;cursor:not-allowed}
+.ur-ziffer.nie{opacity:.3;text-decoration:line-through}
+.ur-ziffer:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+.ur-gewaehlt{margin:10px 0 8px;padding:8px 11px;border-radius:9px;background:var(--accent-soft);font-size:.95rem}
+.ur-gewaehlt b{font-size:1.3rem;letter-spacing:.08em}
+.ur-voll{color:var(--muted);font-size:.85rem}
+.ur-zeile{display:flex;flex-wrap:wrap;gap:6px}
+.ur-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+.ur-chips label{position:relative;cursor:pointer}
+.ur-chips input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.ur-chips span{display:inline-block;padding:6px 14px;text-align:center;border:1px solid var(--line-2);border-radius:999px;background:#fff;font-size:.88rem;font-weight:600;color:var(--muted);transition:border-color .15s,background .15s,color .15s}
+.ur-chips label:hover span{border-color:var(--accent-line)}
+.ur-chips input:checked + span{background:var(--accent);border-color:var(--accent);color:var(--alk-akzent)}
+.ur-chips input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+.ur .hinweis:empty{display:none}
+.ur .opt{display:flex;align-items:flex-start;gap:10px;margin:6px 0 0;font-size:.9rem}
+.ur .opt input[type=checkbox]{width:16px;height:16px;margin:3px 0 0;accent-color:var(--accent);flex:none}
+
+/* ---------- Ausgabe ---------- */
+.ur-ausgabe{min-width:0}
+.ur-werkzeug{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.ur-werkzeug .abstand{flex:1}
+.ur-werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
+.ur-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+.ur-rahmen{overflow-x:auto;padding-bottom:4px}
+.ur-rahmen[hidden]{display:none}
+.ur-seiten{display:grid;gap:16px}
+.ur-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:26px 32px 30px}
+.ur-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
+.ur-anleitung{margin:0 0 14px;color:#554C45;line-height:1.45;font-size:.95rem}
+.ur-seitenkopf{margin:0 0 10px;font-size:.85rem;color:#8A8079}
+.ur-uhren{display:block;margin:4px 0 0}
+.ur-antwort{margin:18px 0 0;font-weight:700;font-size:1.1rem;display:flex;align-items:center;gap:10px}
+.ur-kaestchen{display:inline-block;width:42px;height:52px;border:2px solid #1C1714;border-radius:6px}
+.ur-loesung-text{margin:10px 0 0;font-size:1.15rem}
+.ur-loesungsblatt{display:none;margin-top:16px}
+.ur-blaetter{display:grid;gap:16px}
+.ur-loesungsblatt.zeigen{display:block;margin-top:0}
+.ur-loesung-rahmen:has(.zeigen){order:-1}
+.ur-loesung-rahmen:not(:has(.zeigen)){display:none}
+
+/* ---------- Drucken (gilt auch für das PDF) ---------- */
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#fff!important}
+  .ur-kopf,.ur-eingabe,.ur-werkzeug,#urMeldung,.nur-bildschirm{display:none!important}
+  .ur{padding:0;max-width:none}
+  .ur-layout{display:block}
+  .ur-rahmen{overflow:visible;padding:0}
+  .ur-blatt{box-shadow:none;border:0;border-radius:0;padding:0 32px}
+  .ur-seite{break-before:page}
+  .ur-rahmen:first-child .ur-seite{break-before:auto}
+  .ur-blaetter,.ur-seiten{display:block}
+  .ur-loesung-rahmen:not(:has(.zeigen)){display:block}
+  .ur-loesungsblatt.zeigen{display:none}
+  body.mit-loesung .ur-loesungsblatt{display:block;break-before:page;margin-top:0}
+}
