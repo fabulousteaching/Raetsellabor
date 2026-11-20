@@ -416,7 +416,7 @@ function starte(bereich){
     $('#urArtInfo').textContent = o.art === '24' ? tx('Vormittags und nachmittags gemischt (3:00 oder 15:00 – die Zeiger stehen gleich).') : o.art === 'worte' ? tx('Zum Beispiel «Viertel nach drei», «halb vier», «zehn vor vier».') :
       o.art === 'en' ? tx('Zum Beispiel «quarter past three», «half past three», «ten to four».') : o.art === 'fr' ? tx('Zum Beispiel «trois heures et quart», «trois heures et demie», «quatre heures moins dix».') : '';
     ['#urPdf', '#urHerunterladen', '#urZeigeLoesung', '#urNeu'].forEach(function(s){ $(s).disabled = !!fehlt; });
-    if (fehlt){ PLAN = null; $('#urSeiten').innerHTML = ''; $('#urLoesung').parentNode.hidden = true; $('#urLoesung').classList.remove('zeigen'); meldung('info', tx('<p>Wähle links ') + fehlt + '.</p>'); return; }
+    if (fehlt){ PLAN = null; $('#urSeiten').innerHTML = ''; $('#urLoesung').parentNode.hidden = true; $('#urLoesung').classList.remove('zeigen'); meldung('info', '<p>' + tx('Wähle links {x}.', { x:fehlt }) + '</p>'); return; }
     meldung('', ''); $('#urLoesung').parentNode.hidden = false;
     var rnd = Kern.zufall(st.seed);
     PLAN = Kern.planen(st.code, rnd, { drehen:o.drehen });

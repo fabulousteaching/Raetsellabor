@@ -149,5 +149,7 @@ Labor.woerter('labor', {
   'Eigener Code': ['Your own code', 'Votre propre code'],
   'Eigener Text': ['Your own text', 'Votre propre texte'],
   'Eigene Wörter': ['Your own words', 'Vos propres mots'],
-  'Am Bildschirm lösbar': ['Can be solved on screen', 'Se résout à l’écran']
+  'Am Bildschirm lösbar': ['Can be solved on screen', 'Se résout à l’écran'],
+  'Wähle links {x}.': ['On the left, choose {x}.', 'Choisissez à gauche {x}.'],
+  'Seite {i} von {n}': ['page {i} of {n}', 'page {i} sur {n}']
 });

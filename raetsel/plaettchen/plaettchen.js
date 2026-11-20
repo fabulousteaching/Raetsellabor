@@ -368,21 +368,21 @@ function starte(bereich){
     if (aus) return;
     var L = PS.lesen(st.code, MAX), h = '', o = st.opt;
     if (L.weg.length) h += '<p class="warnung">' + esc(L.weg.join(' ')) + tx(' gibt es in der Blockschrift nicht – nur Buchstaben A–Z und Ziffern.</p>');
-    if (L.zuViele) h += tx('<p class="warnung">Höchstens ') + MAX + tx(' Zeichen.</p>');
+    if (L.zuViele) h += '<p class="warnung">' + tx('Höchstens {n} Zeichen.', { n:MAX }) + '</p>';
     var z = L.zeichen, g = z.length ? Kern.raster(z, PS.ZEICHEN, PS.BREITE, PS.HOEHE, MAX, o.rand) : null;
     var n = g ? g.reduce(function(a, r){ return a + r.filter(Boolean).length; }, 0) : 0, m = g ? g.length * g[0].length - n : 0;
-    if (g) h += '<p class="pt-info">' + n + tx(' Plättchen, Raster ') + g[0].length + ' × ' + g.length + ' (' + m + tx(' Ablenk-Felder).</p>');
+    if (g) h += '<p class="pt-info">' + tx('{n} Plättchen, Raster {b} × {h} ({m} Ablenk-Felder).', { n:n, b:g[0].length, h:g.length, m:m }) + '</p>';
     $('#ptZaehler').innerHTML = h;
     var fehlt = !z.length ? tx('Ziffern oder Buchstaben') : fehltNoch();
     $('#ptPaarInfo').innerHTML = '';
     var aus2 = function(text){ R = null; $('#ptSeiten').innerHTML = ''; $('#ptLoesung').parentNode.hidden = true; ['#ptPdf', '#ptHerunterladen', '#ptZeigeLoesung', '#ptNeu'].forEach(function(s){ $(s).disabled = true; }); meldung('info', text); };
-    if (fehlt) return aus2(tx('<p>Wähle links ') + fehlt + '.</p>');
+    if (fehlt) return aus2('<p>' + tx('Wähle links {x}.', { x:fehlt }) + '</p>');
     var rnd = Kern.zufall(st.seed), vert = Kern.verteilen(pool(rnd), n, m, rnd);
     if (vert.fehler){
-      $('#ptPaarInfo').innerHTML = tx('<p class="warnung">Zu wenige Paare: ') + esc(vert.fehler) + '. ' + (KOEPFE[o.fach] ? tx('Ergänze die Liste – es braucht ') + (n + 3) + tx(' oder mehr Paare.') : tx('Wähle mehr aus (z. B. einen grösseren Zahlenraum oder mehr Reihen).')) + '</p>';
+      $('#ptPaarInfo').innerHTML = '<p class="warnung">' + tx('Zu wenige Paare: {f}.', { f:esc(vert.fehler) }) + ' ' + (KOEPFE[o.fach] ? tx('Ergänze die Liste – es braucht {n} oder mehr Paare.', { n:n + 3 }) : tx('Wähle mehr aus (z. B. einen grösseren Zahlenraum oder mehr Reihen).')) + '</p>';
       return aus2(tx('<p>Es hat noch zu wenige Aufgaben.</p>'));
     }
-    if (vert.vielfalt < Math.min(m, 4)) $('#ptPaarInfo').innerHTML = tx('<p class="warnung">Nur ') + vert.vielfalt + tx(' verschiedene Ablenk-Antworten – sie kommen mehrmals vor. Mehr Paare oder ein grösserer Zahlenraum geben mehr Abwechslung.</p>');
+    if (vert.vielfalt < Math.min(m, 4)) $('#ptPaarInfo').innerHTML = '<p class="warnung">' + tx('Nur {n} verschiedene Ablenk-Antworten – sie kommen mehrmals vor. Mehr Paare oder ein grösserer Zahlenraum geben mehr Abwechslung.', { n:vert.vielfalt }) + '</p>';
     else if (vert.wiederholt) $('#ptPaarInfo').innerHTML = '<p class="pt-info">' + vert.wiederholt + tx(' Plättchen wiederholen eine Aufgabe (es gibt zu wenige verschiedene) – das geht: Gleiche Plättchen kommen auf gleiche Antworten.</p>');
     var feld = Kern.belegen(g, vert, rnd);
     if (!Kern.pruefen(feld, vert.plaettchen)) return aus2(tx('<p>Interner Fehler beim Verteilen – bitte «Neu mischen».</p>'));
@@ -395,13 +395,13 @@ function starte(bereich){
     var sHoch = Math.min(26 * MM, (B - 2) / W, (o.anleitungAn ? 770 : 850) / H), sQuer = Math.min(26 * MM, (BQ - 2) / W, (o.anleitungAn ? 470 : 540) / H);
     var quer = sHoch < 20 * MM && sQuer > sHoch, s = quer ? sQuer : sHoch, BB = quer ? BQ : B, sp = Math.floor((B - 2) / s), proSeite = sp * Math.floor(940 / s);
     var anleitung = tx('Schneide die Plättchen aus. Löse die Aufgabe auf jedem Plättchen und lege es auf das Feld mit der richtigen Antwort. ') +
-      tx('Nicht jede Antwort im Raster gehört zu einem Plättchen. Welche ') + (z.length > 1 ? tx('Zeichen entstehen?') : tx('Ziffer oder welcher Buchstabe entsteht?'));
-    var html = '<div class="pt-rahmen"><article class="pt-blatt pt-seite' + (quer ? tx(' blatt-quer') : '') + '">' + (o.titelAn ? tx('<h2>Plättchenrätsel</h2>') : '') + (o.anleitungAn ? '<p class="pt-anleitung">' + esc(anleitung) + '</p>' : '') +
+      tx(z.length > 1 ? 'Nicht jede Antwort im Raster gehört zu einem Plättchen. Welche Zeichen entstehen?' : 'Nicht jede Antwort im Raster gehört zu einem Plättchen. Welche Ziffer oder welcher Buchstabe entsteht?');
+    var html = '<div class="pt-rahmen"><article class="pt-blatt pt-seite' + (quer ? ' blatt-quer' : '') + '">' + (o.titelAn ? tx('<h2>Plättchenrätsel</h2>') : '') + (o.anleitungAn ? '<p class="pt-anleitung">' + esc(anleitung) + '</p>' : '') +
       rasterSvg(R, s, false, BB) + (o.linie ? tx('<p class="pt-antwort">Lösung: <span class="pt-linie"></span></p>') : '') + '</article></div>';
     var gPl = einheit(R.plaettchen.map(function(x){ return x.a; }), s);
     for (var i = 0; i < R.plaettchen.length; i += proSeite){
       var teil = R.plaettchen.slice(i, i + proSeite), seiten = Math.ceil(R.plaettchen.length / proSeite);
-      html += tx('<div class="pt-rahmen"><article class="pt-blatt pt-seite"><p class="pt-seitenkopf">✂ Plättchen zum Ausschneiden') + (seiten > 1 ? tx(' – Seite ') + (i / proSeite + 1) + tx(' von ') + seiten : '') + ' · ' + R.plaettchen.length + tx(' Stück</p>') +
+      html += tx('<div class="pt-rahmen"><article class="pt-blatt pt-seite"><p class="pt-seitenkopf">✂ Plättchen zum Ausschneiden') + (seiten > 1 ? ' – ' + tx('Seite {i} von {n}', { i:i / proSeite + 1, n:seiten }) : '') + ' · ' + tx('{n} Stück', { n:R.plaettchen.length }) + '</p>' +
         plaettchenSvg(teil, s, sp, gPl) + '</article></div>';
     }
     $('#ptSeiten').innerHTML = html;
