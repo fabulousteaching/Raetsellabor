@@ -239,7 +239,7 @@ function starte(bereich){
     var n = Kern.zeichen(st.satz, st.opt.schrift === 'gross').length;
     $('#slInfo').textContent = !n ? tx('Im Labyrinth stehen die Wörter ohne Lücke hintereinander, Satzzeichen fallen weg.')
       : n < 3 ? tx('Mindestens 3 Buchstaben.')
-      : n + tx(' Buchstaben – der richtige Weg wird genau ') + n + tx(' Felder lang. Die Wörter stehen ohne Lücke hintereinander.');
+      : tx('{n} Buchstaben – der richtige Weg wird genau {n} Felder lang. Die Wörter stehen ohne Lücke hintereinander.', { n:n });
   }
   satzFeld.addEventListener('input', function(){ st.satz = satzFeld.value; speichern(); info(); if (aktuell) $('#slBlatt').classList.add('veraltet'); });
   satzFeld.addEventListener('keydown', function(ev){ if (ev.key === 'Enter' && !ev.shiftKey){ ev.preventDefault(); erstellen(); } });
@@ -264,9 +264,9 @@ function starte(bereich){
     $('#slZeigeLoesung').setAttribute('aria-pressed', 'false');
     zeichnen();
     var mm = Math.min(186 / (lab.w + 2.4), 190 / (lab.h + 2.4));
-    meldung('erfolg', tx('<p><b>Fertig!</b> Labyrinth mit ') + lab.w + ' × ' + lab.h + tx(' Feldern. Der richtige Weg ist ') + lab.n + tx(' Felder lang – ein Feld für jeden Buchstaben deines Satzes. ') +
+    meldung('erfolg', '<p><b>' + tx('Fertig!') + '</b> ' + tx('Labyrinth mit {w} × {h} Feldern. Der richtige Weg ist {n} Felder lang – ein Feld für jeden Buchstaben deines Satzes.', { w:lab.w, h:lab.h, n:lab.n }) + ' ' +
       tx('Du kannst ihn hier am Bildschirm suchen: beim Pfeil links hineinziehen.</p>') +
-      (mm < 6 ? tx('<p>Achtung: Gedruckt werden die Felder nur etwa ') + mm.toFixed(1) + tx(' mm gross. Für gut lesbare Buchstaben eine leichtere Stufe oder einen kürzeren Satz wählen.</p>') : ''));
+      (mm < 6 ? '<p>' + tx('Achtung: Gedruckt werden die Felder nur etwa {mm} mm gross. Für gut lesbare Buchstaben eine leichtere Stufe oder einen kürzeren Satz wählen.', { mm:mm.toFixed(1) }) + '</p>' : ''));
   }
 
   /* ---------- Zeichnen ---------- */
@@ -344,8 +344,8 @@ function starte(bereich){
     var gelesen = weg.map(function(q){ return lab.feld[q[0]][q[1]]; }).join(''), p = $('#slFortschritt');
     if (!p) return;
     p.className = 'sl-fortschritt nur-bildschirm' + (fertig ? tx(' fertig') : '');
-    p.textContent = fertig ? tx('🎉 Geschafft! Der Satz lautet: «') + lab.satz + '»'
-      : weg.length > 1 ? tx('Gelesen: «') + gelesen + tx('» – zurückziehen löscht den Weg wieder.') : tx('Starte beim Pfeil links und ziehe durch die Gänge.');
+    p.textContent = fertig ? tx('🎉 Geschafft! Der Satz lautet: «{s}»', { s:lab.satz })
+      : weg.length > 1 ? tx('Gelesen: «{g}» – zurückziehen löscht den Weg wieder.', { g:gelesen }) : tx('Starte beim Pfeil links und ziehe durch die Gänge.');
   }
 
   /* ---------- Werkzeuge ---------- */

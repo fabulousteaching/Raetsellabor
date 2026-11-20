@@ -203,7 +203,7 @@ var KOPF = '<div class="lb">' +
   '<div class="lb-art-ort"></div></div>';
 // Karte 1 (bei allen Arten gleich): welche Art von Labyrinth?
 function artKarte(art){
-  function wahl(wert, titel, text){ return '<label><input type="radio" name="lbArt" value="' + wert + '"' + (art === wert ? tx(' checked') : '') + '><span><b>' + titel + '</b><small>' + text + '</small></span></label>'; }
+  function wahl(wert, titel, text){ return '<label><input type="radio" name="lbArt" value="' + wert + '"' + (art === wert ? ' checked' : '') + '><span><b>' + titel + '</b><small>' + text + '</small></span></label>'; }
   return tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Art des Labyrinths</h2></div></div>') +
     tx('<div class="lb-art" role="radiogroup" aria-label="Art des Labyrinths">') +
       wahl('figur', tx('Mit Start und Ziel'), tx('Rechteck, Kreis, Herz, Stern oder eine zufällige Form')) +
@@ -337,7 +337,7 @@ function starteFigur(bereich){
       $('#lbZeigeLoesung').setAttribute('aria-pressed', 'false');
       zeichnen();
       var n = 0; lab.maske.forEach(function(z){ z.forEach(function(v){ if (v) n++; }); });
-      meldung('erfolg', tx('<p><b>Fertig!</b> Labyrinth mit ') + n + tx(' Feldern, der Weg ist ') + aktuell.loesung.length + tx(' Felder lang. Du kannst ihn hier am Bildschirm suchen: vom ') + aktuell.paar[1] + tx(' aus ziehen.</p>'));
+      meldung('erfolg', '<p><b>' + tx('Fertig!') + '</b> ' + tx('Labyrinth mit {n} Feldern, der Weg ist {w} Felder lang. Du kannst ihn hier am Bildschirm suchen: vom {s} aus ziehen.', { n:n, w:aktuell.loesung.length, s:aktuell.paar[1] }) + '</p>');
     })();
   }
 
@@ -371,7 +371,7 @@ function starteFigur(bereich){
     }
     h2.push('<path class="lb-loesung" d="' + linie(aktuell.loesung) + '" style="stroke-width:' + Math.max(2.4, S * 0.38) + '"/>');
     if (!mitWeg) h2.push('<path class="lb-weg" d="" style="stroke-width:' + Math.max(2.4, S * 0.38) + '"/>');
-    h2.push('<path class="lb-waende" d="' + Kern.waende(lab) + '" style="stroke:' + esc(st.opt.farbe) + tx(';stroke-width:') + lw + '"/>');
+    h2.push('<path class="lb-waende" d="' + Kern.waende(lab) + '" style="stroke:' + esc(st.opt.farbe) + ';stroke-width:' + lw + '"/>');
     h2.push('<text class="lb-figur" x="' + z2(sa.x) + '" y="' + z2(sa.y) + '" style="font-size:' + z2(gross) + 'px">' + p[1] + '</text>');
     h2.push('<text class="lb-figur" x="' + z2(sz.x) + '" y="' + z2(sz.y) + '" style="font-size:' + z2(gross) + 'px">' + p[2] + '</text>');
     s.innerHTML = h2.join('');

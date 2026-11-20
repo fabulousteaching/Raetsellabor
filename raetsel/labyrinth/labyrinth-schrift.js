@@ -44,7 +44,8 @@ var Kern = (function(){
 
   /* Satz → Wörter aus Zeichen, die es in der Schrift gibt (Grossbuchstaben; Ä → AE, ß → SS; anderes fällt weg) */
   function woerter(text){
-    var t = String(text || '').normalize('NFC').toLocaleUpperCase('de-CH').replace(/Ä/g, 'AE').replace(/Ö/g, 'OE').replace(/Ü/g, 'UE').replace(/ẞ|ß/g, 'SS');
+    var t = String(text || '').normalize('NFC').toLocaleUpperCase('de-CH').replace(/Ä/g, 'AE').replace(/Ö/g, 'OE').replace(/Ü/g, 'UE').replace(/ẞ|ß/g, 'SS')
+      .replace(/Œ/g, 'OE').replace(/Æ/g, 'AE').normalize('NFD').replace(/[\u0300-\u036f]/g, '');   // andere Akzente fallen weg (É → E)
     return t.split(/\s+/).map(function(w){ return Array.from(w).filter(function(c){ return SCHRIFT[c]; }).join(''); }).filter(Boolean);
   }
   function breite(c){ return SCHRIFT[c][0].length; }
@@ -306,10 +307,10 @@ function starte(bereich){
   var satzFeld = $('#lsSatz'); satzFeld.value = st.satz;
   function info(){
     var ws = Kern.woerter(st.satz), n = ws.join('').length;
-    if (!n){ $('#lsInfo').textContent = tx('Kurze Sätze werden grösser. Ä, Ö, Ü werden zu AE, OE, UE; Satzzeichen fallen weg.'); return; }
+    if (!n){ $('#lsInfo').textContent = tx(Labor.sprache === 'de' ? 'Kurze Sätze werden grösser. Ä, Ö, Ü werden zu AE, OE, UE; Satzzeichen fallen weg.' : 'Kurze Sätze werden grösser. Akzente und Satzzeichen fallen weg.'); return; }
     var A = Kern.anordnen(ws, PLATZ), groesse = mm(A.s);
-    $('#lsInfo').textContent = n + tx(' Buchstaben in ') + A.zeilen.length + (A.zeilen.length === 1 ? tx(' Zeile') : tx(' Zeilen')) + ' (' + A.zeilen.map(function(z){ return z.join(' '); }).join(' / ') + '). ' +
-      tx('Gedruckt ist ein Feld etwa ') + groesse.toFixed(1) + tx(' mm gross') + (groesse < 2.5 ? tx(' – sehr fein; ein kürzerer Satz wird grösser.') : '.');
+    $('#lsInfo').textContent = tx(A.zeilen.length === 1 ? '{n} Buchstaben in 1 Zeile' : '{n} Buchstaben in {z} Zeilen', { n:n, z:A.zeilen.length }) + ' (' + A.zeilen.map(function(z){ return z.join(' '); }).join(' / ') + '). ' +
+      tx('Gedruckt ist ein Feld etwa {mm} mm gross', { mm:groesse.toFixed(1) }) + (groesse < 2.5 ? tx(' – sehr fein; ein kürzerer Satz wird grösser.') : '.');
   }
   satzFeld.addEventListener('input', function(){ st.satz = satzFeld.value; speichern(); info(); if (aktuell) $('#lsBlatt').classList.add('veraltet'); });
   satzFeld.addEventListener('keydown', function(ev){ if (ev.key === 'Enter' && !ev.shiftKey){ ev.preventDefault(); erstellen(); } });
@@ -332,9 +333,9 @@ function starte(bereich){
     $('#lsZeigeLoesung').setAttribute('aria-pressed', 'false');
     zeichnen();
     var groesse = mm(Math.min(PLATZ.b / (lab.w + 2), PLATZ.h / (lab.h + 1)));
-    meldung('erfolg', tx('<p><b>Fertig!</b> Labyrinth mit ') + lab.w + ' × ' + lab.h + tx(' Feldern. Der richtige Weg ist ') + lab.weg.length + tx(' Felder lang und schreibt «') + esc(lab.satz) + '». ' +
+    meldung('erfolg', '<p><b>' + tx('Fertig!') + '</b> ' + tx('Labyrinth mit {w} × {h} Feldern. Der richtige Weg ist {n} Felder lang und schreibt «{s}».', { w:lab.w, h:lab.h, n:lab.weg.length, s:esc(lab.satz) }) + ' ' +
       tx('Du kannst ihn hier am Bildschirm suchen: beim Pfeil links hineinziehen.</p>') +
-      (groesse < 2.5 ? tx('<p>Achtung: Gedruckt sind die Felder nur etwa ') + groesse.toFixed(1) + tx(' mm gross. Ein kürzerer Satz macht sie grösser.</p>') : ''));
+      (groesse < 2.5 ? '<p>' + tx('Achtung: Gedruckt sind die Felder nur etwa {mm} mm gross. Ein kürzerer Satz macht sie grösser.', { mm:groesse.toFixed(1) }) + '</p>' : ''));
   }
 
   /* ---------- Zeichnen ---------- */
@@ -415,8 +416,8 @@ function starte(bereich){
     $('#lsBlatt').classList.toggle('geschafft', fertig);
     var p = $('#lsFortschritt'); if (!p) return;
     p.className = 'sl-fortschritt nur-bildschirm' + (fertig ? tx(' fertig') : '');
-    p.textContent = fertig ? tx('🎉 Geschafft! Der Weg schreibt: «') + lab.satz + '»'
-      : weg.length > 1 ? tx('Weiter so – ') + (weg.length - 1) + tx(' Felder geschafft. Zurückziehen löscht den Weg wieder.') : tx('Starte beim Pfeil links und ziehe durch die Gänge.');
+    p.textContent = fertig ? tx('🎉 Geschafft! Der Weg schreibt: «{s}»', { s:lab.satz })
+      : weg.length > 1 ? tx('Weiter so – {n} Felder geschafft. Zurückziehen löscht den Weg wieder.', { n:weg.length - 1 }) : tx('Starte beim Pfeil links und ziehe durch die Gänge.');
   }
 
   /* ---------- Werkzeuge ---------- */

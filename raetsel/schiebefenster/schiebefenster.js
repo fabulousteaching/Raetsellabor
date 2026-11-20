@@ -242,7 +242,7 @@ function starte(bereich){
     if (k === listeFuer) return;
     listeFuer = k; farbenErgaenzen(Z.length);
     $('#sfFarbListe').innerHTML = '<div class="sf-farbfelder">' + Z.map(function(c, i){
-      return tx('<label class="sf-farbe" title="Farbe von ') + esc(c) + ' (' + (i + 1) + '. Zeichen)"><input type="color" data-k="' + i + '" value="' + st.farben[i] + '"><span>' + esc(c) + '</span></label>';
+      return '<label class="sf-farbe" title="' + esc(tx('Farbe von {c} ({i}. Zeichen)', { c:c, i:i + 1 })) + '"><input type="color" data-k="' + i + '" value="' + st.farben[i] + '"><span>' + esc(c) + '</span></label>';
     }).join('') + tx('</div><div class="sf-farb-knoepfe"><button type="button" class="btn klein" id="sfBunt">Bunt</button><button type="button" class="btn klein" id="sfGleich">Alle wie oben</button></div>');
   }
   $('#sfFarbListe').addEventListener('input', function(ev){
@@ -277,7 +277,7 @@ function starte(bereich){
     if (aus) return;
     var L = PS.lesen(st.code, 12), h = '', o = st.opt;
     Z = L.zeichen;
-    if (L.weg.length) h += '<p class="warnung">' + esc(L.weg.join(' ')) + tx(' gibt es nicht – nur Ziffern und Buchstaben A–Z (Ä, Ö, Ü werden zu AE, OE, UE).</p>');
+    if (L.weg.length) h += '<p class="warnung">' + esc(L.weg.join(' ')) + ' ' + tx(Labor.sprache === 'de' ? 'gibt es nicht – nur Ziffern und Buchstaben A–Z (Ä, Ö, Ü werden zu AE, OE, UE).' : 'gibt es nicht – nur Ziffern und Buchstaben A–Z (Akzente fallen weg).') + '</p>';
     if (L.zuViele) h += tx('<p class="warnung">Höchstens 12 Zeichen – es werden die ersten 12 verwendet.</p>');
     var aehnlich = PS.AEHNLICH.filter(function(p){ return Z.indexOf(p[0]) >= 0 && Z.indexOf(p[1]) >= 0; });
     if (aehnlich.length) h += tx('<p class="warnung">Sehen sich ähnlich: ') + aehnlich.map(function(p){ return p[0] + tx(' und ') + p[1]; }).join(', ') + '.</p>';
@@ -298,7 +298,7 @@ function starte(bereich){
       k0 += s.zeichen.length;
     });
     var mehrere = P.streifen.length > 1;
-    $('#sfZaehler').innerHTML = tx('<p class="sf-zaehler-haupt ok">Code: <b>') + esc(Z.join('')) + '</b> · ' + (mehrere ? P.streifen.length + tx(' Streifen') : tx('1 Streifen')) + '</p>' + h;
+    $('#sfZaehler').innerHTML = tx('<p class="sf-zaehler-haupt ok">Code: <b>') + esc(Z.join('')) + '</b> · ' + tx(mehrere ? '{n} Streifen' : '1 Streifen', { n:P.streifen.length }) + '</p>' + h;
     meldung('', ''); ['#sfBlatt', '#sfFolie', '#sfLoesung'].forEach(function(s){ $(s).parentNode.hidden = false; }); $('.sf-spiel').hidden = false;
     var strs = P.streifen.map(function(s, i){ return streifenSvg(s, M, i + 1, mehrere, false).svg; }).join('');
     $('#sfBlatt').innerHTML = (o.titelAn ? tx('<h2>Schiebefenster</h2>') : '') + (o.anleitungAn ? '<p class="sf-anleitung">' + esc(anleitung(mehrere)) + '</p>' : '') +
@@ -324,7 +324,7 @@ function starte(bereich){
         '<svg class="sf-schiene-streifen" width="' + (w + 24) + '" height="' + f1(M.balkenH) + '">' + felderSvg(s, 12, M.m, z) +
           s.ziele.map(function(x, k){ return '<g class="sf-ziel"><rect x="' + f1(12 + x * z - 1) + '" y="' + f1(M.m - 1) + '" width="' + f1(3 * z + 2) + '" height="' + f1(5 * z + 2) + '" fill="none" stroke="#E0741C" stroke-width="2"/>' +
             '<text x="' + f1(12 + (x + 1.5) * z) + '" y="' + f1(M.m - 3) + '" font-size="11" font-weight="700" fill="#C25A0E" text-anchor="middle">' + esc(s.zeichen[k]) + '</text></g>'; }).join('') + '</svg>' +
-        tx('<div class="sf-schieber" tabindex="0" role="slider" aria-label="Fenster verschieben') + (P.streifen.length > 1 ? tx(', Streifen ') + (i + 1) : '') + '" aria-valuemin="0" aria-valuemax="' + (s.spalten.length - 3) + '">' +
+        '<div class="sf-schieber" tabindex="0" role="slider" aria-label="' + esc(P.streifen.length > 1 ? tx('Fenster verschieben, Streifen {i}', { i:i + 1 }) : tx('Fenster verschieben')) + '" aria-valuemin="0" aria-valuemax="' + (s.spalten.length - 3) + '">' +
           '<svg width="' + (2 * w + 3 * z + 48) + '" height="' + f1(M.balkenH) + '"><path d="M0 0H' + (2 * w + 3 * z + 48) + 'V' + f1(M.balkenH) + 'H0Z M' + (w + 24) + ' ' + f1(M.m) + 'V' + f1(M.m + 5 * z) + 'H' + (w + 24 + 3 * z) + 'V' + f1(M.m) + 'Z" fill="' + SCHWARZ + '" fill-rule="evenodd"/></svg></div></div>';
       return { s:s, z:z, w:w, x:-1 };
     });
@@ -333,7 +333,7 @@ function starte(bereich){
   }
   function setzen(i, x){
     var sc = schienen[i]; sc.x = Math.max(-1, Math.min(sc.s.spalten.length - 2, x));
-    var el = $('#sfSpielfeld .sf-schiene[data-i="' + i + tx('"] .sf-schieber'));
+    var el = $('#sfSpielfeld .sf-schiene[data-i="' + i + '"] .sf-schieber');
     if (el){ el.style.left = f1(12 + sc.x * sc.z - (sc.w + 24)) + 'px'; el.setAttribute('aria-valuenow', String(Math.round(sc.x))); }
   }
   $('#sfSpielfeld').addEventListener('pointerdown', function(ev){
