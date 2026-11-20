@@ -14,7 +14,7 @@
 
 /* ---------- Eingaben ---------- */
 .fl textarea{display:block;width:100%;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;resize:vertical;min-height:4.5em;line-height:1.45;font-size:1.05rem;font-weight:600;transition:border-color .15s,box-shadow .15s}
-.fl textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.fl textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
 
 .fl-chips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .fl-chips-klein{display:flex;flex-wrap:wrap;gap:6px}
@@ -50,27 +50,27 @@
 .fl-werkzeug-text{font-size:.88rem;color:var(--muted)}
 .fl-rahmen{overflow-x:auto;padding-bottom:4px}
 .fl-rahmen[hidden]{display:none}
-.fl-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:28px 32px 30px}
-.fl-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
-.fl-anleitung{margin:0 0 18px;color:#554C45;line-height:1.5}
+.fl-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C2530;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:28px 32px 30px}
+.fl-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C2530}
+.fl-anleitung{margin:0 0 18px;color:#4B5563;line-height:1.5}
 .fl-mitte{display:flex;justify-content:center;margin:6px 0 20px}
 .fl-gitter,.fl-schablone-svg{display:block;flex:none}
 .fl-nr{font-size:.2px;font-weight:700;text-anchor:start;dominant-baseline:central}
 .fl-unter{margin:0 0 6px;font-weight:700;font-size:.95rem}
 /* Linie(n) für die Lösung */
 .fl-linien{display:grid;gap:14px;margin-top:4px}
-.fl-linie{display:flex;align-items:flex-end;gap:.12em;height:38px;border-bottom:2px solid #1C1714;font-family:var(--blatt-buchstaben);font-size:1.35rem;letter-spacing:.06em;padding:0 4px 3px}
+.fl-linie{display:flex;align-items:flex-end;gap:.12em;height:38px;border-bottom:2px solid #1C2530;font-family:var(--blatt-buchstaben);font-size:1.35rem;letter-spacing:.06em;padding:0 4px 3px}
 .fl-linie b{font-weight:700}
 .fl-linie b.fl-fuell{font-weight:400}
 
 
 
 
-.fl-text{margin:16px 0 0;color:#3A322C}
+.fl-text{margin:16px 0 0;color:#333B47}
 .fl-loesungsblatt{display:none;margin-top:16px}
-.fl-kontrolle{margin:0;font-size:.82rem;color:#6E655E;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
-.fl-mass{display:inline-block;height:0;border-top:1.5px solid #1C1714;position:relative;flex:none}
-.fl-mass::before,.fl-mass::after{content:"";position:absolute;top:-5px;height:9px;border-left:1.5px solid #1C1714}
+.fl-kontrolle{margin:0;font-size:.82rem;color:#6B7280;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px}
+.fl-mass{display:inline-block;height:0;border-top:1.5px solid #1C2530;position:relative;flex:none}
+.fl-mass::before,.fl-mass::after{content:"";position:absolute;top:-5px;height:9px;border-left:1.5px solid #1C2530}
 .fl-mass::before{left:0}
 .fl-mass::after{right:0}
 /* «Lösung zeigen» am Bildschirm: Kästchen mit Buchstaben */

@@ -43,9 +43,9 @@
 .em-werkzeug .abstand{flex:1}
 .em-werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
 .em-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
-.em-blatt{background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:30px clamp(16px,3.2vw,40px)}
-.em-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
-.em-anleitung{margin:0 0 18px;color:#554C45;max-width:80ch}
+.em-blatt{background:#fff;color:#1C2530;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:30px clamp(16px,3.2vw,40px)}
+.em-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C2530}
+.em-anleitung{margin:0 0 18px;color:#4B5563;max-width:80ch}
 .em-loesungsblatt{display:none;margin-top:16px}
 
 /* Rätsel: Emojis, Zeichen, «=», Ergebnis – die Gleichheitszeichen stehen untereinander */
@@ -53,32 +53,32 @@
 .em-raster.pro-1{--em:3.1rem}
 .em-raster.pro-4,.em-raster.pro-6{grid-template-columns:repeat(2,minmax(0,1fr));--em:1.75rem}
 .em-raster.pro-6{--em:1.55rem;gap:14px}
-.em-raetsel{position:relative;display:grid;justify-items:center;gap:12px;padding:18px 18px 14px;border:1.5px solid #D8CEC4;border-radius:16px;break-inside:avoid;min-width:0}
+.em-raetsel{position:relative;display:grid;justify-items:center;gap:12px;padding:18px 18px 14px;border:1.5px solid #CDD5DC;border-radius:16px;break-inside:avoid;min-width:0}
 .em-raster:not(.pro-1) .em-raetsel{padding-left:38px}
 .em-nr{position:absolute;left:13px;top:10px;font-family:var(--blatt-display);font-weight:600;font-size:1.1rem;color:var(--marke)}
 .em-zeilen{display:grid;grid-template-columns:auto auto auto;align-items:center;gap:calc(var(--em) * .22) calc(var(--em) * .3)}
 .em-term{display:flex;align-items:center;justify-content:flex-end;gap:calc(var(--em) * .2)}
 .em-e{font-size:var(--em);line-height:1.15;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif}
-.em-op,.em-gleich{font-size:calc(var(--em) * .62);font-weight:600;color:#1C1714;line-height:1}
+.em-op,.em-gleich{font-size:calc(var(--em) * .62);font-weight:600;color:#1C2530;line-height:1}
 .em-z{font-size:calc(var(--em) * .68);font-weight:700}
-.em-wert{font-size:calc(var(--em) * .68);font-weight:700;font-variant-numeric:tabular-nums;justify-self:start;color:#1C1714}
+.em-wert{font-size:calc(var(--em) * .68);font-weight:700;font-variant-numeric:tabular-nums;justify-self:start;color:#1C2530}
 .em-schluss{padding-top:calc(var(--em) * .2)}
 .em-schluss + .em-gleich,.em-schluss + .em-gleich + .em-wert{padding-top:calc(var(--em) * .2)}
-.em-frage{display:inline-grid;place-items:center;width:2.4em;height:1.45em;padding:0 .15em;border:2px solid #1C1714;border-radius:9px;background:#fff}
-.em .em-antwort,.em .em-wertfeld{width:100%;height:100%;min-width:0;border:0;border-radius:7px;padding:0;background:transparent;box-shadow:none;text-align:center;font:inherit;font-weight:700;color:#1C1714}
+.em-frage{display:inline-grid;place-items:center;width:2.4em;height:1.45em;padding:0 .15em;border:2px solid #1C2530;border-radius:9px;background:#fff}
+.em .em-antwort,.em .em-wertfeld{width:100%;height:100%;min-width:0;border:0;border-radius:7px;padding:0;background:transparent;box-shadow:none;text-align:center;font:inherit;font-weight:700;color:#1C2530}
 .em .em-antwort:focus,.em .em-wertfeld:focus{outline:none;background:var(--accent-soft)}
-.em-hilfe{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 20px;width:100%;padding-top:10px;border-top:1px dashed #D8CEC4}
+.em-hilfe{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 20px;width:100%;padding-top:10px;border-top:1px dashed #CDD5DC}
 .em-h{display:inline-flex;align-items:center;gap:6px}
 .em-h .em-e{font-size:calc(var(--em) * .62)}
 .em-ist{font-weight:600;font-size:1rem}
-.em-hfeld{display:inline-grid;place-items:center;width:2.6em;height:1.7em;border-bottom:1.5px solid #1C1714;font-size:1rem;font-weight:700}
+.em-hfeld{display:inline-grid;place-items:center;width:2.6em;height:1.7em;border-bottom:1.5px solid #1C2530;font-size:1rem;font-weight:700}
 .em-loes{display:none;color:var(--accent-2);font-weight:700}
 .zeige-loesung .em-loes{display:inline}
 .zeige-loesung .em-antwort,.zeige-loesung .em-wertfeld{display:none}
 .em-frage.richtig{border-color:var(--ok);background:var(--ok-soft)}
 .em-hfeld.richtig{border-color:var(--ok);color:var(--ok)}
 .em-hfeld.richtig input{color:var(--ok)}
-.em-frage.falsch,.em-hfeld.falsch{border-color:#C9A27E}
+.em-frage.falsch,.em-hfeld.falsch{border-color:#9DB3C7}
 .em-status{margin:0;min-height:1.3em;font-size:.9rem;color:var(--muted)}
 .em-status.fertig{color:var(--ok);font-weight:650}
 .em-loesungsblatt .em-frage b,.em-loesungsblatt .em-hfeld b{color:var(--accent-2)}
@@ -102,7 +102,7 @@
   .em-raster.pro-2{--em:2.9rem}
   .em-raster.pro-4{--em:2.3rem}
   .em-raster.pro-6{--em:1.9rem;gap:16px}
-  .em-frage.richtig,.em-frage.falsch{border-color:#1C1714;background:#fff}
-  .em-hfeld.richtig,.em-hfeld.falsch{border-color:#1C1714}
+  .em-frage.richtig,.em-frage.falsch{border-color:#1C2530;background:#fff}
+  .em-hfeld.richtig,.em-hfeld.falsch{border-color:#1C2530}
   body.mit-loesung .em-loesungsblatt{display:block;break-before:page;margin-top:0}
 }

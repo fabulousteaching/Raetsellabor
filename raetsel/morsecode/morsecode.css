@@ -15,7 +15,7 @@
 /* ---------- Eingaben ---------- */
 .mc .feld-label{display:block;margin-top:4px}
 .mc-text{display:block;width:100%;box-sizing:border-box;margin-top:6px;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;font:inherit;font-size:1rem;line-height:1.45;resize:vertical;min-height:80px;transition:border-color .15s,box-shadow .15s}
-.mc-text:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.mc-text:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
 .mc-zaehler{font-size:.88rem}
 .mc-zaehler p{margin:8px 0 0}
 .mc-zaehler .warnung{color:var(--accent-2)}
@@ -41,9 +41,9 @@
 .mc-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
 .mc-rahmen{overflow-x:auto;padding-bottom:4px}
 .mc-rahmen[hidden]{display:none}
-.mc-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:26px 32px 30px}
-.mc-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
-.mc-anleitung{margin:0 0 14px;color:#554C45;line-height:1.45;font-size:.95rem}
+.mc-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C2530;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:26px 32px 30px}
+.mc-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C2530}
+.mc-anleitung{margin:0 0 14px;color:#4B5563;line-height:1.45;font-size:.95rem}
 .mc-mitte{display:flex;justify-content:center;margin:6px 0 0}
 .mc-loesung-text{white-space:pre-wrap}
 /* Spieler am Bildschirm */
@@ -66,10 +66,10 @@
 .mc-blattwort{display:inline-flex;gap:6px}
 .mc-feld{display:inline-grid;justify-items:center;gap:4px}
 .mc-feld i{font-style:normal;font-weight:700;font-size:1.05rem;letter-spacing:.06em;min-height:1.3em}
-.mc-kaestchen{display:grid;place-items:center;width:38px;height:44px;border:2px solid #1C1714;border-radius:6px;font-size:1.4rem;font-weight:700}
+.mc-kaestchen{display:grid;place-items:center;width:38px;height:44px;border:2px solid #1C2530;border-radius:6px;font-size:1.4rem;font-weight:700}
 .mc-tabtitel{margin:18px 0 8px;font-size:1.05rem}
 .mc-tabelle{display:grid;grid-template-columns:repeat(5,1fr);gap:3px 14px;font-size:.92rem}
-.mc-tabelle span{display:flex;gap:10px;align-items:baseline;padding:2px 0;border-bottom:1px solid #EEE7E1}
+.mc-tabelle span{display:flex;gap:10px;align-items:baseline;padding:2px 0;border-bottom:1px solid #EBEEF2}
 .mc-tabelle b{min-width:1.6em}
 .mc-tabelle i{font-style:normal;font-weight:700;letter-spacing:.08em}
 .mc-loesung-text{margin:10px 0 0;font-size:1.15rem}

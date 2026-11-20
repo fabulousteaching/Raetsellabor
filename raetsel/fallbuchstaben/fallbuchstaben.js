@@ -73,7 +73,7 @@ var Kern = (function(){
 })();
 /* KERN-ENDE */
 
-var TINTE = '#1C1714', AKZENT = '#D2601A', BMIN = 6, BMAX = 30;
+var TINTE = '#1C1714', AKZENT = '#005A90', BMIN = 6, BMAX = 30;
 var SCHREIB = [['gross', tx('GROSSBUCHSTABEN')], ['wie', tx('wie geschrieben')]];
 // Farben für die Trennfelder (bisher immer schwarz); dazu eine eigene Farbe
 var FELDFARBEN = [['#1C1714', tx('Schwarz')], ['#6B6460', tx('Dunkelgrau')], ['#BDB7B2', tx('Hellgrau')], ['#2F5D9E', tx('Blau')], ['#A9CDEB', tx('Hellblau')], ['#2E7D4F', tx('Grün')],

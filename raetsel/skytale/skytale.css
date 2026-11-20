@@ -38,11 +38,11 @@
 .sk-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
 .sk-rahmen{overflow-x:auto;padding-bottom:4px}
 .sk-rahmen[hidden]{display:none}
-.sk-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:26px 32px 30px}
-.sk-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
-.sk-anleitung{margin:0 0 14px;color:#554C45;line-height:1.45;font-size:.95rem}
+.sk-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C2530;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:26px 32px 30px}
+.sk-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C2530}
+.sk-anleitung{margin:0 0 14px;color:#4B5563;line-height:1.45;font-size:.95rem}
 .sk-seiten{display:grid;gap:16px}
-.sk-seitenkopf{margin:0 0 10px;font-size:.85rem;color:#8A8079}
+.sk-seitenkopf{margin:0 0 10px;font-size:.85rem;color:#858D98}
 
 .sk-loesungsblatt{display:none;margin-top:16px}
 .sk-blaetter{display:grid;gap:16px}
@@ -69,7 +69,7 @@
 
 /* Eingaben */
 .sk-text{display:block;width:100%;box-sizing:border-box;margin-top:6px;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;font:inherit;font-size:1rem;line-height:1.45;resize:vertical;min-height:80px;transition:border-color .15s,box-shadow .15s}
-.sk-text:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.sk-text:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
 .sk-masse{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin-top:10px}
 .sk-masse[hidden]{display:none}
 .sk-masse label{display:flex;align-items:center;gap:6px;font-size:.9rem;flex-wrap:wrap}
@@ -89,12 +89,12 @@
 /* Kopiervorlage: A4 quer, 1032 px = 273 mm (1 px = 0,2646 mm – beim Drucken und im PDF genau) */
 .sk-blatt.blatt-quer{width:1032px}
 .sk-blatt h2{margin-bottom:4px}
-.sk-anleitung{margin:0 0 8px;padding-left:1.3em;color:#3A322C;font-size:.9rem;line-height:1.42}
+.sk-anleitung{margin:0 0 8px;padding-left:1.3em;color:#333B47;font-size:.9rem;line-height:1.42}
 .sk-anleitung li{margin:0 0 2px}
-.sk-kontrolle{display:flex;align-items:center;gap:12px;margin:2px 0 12px;font-size:.8rem;color:#554C45}
+.sk-kontrolle{display:flex;align-items:center;gap:12px;margin:2px 0 12px;font-size:.8rem;color:#4B5563}
 .sk-kontrolle svg{display:block;flex:none}
 .sk-svg{display:block}
 .sk-seitenkopf{margin:0 0 8px}
 .sk-loesung-text{margin:6px 0 8px;font-size:1.25rem;font-weight:700;letter-spacing:.04em}
-.sk-erklaerung{margin:0 0 12px;color:#554C45;font-size:.92rem;line-height:1.45}
+.sk-erklaerung{margin:0 0 12px;color:#4B5563;font-size:.92rem;line-height:1.45}
 .sk-gitter{display:block;max-width:100%;height:auto}

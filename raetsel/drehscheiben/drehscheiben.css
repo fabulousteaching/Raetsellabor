@@ -24,7 +24,7 @@
 .dr .feld-label{display:block;margin-top:10px}
 .dr-zeichen-zeile{display:flex;gap:8px;align-items:center}
 .dr-zeichen-zeile input{flex:1;min-width:0;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:8px 11px;font-size:1.15rem;font-weight:700;letter-spacing:.08em;transition:border-color .15s,box-shadow .15s}
-.dr-zeichen-zeile input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.dr-zeichen-zeile input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
 .dr .opt{display:flex;align-items:flex-start;gap:10px;margin:12px 0 0;font-size:.9rem}
 .dr .opt input[type=checkbox]{width:16px;height:16px;margin:3px 0 0;accent-color:var(--accent);flex:none}
 .dr .opt-raster{display:grid;grid-template-columns:1fr;gap:6px;font-size:.9rem;margin-top:12px}
@@ -51,7 +51,7 @@
 .dr-wort-zeile .dr-farbe{flex:1 1 auto;min-width:0;max-width:calc(100% - 8.5em)}
 .dr-farben.mit-groesse .dr-farbe span{max-width:none}
 .dr .dr-groesse{flex:0 0 auto;width:auto;min-width:0;border:1px solid var(--line-2);border-radius:8px;background:#fff;padding:4px 6px;font:inherit;font-size:.86rem;color:var(--text);cursor:pointer}
-.dr-groesse:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.dr-groesse:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
 .dr-farbe span{max-width:9em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dr-zeichen-zeile input.dr-satz-feld{font-size:1rem;letter-spacing:0;font-weight:600}
 .dr-antwort-satz{flex-wrap:wrap}
@@ -81,17 +81,17 @@
 /* Seiten: immer 703 × 1031 Pixel, am Bildschirm verkleinert (Massstab in drehscheiben.js) */
 .dr-seiten{display:grid;gap:18px;min-width:0}
 .dr-seite-platz{position:relative;width:100%}
-.dr-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C1714}
+.dr-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C2530}
 .dr-seite{height:1031px;padding:30px;display:flex;flex-direction:column;align-items:center;transform-origin:top left;overflow:hidden;
-  outline:1px solid var(--line);box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08)}
+  outline:1px solid var(--line);box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08)}
 .dr-kopf{align-self:stretch;margin-bottom:14px}
 .dr-kopf:empty{display:none}
-.dr-blatt h2{font-size:1.5rem;font-weight:700;margin:0 0 4px;letter-spacing:-.015em;color:#1C1714}
-.dr-anleitung{margin:0;color:#554C45;line-height:1.42;font-size:.92rem}
+.dr-blatt h2{font-size:1.5rem;font-weight:700;margin:0 0 4px;letter-spacing:-.015em;color:#1C2530}
+.dr-anleitung{margin:0;color:#4B5563;line-height:1.42;font-size:.92rem}
 .dr-flaeche{display:block;flex:none}
-.dr-notiz{align-self:stretch;margin:auto 0 0;padding-top:10px;font-size:.78rem;color:#8A8079;text-align:center}
+.dr-notiz{align-self:stretch;margin:auto 0 0;padding-top:10px;font-size:.78rem;color:#858D98;text-align:center}
 .dr-antwort{margin:14px 0 0;font-weight:700;font-size:1.02rem;display:flex;align-items:flex-end;gap:10px}
-.dr-linie{flex:1;max-width:340px;min-height:1.5em;border-bottom:2px solid #1C1714;color:var(--accent-2);font-size:1.3rem;letter-spacing:.12em;line-height:1.2}
+.dr-linie{flex:1;max-width:340px;min-height:1.5em;border-bottom:2px solid #1C2530;color:var(--accent-2);font-size:1.3rem;letter-spacing:.12em;line-height:1.2}
 .dr-loesungs-rahmen{display:none}
 .dr-loesungsblatt{padding:18px 32px 24px}
 .dr-loesungsblatt .dr-anleitung{margin-bottom:6px}

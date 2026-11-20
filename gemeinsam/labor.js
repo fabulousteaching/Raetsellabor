@@ -316,8 +316,8 @@ var Labor = (function(){
   // Ein Arbeitsblatt als eigenständige HTML-Datei, die man öffnet und druckt
   function blattDatei(titel, inhalt, extraCss){
     var css = sammleCss() + '\n' + (extraCss || '') +
-      '\nbody{display:block;background:#F8F5F1}body::before{display:none}.seite{max-width:960px;margin:0 auto;padding:18px;display:grid;gap:22px}' +
-      '.leiste{display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:#6E655E;font-size:.9rem}' +
+      '\nbody{display:block;background:#F4F7F9}body::before{display:none}.seite{max-width:960px;margin:0 auto;padding:18px;display:grid;gap:22px}' +
+      '.leiste{display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:#6B7280;font-size:.9rem}' +
       '@media print{.leiste{display:none}.seite{max-width:none;padding:0;display:block}.neue-seite{break-before:page}}';
     return '<!DOCTYPE html>\n<html lang="' + SPRACHE + '">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
       '<title>' + esc(titel) + '</title>\n' +

@@ -140,7 +140,7 @@ Labor.registriere({
 });
 
 /* Brett als SVG: 8 × 8 Felder (hell/grau), Koordinaten A–H und 1–8; in der Lösung die Linien */
-var FELD = 32, RAND = 22, LINIENFARBE = '#C2410C';
+var FELD = 32, RAND = 22, LINIENFARBE = '#005A90';
 function brettSvg(R, loesung){
   var B = 8 * FELD, W = B + RAND + 6, H = B + RAND + 6, s = '';
   s += '<svg class="sr-brett" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + tx('" role="img" aria-label="Schachbrett') + (loesung ? tx(' mit Lösung') : '') + '">';

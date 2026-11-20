@@ -30,13 +30,13 @@
 .tr-teil{padding-top:12px;border-top:1px dashed var(--line-2)}
 .tr-teil[hidden]{display:none}
 .tr-unter[hidden]{display:none}
-.tr-unter{margin-top:2px;padding:12px 12px 2px;border-radius:10px;background:#FBF8F5}
+.tr-unter{margin-top:2px;padding:12px 12px 2px;border-radius:10px;background:#F8FAFC}
 .tr-unter + .tr-unter:not([hidden]){margin-top:8px}
 .tr-teil .hinweis{margin:-4px 0 6px}
-.tr code{font-size:.85em;background:#F3EEE9;border-radius:4px;padding:1px 4px}
+.tr code{font-size:.85em;background:#EEF2F5;border-radius:4px;padding:1px 4px}
 .tr-zaehler{margin-top:10px;font-size:.88rem}
 .tr-zaehler p{margin:6px 0 0}
-.tr-zaehler-haupt{padding:8px 11px;border-radius:9px;background:#F3EEE9;margin:0!important}
+.tr-zaehler-haupt{padding:8px 11px;border-radius:9px;background:#EEF2F5;margin:0!important}
 .tr-zaehler-haupt.ok{background:var(--ok-soft);color:var(--ok)}
 .tr-zaehler-haupt.fehlt{background:var(--accent-soft);color:var(--accent-2)}
 .tr-zaehler-formen{display:flex;flex-wrap:wrap;gap:4px 10px;color:var(--muted);font-size:.8rem}
@@ -55,10 +55,10 @@
 .tr-werkzeug .abstand{flex:1}
 .tr-werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
 .tr-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
-.tr-blatt{background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:30px clamp(16px,3.2vw,40px)}
+.tr-blatt{background:#fff;color:#1C2530;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:30px clamp(16px,3.2vw,40px)}
 .tr-blatt[hidden]{display:none}
-.tr-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
-.tr-anleitung{margin:0 0 18px;color:#554C45;max-width:80ch}
+.tr-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C2530}
+.tr-anleitung{margin:0 0 18px;color:#4B5563;max-width:80ch}
 .tr-loesungsblatt{display:none;margin-top:16px}
 .tr-loesungsblatt.sichtbar{display:block}
 .tr-figur-rahmen{display:grid;place-items:center}

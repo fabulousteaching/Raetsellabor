@@ -16,7 +16,7 @@
 .rf .feld-label{display:block;margin-top:4px}
 .rf-zeile{display:flex;gap:8px;align-items:flex-start}
 .rf-zeile textarea{flex:1;min-width:0;resize:vertical;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:8px 11px;font:inherit;font-size:1.02rem;font-weight:600;line-height:1.4;transition:border-color .15s,box-shadow .15s}
-.rf-zeile textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.rf-zeile textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
 .rf-zaehler{margin-top:8px;font-size:.88rem}
 .rf-zaehler p{margin:6px 0 0}
 .rf-zaehler-haupt{padding:8px 11px;border-radius:9px;margin:0!important}
@@ -44,9 +44,9 @@
 .rf-folie-info{margin:-4px 0 10px;font-size:.88rem;color:var(--muted)}
 .rf-rahmen{overflow-x:auto;padding-bottom:4px}
 .rf-rahmen[hidden]{display:none}
-.rf-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:26px 32px 30px}
-.rf-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
-.rf-anleitung{margin:0 0 14px;color:#554C45;line-height:1.45;font-size:.95rem}
+.rf-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C2530;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:26px 32px 30px}
+.rf-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C2530}
+.rf-anleitung{margin:0 0 14px;color:#4B5563;line-height:1.45;font-size:.95rem}
 .rf-bild{position:relative;margin:4px 0 0}
 .rf-bild > img{display:block;border-radius:4px}
 /* Die rote Folie: ein Ausschnitt des Bilds, so umgerechnet, wie es durch die Folie aussieht */
@@ -59,7 +59,7 @@
 .rf-folie::after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.18),rgba(255,255,255,0) 40%);pointer-events:none}
 .rf-folie:focus-visible{outline:3px solid var(--accent-2);outline-offset:2px}
 .rf-linien{margin-top:18px;display:grid;gap:0}
-.rf-linie{height:44px;border-bottom:2px solid #1C1714;display:flex;align-items:flex-end;padding:0 4px 4px;color:var(--accent-2);font-size:1.3rem;font-weight:600}
+.rf-linie{height:44px;border-bottom:2px solid #1C2530;display:flex;align-items:flex-end;padding:0 4px 4px;color:var(--accent-2);font-size:1.3rem;font-weight:600}
 .rf-loesungsblatt{display:none;margin-top:16px}
 .rf-satz-loesung{margin:16px 0 0;font-size:1.1rem}
 

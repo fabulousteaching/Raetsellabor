@@ -44,13 +44,13 @@
 .ur-rahmen{overflow-x:auto;padding-bottom:4px}
 .ur-rahmen[hidden]{display:none}
 .ur-seiten{display:grid;gap:16px}
-.ur-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:26px 32px 30px}
-.ur-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
-.ur-anleitung{margin:0 0 14px;color:#554C45;line-height:1.45;font-size:.95rem}
-.ur-seitenkopf{margin:0 0 10px;font-size:.85rem;color:#8A8079}
+.ur-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C2530;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:26px 32px 30px}
+.ur-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C2530}
+.ur-anleitung{margin:0 0 14px;color:#4B5563;line-height:1.45;font-size:.95rem}
+.ur-seitenkopf{margin:0 0 10px;font-size:.85rem;color:#858D98}
 .ur-uhren{display:block;margin:4px 0 0}
 .ur-antwort{margin:18px 0 0;font-weight:700;font-size:1.1rem;display:flex;align-items:center;gap:10px}
-.ur-kaestchen{display:inline-block;width:42px;height:52px;border:2px solid #1C1714;border-radius:6px}
+.ur-kaestchen{display:inline-block;width:42px;height:52px;border:2px solid #1C2530;border-radius:6px}
 .ur-loesung-text{margin:10px 0 0;font-size:1.15rem}
 .ur-loesungsblatt{display:none;margin-top:16px}
 .ur-blaetter{display:grid;gap:16px}

@@ -42,18 +42,18 @@ details.optionen[open] summary{margin-bottom:6px}
 .rs-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
 
 /* ---------- Das Arbeitsblatt ---------- */
-.rs-blatt{background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:30px clamp(16px,3.2vw,40px)}
+.rs-blatt{background:#fff;color:#1C2530;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:30px clamp(16px,3.2vw,40px)}
 .rs-blatt.veraltet::before{content:'Eingaben geändert – «Richtungs-Suchsel erstellen» klicken, um das Feld zu aktualisieren.';display:block;margin:-10px 0 16px;
   background:var(--warn-soft);color:#6B4E00;border:1px solid var(--warn-line);font-size:.86rem;padding:7px 12px;border-radius:8px}
-.rs-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
-.rs-anleitung{margin:0 0 16px;color:#554C45;max-width:80ch}
+.rs-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C2530}
+.rs-anleitung{margin:0 0 16px;color:#4B5563;max-width:80ch}
 .rs-gitter{display:flex;justify-content:center;margin-top:16px}
 .rs-anleitung + .rs-gitter{margin-top:0}
-.rs-woerter-box h3{font-size:.95rem;font-weight:650;margin:22px 0 6px;color:#1C1714}
+.rs-woerter-box h3{font-size:.95rem;font-weight:650;margin:22px 0 6px;color:#1C2530}
 .rs-woerter{columns:4 9.5em;column-gap:20px;list-style:none;padding:0;margin:0}
 .rs-woerter li{break-inside:avoid;padding:.14em 0;font-weight:600;letter-spacing:.05em;font-size:.92rem}
-.rs-woerter li::before{content:'';display:inline-block;width:.8em;height:.8em;border:1.5px solid #A39A92;border-radius:3px;margin-right:.5em;vertical-align:-.05em}
-.rs-woerter li.gefunden{color:#A39A92;text-decoration:line-through;text-decoration-thickness:2px}
+.rs-woerter li::before{content:'';display:inline-block;width:.8em;height:.8em;border:1.5px solid #9AA1AD;border-radius:3px;margin-right:.5em;vertical-align:-.05em}
+.rs-woerter li.gefunden{color:#9AA1AD;text-decoration:line-through;text-decoration-thickness:2px}
 .rs-woerter li.gefunden::before{background:var(--accent);border-color:var(--accent)}
 .rs-fortschritt{margin:16px 0 0;font-size:.92rem;color:var(--muted);min-height:1.5em}
 .rs-fortschritt.fertig{font-weight:650;font-size:1rem;color:var(--ok)}
@@ -61,7 +61,7 @@ details.optionen[open] summary{margin-bottom:6px}
 
 /* Buchstabengitter (gemeinsam/gitter.js) */
 svg.gitter{display:block;width:100%;height:auto;max-height:78vh;max-width:calc(var(--spalten, 15) * 44px);touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair;background:#fff}
-svg.gitter text{font-family:var(--blatt-schrift);font-weight:600;font-size:5.6px;fill:#1C1714;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+svg.gitter text{font-family:var(--blatt-schrift);font-weight:600;font-size:5.6px;fill:#1C2530;text-anchor:middle;dominant-baseline:central;pointer-events:none}
 svg.gitter .kapsel{opacity:.55}
 svg.gitter .ebene-loesung{display:none}
 .zeige-loesung svg.gitter .ebene-loesung,.rs-loesungsblatt svg.gitter .ebene-loesung{display:inline}
@@ -84,8 +84,8 @@ svg.gitter .startpunkt{fill:none;stroke:var(--accent);stroke-width:1}
   .rs-blatt{box-shadow:none;border:0;border-radius:0;padding:0}
   .rs-blatt.veraltet::before{display:none}
   #rsBlatt .ebene-loesung,#rsBlatt .ebene-markiert,#rsBlatt .ebene-auswahl{display:none!important}
-  .rs-woerter li.gefunden{color:#1C1714;text-decoration:none}
-  .rs-woerter li.gefunden::before{background:none;border-color:#A39A92}
+  .rs-woerter li.gefunden{color:#1C2530;text-decoration:none}
+  .rs-woerter li.gefunden::before{background:none;border-color:#9AA1AD}
   svg.gitter{max-height:200mm;max-width:calc(var(--spalten, 15) * 12mm)}
   body.mit-loesung .rs-loesungsblatt{display:block;break-before:page;margin-top:0}
   body.mit-loesung .rs-loesungsblatt svg.gitter{max-height:235mm}
@@ -94,7 +94,7 @@ svg.gitter .startpunkt{fill:none;stroke:var(--accent);stroke-width:1}
 
 /* ---------- Richtungs-Suchsel ---------- */
 .rs-text{display:block;width:100%;box-sizing:border-box;margin-top:6px;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;font:inherit;font-size:1rem;line-height:1.45;resize:vertical;min-height:56px;transition:border-color .15s,box-shadow .15s}
-.rs-text:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.rs-text:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
 .karte[hidden]{display:none}
 /* Pfeilkreuz wie auf einem Steuerkreuz */
 .rs-steuer{display:flex;flex-wrap:wrap;gap:16px;align-items:center}
@@ -116,8 +116,8 @@ svg.gitter .startpunkt{fill:none;stroke:var(--accent);stroke-width:1}
 .rs-gitter{margin-top:4px}
 svg.gitter text.rs-nr{font-family:var(--blatt-schrift);font-size:2.3px;font-weight:700;fill:#fff}
 .rs-codebox{margin-top:18px}
-.rs-codebox p{margin:0 0 8px;font-weight:650;font-size:.95rem;color:#1C1714}
+.rs-codebox p{margin:0 0 8px;font-weight:650;font-size:.95rem;color:#1C2530}
 .rs-kaestchen{display:flex;flex-wrap:wrap;gap:8px}
-.rs-k{position:relative;display:grid;place-items:center;width:42px;height:46px;border:1.8px solid #3D3530;border-radius:6px;background:#fff}
-.rs-k small{position:absolute;top:2px;left:4px;font-size:.62rem;color:#8A8079;font-weight:700}
-.rs-k b{font-size:1.5rem;color:#C2410C}
+.rs-k{position:relative;display:grid;place-items:center;width:42px;height:46px;border:1.8px solid #374151;border-radius:6px;background:#fff}
+.rs-k small{position:absolute;top:2px;left:4px;font-size:.62rem;color:#858D98;font-weight:700}
+.rs-k b{font-size:1.5rem;color:#005A90}

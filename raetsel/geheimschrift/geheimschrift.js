@@ -552,7 +552,7 @@ function segmentHtml(code){
   var n = code.segmente, teil = n.length > 4 ? Math.ceil(n.length / 2) : n.length;
   var namen = n.slice(0, teil).join(' ') + (teil < n.length ? '<br>' + n.slice(teil).join(' ') : '');
   return '<span class="gs-seg-mal"><span class="gs-seg-namen">' + namen + '</span>' +
-    segmentSvg([], 'gs-seg gs-seg-leer', null, '#8F837A') + segmentSvg(code.segmente, 'gs-seg gs-seg-loes', '#C2410C', '#B5AAA0') + '</span>';
+    segmentSvg([], 'gs-seg gs-seg-leer', null, '#8F837A') + segmentSvg(code.segmente, 'gs-seg gs-seg-loes', '#005A90', '#B5AAA0') + '</span>';
 }
 /* Bausteine: von oben gesehen, 2 Reihen Noppen; Breite je nach Anzahl Noppen (2, 3 oder 4 je Reihe) */
 var STEIN = { rot:['#E3342F', '#A61E1A'], orange:['#F28C28', '#B35F0E'], gelb:['#F7D02C', '#B39207'], hellgruen:['#8BC34A', '#5A8A26'], gruen:['#2E8B57', '#1B5E38'],
@@ -663,7 +663,7 @@ function notenSchluesselSvg(bs){
   var xs = noten.map(function(n, i){ return 56 + i * 40 + (i >= 8 ? 30 : 0); }), b = xs[xs.length - 1] + 30;
   var inhalt = violinPfad(4) + noten.map(function(n, i){ var y = noteY(n[0], n[1]); return (n[0] === 'B' || n[0] === 'S' ? be(xs[i] - 17, y) : '') + noteKopf(xs[i], y); }).join('') +
     (bs ? '<path d="M' + (xs[7] + 22) + ' 40V80" stroke="' + TINTE + '" stroke-width="1.2"/>' : '') +   // Taktstrich vor den Noten mit ♭
-    '<g style="font-family:var(--blatt-buchstaben)" font-weight="700" font-size="15" fill="#C2410C" text-anchor="middle">' +
+    '<g style="font-family:var(--blatt-buchstaben)" font-weight="700" font-size="15" fill="#005A90" text-anchor="middle">' +
     noten.map(function(n, i){ return '<text x="' + xs[i] + '" y="128">' + Kern.notenName(n[0]) + '</text>'; }).join('') + '</g>';
   return '<svg class="gs-noten-schluessel" viewBox="0 18 ' + b + tx(' 116" role="img" aria-label="Noten vom tiefen C bis zum hohen C mit ihren Namen">') +
     '<path d="' + [40, 50, 60, 70, 80].map(function(y){ return 'M0 ' + y + 'H' + b; }).join('') + '" stroke="' + TINTE + '" stroke-width="1.1"/>' + inhalt + '</svg>';
@@ -732,7 +732,7 @@ function caesarScheibe(z){
   function stern(x, y, r){
     var pkt = [];
     for (var k = 0; k < 10; k++){ var a = -Math.PI / 2 + k * Math.PI / 5, rr = k % 2 ? r * 0.45 : r; pkt.push((x + rr * Math.cos(a)).toFixed(2) + ',' + (y + rr * Math.sin(a)).toFixed(2)); }
-    return '<polygon points="' + pkt.join(' ') + '" fill="#C2410C" stroke="#fff" stroke-width="0.6"/>';
+    return '<polygon points="' + pkt.join(' ') + '" fill="#005A90" stroke="#fff" stroke-width="0.6"/>';
   }
   function scheibe(cx, R, rText, rInnen, gr, beschriftung, inhalt, farbe, textFarbe, mitStern){
     var h = '<circle cx="' + cx + '" cy="110" r="' + R + '" fill="#fff" stroke="' + TINTE + '" stroke-width="1.2"/>';

@@ -16,7 +16,7 @@
 .lk .feld-label{display:block;margin-top:4px}
 .lk-zeile{display:flex;gap:8px;align-items:center}
 .lk-zeile input{flex:1;min-width:0;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:8px 11px;font-size:1.25rem;font-weight:700;letter-spacing:.2em;transition:border-color .15s,box-shadow .15s}
-.lk-zeile input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.lk-zeile input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
 .lk-zaehler{margin-top:8px;font-size:.88rem}
 .lk-zaehler p{margin:6px 0 0}
 .lk-zaehler-haupt{padding:8px 11px;border-radius:9px;margin:0!important}
@@ -40,9 +40,9 @@
 .lk-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
 .lk-rahmen{overflow-x:auto;padding-bottom:4px}
 .lk-rahmen[hidden]{display:none}
-.lk-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:26px 32px 30px}
-.lk-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
-.lk-anleitung{margin:0 0 14px;color:#554C45;line-height:1.45;font-size:.95rem}
+.lk-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C2530;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:26px 32px 30px}
+.lk-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C2530}
+.lk-anleitung{margin:0 0 14px;color:#4B5563;line-height:1.45;font-size:.95rem}
 .lk-antwort{margin:14px 0 0;font-weight:700;font-size:1.1rem;display:flex;align-items:flex-end;gap:10px}
 .lk-loesungsblatt{display:none;margin-top:16px}
 .lk-blaetter{display:grid;gap:16px}
@@ -54,7 +54,7 @@
 .lk-chips{margin-bottom:4px}
 .lk .opt[hidden]{display:none}
 .lk .lk-zeile input{letter-spacing:.12em}
-.lk-notiz{margin:10px 0 0;font-size:.78rem;color:#8A8079;text-align:center}
+.lk-notiz{margin:10px 0 0;font-size:.78rem;color:#858D98;text-align:center}
 /* Am Bildschirm ausprobieren */
 
 .lk-teil[hidden],.lk-unter[hidden],.lk [data-deutsch][hidden]{display:none}
@@ -64,12 +64,12 @@
 .lk-zaehler .lk-info{color:var(--muted)}
 .lk-seiten{display:grid;gap:16px}
 .lk-karten{display:block}
-.lk-farben{display:flex;flex-wrap:wrap;gap:4px 14px;margin:0 0 10px;font-size:.9rem;color:#554C45}
+.lk-farben{display:flex;flex-wrap:wrap;gap:4px 14px;margin:0 0 10px;font-size:.9rem;color:#4B5563}
 .lk-farben span{display:inline-flex;align-items:center;gap:6px}
-.lk-farben i{display:inline-block;width:14px;height:14px;border:1px solid #8A8079}
+.lk-farben i{display:inline-block;width:14px;height:14px;border:1px solid #858D98}
 .lk-antwort{margin:0 0 12px;font-weight:700;font-size:1.02rem;display:flex;align-items:flex-end;gap:10px}
-.lk-linie{flex:1;max-width:260px;min-height:1.4em;border-bottom:2px solid #1C1714}
-.lk-seitenkopf{margin:0 0 10px;font-size:.85rem;color:#8A8079}
+.lk-linie{flex:1;max-width:260px;min-height:1.4em;border-bottom:2px solid #1C2530}
+.lk-seitenkopf{margin:0 0 10px;font-size:.85rem;color:#858D98}
 .lk-loesung-text{margin:14px 0 0;font-size:1.15rem}
 
 /* Zeichen zum Antippen */

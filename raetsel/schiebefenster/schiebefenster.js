@@ -112,11 +112,11 @@ function streifenSvg(s, M, nr, mehrere, loesung){
   t += '<text x="' + f1(x0) + '" y="12" font-size="12" font-weight="700" fill="' + TINTE + '">' + (mehrere ? tx('Streifen ') + nr : tx('Streifen')) + '</text>';
   var lx0 = Math.max(0, x0 - 18), lx1 = Math.min(B, x0 + w + 18);
   [kopf, kopf + M.balkenH].forEach(function(y){ t += '<line x1="' + f1(lx0) + '" y1="' + f1(y) + '" x2="' + f1(lx1) + '" y2="' + f1(y) + '" stroke="#8A8079" stroke-width="0.8" stroke-dasharray="4 3"/>'; });
-  t += '<polygon points="' + f1(x0 - 14) + ',' + f1(y0 + 2.5 * M.z - 6) + ' ' + f1(x0 - 4) + ',' + f1(y0 + 2.5 * M.z) + ' ' + f1(x0 - 14) + ',' + f1(y0 + 2.5 * M.z + 6) + '" fill="#E0741C"/>';
+  t += '<polygon points="' + f1(x0 - 14) + ',' + f1(y0 + 2.5 * M.z - 6) + ' ' + f1(x0 - 4) + ',' + f1(y0 + 2.5 * M.z) + ' ' + f1(x0 - 14) + ',' + f1(y0 + 2.5 * M.z + 6) + '" fill="#0075BA"/>';
   t += felderSvg(s, x0, y0, M.z);
   if (loesung) s.ziele.forEach(function(x, i){
-    t += '<rect x="' + f1(x0 + x * M.z - 1.5) + '" y="' + f1(y0 - 1.5) + '" width="' + f1(3 * M.z + 3) + '" height="' + f1(5 * M.z + 3) + '" fill="none" stroke="#E0741C" stroke-width="2.4"/>' +
-      '<text x="' + f1(x0 + (x + 1.5) * M.z) + '" y="' + f1(kopf - 4) + '" font-size="13" font-weight="700" fill="#C25A0E" text-anchor="middle">' + esc(s.zeichen[i]) + '</text>';
+    t += '<rect x="' + f1(x0 + x * M.z - 1.5) + '" y="' + f1(y0 - 1.5) + '" width="' + f1(3 * M.z + 3) + '" height="' + f1(5 * M.z + 3) + '" fill="none" stroke="#0075BA" stroke-width="2.4"/>' +
+      '<text x="' + f1(x0 + (x + 1.5) * M.z) + '" y="' + f1(kopf - 4) + '" font-size="13" font-weight="700" fill="#005A90" text-anchor="middle">' + esc(s.zeichen[i]) + '</text>';
   });
   return { svg:'<svg class="sf-streifen" width="' + B + '" height="' + f1(h) + '" viewBox="0 0 ' + B + ' ' + f1(h) + '">' + t + '</svg>', h:h };
 }
@@ -322,8 +322,8 @@ function starte(bereich){
       var w = s.spalten.length * z;
       h += '<div class="sf-schiene" data-i="' + i + '" style="width:' + (w + 24) + tx('px;height:') + f1(M.balkenH) + 'px">' +
         '<svg class="sf-schiene-streifen" width="' + (w + 24) + '" height="' + f1(M.balkenH) + '">' + felderSvg(s, 12, M.m, z) +
-          s.ziele.map(function(x, k){ return '<g class="sf-ziel"><rect x="' + f1(12 + x * z - 1) + '" y="' + f1(M.m - 1) + '" width="' + f1(3 * z + 2) + '" height="' + f1(5 * z + 2) + '" fill="none" stroke="#E0741C" stroke-width="2"/>' +
-            '<text x="' + f1(12 + (x + 1.5) * z) + '" y="' + f1(M.m - 3) + '" font-size="11" font-weight="700" fill="#C25A0E" text-anchor="middle">' + esc(s.zeichen[k]) + '</text></g>'; }).join('') + '</svg>' +
+          s.ziele.map(function(x, k){ return '<g class="sf-ziel"><rect x="' + f1(12 + x * z - 1) + '" y="' + f1(M.m - 1) + '" width="' + f1(3 * z + 2) + '" height="' + f1(5 * z + 2) + '" fill="none" stroke="#0075BA" stroke-width="2"/>' +
+            '<text x="' + f1(12 + (x + 1.5) * z) + '" y="' + f1(M.m - 3) + '" font-size="11" font-weight="700" fill="#005A90" text-anchor="middle">' + esc(s.zeichen[k]) + '</text></g>'; }).join('') + '</svg>' +
         '<div class="sf-schieber" tabindex="0" role="slider" aria-label="' + esc(P.streifen.length > 1 ? tx('Fenster verschieben, Streifen {i}', { i:i + 1 }) : tx('Fenster verschieben')) + '" aria-valuemin="0" aria-valuemax="' + (s.spalten.length - 3) + '">' +
           '<svg width="' + (2 * w + 3 * z + 48) + '" height="' + f1(M.balkenH) + '"><path d="M0 0H' + (2 * w + 3 * z + 48) + 'V' + f1(M.balkenH) + 'H0Z M' + (w + 24) + ' ' + f1(M.m) + 'V' + f1(M.m + 5 * z) + 'H' + (w + 24 + 3 * z) + 'V' + f1(M.m) + 'Z" fill="' + SCHWARZ + '" fill-rule="evenodd"/></svg></div></div>';
       return { s:s, z:z, w:w, x:-1 };

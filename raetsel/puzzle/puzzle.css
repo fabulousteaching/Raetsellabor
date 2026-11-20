@@ -23,7 +23,7 @@
 .pz-stufen input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
 /* Bild wählen: Fläche zum Klicken oder Hineinziehen */
 .pz-ablage{display:grid;justify-items:center;gap:10px;padding:18px 14px;border:2px dashed var(--accent-line);border-radius:12px;background:var(--accent-soft);cursor:pointer;text-align:center;transition:border-color .15s,background .15s}
-.pz-ablage:hover,.pz-ablage.ziehen{border-color:var(--accent);background:#FFE7D2}
+.pz-ablage:hover,.pz-ablage.ziehen{border-color:var(--accent);background:#DCEEFA}
 .pz-ablage:focus-within{outline:2px solid var(--accent-2);outline-offset:2px}
 .pz-ablage img{display:block;max-width:100%;max-height:190px;border-radius:8px;border:1px solid var(--line);background:#fff}
 .pz-ablage-text{display:grid;gap:1px}
@@ -49,11 +49,11 @@
 .pz-werkzeug .abstand{flex:1}
 .pz-status{font-size:.9rem;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
 .pz-spiel{position:relative;height:min(74vh,760px);min-height:380px;border:1px solid var(--line);border-radius:14px;overflow:hidden;
-  background:radial-gradient(circle at 30% 20%,#F4ECE3,#E6D9CB);box-shadow:inset 0 1px 6px rgba(45,28,12,.08)}
+  background:radial-gradient(circle at 30% 20%,#EEF2F6,#DCE3EA);box-shadow:inset 0 1px 6px rgba(16,24,40,.08)}
 .pz-spiel:fullscreen{height:100%;border-radius:0;border:0}
 .pz-spiel:-webkit-full-screen{width:100%;height:100%}
 .pz-fertig{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center;
-  background:#fff;border-radius:14px;padding:10px 16px;box-shadow:0 10px 30px rgba(45,28,12,.22);font-size:1.05rem;z-index:2;max-width:calc(100% - 24px)}
+  background:#fff;border-radius:14px;padding:10px 16px;box-shadow:0 10px 30px rgba(16,24,40,.22);font-size:1.05rem;z-index:2;max-width:calc(100% - 24px)}
 .pz-fertig p{margin:0}
 .pz-fertig[hidden]{display:none}
 .pz-leer{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:8px;padding:20px;text-align:center;color:var(--muted)}
@@ -67,12 +67,12 @@
 @media (max-width:640px){ .pz-spiel{height:min(78vh,640px)} }
 
 /* Blatt mit dem QR-Code (nur fürs PDF; am Bildschirm unsichtbar) */
-.pz-blatt{display:none;background:#fff;color:#1C1714;padding:0}
-.pz-blatt h2{font-size:1.9rem;font-weight:700;margin:0 0 8px;letter-spacing:-.015em;color:#1C1714}
-.pz-anleitung{margin:0 0 26px;color:#554C45;font-size:1.05rem;max-width:62ch}
+.pz-blatt{display:none;background:#fff;color:#1C2530;padding:0}
+.pz-blatt h2{font-size:1.9rem;font-weight:700;margin:0 0 8px;letter-spacing:-.015em;color:#1C2530}
+.pz-anleitung{margin:0 0 26px;color:#4B5563;font-size:1.05rem;max-width:62ch}
 .pz-blatt-inhalt{display:grid;justify-items:center;gap:26px;padding-top:6px}
 .pz-blatt-qr svg{display:block;width:340px;height:340px}
-.pz-blatt-link{margin:0;font-size:1rem;font-weight:600;color:#554C45;letter-spacing:.02em}
+.pz-blatt-link{margin:0;font-size:1rem;font-weight:600;color:#4B5563;letter-spacing:.02em}
 
 /* ---------- Drucken (gilt auch für das PDF) ---------- */
 @media print{

@@ -641,7 +641,7 @@ var VORLAGE = tx(`<div class="zs">
   <section class="ausgabe" aria-label="Ergebnis">
     <div id="meldung" aria-live="polite"></div>
     <div class="leer-zustand" id="leer">
-      <svg width="56" height="56" viewBox="0 0 56 56" fill="none" aria-hidden="true"><rect x="1" y="1" width="54" height="54" rx="12" fill="#FFF1E5" stroke="#F7CBA3"/><g fill="#A0968E"><circle cx="14" cy="14" r="2"/><circle cx="28" cy="14" r="2"/><circle cx="42" cy="14" r="2"/><circle cx="14" cy="28" r="2"/><circle cx="28" cy="28" r="2"/><circle cx="42" cy="28" r="2"/><circle cx="14" cy="42" r="2"/><circle cx="28" cy="42" r="2"/><circle cx="42" cy="42" r="2"/></g><path d="M14 14h28v28" stroke="#F28C38" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/></svg>
+      <svg width="56" height="56" viewBox="0 0 56 56" fill="none" aria-hidden="true"><rect x="1" y="1" width="54" height="54" rx="12" fill="#E8F3FA" stroke="#B5D8EE"/><g fill="#A0968E"><circle cx="14" cy="14" r="2"/><circle cx="28" cy="14" r="2"/><circle cx="42" cy="14" r="2"/><circle cx="14" cy="28" r="2"/><circle cx="28" cy="28" r="2"/><circle cx="42" cy="28" r="2"/><circle cx="14" cy="42" r="2"/><circle cx="28" cy="42" r="2"/><circle cx="42" cy="42" r="2"/></g><path d="M14 14h28v28" stroke="#0075BA" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity=".75"/></svg>
       <h2>Noch kein Suchsel</h2>
       <p>In drei Schritten zum Arbeitsblatt:</p>
       <ol>
@@ -1170,7 +1170,7 @@ function starte(bereich){
     }
     function zeigeTemp(z){
       if (temp) temp.remove();
-      temp = kapsel(gA, z, '#F28C38', 'auswahl');
+      temp = kapsel(gA, z, '#0075BA', 'auswahl');
     }
     function startPunkt(rc){
       if (punkt){ punkt.remove(); punkt = null; }

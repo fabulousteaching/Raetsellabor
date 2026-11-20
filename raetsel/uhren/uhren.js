@@ -155,7 +155,7 @@ var EIGEN = Labor.sprache === 'en' ? 'en' : Labor.sprache === 'fr' ? 'fr' : 'wor
 var ART_NAME = { worte:tx('Deutsch'), en:tx('Englisch'), fr:tx('Französisch') };
 ART_NAME[EIGEN] = tx('in Worten');
 var ARTEN = [['12', '3:00'], ['24', '15:00'], [EIGEN, ART_NAME[EIGEN]]].concat(['worte', 'en', 'fr'].filter(function(k){ return k !== EIGEN; }).map(function(k){ return [k, ART_NAME[k]]; }));
-var LOESUNGSFARBE = '#F28C38';
+var LOESUNGSFARBE = '#0075BA';
 function esc(t){ return Labor.esc(t); }
 function f1(x){ return (Math.round(x * 10) / 10).toString(); }
 function hell(hex, anteil){ var n = parseInt(hex.slice(1), 16), r = n >> 16, g = n >> 8 & 255, b = n & 255;

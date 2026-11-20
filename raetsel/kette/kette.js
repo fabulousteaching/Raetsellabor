@@ -322,7 +322,7 @@ var KOEPFE = { 'd-reime':[tx('Wort'), tx('Reimwort'), tx('Haus = Maus')], 'd-meh
   'd-eigene':[tx('Wort'), tx('Partner'), tx('Haus = Maus')], englisch:[tx('Deutsch'), tx('Englisch'), tx('Hund = dog')], franzoesisch:[tx('Deutsch'), tx('Französisch'), tx('Hund = le chien')] };
 var ABLENKER = [[0, tx('keine')], [4, tx('wenige')], [8, tx('einige')], [12, tx('viele')]];
 var BUCHSTABEN = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''), ZIFFERN = '0123456789'.split('');
-var TINTE = '#1C1714', LINIE = '#E46F12';
+var TINTE = '#1C1714', LINIE = '#0075BA';
 var BLATT_B = 639, BLATT_H = 800;   // Zeichenfläche auf dem Blatt (Pixel; das Blatt ist 703 Pixel breit = 186 mm)
 function esc(t){ return Labor.esc(t); }
 function kaestchen(name, liste){ return liste.map(function(x){ return '<label><input type="checkbox" name="' + name + '" value="' + x[0] + '"><span>' + x[1] + '</span></label>'; }).join(''); }

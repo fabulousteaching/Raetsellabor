@@ -321,7 +321,7 @@ function starte(bereich){
       '<g style="font-family:var(--blatt-buchstaben)" font-weight="700" font-size="' + lfs.toFixed(1) + '" text-anchor="middle">' +
       A.raster.map(function(z, r){
         return '<text x="30" y="' + (r * zh + zh * 0.72 + 3).toFixed(1) + '" font-size="' + (lfs * 0.6).toFixed(1) + '" fill="#8A8079" font-weight="600">' + (r + 1) + '</text>' +
-          z.map(function(c, t){ return '<text x="' + (66 + (t + 0.5) * zw).toFixed(1) + '" y="' + (r * zh + zh * 0.72 + 3).toFixed(1) + '" fill="' + (c.n ? (o.farbig ? o.farbe : '#C2410C') : '#B5AAA0') + '">' + esc(c.z) + '</text>'; }).join('');
+          z.map(function(c, t){ return '<text x="' + (66 + (t + 0.5) * zw).toFixed(1) + '" y="' + (r * zh + zh * 0.72 + 3).toFixed(1) + '" fill="' + (c.n ? (o.farbig ? o.farbe : '#005A90') : '#B5AAA0') + '">' + esc(c.z) + '</text>'; }).join('');
       }).join('') + '</g></svg>';
     var loesung = (o.titelAn ? tx('<h2>Skytale – Lösung</h2>') : tx('<p class="sk-anleitung"><b>Lösung</b></p>')) +
       '<p class="sk-loesung-text">' + esc(Kern.woerter(st.text).map(function(w){ return w.join(''); }).join(' ')) + '</p>' +

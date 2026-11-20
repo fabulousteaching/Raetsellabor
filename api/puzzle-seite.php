@@ -45,12 +45,12 @@ function t(string $k): string { global $TEXTE, $sprache; return $TEXTE[$k][['de'
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#F8F5F1">
+<meta name="theme-color" content="#F4F7F9">
 <title><?= is_array($p) ? 'Puzzle' : h(t('nicht')) ?></title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Inter:wght@400;600&display=swap">
 <style>
-  :root{--bg:#F8F5F1;--karte:#fff;--text:#221C18;--muted:#6E655E;--linie:#E7DFD6;--orange:#F28C38;--orange-dunkel:#E0741C;--orange-soft:#FFF1E5;--orange-linie:#F7CBA3;--orange-text:#A9490B;color-scheme:light}
+  :root{--bg:#F4F7F9;--karte:#fff;--text:#1C2530;--muted:#6B7280;--linie:#E1E6EA;--orange:#0075BA;--orange-dunkel:#005A90;--orange-soft:#E8F3FA;--orange-linie:#B5D8EE;--orange-text:#005A90;color-scheme:light}
   *{box-sizing:border-box}
   html,body{height:100%}
   body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 Inter,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;overscroll-behavior:none;overflow:hidden}
@@ -59,14 +59,14 @@ function t(string $k): string { global $TEXTE, $sprache; return $TEXTE[$k][['de'
   h1{font-family:Fredoka,Inter,sans-serif;font-weight:600;font-size:1.35rem;line-height:1.1;margin:0 6px 0 0}
   .status{font-weight:600;color:var(--muted);font-size:.92rem;font-variant-numeric:tabular-nums;margin-right:auto}
   button{font:inherit;font-weight:600;font-size:.9rem;border:1px solid #D9CFC5;border-radius:9px;padding:7px 13px;background:#fff;color:var(--text);cursor:pointer;touch-action:manipulation}
-  button:hover{background:#FBF8F5}
+  button:hover{background:#F8FAFC}
   button[aria-pressed="true"]{background:var(--orange-soft);border-color:var(--orange-linie);color:var(--orange-text)}
-  button.haupt{background:var(--orange);border-color:var(--orange);color:#221C18}
+  button.haupt{background:var(--orange);border-color:var(--orange);color:#1C2530}
   button.haupt:hover{background:var(--orange-dunkel)}
   button:focus-visible{outline:2px solid var(--orange-text);outline-offset:2px}
-  .spiel{position:relative;flex:1;min-height:0;overflow:hidden;background:radial-gradient(circle at 30% 20%,#F4ECE3,#E6D9CB)}
+  .spiel{position:relative;flex:1;min-height:0;overflow:hidden;background:radial-gradient(circle at 30% 20%,#EEF2F6,#DCE3EA)}
   .geschafft{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:3;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;
-    max-width:calc(100% - 24px);background:#fff;border-radius:16px;padding:12px 18px;box-shadow:0 10px 30px rgba(45,28,12,.25);font-size:1.1rem}
+    max-width:calc(100% - 24px);background:#fff;border-radius:16px;padding:12px 18px;box-shadow:0 10px 30px rgba(16,24,40,.25);font-size:1.1rem}
   .geschafft p{margin:0}
   [hidden]{display:none!important}
   .laden{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-weight:600}
@@ -77,7 +77,7 @@ function t(string $k): string { global $TEXTE, $sprache; return $TEXTE[$k][['de'
   @media (prefers-reduced-motion: reduce){.konfetti{display:none}}
   /* nicht gefunden */
   .fehlt{min-height:100vh;display:grid;place-items:center;padding:28px 18px;text-align:center}
-  .fehlt main{width:min(560px,100%);background:var(--karte);border-radius:22px;padding:clamp(26px,6vw,44px);border-top:8px solid var(--orange);box-shadow:0 18px 50px rgba(45,28,12,.12)}
+  .fehlt main{width:min(560px,100%);background:var(--karte);border-radius:22px;padding:clamp(26px,6vw,44px);border-top:8px solid var(--orange);box-shadow:0 18px 50px rgba(16,24,40,.12)}
   .fehlt .symbol{font-size:4rem;line-height:1;margin:0 0 10px}
   .fehlt h1{font-size:clamp(1.5rem,5vw,2rem);margin:0 0 10px}
   .fehlt a{color:var(--orange-text);font-weight:600;text-decoration:none}
@@ -106,7 +106,7 @@ function t(string $k): string { global $TEXTE, $sprache; return $TEXTE[$k][['de'
   var $ = function(i){ return document.getElementById(i); }, spiel = null;
   function zeit(s){ return Math.floor(s / 60) + ':' + ('0' + s % 60).slice(-2); }
   function konfetti(){
-    var k = document.createElement('div'), f = ['#F28C38', '#FAD852', '#68D77E', '#63C2EA', '#EC4157', '#F7A25D'];
+    var k = document.createElement('div'), f = ['#0075BA', '#FAD852', '#68D77E', '#63C2EA', '#EC4157', '#1A8FD6'];
     k.className = 'konfetti'; k.setAttribute('aria-hidden', 'true');
     for (var i = 0; i < 34; i++){ var e = document.createElement('i'); e.style.cssText = 'left:' + (i * 37 % 100) + '%;background:' + f[i % 6] + ';animation-delay:' + (i * 0.13 % 1.6).toFixed(2) + 's;animation-duration:' + (2.6 + i % 5 * 0.3).toFixed(1) + 's'; k.appendChild(e); }
     document.body.appendChild(k); setTimeout(function(){ k.remove(); }, 5200);

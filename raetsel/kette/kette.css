@@ -24,7 +24,7 @@
 .kt-zeichen span{display:grid;place-items:center;height:38px;border:1px solid var(--line-2);border-radius:8px;background:#fff;font-family:var(--display);font-size:1.15rem;font-weight:600;color:var(--text);transition:border-color .15s,background .15s}
 .kt-teil{margin-top:10px;padding-top:12px;border-top:1px dashed var(--line-2)}
 .kt-teil[hidden]{display:none}
-.kt-unter{margin-top:8px;padding:10px 12px 4px;border-radius:10px;background:#FBF8F5}
+.kt-unter{margin-top:8px;padding:10px 12px 4px;border-radius:10px;background:#F8FAFC}
 .kt-unter[hidden]{display:none}
 .kt-unter .feld-label:first-child{margin-top:0}
 .kt-reihen span{padding:5px 11px;min-width:44px;text-align:center}
@@ -52,12 +52,12 @@
 .kt-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
 .kt-rahmen{overflow-x:auto;padding-bottom:4px}
 .kt-rahmen[hidden]{display:none}
-.kt-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:26px 32px 24px}
-.kt-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
-.kt-anleitung{margin:0 0 8px;color:#554C45;line-height:1.45;font-size:.95rem}
+.kt-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C2530;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:26px 32px 24px}
+.kt-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C2530}
+.kt-anleitung{margin:0 0 8px;color:#4B5563;line-height:1.45;font-size:.95rem}
 .kt-svg{display:block;width:639px;height:auto;max-width:none}
 .kt-antwort{margin:6px 0 0;font-weight:700;font-size:1.05rem;display:flex;align-items:flex-end;gap:10px}
-.kt-linie{display:inline-block;min-width:70px;border-bottom:2px solid #1C1714;text-align:center;color:var(--accent-2);font-size:1.4rem;line-height:1.2}
+.kt-linie{display:inline-block;min-width:70px;border-bottom:2px solid #1C2530;text-align:center;color:var(--accent-2);font-size:1.4rem;line-height:1.2}
 .kt-loesungsblatt{display:none;margin-top:16px}
 
 /* ---------- Drucken (gilt auch für das PDF) ---------- */

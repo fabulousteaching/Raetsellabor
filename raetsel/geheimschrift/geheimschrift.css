@@ -13,7 +13,7 @@
 
 /* ---------- Eingaben ---------- */
 .gs textarea{display:block;width:100%;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;resize:vertical;min-height:5em;line-height:1.45;font-size:1.05rem;font-weight:600;transition:border-color .15s,box-shadow .15s}
-.gs textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.gs textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
 .gs-schriften{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .gs-schriften label{position:relative;cursor:pointer;display:flex}
 .gs-schriften input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
@@ -37,7 +37,7 @@
 .gs-chips label:hover span{border-color:var(--accent-line)}
 .gs-chips input:checked + span{background:var(--accent);border-color:var(--accent);color:var(--auf-akzent)}
 .gs-chips input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
-.gs-caesar{margin-top:12px;padding:12px;border-radius:10px;background:#FBF8F5}
+.gs-caesar{margin-top:12px;padding:12px;border-radius:10px;background:#F8FAFC}
 .gs-caesar[hidden]{display:none}
 .gs .opt{display:flex;align-items:flex-start;gap:10px;margin:10px 0 0;font-size:.9rem}
 .gs .opt input[type=checkbox]{width:16px;height:16px;margin:3px 0 0;accent-color:var(--accent);flex:none}
@@ -53,19 +53,19 @@
 .gs-werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
 .gs-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
 .gs-werkzeug-text{font-size:.88rem;color:var(--muted)}
-.gs-blatt{background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:30px clamp(16px,3.2vw,40px)}
+.gs-blatt{background:#fff;color:#1C2530;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:30px clamp(16px,3.2vw,40px)}
 .gs-blatt[hidden]{display:none}
-.gs-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
-.gs-anleitung{margin:0 0 20px;color:#554C45;max-width:80ch}
+.gs-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C2530}
+.gs-anleitung{margin:0 0 20px;color:#4B5563;max-width:80ch}
 .gs-loesungsblatt{display:none;margin-top:16px}
 /* Geheimtext anklicken: als Bild kopieren */
 #gsBlatt .gs-code{cursor:copy;border-radius:6px;transition:background .15s,box-shadow .15s}
-#gsBlatt .gs-code:hover,#gsBlatt .gs-code:focus-visible{background:#FFF8F1;box-shadow:0 0 0 8px #FFF8F1,0 0 0 10px var(--accent-line);outline:none}
+#gsBlatt .gs-code:hover,#gsBlatt .gs-code:focus-visible{background:#F2F8FC;box-shadow:0 0 0 8px #F2F8FC,0 0 0 10px var(--accent-line);outline:none}
 #gsBlatt .gs-code.gs-wird-kopiert{opacity:.6}
 .gs-tipp{margin:8px 2px 0;font-size:.84rem;color:var(--muted)}
 .gs-tipp[hidden]{display:none}
 .gs-kopiert{position:fixed;left:50%;bottom:24px;transform:translate(-50%,12px);z-index:50;max-width:calc(100% - 32px);padding:10px 16px;border-radius:12px;
-  background:#1C1714;color:#fff;font-size:.92rem;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.25);opacity:0;transition:opacity .25s,transform .25s}
+  background:#1C2530;color:#fff;font-size:.92rem;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.25);opacity:0;transition:opacity .25s,transform .25s}
 .gs-kopiert.an{opacity:1;transform:translate(-50%,0)}
 .gs-kopiert[hidden]{display:none}
 
@@ -77,12 +77,12 @@
 .gs-s{display:flex;align-items:center;justify-content:center;height:var(--fm);min-width:calc(var(--fm) * .8);padding:0 2px}
 .gs-t{font-family:var(--blatt-buchstaben);font-weight:700;font-size:calc(var(--fm) * .66);line-height:1;white-space:nowrap}
 .gs-art-zahlen .gs-t,.gs-art-handy .gs-t,.gs-art-polybios .gs-t{font-size:calc(var(--fm) * .56);letter-spacing:.02em}
-.gs-bleibt{font-weight:400;color:#6E655E}
+.gs-bleibt{font-weight:400;color:#6B7280}
 .gs-morse{height:calc(var(--fm) * .7);width:auto;display:block}
 .gs-braille{height:calc(var(--fm) * .9);width:auto;display:block}
 .gs-h{height:var(--fm);width:auto;display:block;object-fit:contain}
 .gs-h-text{display:block;height:var(--fm);overflow:hidden;font-family:"Noto Sans Egyptian Hieroglyphs";font-size:calc(var(--fm) * .6);line-height:var(--fm)}
-.gs-linie{display:grid;place-items:end center;width:100%;height:calc(var(--fm) * .72);border-bottom:2px solid #1C1714;font-family:var(--blatt-buchstaben);font-size:calc(var(--fm) * .56);line-height:1.1}
+.gs-linie{display:grid;place-items:end center;width:100%;height:calc(var(--fm) * .72);border-bottom:2px solid #1C2530;font-family:var(--blatt-buchstaben);font-size:calc(var(--fm) * .56);line-height:1.1}
 .gs-linie.gs-leer{border-bottom-color:transparent}
 .gs-andere{min-width:0}
 .gs-andere .gs-s{min-width:0}
@@ -92,16 +92,16 @@
 .zeige-loesung .gs-code.ohne-linien .gs-linie,.gs-loesungsblatt .gs-code.ohne-linien .gs-linie{display:grid;border-bottom-color:transparent;height:calc(var(--fm) * .62)}
 
 /* Schlüssel */
-.gs-erklaerung{margin:0 0 16px;color:#3A322C;max-width:80ch;line-height:1.5}
-.gs-unter{font-size:1.15rem;font-weight:700;margin:26px 0 6px;color:#1C1714}
+.gs-erklaerung{margin:0 0 16px;color:#333B47;max-width:80ch;line-height:1.5}
+.gs-unter{font-size:1.15rem;font-weight:700;margin:26px 0 6px;color:#1C2530}
 .gs-reihen{border-collapse:collapse;margin:0 0 14px;width:100%;table-layout:fixed;font-family:var(--blatt-buchstaben)}
-.gs-reihen th{width:5.6em;text-align:left;font-family:var(--blatt-schrift);font-size:.78rem;font-weight:600;color:#6E655E;padding:0 6px 0 0}
-.gs-reihen td{border:1.5px solid #D8CEC4;text-align:center;font-weight:700;font-size:1.15rem;padding:6px 0;line-height:1.2}
-.gs-reihen td.gs-geheim{color:var(--accent-2);background:#FFF8F1}
+.gs-reihen th{width:5.6em;text-align:left;font-family:var(--blatt-schrift);font-size:.78rem;font-weight:600;color:#6B7280;padding:0 6px 0 0}
+.gs-reihen td{border:1.5px solid #CDD5DC;text-align:center;font-weight:700;font-size:1.15rem;padding:6px 0;line-height:1.2}
+.gs-reihen td.gs-geheim{color:var(--accent-2);background:#F2F8FC}
 .gs-tabelle{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px;margin-bottom:6px}
-.gs-tab-zelle{display:grid;justify-items:center;align-content:start;gap:5px;padding:8px 4px 9px;border:1.5px solid #D8CEC4;border-radius:10px;min-width:0}
+.gs-tab-zelle{display:grid;justify-items:center;align-content:start;gap:5px;padding:8px 4px 9px;border:1.5px solid #CDD5DC;border-radius:10px;min-width:0}
 .gs-tab-zelle b{font-family:var(--blatt-buchstaben);font-size:1.2rem;line-height:1}
-.gs-tab-zelle small{font-size:.66rem;color:#6E655E;text-align:center;line-height:1.2}
+.gs-tab-zelle small{font-size:.66rem;color:#6B7280;text-align:center;line-height:1.2}
 .gs-tab-zelle .gs-t{font-size:1.1rem;color:var(--accent-2)}
 .gs-tab-morse{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}
 .gs-morse-k{height:20px;width:auto;max-width:100%;display:block}
@@ -111,9 +111,9 @@
 .gs-tab-hiero .gs-h-text{height:40px;line-height:40px;font-size:1.5rem}
 .gs-gitter{border-collapse:collapse;font-family:var(--blatt-buchstaben);margin:6px 0}
 .gs-gitter th{width:2.6em;height:2.2em;font-family:var(--blatt-schrift);font-size:.95rem;color:var(--accent-2)}
-.gs-gitter td{width:3.2em;height:2.8em;border:1.5px solid #8A7F76;text-align:center;font-weight:700;font-size:1.3rem}
+.gs-gitter td{width:3.2em;height:2.8em;border:1.5px solid #848C97;text-align:center;font-weight:700;font-size:1.3rem}
 .gs-handy{display:grid;grid-template-columns:repeat(3,92px);gap:8px;margin:0 0 18px}
-.gs-taste{display:grid;justify-items:center;gap:0;padding:7px 4px;border:1.5px solid #8A7F76;border-radius:12px;background:#FBF8F5}
+.gs-taste{display:grid;justify-items:center;gap:0;padding:7px 4px;border:1.5px solid #848C97;border-radius:12px;background:#F8FAFC}
 .gs-taste b{font-family:var(--blatt-buchstaben);font-size:1.5rem;line-height:1.1}
 .gs-taste small{font-size:.8rem;font-weight:700;letter-spacing:.06em;color:var(--accent-2)}
 .gs-scheibe{display:block;width:100%;height:auto;margin-top:6px}
@@ -148,7 +148,7 @@
 .gs-hand-k{height:72px}
 .gs-tab-finger{grid-template-columns:repeat(auto-fill,minmax(86px,1fr))}
 .gs-vorschau .gs-hand{height:26px}
-.gs-quelle{margin:14px 0 0;font-size:.78rem;color:#6E655E}
+.gs-quelle{margin:14px 0 0;font-size:.78rem;color:#6B7280}
 /* Altlatein und Runen: nachgezeichnete Zeichen, gleiche Höhe, eigene Breite */
 .gs-alt,.gs-rune{height:calc(var(--fm) * .9);width:auto;display:block}
 .gs-alt-k,.gs-rune-k{height:40px}
@@ -158,7 +158,7 @@
 .gs-art-segmente .gs-s{height:calc(var(--fm) * 1.2);padding:0 1px}
 .gs-seg-ausmalen .gs-s{height:auto}
 .gs-seg-mal{display:grid;justify-items:center;gap:3px}
-.gs-seg-namen{display:flex;align-items:flex-end;justify-content:center;min-height:2.3em;font-family:var(--blatt-buchstaben);font-size:max(10px,calc(var(--fm) * .28));font-weight:700;line-height:1.15;text-align:center;white-space:nowrap;color:#3A322C}
+.gs-seg-namen{display:flex;align-items:flex-end;justify-content:center;min-height:2.3em;font-family:var(--blatt-buchstaben);font-size:max(10px,calc(var(--fm) * .28));font-weight:700;line-height:1.15;text-align:center;white-space:nowrap;color:#333B47}
 .gs-seg-ausmalen .gs-seg{height:calc(var(--fm) * 1.6)}
 .gs-seg-ausmalen .gs-wort{column-gap:calc(var(--fm) * .3)}
 .gs-seg-loes{display:none}
@@ -233,14 +233,14 @@
 .gs-noten-ton{display:flex;gap:8px;margin:6px 0 4px}
 .gs-einzug{margin:2px 0 0 26px}
 .gs-einzug[hidden]{display:none}
-.gs-z.gs-spielt .gs-note{background:#FFE7CF;border-radius:4px}
+.gs-z.gs-spielt .gs-note{background:#DCEEFA;border-radius:4px}
 /* Notenschrift mit Audio: nur der QR-Code (Breite in echten cm) und Schreiblinien je Wort */
 .gs-qr-code{display:block;margin:10px 0 0;padding:16px 0}
 .gs-qr-gross{margin:0 auto}
 .gs-qr-gross .gs-qr{display:block;width:100%;height:auto}
 .gs-hoer-linien{display:flex;flex-wrap:wrap;gap:16px 34px;margin-top:28px;--fm:42px}
 .gs-hoer-wort{display:grid;gap:4px}
-.gs-hoer-wort small{font-size:.75rem;color:#8A8079;font-weight:600}
+.gs-hoer-wort small{font-size:.75rem;color:#858D98;font-weight:600}
 .gs-hoer-wort > span{display:flex;gap:10px}
 .gs-hoer-wort .gs-linie{width:34px}
 .gs-nur-qr .gs-mit-schluessel{display:none!important}
@@ -255,12 +255,12 @@
 .karte[hidden]{display:none}
 /* Emoji- und Regenbogen-Scheibe */
 .gs-emoji{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",var(--blatt-buchstaben);font-weight:400;font-size:calc(var(--fm) * .74)}
-.gs-farbpunkt{display:block;width:calc(var(--fm) * .68);height:calc(var(--fm) * .68);border-radius:50%;border:1.5px solid rgba(28,23,20,.45);box-sizing:border-box}
+.gs-farbpunkt{display:block;width:calc(var(--fm) * .68);height:calc(var(--fm) * .68);border-radius:50%;border:1.5px solid rgba(28,37,48,.45);box-sizing:border-box}
 .gs-vorschau .gs-emoji{font-size:1.05rem}
 .gs-vorschau .gs-farbpunkt{width:17px;height:17px}
 .gs-emoji-k{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;font-weight:400;font-size:1.25rem}
-.gs-farb-k{display:inline-block;width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(28,23,20,.45);vertical-align:middle;box-sizing:border-box}
-.gs-farbbuchstabe{-webkit-text-stroke:.6px #1C1714;paint-order:stroke}
+.gs-farb-k{display:inline-block;width:22px;height:22px;border-radius:50%;border:1.5px solid rgba(28,37,48,.45);vertical-align:middle;box-sizing:border-box}
+.gs-farbbuchstabe{-webkit-text-stroke:.6px #1C2530;paint-order:stroke}
 .gs-themen{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-bottom:6px}
 .gs-themen label{position:relative;cursor:pointer}
 .gs-themen input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}

@@ -16,7 +16,7 @@
 .rb .feld-label{display:block;margin-top:4px}
 .rb-zeile{display:flex;gap:8px;align-items:center}
 .rb-zeile input{flex:1;min-width:0;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:8px 11px;font-size:1.25rem;font-weight:700;letter-spacing:.2em;transition:border-color .15s,box-shadow .15s}
-.rb-zeile input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.rb-zeile input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
 .rb-zaehler{margin-top:8px;font-size:.88rem}
 .rb-zaehler p{margin:6px 0 0}
 .rb-zaehler-haupt{padding:8px 11px;border-radius:9px;margin:0!important}
@@ -46,9 +46,9 @@
 .rb-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
 .rb-rahmen{overflow-x:auto;padding-bottom:4px}
 .rb-rahmen[hidden]{display:none}
-.rb-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:26px 32px 30px}
-.rb-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
-.rb-anleitung{margin:0 0 14px;color:#554C45;line-height:1.45;font-size:.95rem}
+.rb-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C2530;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:26px 32px 30px}
+.rb-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C2530}
+.rb-anleitung{margin:0 0 14px;color:#4B5563;line-height:1.45;font-size:.95rem}
 .rb-bild{display:grid;justify-items:center;gap:10px}
 .rb-bogen,.rb-gruppen{display:block}
 .rb-antwort{margin:14px 0 0;font-weight:700;font-size:1.1rem;display:flex;align-items:flex-end;gap:10px}

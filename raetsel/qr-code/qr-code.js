@@ -804,9 +804,9 @@ function starte(bereich){
   var D = st.opt.design = Object.assign({ logoArt:'kein', logoGroesse:22, logoFrei:true, durchsichtig:false, vorlage:'klassisch' }, VORLAGEN[0].d, st.opt.design || {});
   // Logo «Rätsellabor»: der Kolben aus dem Kopf der Seite, auf weissem Grund
   var LABOR_LOGO = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="-30 4 160 160">' +
-    '<circle cx="34" cy="21" r="6" fill="#F28C38"/><circle cx="44" cy="12" r="6.5" fill="#F28C38"/><circle cx="57" cy="13" r="6.5" fill="#F28C38"/><circle cx="66" cy="25" r="6" fill="#F28C38"/>' +
-    '<circle cx="60" cy="39" r="5.5" fill="#F28C38"/><circle cx="51" cy="51" r="5" fill="#F28C38"/><circle cx="50" cy="70" r="5" fill="#F28C38"/>' +
-    '<path d="M27.4 132 H42 C44 129 40 124 44.5 121 C47 119.3 53 119.3 55.5 121 C60 124 56 129 58 132 H72.6 L84 152 Q88 160 79 160 H21 Q12 160 16 152 Z" fill="#F28C38"/>' +
+    '<circle cx="34" cy="21" r="6" fill="#0075BA"/><circle cx="44" cy="12" r="6.5" fill="#0075BA"/><circle cx="57" cy="13" r="6.5" fill="#0075BA"/><circle cx="66" cy="25" r="6" fill="#0075BA"/>' +
+    '<circle cx="60" cy="39" r="5.5" fill="#0075BA"/><circle cx="51" cy="51" r="5" fill="#0075BA"/><circle cx="50" cy="70" r="5" fill="#0075BA"/>' +
+    '<path d="M27.4 132 H42 C44 129 40 124 44.5 121 C47 119.3 53 119.3 55.5 121 C60 124 56 129 58 132 H72.6 L84 152 Q88 160 79 160 H21 Q12 160 16 152 Z" fill="#0075BA"/>' +
     '<path d="M40 82 V110 L16 152 Q12 160 21 160 H79 Q88 160 84 152 L60 110 V82" fill="none" stroke="#000" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>' +
     '<path d="M33 82 H67" fill="none" stroke="#000" stroke-width="7" stroke-linecap="round"/></svg>');
   function logoUrl(){ return D.logoArt === 'labor' ? LABOR_LOGO : D.logoArt === 'eigen' ? (st.logoDaten || '') : ''; }

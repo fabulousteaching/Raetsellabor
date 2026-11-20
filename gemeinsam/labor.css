@@ -1,23 +1,23 @@
 /* Rätsellabor – gemeinsames Erscheinungsbild für Startseite, Menü und alle Rätselgeneratoren.
-   Farben aus dem Logo von Fabulous Teaching: Aquarell-Orange #F28C38 (hell #F7A25D, Schrift #A9490B), Schwarz, Weiss;
+   Farben aus dem Logo von Fabulous Teaching: Aquarell-Orange #0075BA (hell #1A8FD6, Schrift #005A90), Schwarz, Weiss;
    Markierfarben aus den Flüssigkeiten im Logo (Gelb, Grün, Blau, Rot). Schrift: Fredoka und Inter.
    Aufbau: helle Kopfleiste mit Menü oben rechts; darunter die Startseite oder genau ein Generator.
    Bewusst nur ein helles Erscheinungsbild (Arbeitsblätter zum Drucken). */
 /* Deutschschweizer Basisschrift: nur vom Computer (installiert), nicht vom Server – siehe Schriftwahl in labor.js */
 @font-face{font-family:'DCH Basisschrift';src:local('DCH-Basisschrift'),local('DCHBasisschrift'),local('DCHBasisschrift Regular');font-display:swap}
 :root{
-  --bg:#F8F5F1; --card:#fff; --line:#EAE3DC; --line-2:#D8CEC4; --text:#221C18; --ink:#000; --muted:#6E655E; --muted-2:#A0968E;
-  /* Orange aus dem Fabulous-Teaching-Logo: Flächen in --accent (Schrift darauf dunkel: --auf-akzent), Schrift in --accent-2 */
-  --accent:#F28C38; --accent-dunkel:#E0741C; --accent-2:#A9490B; --accent-hell:#F7A25D; --accent-soft:#FFF1E5; --accent-line:#F7CBA3;
-  --auf-akzent:#1A1411; --marke:#E46F12;
+  --bg:#F4F7F9; --card:#fff; --line:#E2E7EB; --line-2:#CDD5DC; --text:#1C2530; --ink:#000; --muted:#6B7280; --muted-2:#9AA1AD;
+  /* Blau aus dem Logo: Flächen in --accent (Schrift darauf weiss: --auf-akzent), Schrift und Hover in --accent-2 */
+  --accent:#0075BA; --accent-dunkel:#005A90; --accent-2:#005A90; --accent-hell:#1A8FD6; --accent-soft:#E8F3FA; --accent-line:#B5D8EE;
+  --auf-akzent:#FFFFFF; --marke:#0075BA;
   --ok:#15803d; --ok-soft:#ecf8f0; --ok-line:#b9e3c6;
-  --warn:#7A5A00; --warn-soft:#FFF9DC; --warn-line:#F1DB85;
+  --warn:#a15c07; --warn-soft:#fff8eb; --warn-line:#f4d79e;
   --err:#c62828; --err-soft:#fdf1f1; --err-line:#f2c4c4;
   --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
   --display:'Fredoka','Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
   /* Schrift der Arbeitsblätter – in der Werkzeugleiste jedes Generators wählbar (gemeinsam/labor.js setzt sie) */
   --blatt-schrift:var(--font); --blatt-buchstaben:'Andika',var(--font); --blatt-display:var(--display);
-  --schatten:0 1px 2px rgba(45,28,12,.05),0 6px 20px rgba(45,28,12,.05);
+  --schatten:0 1px 2px rgba(16,24,40,.05),0 6px 20px rgba(16,24,40,.05);
   --kopf-h:60px;
   color-scheme:light;
 }
@@ -47,14 +47,14 @@ h1,h2,h3{text-wrap:balance}
 .kopf-luecke{flex:1}
 .menue-knopf{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px 0 12px;border:1px solid var(--line-2);border-radius:10px;background:var(--card);
   color:var(--text);font-weight:600;font-size:.9rem;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
-.menue-knopf:hover{background:#FBF8F5;border-color:#C2B8AE}
+.menue-knopf:hover{background:#F8FAFC;border-color:#B6BDC8}
 .menue-knopf[aria-expanded="true"]{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent-2)}
 .menue-knopf .zu{display:none}
 .menue-knopf[aria-expanded="true"] .auf{display:none}
 .menue-knopf[aria-expanded="true"] .zu{display:block}
 .menue{position:absolute;top:calc(100% + 8px);right:max(24px,env(safe-area-inset-right,0px));width:min(380px,calc(100vw - 32px));
   max-height:calc(100vh - var(--kopf-h) - 32px);overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:14px;
-  box-shadow:0 14px 44px rgba(45,28,12,.16);padding:8px}
+  box-shadow:0 14px 44px rgba(16,24,40,.16);padding:8px}
 .menue-gruppe + .menue-gruppe{border-top:1px solid var(--line);margin-top:6px;padding-top:6px}
 .menue-titel{margin:8px 10px 6px;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
 .menue-liste{list-style:none;margin:0;padding:0;display:grid;gap:2px}
@@ -101,18 +101,18 @@ html.sprache-wartet body{visibility:hidden}
 
 input[type=text],select{background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:8px 11px;width:100%;transition:border-color .15s,box-shadow .15s}
 input::placeholder{color:var(--muted-2)}
-input[type=text]:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+input[type=text]:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
 a:focus-visible,button:focus-visible,summary:focus-visible,input[type=checkbox]:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
 
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-weight:600;font-size:.9rem;border:1px solid var(--line-2);border-radius:8px;padding:8px 14px;
   background:var(--card);color:var(--text);cursor:pointer;white-space:nowrap;text-decoration:none;transition:background .15s,border-color .15s,color .15s}
-.btn:hover{background:#FBF8F5;border-color:#C2B8AE}
+.btn:hover{background:#F8FAFC;border-color:#B6BDC8}
 .btn.primary,.btn.haupt{background:var(--accent);border-color:var(--accent);color:var(--auf-akzent)}
 .btn.primary:hover,.btn.haupt:hover{background:var(--accent-dunkel);border-color:var(--accent-dunkel)}
 .btn.soft{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent-2)}
-.btn.soft:hover{background:#FFE2CA}
+.btn.soft:hover{background:#D6EAF8}
 .btn.ghost,.btn.leise{background:transparent;border-color:transparent;color:var(--muted);padding:6px 8px}
-.btn.ghost:hover,.btn.leise:hover{background:#F3EEE9;color:var(--text)}
+.btn.ghost:hover,.btn.leise:hover{background:#EEF2F5;color:var(--text)}
 .btn.klein{font-size:.82rem;padding:5px 9px}
 .btn.gross{width:100%;font-size:1rem;padding:12px 16px}
 .btn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent-2)}
@@ -123,13 +123,13 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input[type=checkbox]:
 .em-blatt,.gs-blatt,.kw-seite,.sl-blatt,.lb-blatt,.pz-blatt,.qr-blatt,.rb-blatt,.rf-blatt,.uf-blatt,.sf-blatt,.lk-blatt,.bw-blatt,.ur-blatt,.ng-blatt,.tf-blatt,.mc-blatt,.pt-blatt,.sw-blatt,.fb-blatt,.bt-blatt,.sk-blatt,.rs-blatt,.sr-blatt,.sb-blatt,.tr-blatt,.zs .blatt{font-family:var(--blatt-schrift)}
 /* Auswahl wie in Word: Feld mit der aktuellen Schrift, beim Tippen wird gesucht */
 .schrift-wahl{position:relative;display:inline-flex;align-items:center;width:200px;max-width:100%;height:32px;border:1px solid var(--line-2);border-radius:8px;background:var(--card);transition:border-color .15s,box-shadow .15s}
-.schrift-wahl:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.schrift-wahl:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
 .schrift-aa{flex:none;padding:0 2px 0 9px;font-family:Merriweather,Georgia,serif;font-size:.78rem;font-weight:700;color:var(--accent-2)}
 .schrift-wahl .schrift-feld{flex:1;min-width:0;width:auto;height:100%;border:0;border-radius:8px;background:transparent;padding:0 4px 0 6px;font-size:.9rem;color:var(--text);box-shadow:none;text-overflow:ellipsis}
 .schrift-wahl .schrift-feld:focus{outline:none;box-shadow:none}
 .schrift-pfeil{flex:none;width:26px;height:100%;cursor:pointer;background:no-repeat center/10px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%236E655E' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
 .schrift-liste{position:absolute;top:calc(100% + 4px);left:-1px;z-index:40;width:300px;max-width:calc(100vw - 32px);max-height:min(360px,60vh);overflow:auto;margin:0;padding:5px;list-style:none;
-  background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px rgba(45,28,12,.16)}
+  background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px rgba(16,24,40,.16)}
 .schrift-wahl.rechts .schrift-liste{left:auto;right:-1px}
 .schrift-liste[hidden]{display:none}
 .schrift-liste li{display:grid;gap:1px;padding:7px 10px;border-radius:8px;cursor:pointer}
@@ -138,7 +138,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input[type=checkbox]:
 .schrift-liste li:hover,.schrift-liste li[aria-selected="true"]{background:var(--accent-soft)}
 .schrift-liste li.gewaehlt b::after{content:" ✓";font-family:var(--font);font-size:.85rem;color:var(--accent-2)}
 .schrift-liste li.leer{cursor:default;color:var(--muted);font-size:.86rem}
-.schrift-meldung{position:absolute;top:calc(100% + 4px);left:0;z-index:41;width:300px;max-width:calc(100vw - 32px);padding:8px 11px;border-radius:10px;background:#1C1714;color:#fff;font-size:.82rem;line-height:1.35;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.schrift-meldung{position:absolute;top:calc(100% + 4px);left:0;z-index:41;width:300px;max-width:calc(100vw - 32px);padding:8px 11px;border-radius:10px;background:#1C2530;color:#fff;font-size:.82rem;line-height:1.35;box-shadow:0 8px 24px rgba(0,0,0,.2)}
 .schrift-wahl.rechts .schrift-meldung{left:auto;right:0}
 .schrift-meldung[hidden]{display:none}
 .schrift-meldung span{display:block}
@@ -161,20 +161,20 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input[type=checkbox]:
 .pl-kopf{margin-bottom:4px;font-size:.76rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
 .pl-zeilen{display:grid;gap:6px;margin-bottom:8px}
 .pl-zeile input{width:100%;min-width:0;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:7px 9px;font-size:.95rem;transition:border-color .15s,box-shadow .15s,background-color .15s}
-.pl-zeile input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
-.pl-zeile input.pl-auto,.pl-auto-muster{background:#FFF1E2;border-color:var(--accent-line)}
+.pl-zeile input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
+.pl-zeile input.pl-auto,.pl-auto-muster{background:#E6F2FB;border-color:var(--accent-line)}
 .pl-auto-muster{padding:0 4px;border:1px solid var(--accent-line);border-radius:4px}
 .pl-zeile input.pl-laedt{padding-right:30px;background:var(--card) no-repeat right 9px center/14px url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='none' stroke='%23F7CBA3' stroke-width='2'/%3E%3Cpath d='M8 2a6 6 0 0 1 6 6' fill='none' stroke='%23F28C38' stroke-width='2' stroke-linecap='round'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 8 8' to='360 8 8' dur='.8s' repeatCount='indefinite'/%3E%3C/path%3E%3C/svg%3E")}
 .pl-x{width:28px;height:28px;border:0;border-radius:50%;background:transparent;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;padding:0}
-.pl-x:hover{background:#F3EEE9;color:var(--err)}
-.pl-zeile.pl-neu input{border-style:dashed;background:#FBF8F5}
+.pl-x:hover{background:#EEF2F5;color:var(--err)}
+.pl-zeile.pl-neu input{border-style:dashed;background:#F8FAFC}
 .pl-zeile.pl-neu .pl-x{visibility:hidden}
 .pl-meldung{margin:6px 0 0;padding:7px 10px;border-radius:8px;background:var(--warn-soft);color:var(--warn);font-size:.84rem}
 .pl-meldung[hidden]{display:none}
 .pl-hilfe{margin:-2px 0 6px}
 
 /* ---------- Baustein «Thema und Wörter» (gemeinsam/wortwahl.js) ---------- */
-.vorschlaege{margin-top:14px;border:1px solid var(--accent-line);background:#FFF8F1;border-radius:12px;padding:12px}
+.vorschlaege{margin-top:14px;border:1px solid var(--accent-line);background:#F2F8FC;border-radius:12px;padding:12px}
 .vorschlaege-kopf{display:flex;align-items:center;justify-content:space-between;gap:4px 8px;flex-wrap:wrap;margin-bottom:10px}
 .vorschlaege-kopf strong{font-size:.92rem;font-weight:650}
 .quelle{white-space:nowrap;display:inline-block;font-size:.7rem;font-weight:600;color:var(--accent-2);background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:999px;padding:1px 7px;margin-left:6px;vertical-align:1px}
@@ -202,7 +202,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input[type=checkbox]:
 .zaehler{font-weight:600;color:var(--accent-2);text-transform:none;letter-spacing:0;margin-left:4px}
 .chips.gewaehlt{min-height:44px;padding:8px;border:1px dashed var(--line-2);border-radius:10px;margin-bottom:10px;align-content:flex-start}
 .chips.gewaehlt:empty::before{content:'Noch keine Wörter – übernimm Vorschläge oder füge eigene hinzu.';color:var(--muted-2);font-size:.86rem;padding:3px 4px}
-.chip-wort{display:inline-flex;align-items:center;gap:1px;font-size:.86rem;background:#F4EFEA;border:1px solid var(--line);border-radius:999px;padding:2px 3px 2px 11px}
+.chip-wort{display:inline-flex;align-items:center;gap:1px;font-size:.86rem;background:#F1F4F7;border:1px solid var(--line);border-radius:999px;padding:2px 3px 2px 11px}
 .chip-wort button{border:0;background:transparent;width:22px;height:22px;border-radius:50%;cursor:pointer;color:var(--muted);font-size:1rem;line-height:1;display:grid;place-items:center;padding:0}
 .chip-wort button:hover{background:var(--err-soft);color:var(--err)}
 .chip-wort.ungueltig{background:var(--warn-soft);border-color:var(--warn-line);color:var(--warn)}
@@ -214,7 +214,7 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input[type=checkbox]:
 .held-text{min-width:0}
 .held-marke{display:flex;align-items:center;gap:.3em;margin:14px 0 18px;font-size:clamp(2.6rem,6vw,4rem);font-weight:600;line-height:1}
 .held-marke .kolben{height:1.5em;width:auto;flex:none}
-.held .lead{margin:0;max-width:62ch;font-size:1.08rem;color:#3D3530}
+.held .lead{margin:0;max-width:62ch;font-size:1.08rem;color:#374151}
 .abschnitt{display:grid;gap:18px}
 .abschnitt-kopf h2{font-family:var(--display);font-weight:600;font-size:1.7rem;letter-spacing:-.01em;margin:0;color:var(--ink)}
 .abschnitt-kopf p{margin:4px 0 0;color:var(--muted);max-width:62ch}
@@ -227,12 +227,12 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input[type=checkbox]:
   font:inherit;font-size:.98rem;color:var(--text);box-shadow:var(--schatten);transition:border-color .15s,box-shadow .15s;-webkit-appearance:none;appearance:none}
 .suche input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none;display:none}
 .suche input:hover{border-color:var(--accent-line)}
-.suche input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.suche input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
 .suche:focus-within .suche-lupe{color:var(--accent-2)}
 .suche-weg{position:absolute;right:7px;top:50%;transform:translateY(-50%);width:28px;height:28px;border:0;border-radius:50%;background:transparent;color:var(--muted);
   display:grid;place-items:center;cursor:pointer;padding:0}
 .suche-weg[hidden]{display:none}
-.suche-weg:hover{background:#F3EEE9;color:var(--text)}
+.suche-weg:hover{background:#EEF2F5;color:var(--text)}
 .suche-weg:focus-visible{outline:2px solid var(--accent-2);outline-offset:1px}
 .raetsel-karte[hidden]{display:none}
 .suche-leer{margin:0;padding:18px 20px;border:1px dashed var(--line-2);border-radius:14px;color:var(--muted)}
@@ -240,8 +240,8 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input[type=checkbox]:
 @media (max-width:640px){ .suche{flex:1 1 100%} }
 .raetsel-karten{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr));gap:18px;align-items:stretch}   /* alle Karten gleich gross */
 .raetsel-karte{position:relative;display:flex;flex-direction:column;min-width:0;padding:0;overflow:hidden;background:var(--card);border:1px solid var(--line);border-radius:16px;
-  color:inherit;text-decoration:none;box-shadow:0 1px 2px rgba(45,28,12,.05);transition:border-color .15s,box-shadow .2s,transform .2s}
-a.raetsel-karte:hover{border-color:var(--accent);box-shadow:0 12px 30px rgba(242,140,56,.22);transform:translateY(-2px)}
+  color:inherit;text-decoration:none;box-shadow:0 1px 2px rgba(16,24,40,.05);transition:border-color .15s,box-shadow .2s,transform .2s}
+a.raetsel-karte:hover{border-color:var(--accent);box-shadow:0 12px 30px rgba(0,117,186,.22);transform:translateY(-2px)}
 a.raetsel-karte:focus-visible{outline:3px solid var(--accent-2);outline-offset:2px}
 /* Beispielrätsel oben in der Kachel */
 .karte-bild{position:relative;display:block;border-bottom:1px solid var(--line)}
@@ -249,26 +249,26 @@ a.raetsel-karte:focus-visible{outline:3px solid var(--accent-2);outline-offset:2
 .karte-bild img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .35s ease}
 a.raetsel-karte:hover .karte-bild img{transform:scale(1.04)}
 .karte-bild .sym{position:absolute;left:16px;bottom:-20px;z-index:1;width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:var(--accent);color:var(--auf-akzent);
-  border:3px solid var(--card);box-shadow:0 2px 8px rgba(45,28,12,.16)}
+  border:3px solid var(--card);box-shadow:0 2px 8px rgba(16,24,40,.16)}
 .karte-bild .sym svg{width:20px;height:20px}
 .karte-bild.ohne .karte-bild-innen{background:var(--accent-soft)}
 .karte-bild.ohne img{display:none}
 .karte-text{display:grid;gap:6px;padding:28px 18px 8px}
 .raetsel-karte h3{font-family:var(--display);font-weight:600;font-size:1.25rem;letter-spacing:-.005em;line-height:1.2;margin:0;color:var(--ink)}
-.raetsel-karte p{margin:0;font-size:.92rem;line-height:1.45;color:#554C45}
+.raetsel-karte p{margin:0;font-size:.92rem;line-height:1.45;color:#4B5563}
 .oeffnen{align-self:flex-start;margin:auto 18px 18px;display:inline-flex;align-items:center;padding:8px 16px;border-radius:999px;background:var(--accent-soft);
   color:var(--accent-2);font-weight:650;font-size:.9rem;transition:background .15s,color .15s}
 .karte-text + .oeffnen{margin-top:auto}
 a.raetsel-karte:hover .oeffnen{background:var(--accent);color:var(--auf-akzent)}
 .raetsel-karte.bald{padding:20px;gap:12px;background:transparent;border-style:dashed;border-color:var(--line-2);box-shadow:none;color:var(--muted)}
-.raetsel-karte.bald .sym{width:44px;height:44px;border-radius:11px;display:grid;place-items:center;background:#EFE9E3;color:var(--muted)}
-.raetsel-karte.bald h3{color:#554C45}
+.raetsel-karte.bald .sym{width:44px;height:44px;border-radius:11px;display:grid;place-items:center;background:#ECEFF3;color:var(--muted)}
+.raetsel-karte.bald h3{color:#4B5563}
 .schritte{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;counter-reset:schritt}
 .schritte li{counter-increment:schritt;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;align-items:start}
 .schritte li::before{content:counter(schritt);grid-row:span 2;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
   background:var(--accent-soft);color:var(--accent-2);font-weight:700;font-size:.85rem}
 .schritte b{font-weight:650;color:var(--ink);padding-top:4px}
-.schritte span{font-size:.92rem;color:#554C45}
+.schritte span{font-size:.92rem;color:#4B5563}
 @media (max-width:860px){
   .held{grid-template-columns:minmax(0,1fr);gap:28px}
   .schritte{grid-template-columns:minmax(0,1fr);gap:16px}
@@ -296,7 +296,7 @@ a.raetsel-karte:hover .oeffnen{background:var(--accent);color:var(--auf-akzent)}
 .eigenes-label{margin-top:12px;text-transform:none;letter-spacing:0;font-size:.8rem}
 /* Hinweis «neue Version» (gemeinsam/labor.js) */
 .labor-neu{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:50;display:flex;align-items:center;gap:12px;
-  width:max-content;max-width:calc(100vw - 32px);padding:10px 12px 10px 16px;border-radius:12px;background:#221C18;color:#fff;font-size:.9rem;box-shadow:0 12px 32px rgba(0,0,0,.25)}
+  width:max-content;max-width:calc(100vw - 32px);padding:10px 12px 10px 16px;border-radius:12px;background:#1C2530;color:#fff;font-size:.9rem;box-shadow:0 12px 32px rgba(0,0,0,.25)}
 @media print{ .labor-neu{display:none!important} }
 /* Bruch im Text: Zähler über Nenner (statt 3/5) – <span class="bruch"><span>3</span><span>5</span></span> */
 .bruch{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.05;font-size:.82em;margin:0 .1em}
@@ -307,7 +307,7 @@ a.raetsel-karte:hover .oeffnen{background:var(--accent);color:var(--auf-akzent)}
 .pl-dateiknopf input{position:absolute;inset:0;opacity:0;width:100%;cursor:pointer}
 .pl-dateihinweis{font-size:.8rem;color:var(--muted)}
 [data-fach].pl-ziehen,.pl-ziehen{position:relative;outline:2px dashed var(--accent);outline-offset:4px;border-radius:10px;background:var(--accent-soft)}
-.pl-ziehen::after{content:"Loslassen: Liste übernehmen";position:absolute;inset:0;display:grid;place-items:center;font-weight:700;color:var(--accent-2);background:rgba(255,244,233,.86);border-radius:10px;pointer-events:none;z-index:2}
+.pl-ziehen::after{content:"Loslassen: Liste übernehmen";position:absolute;inset:0;display:grid;place-items:center;font-weight:700;color:var(--accent-2);background:rgba(240,247,252,.86);border-radius:10px;pointer-events:none;z-index:2}
 .pl-meldung.pl-gut{background:var(--ok-soft);color:var(--ok)}
 /* Blätter im Querformat (Klasse «blatt-quer»): 273 mm breit; beim Drucken eine Seite A4 quer */
 @media print{

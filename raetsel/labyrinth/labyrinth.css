@@ -12,7 +12,7 @@
 
 /* ---------- Eingaben ---------- */
 .lb textarea{display:block;width:100%;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;resize:vertical;min-height:3.4em;line-height:1.45;font-size:1.05rem;font-weight:600;transition:border-color .15s,box-shadow .15s}
-.lb textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.lb textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
 .lb-wahl,.lb-stufen,.lb-paare{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
 .lb-stufen,.lb-paare{margin:0}
 .lb-wahl label,.lb-stufen label,.lb-paare label{position:relative;cursor:pointer}
@@ -59,11 +59,11 @@ details.optionen[open] summary{margin-bottom:6px}
 .lb-werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
 .lb-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
 
-.lb-blatt{background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:30px clamp(16px,3.2vw,40px)}
+.lb-blatt{background:#fff;color:#1C2530;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:30px clamp(16px,3.2vw,40px)}
 .lb-blatt.veraltet::before{content:'Eingaben geändert – «Labyrinth erstellen» klicken, um es zu aktualisieren.';display:block;margin:-10px 0 16px;
   background:var(--warn-soft);color:#6B4E00;border:1px solid var(--warn-line);font-size:.86rem;padding:7px 12px;border-radius:8px}
-.lb-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
-.lb-anleitung{margin:0 0 16px;color:#554C45;max-width:80ch}
+.lb-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C2530}
+.lb-anleitung{margin:0 0 16px;color:#4B5563;max-width:80ch}
 .lb-feld{display:flex;justify-content:center}
 .lb-loesungsblatt{display:none;margin-top:16px}
 .lb-fortschritt{margin:14px 0 0;font-size:.92rem;color:var(--muted);min-height:1.5em;text-align:center}
@@ -71,7 +71,7 @@ details.optionen[open] summary{margin-bottom:6px}
 
 svg.lb-svg{display:block;width:100%;height:auto;max-height:76vh;touch-action:none;user-select:none;-webkit-user-select:none}
 #lbBlatt svg.lb-svg{cursor:crosshair}
-svg.lb-svg .lb-ton{fill:#FFF1E5}
+svg.lb-svg .lb-ton{fill:#E8F3FA}
 svg.lb-svg .lb-waende{fill:none;stroke-linecap:round;stroke-linejoin:round}
 svg.lb-svg .lb-loesung{fill:none;stroke:var(--accent);stroke-linecap:round;stroke-linejoin:round;opacity:.85}
 #lbBlatt svg.lb-svg .lb-loesung{opacity:0;transition:opacity .2s}
@@ -90,7 +90,7 @@ svg.lb-svg .lb-figur{font-size:11px;text-anchor:middle;dominant-baseline:central
   .lb-blatt.veraltet::before{display:none}
   #lbBlatt .lb-weg{display:none}
   svg.lb-svg{max-height:225mm;max-width:186mm;margin:0 auto}
-  svg.lb-svg .lb-ton{fill:#FFF5EC;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  svg.lb-svg .lb-ton{fill:#EEF6FC;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   body.mit-loesung .lb-loesungsblatt{display:block;break-before:page;margin-top:0}
 }
 
@@ -104,7 +104,7 @@ svg.lb-svg .lb-figur{font-size:11px;text-anchor:middle;dominant-baseline:central
 
 /* ---------- Eingaben ---------- */
 .sl textarea{display:block;width:100%;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;resize:vertical;min-height:4.6em;line-height:1.45;font-size:1.05rem;font-weight:600;transition:border-color .15s,box-shadow .15s}
-.sl textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.sl textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
 .sl-stufen{display:flex;flex-wrap:wrap;gap:6px;margin:0}
 .sl-stufen label{position:relative;cursor:pointer}
 .sl-stufen input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
@@ -134,37 +134,37 @@ svg.lb-svg .lb-figur{font-size:11px;text-anchor:middle;dominant-baseline:central
 .sl-werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
 .sl-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
 
-.sl-blatt{background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:30px clamp(16px,3.2vw,40px)}
+.sl-blatt{background:#fff;color:#1C2530;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:30px clamp(16px,3.2vw,40px)}
 .sl-blatt.veraltet::before{content:'Eingaben geändert – «Labyrinth erstellen» klicken, um es zu aktualisieren.';display:block;margin:-10px 0 16px;
   background:var(--warn-soft);color:#6B4E00;border:1px solid var(--warn-line);font-size:.86rem;padding:7px 12px;border-radius:8px}
-.sl-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
-.sl-anleitung{margin:0 0 14px;color:#554C45;max-width:80ch}
+.sl-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C2530}
+.sl-anleitung{margin:0 0 14px;color:#4B5563;max-width:80ch}
 .sl-feld{display:flex;justify-content:center}
 .sl-loesungsblatt{display:none;margin-top:16px}
 .sl-fortschritt{margin:12px 0 0;font-size:.95rem;color:var(--muted);min-height:1.5em;text-align:center;overflow-wrap:anywhere}
 .sl-fortschritt.fertig{font-weight:650;font-size:1rem;color:var(--ok)}
-.sl-antwort{display:grid;grid-template-columns:auto 1fr;gap:18px 10px;align-items:end;margin:20px 0 0;font-weight:600;color:#1C1714}
-.sl-linie{border-bottom:1.5px solid #1C1714;height:1.7em}
+.sl-antwort{display:grid;grid-template-columns:auto 1fr;gap:18px 10px;align-items:end;margin:20px 0 0;font-weight:600;color:#1C2530}
+.sl-linie{border-bottom:1.5px solid #1C2530;height:1.7em}
 .sl-linie.voll{grid-column:1 / -1}
-.sl-satz-loesung{margin:16px 0 0;font-size:1.1rem;color:#1C1714}
+.sl-satz-loesung{margin:16px 0 0;font-size:1.1rem;color:#1C2530}
 
 svg.sl-svg{display:block;width:100%;height:auto;max-height:74vh;touch-action:none;user-select:none;-webkit-user-select:none}
 #slBlatt svg.sl-svg{cursor:crosshair}
-svg.sl-svg .sl-waende{fill:none;stroke:#1C1714;stroke-linecap:square;stroke-linejoin:miter}
-svg.sl-svg .sl-buchstaben text{font-family:var(--blatt-buchstaben);font-size:5.6px;fill:#1C1714;text-anchor:middle;dominant-baseline:central;pointer-events:none}
-svg.sl-svg .sl-pfeil{fill:none;stroke:var(--accent-dunkel,#E0741C);stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round}
+svg.sl-svg .sl-waende{fill:none;stroke:#1C2530;stroke-linecap:square;stroke-linejoin:miter}
+svg.sl-svg .sl-buchstaben text{font-family:var(--blatt-buchstaben);font-size:5.6px;fill:#1C2530;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+svg.sl-svg .sl-pfeil{fill:none;stroke:var(--accent-dunkel,#005A90);stroke-width:1.1;stroke-linecap:round;stroke-linejoin:round}
 /* Weg wie mit Leuchtstift: breit und durchscheinend, die Buchstaben bleiben lesbar */
-svg.sl-svg .sl-loesung{fill:none;stroke:#F7A25D;stroke-width:6.4;stroke-linecap:round;stroke-linejoin:round;opacity:.55;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+svg.sl-svg .sl-loesung{fill:none;stroke:#1A8FD6;stroke-width:6.4;stroke-linecap:round;stroke-linejoin:round;opacity:.55;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 #slBlatt svg.sl-svg .sl-loesung{opacity:0;transition:opacity .2s}
 #slBlatt.zeige-loesung svg.sl-svg .sl-loesung{opacity:.5}
 /* Art «Weg schreibt den Satz»: Felder des Wegs gefüllt (die Buchstaben stehen deutlich da) und die Linie durch ihre Mitten */
 #lsBlatt svg.sl-svg{cursor:crosshair}
-svg.ls-svg .ls-felder{fill:#FBD2AE;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-svg.ls-svg .ls-loesung{fill:none;stroke:#E0741C;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+svg.ls-svg .ls-felder{fill:#BFDDF3;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+svg.ls-svg .ls-loesung{fill:none;stroke:#005A90;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 #lsBlatt svg.ls-svg .ls-felder,#lsBlatt svg.ls-svg .ls-loesung{opacity:0;transition:opacity .2s}
 #lsBlatt.zeige-loesung svg.ls-svg .ls-felder,#lsBlatt.zeige-loesung svg.ls-svg .ls-loesung{opacity:1}
 svg.ls-svg .sl-weg{stroke-width:4.4}
-.ls-eingabe{color:#6E655E;font-weight:400}
+.ls-eingabe{color:#6B7280;font-weight:400}
 svg.sl-svg .sl-weg{fill:none;stroke:#63C2EA;stroke-width:6.4;stroke-linecap:round;stroke-linejoin:round;opacity:.6}
 .geschafft svg.sl-svg .sl-weg{stroke:#68D77E}
 

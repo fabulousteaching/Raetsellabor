@@ -16,7 +16,7 @@
 .ng .feld-label{display:block;margin-top:4px}
 .ng-zeile{display:flex;gap:8px;align-items:center}
 .ng-zeile input{flex:1;min-width:0;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:8px 11px;font-size:1.25rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;transition:border-color .15s,box-shadow .15s}
-.ng-zeile input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.ng-zeile input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
 .ng-zaehler{font-size:.88rem}
 .ng-zaehler p{margin:8px 0 0}
 .ng-zaehler .warnung{color:var(--accent-2)}
@@ -41,13 +41,13 @@
 .ng-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
 .ng-rahmen{overflow-x:auto;padding-bottom:4px}
 .ng-rahmen[hidden]{display:none}
-.ng-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:26px 32px 30px}
-.ng-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
-.ng-anleitung{margin:0 0 14px;color:#554C45;line-height:1.45;font-size:.95rem}
+.ng-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C2530;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:26px 32px 30px}
+.ng-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C2530}
+.ng-anleitung{margin:0 0 14px;color:#4B5563;line-height:1.45;font-size:.95rem}
 .ng-mitte{display:flex;justify-content:center;margin:6px 0 0}
 .ng-raster{display:block}
 .ng-antwort{margin:22px 0 0;font-weight:700;font-size:1.1rem;display:flex;align-items:flex-end;gap:10px}
-.ng-linie{flex:1;max-width:320px;min-height:1.4em;border-bottom:2px solid #1C1714}
+.ng-linie{flex:1;max-width:320px;min-height:1.4em;border-bottom:2px solid #1C2530}
 .ng-loesung-text{margin:10px 0 0;font-size:1.15rem}
 .ng-loesungsblatt{display:none;margin-top:16px}
 .ng-blaetter{display:grid;gap:16px}

@@ -358,7 +358,7 @@ function starte(bereich){
   function kreis(svg, rc){
     var NS = 'http://www.w3.org/2000/svg', c = document.createElementNS(NS, 'circle');
     c.setAttribute('cx', rc[1] * 10 + 5); c.setAttribute('cy', rc[0] * 10 + 5); c.setAttribute('r', 4.6); c.setAttribute('class', 'rs-start');
-    c.setAttribute('fill', 'none'); c.setAttribute('stroke', '#C2410C'); c.setAttribute('stroke-width', '0.9');
+    c.setAttribute('fill', 'none'); c.setAttribute('stroke', '#005A90'); c.setAttribute('stroke-width', '0.9');
     svg.appendChild(c);
   }
   // Lösung: Nummer am Anfang jedes geraden Stücks und ein Pfeil in seiner Mitte

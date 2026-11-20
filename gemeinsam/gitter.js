@@ -129,7 +129,7 @@ var tx = Labor.uebersetzer('labor');
       }
       return z;
     }
-    function zeigeTemp(z){ if (temp) temp.remove(); temp = kapsel(gA, z, o.auswahlFarbe || '#F28C38', 'auswahl'); }
+    function zeigeTemp(z){ if (temp) temp.remove(); temp = kapsel(gA, z, o.auswahlFarbe || '#0075BA', 'auswahl'); }
     function startPunkt(rc){
       if (punkt){ punkt.remove(); punkt = null; }
       if (rc){ var m = mitte(rc); punkt = el('circle', { cx:m[0], cy:m[1], r:S * 0.42, 'class':'startpunkt' }, gA); }

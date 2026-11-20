@@ -130,7 +130,7 @@ var FAECHER = [['deutsch', SPRACHFACH], ['mathe', tx('Mathe')], ['englisch', Lab
 var DEUTSCH = [['reime', tx('Reimwörter')], ['mehrzahl', tx('Einzahl – Mehrzahl')], ['gegenteile', tx('Gegenteile')]];
 var MATHE = [['plusminus', tx('Plus & Minus')], ['einmaleins', tx('Einmaleins')], ['dezimal', tx('Dezimalzahlen')], ['brueche', tx('Brüche')]];
 var KOEPFE = { englisch:[tx('Deutsch'), tx('Englisch'), tx('Körper = body')], franzoesisch:[tx('Deutsch'), tx('Französisch'), tx('Pferd = le cheval')], eigene:[tx('Aufgabe (Plättchen)'), tx('Antwort (Raster)'), tx('Hauptstadt der Schweiz = Bern')] };
-var PLATTFARBE = '#FFE3C2';
+var PLATTFARBE = '#D6EAF8';
 function esc(t){ return Labor.esc(t); }
 function f1(x){ return (Math.round(x * 10) / 10).toString(); }
 function chips(name, l){ return l.map(function(x){ return '<label><input type="radio" name="' + name + '" value="' + x[0] + '"><span>' + x[1] + '</span></label>'; }).join(''); }

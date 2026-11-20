@@ -38,11 +38,11 @@
 .sw-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
 .sw-rahmen{overflow-x:auto;padding-bottom:4px}
 .sw-rahmen[hidden]{display:none}
-.sw-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:26px 32px 30px}
-.sw-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
-.sw-anleitung{margin:0 0 14px;color:#554C45;line-height:1.45;font-size:.95rem}
+.sw-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C2530;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:26px 32px 30px}
+.sw-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C2530}
+.sw-anleitung{margin:0 0 14px;color:#4B5563;line-height:1.45;font-size:.95rem}
 .sw-seiten{display:grid;gap:16px}
-.sw-seitenkopf{margin:0 0 10px;font-size:.85rem;color:#8A8079}
+.sw-seitenkopf{margin:0 0 10px;font-size:.85rem;color:#858D98}
 /* Stufen: klappen auf, wenn darüber etwas gewählt ist */
 .sw-loesung-text{margin:10px 0 0;font-size:1.15rem}
 .sw-loesungsblatt{display:none;margin-top:16px}
@@ -72,7 +72,7 @@
 .sw-liste{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:14px}
 .sw-liste.sw-zwei{grid-template-columns:1fr 1fr;column-gap:30px}
 .sw-zeile{font-size:1.05rem;display:grid;grid-template-columns:2em max-content 26px minmax(0,1fr);align-items:center}
-.sw-nr{font-weight:700;color:#554C45}
+.sw-nr{font-weight:700;color:#4B5563}
 .sw-pfeil{text-align:center}
 /* raster: Nummer | Schüttelwort | Pfeil | Kästchen – die Kästchen beginnen alle an derselben Stelle */
 .sw-raster .sw-zeile{grid-template-columns:2em var(--sw-sp) 26px minmax(0,1fr)}
@@ -86,10 +86,10 @@
 .sw-schuettel,.sw-felder{display:inline-flex;flex-wrap:wrap;align-items:center;gap:4px 0}
 .sw-teil{display:inline-flex;gap:3px}
 .sw-luecke{display:inline-block;min-width:14px;text-align:center;font-weight:700}
-.sw-karte{display:inline-grid;place-items:center;min-width:22px;height:28px;padding:0 3px;border:1.5px solid #8A8079;border-radius:5px;background:#FFF8EF;font-weight:700;font-size:1.05rem;box-shadow:0 1px 0 #D9CFC6}
+.sw-karte{display:inline-grid;place-items:center;min-width:22px;height:28px;padding:0 3px;border:1.5px solid #858D98;border-radius:5px;background:#F3F8FC;font-weight:700;font-size:1.05rem;box-shadow:0 1px 0 #D0D7DE}
 .sw-bst{display:inline-block;min-width:14px;text-align:center;font-weight:700;font-size:1.15rem;letter-spacing:.04em}
-.sw-pfeil{color:#8A8079;font-weight:700}
-.sw-kaestchen{display:inline-block;width:30px;height:36px;border:1.5px solid #1C1714;border-radius:4px;background:#fff}
-.sw-linie{display:block;height:1.4em;margin-left:12px;border-bottom:1.5px solid #1C1714}
+.sw-pfeil{color:#858D98;font-weight:700}
+.sw-kaestchen{display:inline-block;width:30px;height:36px;border:1.5px solid #1C2530;border-radius:4px;background:#fff}
+.sw-linie{display:block;height:1.4em;margin-left:12px;border-bottom:1.5px solid #1C2530}
 .sw-loesung{font-size:1.1rem;white-space:nowrap}
 .sw-loesungen .sw-karte{min-width:18px;height:24px;font-size:.92rem}

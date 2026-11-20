@@ -21,7 +21,7 @@
 .bw-weg{width:26px;height:26px;border:1px solid var(--line-2);border-radius:50%;background:#fff;color:var(--muted);font:inherit;font-size:1rem;line-height:1;cursor:pointer}
 .bw-weg:hover{border-color:var(--accent-line);color:var(--ink)}
 .bw-text{display:block;width:100%;box-sizing:border-box;margin-top:6px;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:8px 11px;font-size:1.05rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;transition:border-color .15s,box-shadow .15s}
-.bw-text:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.bw-text:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
 /* Stufe klappt auf, sobald Text da ist */
 .bw-stufe{margin:10px 0 0;padding:2px 0 2px 12px;border-left:3px solid var(--accent-line);display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 16px}
 .bw-stufe[hidden]{display:none}
@@ -67,15 +67,15 @@
 .bw-blickbild svg{max-width:100%;height:auto}
 .bw-rahmen{overflow-x:auto;padding-bottom:4px}
 .bw-rahmen[hidden]{display:none}
-.bw-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:26px 32px 30px}
-.bw-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
-.bw-anleitung{margin:0 0 10px;color:#554C45;line-height:1.45;font-size:.95rem}
+.bw-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C2530;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:26px 32px 30px}
+.bw-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C2530}
+.bw-anleitung{margin:0 0 10px;color:#4B5563;line-height:1.45;font-size:.95rem}
 .bw-mitte{display:flex;justify-content:center}
 .bw-form{display:block}
 .bw-antworten{display:grid;gap:14px;margin-top:10px}
 .bw-antwort{margin:0;font-weight:700;font-size:1.05rem;display:flex;align-items:flex-end;gap:10px}
-.bw-antwort b{display:inline-grid;place-items:center;width:24px;height:24px;border:1.5px solid #1C1714;border-radius:50%;font-size:.85rem}
-.bw-linie{flex:1;min-height:1.4em;border-bottom:2px solid #1C1714}
+.bw-antwort b{display:inline-grid;place-items:center;width:24px;height:24px;border:1.5px solid #1C2530;border-radius:50%;font-size:.85rem}
+.bw-linie{flex:1;min-height:1.4em;border-bottom:2px solid #1C2530}
 .bw-loesungsblatt{display:none;margin-top:16px}
 .bw-blaetter{display:grid;gap:16px}
 .bw-loesungsblatt.zeigen{display:block;margin-top:0}

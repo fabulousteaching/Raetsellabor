@@ -17,11 +17,11 @@
 .kw-zeilen-kopf{margin-bottom:4px;font-size:.76rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
 .kw-zeilen{display:grid;gap:6px}
 .kw-zeile input{width:100%;min-width:0;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:7px 9px;font-size:.95rem;transition:border-color .15s,box-shadow .15s}
-.kw-zeile input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.kw-zeile input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
 .kw-zeile .kw-w{font-weight:650}
 .kw-x{width:28px;height:28px;border:0;border-radius:50%;background:transparent;color:var(--muted);font-size:18px;line-height:1;cursor:pointer;padding:0}
-.kw-x:hover{background:#F3EEE9;color:var(--err)}
-.kw-zeile.kw-neu input{border-style:dashed;background:#FBF8F5}
+.kw-x:hover{background:#EEF2F5;color:var(--err)}
+.kw-zeile.kw-neu input{border-style:dashed;background:#F8FAFC}
 .kw-zeile.kw-neu .kw-x{visibility:hidden}
 .kw-zaehler{margin-top:10px;font-size:.88rem}
 .kw-zaehler p{margin:6px 0 0}
@@ -30,7 +30,7 @@
 .kw-zaehler-haupt.fehlt{background:var(--accent-soft);color:var(--accent-2)}
 .kw-zaehler .warnung{color:var(--accent-2)}
 .kw-ablage{display:grid;justify-items:center;padding:16px 12px;border:2px dashed var(--accent-line);border-radius:12px;background:var(--accent-soft);cursor:pointer;text-align:center;transition:border-color .15s,background .15s}
-.kw-ablage:hover,.kw-ablage.ziehen{border-color:var(--accent);background:#FFE7D2}
+.kw-ablage:hover,.kw-ablage.ziehen{border-color:var(--accent);background:#DCEEFA}
 .kw-ablage:focus-within{outline:2px solid var(--accent-2);outline-offset:2px}
 .kw-ablage span{display:grid;gap:1px}
 .kw-ablage b{color:var(--accent-2)}
@@ -39,7 +39,7 @@
 .kw-bilder:empty{display:none}
 .kw-bild-klein{position:relative;display:block;width:64px;height:64px;border:1px solid var(--line);border-radius:8px;background:#fff;overflow:hidden}
 .kw-bild-klein img{width:100%;height:100%;object-fit:contain}
-.kw-weg{position:absolute;top:2px;right:2px;width:22px;height:22px;border:0;border-radius:50%;background:rgba(28,23,20,.75);color:#fff;font-size:15px;line-height:22px;padding:0;cursor:pointer}
+.kw-weg{position:absolute;top:2px;right:2px;width:22px;height:22px;border:0;border-radius:50%;background:rgba(28,37,48,.75);color:#fff;font-size:15px;line-height:22px;padding:0;cursor:pointer}
 .kw-weg:hover{background:var(--err)}
 .kw-nr{position:absolute;left:3px;bottom:3px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:var(--accent);color:var(--auf-akzent);font-size:.72rem;font-weight:700;line-height:18px;text-align:center}
 .kw-auto{margin-top:10px}
@@ -58,23 +58,23 @@
 .kw-rahmen{position:relative;width:100%;--massstab:1}
 .kw-rahmen[hidden]{display:none}
 .kw-loesungs-rahmen{display:none}
-.kw-seite{position:relative;width:703px;height:1032px;box-sizing:content-box;background:#fff;color:#1C1714;overflow:hidden;
-  transform:scale(var(--massstab));transform-origin:top left;outline:1px solid var(--line);box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08)}
+.kw-seite{position:relative;width:703px;height:1032px;box-sizing:content-box;background:#fff;color:#1C2530;overflow:hidden;
+  transform:scale(var(--massstab));transform-origin:top left;outline:1px solid var(--line);box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08)}
 .kw-fluss{position:static;width:703px;box-sizing:border-box;padding:26px 34px 0;text-align:center}
-.kw-seite h2{font-size:1.6rem;font-weight:700;margin:0 auto 6px;letter-spacing:-.015em;color:#1C1714;line-height:1.2;display:table}
-.kw-anleitung{margin:0 auto 18px;color:#554C45;max-width:56ch;display:table;text-align:center}
+.kw-seite h2{font-size:1.6rem;font-weight:700;margin:0 auto 6px;letter-spacing:-.015em;color:#1C2530;line-height:1.2;display:table}
+.kw-anleitung{margin:0 auto 18px;color:#4B5563;max-width:56ch;display:table;text-align:center}
 .kw-gitter-platz{display:flex;justify-content:center;margin:4px 0 22px}
 .kw-gitter{display:block}
 .kw-buchstabe{fill:transparent}
 .zeige-loesung .kw-buchstabe,.kw-buchstabe.an{fill:var(--accent-2)}
 .kw-hinweise{display:flex;justify-content:center;align-items:flex-start;gap:10px 40px;font-size:14.5px;line-height:1.38;text-align:left}
 .kw-hinweise section{flex:0 1 46%;min-width:0}
-.kw-hinweise h3{font-size:1.02rem;font-weight:700;margin:0 0 6px;color:#1C1714;display:table}
+.kw-hinweise h3{font-size:1.02rem;font-weight:700;margin:0 0 6px;color:#1C2530;display:table}
 .kw-hinweise ol{list-style:none;margin:0;padding:0}
 .kw-hinweise li{margin:0 0 5px}
 .kw-hinweise li > span{display:inline}
-.kw-hinweise li b{display:inline-block;min-width:1.6em;color:#1C1714}
-.kw-hinweise small{color:#6E655E;font-size:.86em}
+.kw-hinweise li b{display:inline-block;min-width:1.6em;color:#1C2530}
+.kw-hinweise small{color:#6B7280;font-size:.86em}
 /* Bilder auf dem Blatt: anfassbar (verschieben, Grösse, drehen). Griffe und Rahmen sind am Bildschirm immer gleich gross,
    egal wie stark das Blatt verkleinert ist (--massstab). */
 .kw-bild{position:absolute;display:block;transform-origin:50% 50%}
@@ -98,8 +98,8 @@
 .kw-dreh-stiel{left:50%;top:calc(-28px / var(--massstab));height:calc(28px / var(--massstab));width:0;border-left:calc(1.5px / var(--massstab)) solid var(--accent)}
 /* Leiste über dem Blatt, solange ein Bild gewählt ist */
 .kw-bildleiste{display:flex;align-items:center;min-height:50px;box-sizing:border-box;margin:0 0 12px;padding:8px 10px 8px 14px;
-  background:#FBF8F5;border:1px dashed var(--line-2);border-radius:12px;font-size:.88rem}
-.kw-bildleiste.an{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--kopf-h) + 8px);z-index:6;background:var(--card);border:1px solid var(--accent-line);box-shadow:0 6px 20px rgba(45,28,12,.12)}
+  background:#F8FAFC;border:1px dashed var(--line-2);border-radius:12px;font-size:.88rem}
+.kw-bildleiste.an{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--kopf-h) + 8px);z-index:6;background:var(--card);border:1px solid var(--accent-line);box-shadow:0 6px 20px rgba(16,24,40,.12)}
 .kw-bildleiste[hidden]{display:none}
 .kw-bild-tipp{color:var(--muted);line-height:1.35}
 .kw-bild-tipp[hidden],.kw-bild-werkzeug[hidden]{display:none}

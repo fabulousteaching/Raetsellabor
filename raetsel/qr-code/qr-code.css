@@ -20,16 +20,16 @@
 
 /* ---------- Eingaben ---------- */
 .qr textarea{display:block;width:100%;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;resize:vertical;min-height:4.5em;line-height:1.45;transition:border-color .15s,box-shadow .15s}
-.qr textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.qr textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
 .qr input[type=url]{display:block;width:100%;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:8px 11px;transition:border-color .15s,box-shadow .15s}
-.qr input[type=url]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.qr input[type=url]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
 [data-ziel][hidden]{display:none}
 .qr-ziel{display:inline-flex;gap:3px;padding:3px;margin:0 0 10px;background:var(--bg);border:1px solid var(--line);border-radius:10px}
 .qr-ziel label{position:relative;cursor:pointer}
 .qr-ziel input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
 .qr-ziel span{display:block;padding:5px 16px;border-radius:7px;font-weight:600;font-size:.88rem;color:var(--muted);transition:background .15s,color .15s}
 .qr-ziel label:hover span{color:var(--text)}
-.qr-ziel input:checked + span{background:var(--card);color:var(--text);box-shadow:0 1px 2px rgba(45,28,12,.14)}
+.qr-ziel input:checked + span{background:var(--card);color:var(--text);box-shadow:0 1px 2px rgba(16,24,40,.14)}
 .qr-ziel input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:1px}
 .qr-fortschritt .btn{margin-left:6px;vertical-align:middle}
 .qr-botschaft-gezeigt{display:inline-block;margin-left:6px;padding:3px 10px;border-radius:8px;background:var(--accent-soft);color:var(--text);font-weight:600}
@@ -88,14 +88,14 @@ details.optionen[open] summary{margin-bottom:6px}
 #qrBlaetter{display:grid;gap:16px}
 
 /* ---------- Arbeitsblatt ---------- */
-.qr-blatt{background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:30px clamp(16px,3.2vw,40px)}
+.qr-blatt{background:#fff;color:#1C2530;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:30px clamp(16px,3.2vw,40px)}
 .qr-blatt.veraltet::before{content:'Eingaben geändert – «QR-Code erstellen» klicken, um das Blatt zu aktualisieren.';display:block;margin:-10px 0 16px;
   background:var(--warn-soft);color:#6B4E00;border:1px solid var(--warn-line);font-size:.86rem;padding:7px 12px;border-radius:8px}
-.qr-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
-.qr-anleitung{margin:0 0 16px;color:#554C45;max-width:80ch}
-.qr-fuss{margin:16px 0 0;color:#554C45;font-size:.92rem}
+.qr-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C2530}
+.qr-anleitung{margin:0 0 16px;color:#4B5563;max-width:80ch}
+.qr-fuss{margin:16px 0 0;color:#4B5563;font-size:.92rem}
 .qr-gitter{display:flex;justify-content:center}
-.qr-botschaft{margin:0 0 18px;padding:10px 14px;border:1px solid var(--line);border-radius:8px;background:#FCFAF8;font-weight:600;overflow-wrap:anywhere}
+.qr-botschaft{margin:0 0 18px;padding:10px 14px;border:1px solid var(--line);border-radius:8px;background:#F9FBFC;font-weight:600;overflow-wrap:anywhere}
 .qr-fortschritt{margin:12px 0 0;font-size:.92rem;color:var(--muted);min-height:1.5em}
 .qr-fortschritt.fertig{font-weight:650;font-size:1rem;color:var(--ok)}
 .qr-loesungsblatt{display:none}
@@ -104,16 +104,16 @@ details.optionen[open] summary{margin-bottom:6px}
 svg.qr-raster{display:block;width:100%;height:auto;max-width:calc(var(--felder, 25) * 30px + 30px);max-height:82vh}
 svg.qr-raster.spiel{touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair}
 svg.qr-raster.fertig{max-width:min(100%, 360px)}
-svg.qr-raster .feld{fill:#fff;stroke:#C9BFB5;stroke-width:.35}
-svg.qr-raster .rahmen{stroke:#3D3530;stroke-width:.6}
-svg.qr-raster text{font-family:var(--blatt-schrift);text-anchor:middle;dominant-baseline:central;pointer-events:none;fill:#1C1714}
+svg.qr-raster .feld{fill:#fff;stroke:#C4CBD3;stroke-width:.35}
+svg.qr-raster .rahmen{stroke:#374151;stroke-width:.6}
+svg.qr-raster text{font-family:var(--blatt-schrift);text-anchor:middle;dominant-baseline:central;pointer-events:none;fill:#1C2530}
 svg.qr-raster text.inhalt{font-weight:600}
-svg.qr-raster text.nr{font-size:3.4px;fill:#6E655E;font-weight:500}
-svg.qr-raster .kreis{fill:none;stroke:#1C1714;stroke-width:.9;pointer-events:none}
+svg.qr-raster text.nr{font-size:3.4px;fill:#6B7280;font-weight:500}
+svg.qr-raster .kreis{fill:none;stroke:#1C2530;stroke-width:.9;pointer-events:none}
 .opt-raster [hidden]{display:none}
 svg.qr-raster .ebene-loesung{fill:var(--accent);opacity:0;pointer-events:none;transition:opacity .2s}
 .zeige-loesung svg.qr-raster .ebene-loesung{opacity:.45}
-svg.qr-raster .ebene-gemalt path{fill:#1C1714;pointer-events:none}
+svg.qr-raster .ebene-gemalt path{fill:#1C2530;pointer-events:none}
 .geschafft svg.qr-raster .ebene-gemalt path{animation:qrfertig 1.2s ease 1}
 @keyframes qrfertig{40%{fill:var(--accent-2)}}
 @media (prefers-reduced-motion: reduce){ .geschafft svg.qr-raster .ebene-gemalt path{animation:none} }
@@ -124,16 +124,16 @@ svg.qr-raster .ebene-gemalt path{fill:#1C1714;pointer-events:none}
 .qr-karten.pro-4,.qr-karten.pro-6{grid-template-columns:repeat(2,minmax(0,1fr))}
 .qr-karten.pro-12{grid-template-columns:repeat(3,minmax(0,1fr))}
 .qr-karte{margin:0;display:grid;justify-items:center;gap:6px;width:100%;padding:12px;text-align:center}
-.qr-karten.schnitt .qr-karte{border:1px dashed #C2B8AE;border-radius:4px}
+.qr-karten.schnitt .qr-karte{border:1px dashed #B6BDC8;border-radius:4px}
 .qr-karte svg{display:block;width:100%;height:auto}
 .qr-karten.pro-1 .qr-karte svg{max-width:340px}
 .qr-karten.pro-2 .qr-karte svg{max-width:260px}
 .qr-karten.pro-4 .qr-karte svg{max-width:220px}
 .qr-karten.pro-6 .qr-karte svg{max-width:180px}
 .qr-karten.pro-12 .qr-karte svg{max-width:140px}
-.qr-karte-titel{font-family:var(--blatt-display);font-weight:600;font-size:1.15rem;color:#1C1714;overflow-wrap:anywhere}
+.qr-karte-titel{font-family:var(--blatt-display);font-weight:600;font-size:1.15rem;color:#1C2530;overflow-wrap:anywhere}
 .qr-karten.pro-12 .qr-karte-titel{font-size:.95rem}
-.qr-karte-text{margin:0;font-size:.78rem;color:#554C45;overflow-wrap:anywhere;max-width:100%}
+.qr-karte-text{margin:0;font-size:.78rem;color:#4B5563;overflow-wrap:anywhere;max-width:100%}
 .qr-bild{margin-top:2px}
 
 /* ---------- Drucken ---------- */
@@ -170,8 +170,8 @@ svg.qr-raster .ebene-gemalt path{fill:#1C1714;pointer-events:none}
 .qr-formen{display:flex;flex-wrap:wrap;gap:6px}
 .qr-form{display:grid;justify-items:center;gap:3px;min-width:66px;padding:7px 8px 5px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer;font-size:.72rem;font-weight:600;color:var(--muted);transition:border-color .15s,background .15s}
 .qr-form svg{width:30px;height:30px;display:block}
-.qr-form svg .haupt{fill:#1C1714}
-.qr-form svg .neben{fill:#C2B8AE}
+.qr-form svg .haupt{fill:#1C2530}
+.qr-form svg .neben{fill:#B6BDC8}
 .qr-form:hover:not(:disabled){border-color:var(--accent-line)}
 .qr-form[aria-checked="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--text)}
 .qr-form:disabled{opacity:.35;cursor:not-allowed}

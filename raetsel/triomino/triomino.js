@@ -325,7 +325,7 @@ window.addEventListener('hashchange', alterLink);
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, esc = Labor.esc, aus = false;
   var TAB = 'triomino-eingaben', OPT = 'triomino-einstellungen';
-  var STANDARD = { form:'stern', art:'rechnen', matheArt:'rechnen', ops:['plus', 'minus'], zr:'100', dez:'2', stellen:'dezimal', bruch:'10', rand:'leer', farbe:'#F28C38',
+  var STANDARD = { form:'stern', art:'rechnen', matheArt:'rechnen', ops:['plus', 'minus'], zr:'100', dez:'2', stellen:'dezimal', bruch:'10', rand:'leer', farbe:'#1E63C4',
     mitLoesung:true, titelAn:true, anleitungAn:true };
   // zeilen[art]: [{ a, b, auto }] – auto: welche Seite automatisch übersetzt wurde ('a', 'b' oder '')
   var st = { titel:'', zeilen:{ englisch:[], franzoesisch:[], eigene:[] }, seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };

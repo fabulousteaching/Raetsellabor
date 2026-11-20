@@ -16,7 +16,7 @@
 .pt .feld-label{display:block;margin-top:4px}
 .pt-zeile{display:flex;gap:8px;align-items:center}
 .pt-zeile input{flex:1;min-width:0;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:8px 11px;font-size:1.25rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;transition:border-color .15s,box-shadow .15s}
-.pt-zeile input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.pt-zeile input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
 .pt-zaehler{font-size:.88rem}
 .pt-zaehler p{margin:8px 0 0}
 .pt-zaehler .warnung{color:var(--accent-2)}
@@ -41,12 +41,12 @@
 .pt-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
 .pt-rahmen{overflow-x:auto;padding-bottom:4px}
 .pt-rahmen[hidden]{display:none}
-.pt-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:26px 32px 30px}
-.pt-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
-.pt-anleitung{margin:0 0 14px;color:#554C45;line-height:1.45;font-size:.95rem}
+.pt-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C2530;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:26px 32px 30px}
+.pt-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C2530}
+.pt-anleitung{margin:0 0 14px;color:#4B5563;line-height:1.45;font-size:.95rem}
 .pt-raster,.pt-plaettchen{display:block;margin:4px 0 0}
 .pt-seiten{display:grid;gap:16px}
-.pt-seitenkopf{margin:0 0 10px;font-size:.85rem;color:#8A8079}
+.pt-seitenkopf{margin:0 0 10px;font-size:.85rem;color:#858D98}
 /* Stufen: klappen auf, wenn darüber etwas gewählt ist */
 .pt-stufe{margin:10px 0 2px;padding:2px 0 4px 12px;border-left:3px solid var(--accent-line)}
 .pt-stufe[hidden]{display:none}
@@ -54,7 +54,7 @@
 .pt-reihen span{padding:6px 0!important;min-width:34px;text-align:center}
 .pt-paarliste{margin-top:12px}
 .pt-antwort{margin:22px 0 0;font-weight:700;font-size:1.1rem;display:flex;align-items:flex-end;gap:10px}
-.pt-linie{flex:1;max-width:320px;min-height:1.4em;border-bottom:2px solid #1C1714}
+.pt-linie{flex:1;max-width:320px;min-height:1.4em;border-bottom:2px solid #1C2530}
 .pt-loesung-text{margin:10px 0 0;font-size:1.15rem}
 .pt-loesungsblatt{display:none;margin-top:16px}
 .pt-blaetter{display:grid;gap:16px}

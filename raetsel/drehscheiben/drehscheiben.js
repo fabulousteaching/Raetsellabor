@@ -290,7 +290,7 @@ var Kern = (function(){
 })();
 /* KERN-ENDE */
 
-var TINTE = '#1C1714', GRAU = '#8A8079', PFEIL = '#E46F12';
+var TINTE = '#1C1714', GRAU = '#8A8079', PFEIL = '#0075BA';
 var GROESSEN = [[0.75, 'klein'], [1, 'normal'], [1.3, 'gross'], [1.6, 'sehr gross']];   // Wortgrössen beim Satz (Faktor zur Grundschrift)
 // «Bunt»: kräftige Farben, die auf weissem Papier gut sichtbar sind
 var BUNT = ['#D7263D', '#1B6CA8', '#2E8B57', '#E4801C', '#7B3FA0', '#C2185B', '#00838F', '#9A7400'];
