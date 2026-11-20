@@ -2,9 +2,11 @@
 
 Eine Webseite mit Rätselgeneratoren für Schule und Freizeit. Man wählt einen Generator, gibt eigene Inhalte ein, und das Labor baut daraus ein Rätsel, das man am Bildschirm lösen oder als PDF-Arbeitsblatt mit Lösungsblatt herunterladen kann.
 
-Die Startseite erklärt kurz, was das Labor kann, und zeigt alle Generatoren als gleich grosse Karten. Rechts neben «Rätsel im Labor» steht eine **Suche**: Sie sucht im Titel der Generatoren, und mit jedem Buchstaben bleiben weniger Karten übrig (Gross/klein, Umlaute – «rae» findet «Rätsel» –, Leerzeichen und Bindestriche spielen keine Rolle). Die Eingabetaste öffnet den ersten Treffer, Esc oder × leert die Suche. Über das Menü oben rechts wechselt man jederzeit zwischen Startseite und Generatoren. Das Labor wird Schritt für Schritt um weitere Generatoren erweitert.
+Die Startseite erklärt kurz, was das Labor kann, und zeigt alle Generatoren als Karten: oben ein gelöstes Beispielrätsel (nur das Rätsel selbst, mit eingezeichneter Lösung), darunter Titel, ein kurzer Satz und «Öffnen». Die Beispielbilder liegen als WebP in `gemeinsam/vorschau/<id>.<sprache>.webp` (640 × 400); fehlt eins in der gewählten Sprache, kommt das deutsche. Rechts neben «Rätsel im Labor» steht eine **Suche**: Sie sucht im Titel der Generatoren, und mit jedem Buchstaben bleiben weniger Karten übrig (Gross/klein, Umlaute – «rae» findet «Rätsel» –, Leerzeichen und Bindestriche spielen keine Rolle). Die Eingabetaste öffnet den ersten Treffer, Esc oder × leert die Suche. Über das Menü oben rechts wechselt man jederzeit zwischen Startseite und Generatoren. Ganz oben im Menü (und in der Kopfleiste) wählt man die **Sprache: Deutsch, English, Français**. Das Labor wird Schritt für Schritt um weitere Generatoren erweitert.
 
 ## Für alle Arbeitsblätter
+
+- **Sprachen:** Die ganze Seite, alle Generatoren und die Arbeitsblätter gibt es auf Deutsch, Englisch und Französisch. Die Wahl bleibt gespeichert (auch nach dem Neuladen); beim ersten Besuch gilt die Sprache des Browsers (Deutsch, sobald der Browser Deutsch kennt), `?lang=en` oder `?lang=fr` in der Adresse wählt direkt. Beim Wechsel bleiben die Eingaben erhalten. Inhalte, die an der Sprache hängen, sind übersetzt oder eigen: Wortlisten und Beispielsätze, Füllbuchstaben nach der Häufigkeit in der Sprache, Brüche in Worten, Reime/Mehrzahl/Gegenteile (das Fach «Deutsch» heisst auf Englisch «English», auf Französisch «Français»), Wörter fürs Buchstabenschloss, Notennamen (C D E F G A B statt H). Akzente (É, Ç, Œ) werden in Rätselgittern zu Grundbuchstaben (E, C, OE), Ä, Ö, Ü bleiben. Die Vokabel-Fächer (Deutsch – Englisch, Deutsch – Französisch) bleiben Wortpaare mit Deutsch. Auch Botschafts-, Puzzle- und Hörseite erscheinen in der Sprache, in der sie erstellt wurden.
 
 - **Zahlen:** Dezimalzahlen immer mit Punkt (0.5, 0.001), Tausender mit Apostroph (1'000); Brüche immer übereinander (Zähler, Bruchstrich, Nenner), nie mit Schrägstrich.
 - **PDF herunterladen** statt Drucken: Arbeitsblatt und – wenn angekreuzt – Lösungsblatt kommen als A4-PDF, jedes Blatt auf eine Seite (ein Blatt mit der Klasse `blatt-quer` auf eine Seite A4 quer, 273 mm breit). Das PDF sieht aus wie der Ausdruck: `Labor.pdfHerunterladen()` zeichnet die Blätter mit *html2canvas* in einer Kopie der Seite, in der die Druckregeln (`@media print`) der Generatoren gelten, und legt sie mit *jsPDF* in die Datei (beide MIT-Lizenz, `gemeinsam/extern/`, erst beim ersten Download geladen). Grafiken bekommen ihre Stile und Schriften eingebettet; am Bildschirm eingeblendete Lösungen, Markierungen und gezogene Wege kommen nicht ins PDF. Im Claude-Artefakt gibt es stattdessen «Arbeitsblatt herunterladen» (HTML-Datei).
@@ -418,7 +420,9 @@ Schachfiguren ziehen über ein Brett (A–H, 1–8). Wer jeden Zug als Linie von
 ```
 index.html                      Rätsellabor: Kopfleiste mit Menü, Startseite, Platz für den Generator
 gemeinsam/labor.css             gemeinsames Aussehen (Farben, Schriften, Kopfleiste, Menü, Karten, Knöpfe)
-gemeinsam/labor.js              Menü, Startseite und Wechsel zwischen den Generatoren
+gemeinsam/labor.js              Menü, Startseite und Wechsel zwischen den Generatoren; Sprachwahl und Übersetzen (Labor.woerter, Labor.uebersetzer)
+gemeinsam/sprachen/<name>.js    Wörterbücher: deutscher Text → [Englisch, Französisch]; labor.js (gemeinsam), bausteine.js (Wortwahl, Paarliste, Gitter) und eines je Generator
+gemeinsam/vorschau/             Beispielbilder der Startseiten-Karten: <id>.de.webp, <id>.en.webp, <id>.fr.webp
 gemeinsam/wortwahl.js           Baustein «Thema und Wörter»: Wortarten, KI-Vorschläge, eingebaute Listen, Wort-Chips
 gemeinsam/gitter.js             Baustein «Buchstabengitter»: Zeichnen, Markieren, Füllbuchstaben
 gemeinsam/pixelschrift.js       Baustein «Pixelschrift»: Ziffern und A–Z als Blockschrift aus 3 × 5 Feldern (Überlappende Folien, Schiebefenster, Nonogramm)
@@ -472,14 +476,14 @@ gemeinsam/extern/html2canvas.min.js, jspdf.umd.min.js   für den PDF-Download (h
 B/                              Botschaftsseiten /B/<ID>/ (werden auf dem Server angelegt)
 api/botschaft.php               Server-Teil (PHP): speichert Botschaften für QR-Codes; Anzeige: api/botschaft-seite.php
 P/                              Puzzle-Seiten /P/<ID>/ (werden auf dem Server angelegt)
-T/index.html                    Hörseite der Notenschrift: T/?t=<Töne> (zweistellige MIDI-Nummern, Wörter mit «-»), &bs=1 mit S und B; Töne der Botschaft und Tonalphabet zum Vergleichen
+T/index.html                    Hörseite der Notenschrift: T/?t=<Töne> (zweistellige MIDI-Nummern, Wörter mit «-»), &bs=1 mit S und B, &l=en oder &l=fr für Englisch/Französisch (Ton B statt H); Töne der Botschaft und Tonalphabet zum Vergleichen
 api/puzzle.php                  Server-Teil (PHP): speichert Puzzles für QR-Codes; Puzzle-Seite: api/puzzle-seite.php
 .htaccess                       Server-Regel: Seite, Skripte und Stile nicht ungeprüft aus dem Browser-Cache nehmen
 ```
 
 **Neu laden = frisch anfangen (gilt für alle Generatoren, auch künftige):**
 
-- Beim Laden der Seite löscht `Labor.start()` alle gespeicherten Eingaben und Einstellungen (`sessionStorage` und `localStorage`). Solange die Seite offen ist, bleiben Eingaben beim Wechsel zwischen den Generatoren erhalten.
+- Beim Laden der Seite löscht `Labor.start()` alle gespeicherten Eingaben und Einstellungen (`sessionStorage` und `localStorage`) – ausser der gewählten Sprache. Beim Sprachwechsel bleiben die Eingaben erhalten. Solange die Seite offen ist, bleiben Eingaben beim Wechsel zwischen den Generatoren erhalten.
 - Der Server schickt Seite, Skripte und Stile mit `Cache-Control: no-cache` (`.htaccess`): Der Browser fragt bei jedem Laden nach, ob es eine neue Version gibt.
 - Beim Hochladen hängt der GitHub-Workflow eine Versionsnummer an alle Skripte und Stile (`…/labor.js?v=1a2b3c4d`, auch für die Stile der Generatoren). Nach jeder Änderung lädt der Browser so sicher die neuen Dateien.
 - Ist die Seite schon offen, wenn eine neue Version hochgeladen wird (das Labor wechselt zwischen den Generatoren ohne Neuladen), merkt sie das: Der Workflow schreibt die Versionsnummer in `version.txt`, die Seite fragt sie ab, wenn man zu ihr zurückkehrt und alle 10 Minuten. Bei einer neuen Version erscheint ein Hinweis «Neu laden», und der nächste Wechsel zu einem Generator lädt die Seite von selbst neu.
@@ -511,6 +515,8 @@ Kein Build-Schritt; ausser den Schriften Fredoka, Inter und Andika von Google Fo
 3. In `index.html` unten eine Zeile ergänzen: `<script src="raetsel/mein-raetsel/mein-raetsel.js"></script>`
 
 Der neue Generator erscheint dann automatisch im Menü und auf der Startseite. Gemeinsame Bausteine wie `.karte`, `.btn`, Eingabefelder und `.meldung` stehen in `gemeinsam/labor.css` bereit. Bausteine zum Wiederverwenden: `Wortwahl` (Thema und Wörter mit Vorschlägen) und `Gitter` (Buchstabengitter). In `gemeinsam/labor.js` gibt es Helfer für alle Generatoren: `Labor.pdfKnopf(knopf, auftrag, fehler)` und `Labor.pdfName(art, titel)` (PDF-Download), `Labor.blattSchalterHtml()` und `Labor.blattSchalter(bereich, opt, nachher)` (Schriftwahl, Titel und Arbeitsanweisung an/aus; `nachher` zeichnet das Blatt neu, auch wenn die Schrift wechselt), `Labor.blattSchrift(art)` (gewählte Schrift für Messungen), `Labor.imArtefakt()`, `Labor.claude(name)` (Claude-Fähigkeiten im Artefakt), `Labor.blattDatei(titel, html)` (Arbeitsblatt als HTML-Datei) und `Labor.esc()`.
+
+**Sprachen:** Am Anfang der Datei `var tx = Labor.uebersetzer('<id>');` und jeden sichtbaren Text in `tx('…')` packen – auch ganze HTML-Stücke (übersetzt werden die Texte zwischen den Tags und `title`, `aria-label`, `alt`, `label`). Sätze mit Zahlen als Ganzes mit Platzhaltern: `tx('{n} Wörter gefunden.', { n:5 })`, nie aus Stücken zusammensetzen. Klassennamen, CSS, Schriftnamen und Werte für die Logik nicht einpacken. Die Übersetzungen kommen in `gemeinsam/sprachen/<name>.js` (`Labor.woerter('<id>', { 'Deutsch': ['English', 'Français'] })`) und der Name in die Liste `SPRACHDATEIEN` in `gemeinsam/labor.js`. Inhalte im Kern (Wortlisten, Sätze) je nach `Labor.sprache` wählen; im Kern vorher `typeof Labor !== 'undefined'` prüfen (die Tests laufen ohne Labor). Dazu ein Beispielbild je Sprache in `gemeinsam/vorschau/`.
 
 Jeder neue Generator bekommt: einen Knopf «PDF herunterladen» (statt Drucken) mit `Labor.pdfKnopf`, die Schalter für Titel und Arbeitsanweisung (mit der Schriftwahl), für Text auf dem Blatt die Schrift-Variablen statt fester Schriften, Druckregeln (`@media print`) für sein Blatt – sie gelten auch für das PDF – und keine Beispieltexte in Eingabefeldern.
 
