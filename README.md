@@ -346,6 +346,15 @@ Ein Raster voller Antworten und Plättchen mit Aufgaben zum Ausschneiden. Wer je
 - **Felder:** Raster und Plättchen gleich gross (höchstens 26 mm; so gross, wie das Raster aufs Blatt passt). Würden die Felder hochkant kleiner als 20 mm (ab 3 Zeichen), kommen Raster und Lösungsblatt automatisch auf ein Blatt im **Querformat** (PDF: A4 quer, beim Drucken ebenso); die Plättchen-Blätter bleiben hochkant. Alle Felder eines Blatts haben dieselbe Schriftgrösse (die kleinste, die alle Texte brauchen – Raster und Plättchen je für sich); passt ein Text so nicht auf eine Zeile, kommt er auf zwei: am Leerzeichen oder bei langen Wörtern mit einfacher Silbentrennung (Doppel-Mitlaute getrennt, sonst nur der letzte Mitlaut auf die nächste Zeile, sch/ch/ck zusammen). Brüche übereinander.
 - **Blätter:** Raster mit Anleitung und Linie für die Lösung; Plättchen-Blatt(er) mit gestrichelten Schnittlinien, auf Wunsch farbig hinterlegt (gelegt sieht man die Zeichen besser). Lösungsblatt: das Raster mit den Plättchen-Feldern hinterlegt, darunter die Zeichen. «Neu mischen» gibt andere Aufgaben und eine andere Verteilung. PDF.
 
+### Schüttelwörter
+
+Wörter, deren Buchstaben durcheinandergeschüttelt sind. Wer sie richtig ordnet, findet das Wort.
+
+- **Wörter:** eintippen oder zum Thema vorschlagen lassen (`Wortwahl`, wie bei den anderen Worträtseln). Wörter mit Leerzeichen oder Bindestrich werden Teil für Teil geschüttelt; die Lücke bleibt an ihrem Platz.
+- **Schütteln** (keine Vorauswahl): klein oder GROSS geschrieben, auf Wunsch der erste Buchstabe fest. Ein geschütteltes Wort ist nie gleich wie das richtige, und höchstens ein Drittel der Buchstaben bleibt an seinem Platz (getestet an 1360 Schüttelungen aus den Themenlisten). Lässt sich ein Wort nicht schütteln (z. B. «Ei» mit festem erstem Buchstaben), steht ein Hinweis.
+- **Häkchen «Kästchen»:** Hinter jedem Schüttelwort so viele Kästchen, wie das Wort Buchstaben hat; die Kästchen beginnen alle an derselben Stelle. Bei langen Wörtern stehen die Kästchen unter dem Schüttelwort. Ohne Häkchen: eine Schreiblinie, die Wörter in zwei Spalten, wenn sie schmal genug sind.
+- **Blätter:** Buchstaben als Kärtchen oder einfach mit Abstand; mehrere Seiten, wenn die Wörter nicht auf ein Blatt passen. Lösungsblatt mit Schüttelwort und Wort. «Neu schütteln» mischt anders. PDF.
+
 ## Aufbau
 
 ```
@@ -391,6 +400,7 @@ raetsel/nonogramm/              der Generator «Nonogramm» (Kern: Text in Block
 raetsel/textformen/             der Generator «Textformen» (Kern: Formen als Radien, Spirale mit gemessenem Abstand, Schrift einpassen, Zeilen umbrechen; textPath in SVG)
 raetsel/morsecode/              der Generator «Morsecode» (Kern: Alphabet, Text lesen, Ablauf in Einheiten, Ton als Abtastwerte; Abspielen mit Web Audio, MP3 mit lamejs)
 raetsel/plaettchen/             der Generator «Plättchenrätsel» (Kern: Zeichen aufs Raster, Rechenaufgaben, Antworten aufteilen, Raster belegen und prüfen, Silbentrennung)
+raetsel/schuettelwoerter/       der Generator «Schüttelwörter» (Kern: Zufall, Wort schütteln mit Prüfung, Wort in Teile zerlegen)
 raetsel/triomino/               der Generator «Triomino» (Kern: Formen, Kanten, Aufgaben, Belegung; Zeichnen mit Schriftanpassung)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)
