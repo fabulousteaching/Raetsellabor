@@ -158,7 +158,7 @@ var VORLAGE = '<div class="sb">' +
       '</div>' +
     '</div>' +
     tx('<div class="karte"><details class="optionen"><summary>Einstellungen</summary>') +
-      tx('<label class="opt"><input type="checkbox" id="sbUmlaute"><span>Umlaute ersetzen (Ä → AE, Ö → OE, Ü → UE)</span></label>') +
+      '<label class="opt"><input type="checkbox" id="sbUmlaute"><span>' + tx(Labor.sprache === 'de' ? 'Umlaute ersetzen (Ä → AE, Ö → OE, Ü → UE)' : 'Akzente weglassen (É → E, Ç → C)') + '</span></label>' +
       tx('<label class="opt"><input type="checkbox" id="sbWortliste"><span>Wörter auf dem Blatt auflisten</span></label>') +
       tx('<label class="opt"><input type="checkbox" id="sbLinien"><span>Gitterlinien zeichnen</span></label>') +
     '</details></div>' +
@@ -201,7 +201,7 @@ Labor.registriere({
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, esc = Labor.esc, aus = false;
   var TAB = 'suchsel-eingaben', OPT = 'suchsel-einstellungen';
-  var STANDARD = { stufe:'mittel', groesse:'auto', kreuzen:true, nachrichtAn:false, nachrichtKaestchen:true, umlaute:false, wortliste:true, linien:true, mitLoesung:true, titelAn:true, anleitungAn:true };
+  var STANDARD = { stufe:'mittel', groesse:'auto', kreuzen:true, nachrichtAn:false, nachrichtKaestchen:true, umlaute:Labor.sprache !== 'de', wortliste:true, linien:true, mitLoesung:true, titelAn:true, anleitungAn:true };
 
   /* ---------- Zustand: Thema und Wörter nur für diesen Tab, Einstellungen bleiben ---------- */
   var st = { titel:'', woerter:[], nachricht:'', opt:Object.assign({}, STANDARD) };
@@ -218,7 +218,9 @@ function starte(bereich){
 
   function norm(t){
     var s = String(t || '').normalize('NFC').toLocaleUpperCase('de-CH');
-    if (st.opt.umlaute) s = s.replace(/Ä/g, 'AE').replace(/Ö/g, 'OE').replace(/Ü/g, 'UE');
+    // Deutsch: Umlaute ersetzen; Englisch/Französisch: Akzente weglassen (É → E, Ç → C, Œ → OE)
+    if (st.opt.umlaute) s = Labor.sprache === 'de' ? s.replace(/Ä/g, 'AE').replace(/Ö/g, 'OE').replace(/Ü/g, 'UE')
+      : s.replace(/Œ/g, 'OE').replace(/Æ/g, 'AE').normalize('NFD').replace(/[\u0300-\u036f]/g, '').normalize('NFC');
     return s.replace(/[^\p{L}]/gu, '');
   }
   function auswerten(){
@@ -242,7 +244,7 @@ function starte(bereich){
     $('#sbNachrichtFeld').hidden = !an;
     $('#sbGroesse').disabled = an;
     $('#sbNachrichtInfo').textContent = !an ? '' : (n ? n + (n === 1 ? tx(' Buchstabe. ') : tx(' Buchstaben. ')) : tx('Schreib den Satz, der übrig bleiben soll. ')) +
-      tx('Die Feldgrösse wird automatisch so gewählt, dass genau diese Buchstaben übrig bleiben') + (st.opt.kreuzen ? '.' : tx(' – dafür teilen sich Wörter wenn nötig einzelne Buchstaben.'));
+      tx('Die Feldgrösse wird automatisch so gewählt, dass genau diese Buchstaben übrig bleiben') + (st.opt.kreuzen ? '.' : ' ' + tx('– dafür teilen sich Wörter wenn nötig einzelne Buchstaben.'));
   }
 
   var aktuell = null, spiel = { gefunden:{} }, erstellt = false;   // erstellt: schon einmal «Erstellen» geklickt
@@ -301,14 +303,14 @@ function starte(bereich){
     var r = Kern.erstelle(a.woerter, { stufe:st.opt.stufe, groesse:st.opt.groesse, kreuzen:st.opt.kreuzen, nachricht:N.b.length ? N.b : null });
     if (r.fehler){
       aktuell = null; $('#sbBlatt').hidden = true; $('#sbWerkzeug').hidden = true;
-      if (r.fehler === 'zuLang') meldung('fehler', tx('<h3>Wörter länger als das Feld</h3><p>') + esc(r.woerter.join(', ')) + ' ' + (r.woerter.length === 1 ? 'hat' : 'haben') +
-        tx(' mehr als ') + r.groesse + tx(' Buchstaben. Wähle ein grösseres Feld oder «automatisch».</p>'));
-      else if (r.fehler === 'nachrichtKurz') meldung('fehler', tx('<h3>Die Nachricht ist zu kurz für diese Wörter</h3><p>Die ') + a.woerter.length + tx(' Wörter (') + a.buchstaben +
-        tx(' Buchstaben) brauchen so viel Platz, dass nicht genau ') + N.b.length + tx(' Felder übrig bleiben. ') +
-        (r.min ? tx('Ab etwa ') + r.min + tx(' Buchstaben in der Nachricht klappt es – oder nimm weniger oder kürzere Wörter.') : tx('Nimm weniger oder kürzere Wörter oder eine längere Nachricht.')) + '</p>');
-      else if (r.fehler === 'nachrichtLang') meldung('fehler', tx('<h3>Die Nachricht ist zu lang</h3><p>Das Feld wird höchstens 24 × 24 Buchstaben gross. Mit diesen Wörtern passen höchstens ') + Math.max(0, r.max) + tx(' Buchstaben in die Nachricht.</p>'));
-      else meldung('fehler', tx('<h3>Die Wörter passen nicht ins Feld</h3><p>In ein ') + r.groesse + ' × ' + r.groesse + tx('-Feld passen nicht alle ') + a.woerter.length +
-        tx(' Wörter. Wähle ein grösseres Feld') + (st.opt.kreuzen ? '' : tx(', erlaube Kreuzungen')) + tx(' oder nimm weniger Wörter.</p>'));
+      if (r.fehler === 'zuLang') meldung('fehler', '<h3>' + tx('Wörter länger als das Feld') + '</h3><p>' +
+        tx(r.woerter.length === 1 ? '{w} hat mehr als {n} Buchstaben. Wähle ein grösseres Feld oder «automatisch».' : '{w} haben mehr als {n} Buchstaben. Wähle ein grösseres Feld oder «automatisch».', { w:esc(r.woerter.join(', ')), n:r.groesse }) + '</p>');
+      else if (r.fehler === 'nachrichtKurz') meldung('fehler', '<h3>' + tx('Die Nachricht ist zu kurz für diese Wörter') + '</h3><p>' +
+        tx('Die {w} Wörter ({b} Buchstaben) brauchen so viel Platz, dass nicht genau {n} Felder übrig bleiben.', { w:a.woerter.length, b:a.buchstaben, n:N.b.length }) + ' ' +
+        (r.min ? tx('Ab etwa {m} Buchstaben in der Nachricht klappt es – oder nimm weniger oder kürzere Wörter.', { m:r.min }) : tx('Nimm weniger oder kürzere Wörter oder eine längere Nachricht.')) + '</p>');
+      else if (r.fehler === 'nachrichtLang') meldung('fehler', '<h3>' + tx('Die Nachricht ist zu lang') + '</h3><p>' + tx('Das Feld wird höchstens 24 × 24 Buchstaben gross. Mit diesen Wörtern passen höchstens {m} Buchstaben in die Nachricht.', { m:Math.max(0, r.max) }) + '</p>');
+      else meldung('fehler', '<h3>' + tx('Die Wörter passen nicht ins Feld') + '</h3><p>' +
+        tx(st.opt.kreuzen ? 'In ein {g} × {g}-Feld passen nicht alle {w} Wörter. Wähle ein grösseres Feld oder nimm weniger Wörter.' : 'In ein {g} × {g}-Feld passen nicht alle {w} Wörter. Wähle ein grösseres Feld, erlaube Kreuzungen oder nimm weniger Wörter.', { g:r.groesse, w:a.woerter.length }) + '</p>');
       return;
     }
     // Mit Nachricht sind alle Felder schon belegt; sonst die freien Felder mit unauffälligen Buchstaben füllen
@@ -323,16 +325,16 @@ function starte(bereich){
   function kreuzungen(f){ var z = {}, n = 0; f.woerter.forEach(function(w){ w.zellen.forEach(function(rc){ var k = rc + ''; z[k] = (z[k] || 0) + 1; if (z[k] === 2) n++; }); }); return n; }
   function erfolgsMeldung(){
     var f = aktuell.feld, a = aktuell.auswertung, k = kreuzungen(f), h = [];
-    var html = tx('<p><b>Fertig!</b> Feld mit ') + f.spalten + ' × ' + f.zeilen + tx(' Buchstaben, ') + f.woerter.length + tx(' Wörter') + (k ? ', ' + k + (k === 1 ? tx(' Kreuzung') : tx(' Kreuzungen')) : '') +
-      tx('. Du kannst die Wörter direkt im Feld markieren.</p>');
-    if (aktuell.nachricht) html += tx('<p>Die übrigen ') + aktuell.nachricht.zellen.length + tx(' Buchstaben ergeben, Zeile für Zeile gelesen, die versteckte Nachricht.') +
-      (!st.opt.kreuzen && k ? tx(' Damit sie genau aufgeht, ') + (k === 1 ? tx('teilen sich zwei Wörter einen Buchstaben') : tx('teilen sich Wörter ') + k + tx(' Buchstaben')) + '.' : '') + '</p>';
+    var html = '<p><b>' + tx('Fertig!') + '</b> ' + tx('Feld mit {s} × {z} Buchstaben, {w} Wörter', { s:f.spalten, z:f.zeilen, w:f.woerter.length }) + (k ? ', ' + tx(k === 1 ? '1 Kreuzung' : '{k} Kreuzungen', { k:k }) : '') +
+      '. ' + tx('Du kannst die Wörter direkt im Feld markieren.') + '</p>';
+    if (aktuell.nachricht) html += '<p>' + tx('Die übrigen {n} Buchstaben ergeben, Zeile für Zeile gelesen, die versteckte Nachricht.', { n:aktuell.nachricht.zellen.length }) +
+      (!st.opt.kreuzen && k ? ' ' + tx(k === 1 ? 'Damit sie genau aufgeht, teilen sich zwei Wörter einen Buchstaben.' : 'Damit sie genau aufgeht, teilen sich Wörter {k} Buchstaben.', { k:k }) : '') + '</p>';
     // Wörter, die in einem anderen Wort stecken (AFFE in GIRAFFE), kommen zwangsläufig doppelt vor – dafür gibt es unten einen eigenen Hinweis
     var drin = {}; a.teil.forEach(function(p){ drin[p[0]] = true; });
     var doppelt = aktuell.doppelt.filter(function(t){ return !drin[t]; });
-    if (doppelt.length) h.push(tx('Achtung: ') + doppelt.map(function(t){ return '«' + esc(t) + '»'; }).join(', ') + tx(' kommt im Feld mehr als einmal vor') + (aktuell.nachricht ? tx(' (vielleicht steckt es in der Nachricht)') : '') + tx('. «Neu mischen» kann helfen.'));
+    if (doppelt.length) h.push(tx(aktuell.nachricht ? 'Achtung: {w} kommt im Feld mehr als einmal vor (vielleicht steckt es in der Nachricht). «Neu mischen» kann helfen.' : 'Achtung: {w} kommt im Feld mehr als einmal vor. «Neu mischen» kann helfen.', { w:doppelt.map(function(t){ return '«' + esc(t) + '»'; }).join(', ') }));
     var gesehen = {};
-    a.teil.forEach(function(p){ var key = p.join('|'); if (gesehen[key]) return; gesehen[key] = 1; h.push('«' + esc(p[0]) + tx('» steckt in «') + esc(p[1]) + tx('» – das kann beim Suchen verwirren.')); });
+    a.teil.forEach(function(p){ var key = p.join('|'); if (gesehen[key]) return; gesehen[key] = 1; h.push(tx('«{a}» steckt in «{b}» – das kann beim Suchen verwirren.', { a:esc(p[0]), b:esc(p[1]) })); });
     if (h.length) html += '<ul>' + h.map(function(x){ return '<li>' + x + '</li>'; }).join('') + '</ul>';
     meldung(h.length ? 'warnung' : 'erfolg', html);
   }
@@ -343,8 +345,8 @@ function starte(bereich){
     var titel = art === 'loesung' ? tx('Lösung') + (t ? ' – ' + t : '') : (t ? tx('Suchsel: ') + t : tx('Suchsel'));
     var html = art === 'loesung' || st.opt.titelAn ? '<h2>' + esc(art === 'loesung' && !st.opt.titelAn ? tx('Lösung') : titel) + '</h2>' : '';
     if (art === 'spiel' && st.opt.anleitungAn){
-      var wie = 'waagrecht' + (ri.schraeg ? tx(', senkrecht oder schräg') : tx(' oder senkrecht')) + (ri.rueck ? tx(', manche auch rückwärts') : '');
-      html += tx('<p class="sb-anleitung">Finde die ') + f.woerter.length + tx(' versteckten Wörter') + (t ? tx(' zum Thema «') + esc(t) + '»' : '') + tx(' und markiere sie. Sie stehen ') + wie + '.' +
+      var wie = tx(ri.schraeg ? (ri.rueck ? 'Sie stehen waagrecht, senkrecht oder schräg, manche auch rückwärts.' : 'Sie stehen waagrecht, senkrecht oder schräg.') : (ri.rueck ? 'Sie stehen waagrecht oder senkrecht, manche auch rückwärts.' : 'Sie stehen waagrecht oder senkrecht.'));
+      html += '<p class="sb-anleitung">' + (t ? tx('Finde die {n} versteckten Wörter zum Thema «{t}» und markiere sie.', { n:f.woerter.length, t:esc(t) }) : tx('Finde die {n} versteckten Wörter und markiere sie.', { n:f.woerter.length })) + ' ' + wie +
         (kreuzungen(f) ? tx(' Manche Wörter kreuzen sich.') : '') + (aktuell.nachricht ? tx(' Die übrigen Buchstaben ergeben – Zeile für Zeile von links nach rechts gelesen – eine versteckte Nachricht.') : '') + '</p>';
     }
     html += '<div class="sb-gitter"></div>';
@@ -384,7 +386,7 @@ function starte(bereich){
     var f = aktuell.feld, n = Object.keys(spiel.gefunden).length, p = $('#sbFortschritt');
     if (!p) return;
     p.className = 'sb-fortschritt nur-bildschirm' + (n === f.woerter.length ? tx(' fertig') : '');
-    p.textContent = n === f.woerter.length ? tx('🎉 Geschafft! Alle ') + n + tx(' Wörter gefunden.') + (aktuell.nachricht ? tx(' Lies jetzt die übrigen Buchstaben – sie ergeben die Nachricht.') : '') : n + tx(' von ') + f.woerter.length + tx(' Wörtern gefunden.');
+    p.textContent = n === f.woerter.length ? tx('🎉 Geschafft! Alle {n} Wörter gefunden.', { n:n }) + (aktuell.nachricht ? ' ' + tx('Lies jetzt die übrigen Buchstaben – sie ergeben die Nachricht.') : '') : tx('{n} von {m} Wörtern gefunden.', { n:n, m:f.woerter.length });
   }
 
   /* ---------- Werkzeuge ---------- */

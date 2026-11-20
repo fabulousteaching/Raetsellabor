@@ -11,7 +11,11 @@ var tx = Labor.uebersetzer('labor');
   var S = 10, NS = 'http://www.w3.org/2000/svg';
   var FARBEN = ['#FAD852', '#68D77E', '#63C2EA', '#F7A25D', '#F27A8A', '#C4B5FD', '#5EEAD4', '#D8BC94'];   // aus den Flüssigkeiten im Fabulous-Teaching-Logo
   var RICHTUNGEN = [[0, 1], [1, 0], [1, 1], [1, -1], [0, -1], [-1, 0], [-1, -1], [-1, 1]];
-  var HAEUFIG = { E:17.4, N:9.8, I:7.6, S:7.3, R:7, A:6.5, T:6.2, D:5.1, H:4.8, U:4.4, L:3.4, C:3.1, G:3, M:2.5, O:2.5, B:1.9, W:1.9,
+  // Buchstabenhäufigkeit der Sprache der Seite (Füllbuchstaben)
+  var SPRACHE = (typeof Labor !== 'undefined' && Labor.sprache) || 'de';
+  var HAEUFIG = SPRACHE === 'en' ? { E:12.7, T:9.1, A:8.2, O:7.5, I:7, N:6.7, S:6.3, H:6.1, R:6, D:4.3, L:4, C:2.8, U:2.8, M:2.4, W:2.4, F:2.2, G:2, Y:2, P:1.9, B:1.5, V:1, K:0.8, J:0.15, X:0.15, Q:0.1, Z:0.07 }
+    : SPRACHE === 'fr' ? { E:14.7, S:7.9, A:7.6, I:7.5, T:7.2, N:7.1, R:6.6, U:6.3, O:5.8, L:5.5, D:3.7, C:3.3, M:3, P:3, V:1.6, Q:1.4, F:1.1, G:1, B:0.9, H:0.7, J:0.6, X:0.4, Y:0.1, Z:0.1, K:0.05, W:0.04 }
+    : { E:17.4, N:9.8, I:7.6, S:7.3, R:7, A:6.5, T:6.2, D:5.1, H:4.8, U:4.4, L:3.4, C:3.1, G:3, M:2.5, O:2.5, B:1.9, W:1.9,
     F:1.7, K:1.2, Z:1.1, P:0.8, V:0.7, J:0.3, Y:0.1, X:0.1, Q:0.05, 'Ä':0.6, 'Ö':0.3, 'Ü':0.7 };
 
   function schluessel(z){ return z.map(function(rc){ return rc[0] + ',' + rc[1]; }).sort().join(';'); }
@@ -31,7 +35,7 @@ var tx = Labor.uebersetzer('labor');
     return res;
   }
 
-  /* Leere Felder füllen: Mischung aus deutscher Buchstabenhäufigkeit und den Buchstaben der Wörter.
+  /* Leere Felder füllen: Mischung aus der Buchstabenhäufigkeit der Sprache und den Buchstaben der Wörter.
      Danach zufällig entstandene zweite Vorkommen eines Wortes auflösen. */
   function fuellen(f, woerter, rnd){
     rnd = rnd || Math.random;
