@@ -337,8 +337,11 @@ function starte(bereich){
       var f = n.tarnung ? 1 : Kern.stift(n.satz.streckung), g = '';
       n.satz.striche.forEach(function(s){
         // Tarnlinien nehmen die Farben ihrer Nachricht (sonst verriete die Farbe, was Tarnung ist)
-        var b = n.tarnung ? n.basis : i, w = n.tarnung ? s.wort % P[n.basis].satz.woerter : s.wort;
-        var farbe = st.opt.farbmodus === 'sw' ? TINTE : st.opt.farbmodus === 'wort' ? FARBEN[(b * 3 + w) % FARBEN.length] : farbeVon(n.i);
+        // basis −1: Tarnung für alle – Wort für Wort abwechselnd in den Farben der Nachrichten
+        var b = i, w = s.wort, m = n;
+        if (n.tarnung && n.basis < 0){ b = s.wort % P.length; m = P[b]; w = Math.floor(s.wort / P.length) % m.satz.woerter; }
+        else if (n.tarnung){ b = n.basis; m = P[b]; w = s.wort % m.satz.woerter; }
+        var farbe = st.opt.farbmodus === 'sw' ? TINTE : st.opt.farbmodus === 'wort' ? FARBEN[(b * 3 + w) % FARBEN.length] : farbeVon(m.i);
         g += '<path d="' + s.p.map(function(q, k){ return (k ? 'L' : 'M') + f1(q[0] * 1000) + ' ' + f1(q[1] * 1000 / f); }).join('') + '" stroke="' + farbe + '"/>';
       });
       t += '<g transform="translate(' + f1(cx) + ' ' + f1(cy) + ') rotate(' + Kern.winkel(n.richtung) + ') scale(' + faktor.toFixed(4) + ' ' + (faktor * f).toFixed(4) + ')"' + (n.tarnung ? ' stroke-width="' + f1(dicke * 0.7) + '"' : '') + '>' + g + '</g>';
@@ -382,22 +385,32 @@ function starte(bereich){
       var satz = Kern.setzen(L.woerter, Z, Kern.sehne(Kern.kanten(o.form, Kern.winkel(n.richtung)), halb), Kern.STRECKUNG);
       if (satz) P.push({ i:i, richtung:n.richtung, text:L.woerter.join(' '), woerter:L.woerter, satz:satz });
     });
-    /* Tarnlinien: Hat eine Nachricht keine Nachricht im rechten Winkel, kommt dorthin eine Tarnung (gleiche Farbe wie sie) */
+    /* Tarnlinien füllen die Form: Hat eine Nachricht keine Nachricht im rechten Winkel, kommt dorthin eine Tarnung (in
+       ihren Farben). Kreuzen sich alle Nachrichten schon, kommen Tarnungen aus freien Richtungen, deren Gegenüber auch frei
+       ist (dann füllen sie die ganze Form; höchstens zwei), sonst eine aus einer freien Richtung – in den Farben aller Nachrichten. */
     T = [];
-    if (o.tarnung && o.form){
+    if (o.tarnung && o.form && P.length){
       var belegt = P.map(function(n){ return n.richtung; }), rnd = Kern.zufall(Kern.streuwert(P.map(function(n){ return n.richtung + n.text; }).join('|') + o.form));
-      P.forEach(function(n){
-        var q = Kern.quer(n.richtung);
-        if (q.some(function(r){ return belegt.indexOf(r) >= 0; })) return;
-        var r = q[0], halb = belegt.indexOf(Kern.gegenueber(r)) >= 0; belegt.push(r);
+      var schicht = function(r, basis){
+        var halb = belegt.indexOf(Kern.gegenueber(r)) >= 0; belegt.push(r);
         var sf = Kern.sehne(Kern.kanten(o.form, Kern.winkel(r)), halb), anzahl = Kern.tarnAnzahl(sf, Kern.STRECKUNG), vorlage = [];
         while (anzahl > 0){ var l = Math.min(anzahl, 3 + Math.floor(rnd() * 4)); vorlage.push(new Array(l + 1).join('X')); anzahl -= l; }
         var tz = Kern.tarnung(vorlage, Z, rnd), satz = Kern.setzen(tz.woerter, tz.Z, sf, Kern.STRECKUNG);
-        if (!satz) return;
-        T.push({ i:n.i, basis:P.indexOf(n), richtung:r, satz:satz, tarnung:true });
+        if (satz) T.push({ i:basis < 0 ? P[0].i : P[basis].i, basis:basis, richtung:r, satz:satz, tarnung:true });
+      };
+      P.forEach(function(n){
+        var q = Kern.quer(n.richtung);
+        if (!q.some(function(r){ return belegt.indexOf(r) >= 0; })) schicht(q[0], P.indexOf(n));
       });
+      if (!T.length){
+        var frei = [1, 2, 3, 4, 5, 6, 7, 8].filter(function(r){ return belegt.indexOf(r) < 0; });
+        var ganz = frei.filter(function(r){ return frei.indexOf(Kern.gegenueber(r)) >= 0; });
+        // je freies Paar (Richtung und Gegenüber) eine Schicht, höchstens zwei – sie kreuzen sich und füllen die Form gleichmässig
+        if (ganz.length) ganz.filter(function(r){ return r < Kern.gegenueber(r); }).slice(0, 2).forEach(function(r){ schicht(r, -1); });
+        else if (frei.length) schicht(frei[0], -1);
+      }
     }
-    $('#bwTarnInfo').textContent = !o.tarnung ? '' : T.length ? 'Tarnlinien aus Richtung ' + T.map(function(t){ return t.richtung; }).join(', ') + ' – beim flachen Blick werden sie zu feinen Strichen.' : P.length ? 'Nicht nötig: Die Nachrichten kreuzen sich schon.' : '';
+    $('#bwTarnInfo').textContent = !o.tarnung || !T.length ? '' : 'Tarnlinien aus Richtung ' + T.map(function(t){ return t.richtung; }).join(', ') + ' – beim flachen Blick werden sie zu feinen Strichen.';
     if (weg.length) h += '<p class="warnung">' + esc(weg.join(' ')) + ' gibt es nicht – nur Buchstaben, Ziffern und . , ! ? - :</p>';
     // Höhe der Buchstaben beim flachen Blick (Mitte): 6 Rastereinheiten; Radius = 75 mm
     P.forEach(function(n){ var mm = 6 * n.satz.ux * 75; if (mm < 3) h += '<p class="warnung">Nachricht ' + (n.i + 1) + ' ist lang – beim flachen Blick sind die Buchstaben nur etwa ' + mm.toFixed(1) + ' mm hoch. Kürzer ist besser.</p>';
