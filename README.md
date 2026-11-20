@@ -314,6 +314,17 @@ Malen nach Zahlen: Links von jeder Zeile und über jeder Spalte stehen Zahlen. S
 - **Raster:** Feldgrösse passt sich an (höchstens 11 mm), Zahlen rechtsbündig links und unten bündig oben, jede zweite Zeile und Spalte bei den Zahlen leicht hinterlegt; auf Wunsch dicke Linien alle 5 Felder. Linie für die Lösung (abwählbar).
 - **Lösungsblatt:** das ausgemalte Raster und die Lösung; «Lösung zeigen» blendet es oben ein. PDF.
 
+### Textformen
+
+Ein eigener Text füllt eine Form. Zum Lesen dreht man das Blatt.
+
+- **Text:** bis 800 Zeichen (Satz, Gedicht, Geschichte).
+- **Formen** (keine Vorauswahl): *Spirale* von aussen nach innen, im Uhrzeigersinn, Beginn oben links – Kreis (Schnecke), Herz, Stern, Blume, Quadrat, Dreieck, Tropfen; *Zeilen* – Welle (parallele Wellenlinien über die ganze Breite, Zeilen in der Mitte) und Regenbogen (Bögen von aussen nach innen).
+- **Spirale:** Jede Form als Radius je Winkel (Herz und Tropfen aus ihrer Kurve; Mittelpunkt so gesucht, dass der kleinste Radius möglichst gross ist; Ecken und Spitzen gerundet). Pro Umlauf wird die Form kleiner; der Abstand der Umläufe wird quer zur Linie gemessen und an der fertigen Spirale nachgestellt, damit er überall mindestens 1.22 Schriftgrössen beträgt. Aussen hat die Spirale genau die Form, nach innen wird sie runder (enge Kurven liessen die Buchstaben zusammenstossen). Stern und Blume sind darum sanft geschwungen; die kleine Form in der Mitte zeigt den spitzen Stern und die Blüte. Die Schriftgrösse wird gesucht (Halbierung), so dass der Text die Spirale füllt (höchstens 34 px); unter etwa 2.4 mm kommt eine Warnung.
+- **Welle, Regenbogen:** Wörter werden auf Zeilen verteilt; die grösste Schrift, bei der alles Platz hat.
+- **Farbe** (ohne Wahl schwarz): Schwarz, Dunkelblau, Dunkelrot, Dunkelgrün, Violett oder Bunt (jedes Wort eine Farbe; beim Regenbogen jeder Bogen eine Farbe).
+- **Blatt:** auf Wunsch eine kleine Form in der Mitte (Herz rot, Stern gelb, Blume pink …; nur bei Spiralen) und Linien zum Abschreiben. Lösungsblatt: der Text. PDF.
+
 ## Aufbau
 
 ```
@@ -356,6 +367,7 @@ raetsel/legekaertchen/          der Generator «Legekärtchen» (Kern: Figuren a
 raetsel/blickwinkel/            der Generator «Blickwinkel» (Kern: Strichschrift, Sätze in die Form setzen und strecken, Sehnen der Form, Richtungen, Tarnlinien; Form als SVG, flacher Blick)
 raetsel/uhren/                  der Generator «Uhrenrätsel» (Kern: Ziffern als Striche zwischen 6 Uhren, Richtungen je Uhr, Uhrzeiten und Drehungen suchen, Zeit als Text; Uhren als SVG)
 raetsel/nonogramm/              der Generator «Nonogramm» (Kern: Text in Blockschrift aufs Raster, Zahlen, Linie lösen, Rätsel lösen, Hilfsfelder; Raster als SVG)
+raetsel/textformen/             der Generator «Textformen» (Kern: Formen als Radien, Spirale mit gemessenem Abstand, Schrift einpassen, Zeilen umbrechen; textPath in SVG)
 raetsel/triomino/               der Generator «Triomino» (Kern: Formen, Kanten, Aufgaben, Belegung; Zeichnen mit Schriftanpassung)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)
