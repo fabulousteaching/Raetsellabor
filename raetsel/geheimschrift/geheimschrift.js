@@ -616,12 +616,6 @@ function schluesselHtml(art, o){
       return '<p class="gs-erklaerung">Jeder Buchstabe ist ein Baustein, von oben gesehen. Zähle die Noppen und schau die Farbe an: A bis I haben 4 Noppen (2 × 2), J bis R 6 Noppen (2 × 3) und S bis Z 8 Noppen (2 × 4). ' +
         'In jeder Gruppe kommen die Farben in derselben Reihenfolge: rot, orange, gelb, hellgrün, dunkelgrün, hellblau, blau, violett, rosa.</p>' +
         tabelle(A.map(function(c){ return [c, steinSvg(Kern.BAUSTEINE[c], 'gs-stein-k'), STEIN_NAME[Kern.BAUSTEINE[c][0]]]; }), 'gs-tab-steine');
-    case 'erpresser':
-      var sd = (o.erpSeed || 1) * 3 + 101, nr = 0, abc = function(liste){ return '<div class="gs-erp-bogen">' + liste.map(function(c){ return '<span class="gs-erp-zelle">' + erpHtml(c, erpStil(sd, nr++)) + '</span>'; }).join('') + '</div>'; };
-      return '<p class="gs-erklaerung">So sehen Briefe von Erpressern im Krimi aus: Jeder Buchstabe ist aus einer anderen Zeitung oder Zeitschrift ausgeschnitten und aufgeklebt – mit eigener Schrift, Farbe und Grösse. ' +
-        'Verschlüsselt ist nichts, aber weil kein Buchstabe wie der andere aussieht, muss man genau hinschauen. Gross- und Kleinbuchstaben dürfen gemischt sein.</p>' +
-        '<h3 class="gs-unter">Buchstaben zum Ausschneiden</h3><p class="gs-erklaerung">Damit kannst du selbst eine Nachricht kleben.</p>' +
-        abc(A) + abc(A.map(function(c){ return c.toLowerCase(); })) + abc(['Ä', 'Ö', 'Ü', 'ä', 'ö', 'ü', 'ß', '!', '?'].concat('0123456789'.split('')));
     case 'finger':
       return '<p class="gs-erklaerung">Mit dem Fingeralphabet buchstabieren gehörlose Menschen Namen und Wörter, für die es keine eigene Gebärde gibt. Jeder Buchstabe ist eine Handform. ' +
         'Im Fingeralphabet der Deutschschweiz haben auch Ä, Ö, Ü, CH und SCH eigene Zeichen. Bei J und Z bewegt sich die Hand (Pfeil).</p>' +
@@ -695,12 +689,12 @@ var VORLAGE = '<div class="gs">' +
     '<div class="gs-teil">' +
       '<h2 class="gs-teil-titel">Geheimtext</h2>' +
       '<div class="gs-werkzeug">' +
-        '<button type="button" class="btn klein" id="gsZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
+        '<button type="button" class="btn klein gs-nur-geheim" id="gsZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
         '<span class="abstand"></span>' +
         Labor.blattSchalterHtml() +
-        '<label title="Linien unter den Zeichen zum Hinschreiben der Buchstaben"><input type="checkbox" id="gsLinien"> Schreiblinien</label>' +
-        '<label><input type="checkbox" id="gsMitLoesung"> mit Lösungsblatt</label>' +
-        '<label><input type="checkbox" id="gsMitSchluessel"> mit Schlüssel</label>' +
+        '<label class="gs-nur-geheim" title="Linien unter den Zeichen zum Hinschreiben der Buchstaben"><input type="checkbox" id="gsLinien"> Schreiblinien</label>' +
+        '<label class="gs-nur-geheim"><input type="checkbox" id="gsMitLoesung"> mit Lösungsblatt</label>' +
+        '<label class="gs-nur-geheim"><input type="checkbox" id="gsMitSchluessel"> mit Schlüssel</label>' +
         '<button type="button" class="btn klein" id="gsCodeBild">Als Bild</button>' +
         '<button type="button" class="btn klein primary" id="gsPdf">PDF herunterladen</button>' +
         '<button type="button" class="btn klein primary" id="gsHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
@@ -709,7 +703,7 @@ var VORLAGE = '<div class="gs">' +
       '<p class="gs-tipp" id="gsTipp">Tipp: Auf den Geheimtext klicken – er wird als Bild kopiert und lässt sich in Word mit Ctrl+V (Mac: Cmd+V) einfügen.</p>' +
       '<article class="gs-blatt gs-loesungsblatt" id="gsLoesung" aria-hidden="true"></article>' +
     '</div>' +
-    '<div class="gs-teil">' +
+    '<div class="gs-teil gs-teil-schluessel">' +
       '<h2 class="gs-teil-titel">Schlüssel</h2>' +
       '<div class="gs-werkzeug"><span class="gs-werkzeug-text">Zum Entschlüsseln – auch einzeln.</span><span class="abstand"></span>' +
         '<button type="button" class="btn klein" id="gsSchluesselBild">Als Bild</button>' +
@@ -811,14 +805,15 @@ function starte(bereich){
   /* ---------- Geheimtext ---------- */
   function px(){ return (GROESSEN.filter(function(g){ return g[0] === st.opt.groesse; })[0] || GROESSEN[1])[2]; }
   function codeHtml(){
-    var voegel = st.opt.art === 'voegel';   // Vögel: alle Zellen ohne Abstand, dazwischen Draht – ein durchgehender Draht pro Zeile
+    // Vögel: alle Zellen ohne Abstand, dazwischen Draht – ein durchgehender Draht pro Zeile · Erpresserschrift: nur die geklebten Buchstaben, ohne Linien
+    var voegel = st.opt.art === 'voegel', ohneLinie = st.opt.art === 'erpresser';
     var luecke = '<span class="gs-z gs-andere"><span class="gs-s">' + drahtSvg('') + '</span><span class="gs-linie gs-leer"></span></span>';
     return '<div class="gs-code gs-art-' + st.opt.art + (st.opt.art === 'segmente' && st.opt.segArt === 'ausmalen' ? ' gs-seg-ausmalen' : '') + (st.opt.linien ? '' : ' ohne-linien') + '" style="--fm:' + px() + 'px">' + zellen().map(function(zeile){
       return '<div class="gs-zeile">' + zeile.map(function(wort, k){
         return (voegel && k ? luecke : '') + '<span class="gs-wort">' + wort.map(function(c){
-          if (c.code) return '<span class="gs-z"><span class="gs-s">' + symbolHtml(c.code) + '</span><span class="gs-linie"><b class="gs-loes">' + esc(c.b) + '</b></span></span>';
+          if (c.code) return '<span class="gs-z"><span class="gs-s">' + symbolHtml(c.code) + '</span>' + (ohneLinie ? '' : '<span class="gs-linie"><b class="gs-loes">' + esc(c.b) + '</b></span>') + '</span>';
           if (voegel) return '<span class="gs-z gs-andere"><span class="gs-s">' + drahtSvg(c.b) + '</span><span class="gs-linie gs-leer"></span></span>';
-          return '<span class="gs-z gs-andere"><span class="gs-s"><span class="gs-t gs-bleibt">' + esc(c.b) + '</span></span><span class="gs-linie gs-leer"></span></span>';
+          return '<span class="gs-z gs-andere"><span class="gs-s"><span class="gs-t gs-bleibt">' + esc(c.b) + '</span></span>' + (ohneLinie ? '' : '<span class="gs-linie gs-leer"></span>') + '</span>';
         }).join('') + '</span>';
       }).join('') + '</div>';
     }).join('') + '</div>';
@@ -828,6 +823,9 @@ function starte(bereich){
     $('#gsCaesar').hidden = o.art !== 'caesar';
     $('#gsSegment').hidden = o.art !== 'segmente';
     $('#gsErpresser').hidden = o.art !== 'erpresser';
+    var erp = o.art === 'erpresser';   // keine Geheimschrift: ohne Linien, Lösung und Schlüssel – nur die Nachricht zum Drucken oder Kopieren
+    bereich.querySelector('.gs').classList.toggle('gs-erpresser', erp);
+    $('.gs-teil-titel').textContent = erp ? 'Nachricht' : 'Geheimtext';
     $('#gsTextHinweis').textContent = o.art === 'erpresser' ? 'Buchstaben (auch Ä, Ö, Ü und ß), Ziffern, ! und ? werden ausgeschnitten; andere Satzzeichen bleiben stehen.' : o.art === 'finger' ? 'Ä, Ö, Ü, CH und SCH haben eigene Handzeichen; ß wird als SS geschrieben. Ziffern und Satzzeichen bleiben stehen.' : o.art === 'segmente' ? 'Umlaute werden als AE, OE, UE geschrieben, ß als SS. Ziffern haben eigene Zeichen; Satzzeichen bleiben stehen.' : Kern.UMLAUTE[o.art] ? 'Ä, Ö, Ü und ß haben in dieser Schrift eigene Zeichen' + (o.art === 'morse' ? '; Ziffern und einige Satzzeichen auch.' : '; Ziffern bekommen das Zahlzeichen.') :
       'Umlaute werden als AE, OE, UE geschrieben, ß als SS.' + (o.art === 'polybios' ? ' J wird wie I geschrieben.' : '') + ' Ziffern und Satzzeichen bleiben stehen.';
     $('#gsBlatt').hidden = $('#gsLoesung').hidden = leer;
@@ -835,13 +833,21 @@ function starte(bereich){
     $('#gsTipp').hidden = leer;
     if (leer){
       $('#gsBlatt').innerHTML = $('#gsLoesung').innerHTML = '';
-      meldung('info', '<p>Schreibe links einen Text – er erscheint hier in der Geheimschrift. Den Schlüssel unten kannst du schon jetzt herunterladen.</p>');
+      meldung('info', o.art === 'erpresser' ? '<p>Schreibe links einen Text – er erscheint hier in der Erpresserschrift.</p>' : '<p>Schreibe links einen Text – er erscheint hier in der Geheimschrift. Den Schlüssel unten kannst du schon jetzt herunterladen.</p>');
       return;
     }
     meldung('', '');
+    if (erp){
+      $('#gsBlatt').innerHTML = (o.titelAn && st.titel.trim() ? '<h2>' + esc(st.titel.trim()) + '</h2>' : '') + codeHtml();
+      $('#gsLoesung').innerHTML = '';
+      $('#gsBlatt').classList.remove('zeige-loesung');
+      var c0 = $('#gsBlatt .gs-code');
+      c0.setAttribute('role', 'button'); c0.setAttribute('tabindex', '0'); c0.title = 'Klicken: als Bild kopieren (zum Einfügen in Word)';
+      c0.setAttribute('aria-label', 'Nachricht in Erpresserschrift – klicken, um sie als Bild zu kopieren');
+      return;
+    }
     var name = schriftName(o.art, o);
     var anleitung = o.art === 'segmente' && o.segArt === 'ausmalen' ? 'Male in jeder Anzeige die genannten Segmente an und lies den Buchstaben ab' + (o.linien ? '. Schreibe ihn auf die Linie' : '') + '. Der Schlüssel zeigt, wo welches Segment liegt.'
-      : o.art === 'erpresser' ? 'Diese Nachricht ist aus ausgeschnittenen Buchstaben zusammengeklebt. Lies sie' + (o.linien ? ' und schreibe die Buchstaben auf die Linien' : '') + '.'
       : 'Entschlüssle die Geheimschrift (' + esc(name) + ') mit dem Schlüssel' + (o.linien ? ' und schreibe die Buchstaben auf die Linien' : '') + '.';
     $('#gsBlatt').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + '</h2>' : '') +
       (o.anleitungAn ? '<p class="gs-anleitung">' + anleitung + '</p>' : '') + codeHtml();
@@ -860,14 +866,14 @@ function starte(bereich){
   /* ---------- Schlüssel ---------- */
   function schluesselZeichnen(){
     var o = st.opt;
-    $('#gsSchluessel').innerHTML = (o.titelAn ? '<h2>' + (o.art === 'erpresser' ? 'Erpresserschrift: Buchstaben zum Ausschneiden' : 'Schlüssel: ' + esc(schriftName(o.art, o))) + '</h2>' : '') + '<div class="gs-art-' + o.art + '">' + schluesselHtml(o.art, o) + '</div>';
+    $('#gsSchluessel').innerHTML = (o.titelAn ? '<h2>' + 'Schlüssel: ' + esc(schriftName(o.art, o)) + '</h2>' : '') + '<div class="gs-art-' + o.art + '">' + schluesselHtml(o.art, o) + '</div>';
   }
   function alles(){ zeichnen(); schluesselZeichnen(); }
 
   /* ---------- PDF, Bild, Herunterladen ---------- */
   function dateiName(art, endung){ return Labor.pdfName(art, st.titel).replace(/\.pdf$/, '.' + endung); }
-  function codeBlaetter(){ return [$('#gsBlatt'), st.opt.mitSchluessel && $('#gsSchluessel'), st.opt.mitLoesung && $('#gsLoesung')].filter(Boolean); }
-  function druckVorbereiten(){ document.body.classList.toggle('mit-loesung', !!st.opt.mitLoesung); }
+  function codeBlaetter(){ if (st.opt.art === 'erpresser') return [$('#gsBlatt')]; return [$('#gsBlatt'), st.opt.mitSchluessel && $('#gsSchluessel'), st.opt.mitLoesung && $('#gsLoesung')].filter(Boolean); }
+  function druckVorbereiten(){ document.body.classList.toggle('mit-loesung', !!st.opt.mitLoesung && st.opt.art !== 'erpresser'); }
   window.addEventListener('beforeprint', druckVorbereiten);
   function fehler(t){ meldung('fehler', '<p>' + esc(t) + '</p>'); }
   Labor.pdfKnopf($('#gsPdf'), function(){ return hatZeichen() && { blaetter:codeBlaetter(), name:dateiName('Geheimschrift', 'pdf') }; }, fehler);

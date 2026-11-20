@@ -210,5 +210,6 @@
 .gs-art-erpresser .gs-s{padding:0 1px}
 .gs-vorschau .gs-erp{--fm:25px}
 .gs-vorschau.gs-v-erpresser{gap:3px}
-.gs-erp-bogen{display:flex;flex-wrap:wrap;align-items:center;gap:16px 14px;--fm:48px;margin:6px 0 20px}
-.gs-erp-zelle{display:inline-flex;align-items:center;height:var(--fm)}
+/* Erpresserschrift ist keine Geheimschrift: ohne Lösung, Linien und Schlüssel – auch beim Drucken */
+.gs-erpresser .gs-nur-geheim,.gs-erpresser .gs-teil-schluessel,.gs-erpresser .gs-loesungsblatt{display:none!important}
+.gs-art-erpresser.gs-code{gap:calc(var(--fm) * .3)}
