@@ -15,9 +15,15 @@ var Kern = (function(){
   var RICHTUNG = { R:[0, 1], D:[1, 0], L:[0, -1], U:[-1, 0] };
   var PFEIL = { R:'→', D:'↓', L:'←', U:'↑' };
   var NAME = { R:'rechts', D:'unten', L:'links', U:'oben' };
-  var HAEUFIG = { E:17, N:10, I:8, S:7, R:7, A:6.5, T:6, D:5, H:4.8, U:4.2, L:3.4, C:3, G:3, M:2.5, O:2.5, B:1.9, W:1.9, F:1.7, K:1.2, Z:1.1, P:0.8, V:0.7, J:0.3, Y:0.1, X:0.1, Q:0.05 };
+  // Füllbuchstaben wie in der Sprache der Seite (Deutsch, Englisch, Französisch)
+  var SPRACHE = (typeof Labor !== 'undefined' && Labor.sprache) || 'de';
+  var HAEUFIG = SPRACHE === 'en' ? { E:12.7, T:9.1, A:8.2, O:7.5, I:7, N:6.7, S:6.3, H:6.1, R:6, D:4.3, L:4, C:2.8, U:2.8, M:2.4, W:2.4, F:2.2, G:2, Y:2, P:1.9, B:1.5, V:1, K:0.8, J:0.15, X:0.15, Q:0.1, Z:0.07 }
+    : SPRACHE === 'fr' ? { E:14.7, S:7.9, A:7.6, I:7.5, T:7.2, N:7.1, R:6.6, U:6.3, O:5.8, L:5.5, D:3.7, C:3.3, M:3, P:3, V:1.6, Q:1.4, F:1.1, G:1, B:0.9, H:0.7, J:0.6, X:0.4, Y:0.1, Z:0.1, K:0.05, W:0.04 }
+    : { E:17, N:10, I:8, S:7, R:7, A:6.5, T:6, D:5, H:4.8, U:4.2, L:3.4, C:3, G:3, M:2.5, O:2.5, B:1.9, W:1.9, F:1.7, K:1.2, Z:1.1, P:0.8, V:0.7, J:0.3, Y:0.1, X:0.1, Q:0.05 };
   // Satz → Grossbuchstaben (Umlaute bleiben, ß wird SS) und Ziffern, ohne Abstände und Satzzeichen
-  function buchstaben(text){ return Array.from(String(text || '').normalize('NFC').toLocaleUpperCase('de-CH').replace(/[^A-ZÄÖÜ0-9]/g, '')); }
+  // andere Akzente fallen weg (É → E, Ç → C, Œ → OE)
+  function buchstaben(text){ return Array.from(String(text || '').normalize('NFC').toLocaleUpperCase('de-CH').replace(/Œ/g, 'OE').replace(/Æ/g, 'AE')
+    .replace(/[^A-ZÄÖÜ0-9]/g, function(c){ var o = c.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); return /^[A-Z]$/.test(o) ? o : ''; })); }
   /* Schlange legen: Code-Schritt i = ein ganzer Satz (n Felder) gerade in Richtung code[i]. Der erste beginnt bei (0,0),
      jeder weitere direkt neben dem letzten Buchstaben des vorigen: in seiner Richtung weiter (bevorzugt) oder seitlich
      daneben. Gesucht wird die Lage mit dem kleinsten umgebenden Rechteck (höchstens maxB × maxH).
@@ -208,9 +214,9 @@ var VORLAGE = '<div class="rs">' +
       '<textarea id="rsSatz" class="rs-text" rows="2" maxlength="40" spellcheck="true"></textarea>' +
       '<p class="hinweis" id="rsSatzInfo"></p>' +
     '</div>' +
-    tx('<div class="karte" id="rsCodeKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Richtungscode</h2><p>So, wie man das Richtungsschloss öffnet – bis ') + MAXCODE + tx(' Richtungen.</p></div></div>') +
+    '<div class="karte" id="rsCodeKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>' + tx('Richtungscode') + '</h2><p>' + tx('So, wie man das Richtungsschloss öffnet – bis {n} Richtungen.', { n:MAXCODE }) + '</p></div></div>' +
       tx('<div class="rs-steuer"><div class="rs-kreuz" role="group" aria-label="Richtung anhängen">') +
-        [['U', 'oben'], ['L', 'links'], ['R', 'rechts'], ['D', 'unten']].map(function(x){ return '<button type="button" class="rs-pfeil rs-' + x[0] + '" data-r="' + x[0] + '" aria-label="' + x[1] + '">' + { U:'↑', L:'←', R:'→', D:'↓' }[x[0]] + '</button>'; }).join('') +
+        [['U', 'oben'], ['L', 'links'], ['R', 'rechts'], ['D', 'unten']].map(function(x){ return '<button type="button" class="rs-pfeil rs-' + x[0] + '" data-r="' + x[0] + '" aria-label="' + tx(x[1]) + '">' + { U:'↑', L:'←', R:'→', D:'↓' }[x[0]] + '</button>'; }).join('') +
       '</div><div class="rs-codefeld"><div class="rs-codeliste" id="rsCode" aria-live="polite"></div>' +
         tx('<div class="rs-codeknoepfe"><button type="button" class="btn klein" id="rsZurueck">⌫ Letzte löschen</button><button type="button" class="btn klein" id="rsLeeren">Alle löschen</button></div></div></div>') +
       '<p class="hinweis" id="rsCodeHinweis"></p>' +
@@ -284,7 +290,7 @@ function starte(bereich){
     k.addEventListener('click', function(){ anhaengen(k.dataset.r); });
     k.addEventListener('keydown', function(ev){
       var r = { ArrowUp:'U', ArrowDown:'D', ArrowLeft:'L', ArrowRight:'R' }[ev.key];
-      if (r){ ev.preventDefault(); anhaengen(r); var z = bereich.querySelector(tx('.rs-pfeil.rs-') + r); if (z) z.focus(); }
+      if (r){ ev.preventDefault(); anhaengen(r); var z = bereich.querySelector('.rs-pfeil.rs-' + r); if (z) z.focus(); }
     });
   });
   $('#rsZurueck').addEventListener('click', function(){ st.code.pop(); speichern(); erstellen(); });
@@ -315,7 +321,7 @@ function starte(bereich){
   function erstellen(){
     if (aus) return;
     var satz = Kern.buchstaben(st.satz);
-    $('#rsSatzInfo').textContent = satz.length ? satz.length + tx(' Buchstaben') + (satz.length > 20 ? tx(' – ein kürzerer Satz gibt ein kleineres Feld') : '') : '';
+    $('#rsSatzInfo').textContent = satz.length ? tx('{n} Buchstaben', { n:satz.length }) + (satz.length > 20 ? ' ' + tx('– ein kürzerer Satz gibt ein kleineres Feld') : '') : '';
     $('#rsCodeKarte').hidden = satz.length < 3;
     codeZeigen();
     F = null; gefunden = {};
@@ -325,23 +331,27 @@ function starte(bereich){
     var r = Kern.erstelle(st.satz, st.code, { rnd:Kern.zufall(st.seed), ausSatz:st.opt.ausSatz, gerade:st.opt.gerade, maxB:30, maxH:38 });
     if (r.fehler === 'abbiegen'){
       var i = r.stelle, gleich = st.code[i] === st.code[i - 1];
-      return nichts('fehler', tx('<h3>Hier kann die Schlange nicht abbiegen</h3><p>Bei Richtung ') + i + tx(' und ') + (i + 1) + tx(' kommt ') + Kern.PFEIL[st.code[i - 1]] + ' ' + Kern.PFEIL[st.code[i]] +
-        (gleich ? tx(' – zweimal dieselbe Richtung würde einfach geradeaus weiterlaufen.') : tx(' – eine Umkehr geht in der Schlange nicht.')) +
-        tx(' Ändere den Code oder kreuze «Gleiche Richtung zweimal hintereinander oder Umkehr erlauben» an (dann ist jedes Stück ein ganzer Satz).</p>'));
+      return nichts('fehler', '<h3>' + tx('Hier kann die Schlange nicht abbiegen') + '</h3><p>' +
+        tx(gleich ? 'Bei Richtung {a} und {b} kommt {p} – zweimal dieselbe Richtung würde einfach geradeaus weiterlaufen.' : 'Bei Richtung {a} und {b} kommt {p} – eine Umkehr geht in der Schlange nicht.',
+          { a:i, b:i + 1, p:Kern.PFEIL[st.code[i - 1]] + ' ' + Kern.PFEIL[st.code[i]] }) + ' ' +
+        tx('Ändere den Code oder kreuze «Gleiche Richtung zweimal hintereinander oder Umkehr erlauben» an (dann ist jedes Stück ein ganzer Satz).') + '</p>');
     }
     if (r.fehler === 'palindrom') return nichts('fehler', tx('<h3>Der Satz ist vorwärts und rückwärts gleich</h3><p>Dann sieht man nicht, in welche Richtung er läuft. Nimm einen anderen Satz.</p>'));
     if (r.fehler === 'gross'){
       // Wie lang dürfte der Satz sein?
       var max = 0; for (var n = satz.length - 1; n >= 3; n--){ if (st.opt.gerade ? Kern.schlange(n, st.code, Math.random, 28, 36) : Kern.eckSchlange(n, st.code, Math.random, 28, 36)){ max = n; break; } }
-      return nichts('fehler', tx('<h3>Das Feld würde zu gross</h3><p>') + (st.opt.gerade ? st.code.length + tx(' Sätze mit je ') + satz.length + tx(' Buchstaben passen') : tx('Die Schlange passt')) + tx(' nicht in ein Feld von höchstens 30 × 38 Buchstaben.') +
-        (max ? tx(' Mit diesem Code geht ein Satz mit höchstens ') + max + tx(' Buchstaben.') : '') + tx(' Nimm einen kürzeren Satz oder weniger Richtungen.</p>'));
+      return nichts('fehler', '<h3>' + tx('Das Feld würde zu gross') + '</h3><p>' +
+        (st.opt.gerade ? tx('{n} Sätze mit je {b} Buchstaben passen nicht in ein Feld von höchstens 30 × 38 Buchstaben.', { n:st.code.length, b:satz.length }) : tx('Die Schlange passt nicht in ein Feld von höchstens 30 × 38 Buchstaben.')) +
+        (max ? ' ' + tx('Mit diesem Code geht ein Satz mit höchstens {m} Buchstaben.', { m:max }) : '') + ' ' + tx('Nimm einen kürzeren Satz oder weniger Richtungen.') + '</p>');
     }
     F = r;
     anzeigen();
-    meldung(r.doppelt ? 'warnung' : 'erfolg', tx('<p><b>Fertig!</b> Feld mit ') + r.spalten + ' × ' + r.zeilen + tx(' Buchstaben. Die Schlange ') +
-      (r.gerade ? tx('besteht aus ') + r.R + (r.R === 1 ? tx(' Satz') : tx(' Sätzen')) : tx('enthält den Satz ') + r.R + tx('-mal und hat ') + r.woerter.length + (r.woerter.length === 1 ? tx(' gerades Stück') : tx(' gerade Stücke'))) +
-      tx('. Code: <b class="rs-codetext">') + st.code.map(function(c){ return Kern.PFEIL[c]; }).join(' ') + tx('</b>. Die geraden Stücke lassen sich direkt im Feld markieren.</p>') +
-      (r.doppelt ? tx('<p>Achtung: Der Satz steht noch ') + r.doppelt + tx('-mal zufällig im Feld. «Neu mischen» hilft.</p>') : ''));
+    var code = '<b class="rs-codetext">' + st.code.map(function(c){ return Kern.PFEIL[c]; }).join(' ') + '</b>';
+    meldung(r.doppelt ? 'warnung' : 'erfolg', '<p><b>' + tx('Fertig!') + '</b> ' +
+      (r.gerade ? tx(r.R === 1 ? 'Feld mit {s} × {z} Buchstaben. Die Schlange besteht aus 1 Satz.' : 'Feld mit {s} × {z} Buchstaben. Die Schlange besteht aus {r} Sätzen.', { s:r.spalten, z:r.zeilen, r:r.R })
+        : tx(r.woerter.length === 1 ? 'Feld mit {s} × {z} Buchstaben. Die Schlange enthält den Satz {r}-mal und hat 1 gerades Stück.' : 'Feld mit {s} × {z} Buchstaben. Die Schlange enthält den Satz {r}-mal und hat {g} gerade Stücke.', { s:r.spalten, z:r.zeilen, r:r.R, g:r.woerter.length })) +
+      ' ' + tx('Code: {c}. Die geraden Stücke lassen sich direkt im Feld markieren.', { c:code }) + '</p>' +
+      (r.doppelt ? '<p>' + tx('Achtung: Der Satz steht noch {n}-mal zufällig im Feld. «Neu mischen» hilft.', { n:r.doppelt }) + '</p>' : ''));
   }
 
   /* ---------- Anzeige ---------- */
@@ -375,15 +385,19 @@ function starte(bereich){
     var o = st.opt, satz = Kern.buchstaben(st.satz).join(''), n = F.woerter.length;
     var html = o.titelAn || art === 'loesung' ? '<h2>' + (art === 'loesung' ? tx('Richtungs-Suchsel – Lösung') : tx('Richtungs-Suchsel')) + '</h2>' : '';
     if (art === 'spiel' && o.anleitungAn){
-      html += '<p class="rs-anleitung">' + (o.satzZeigen ? tx('Der Satz <b>«') + esc(satz) + tx('»</b> steht') : tx('Ein Satz steht')) + tx(' immer wieder im Feld – ') +
-        (F.gerade ? tx('Satz an Satz, wie eine Schlange. ') + (o.start ? tx('Beginne beim Kreis. ') : '') + tx('Wo ein Satz aufhört, beginnt der nächste direkt daneben. Markiere die ') + n + tx(' Sätze der Reihe nach und schreibe für jeden auf, in welche Richtung er läuft: → ← ↑ ↓. ')
-          : tx('als Schlange, die um Ecken biegt. ') + (o.start ? tx('Beginne beim Kreis und folge') : tx('Folge')) + tx(' dem Satz Buchstabe für Buchstabe. Jedes gerade Stück der Schlange zeigt eine Richtung: → ← ↑ ↓. Schreibe die ') + n + tx(' Richtungen der Reihe nach auf. ')) +
-        tx('Das ist der Code für das Richtungsschloss.</p>');
+      var wer = o.satzZeigen ? tx('Der Satz <b>«{s}»</b> steht immer wieder im Feld', { s:esc(satz) }) : tx('Ein Satz steht immer wieder im Feld');
+      html += '<p class="rs-anleitung">' + (F.gerade
+          ? tx('{wer} – Satz an Satz, wie eine Schlange.', { wer:wer }) + (o.start ? ' ' + tx('Beginne beim Kreis.') : '') + ' ' +
+            tx('Wo ein Satz aufhört, beginnt der nächste direkt daneben. Markiere die {n} Sätze der Reihe nach und schreibe für jeden auf, in welche Richtung er läuft: → ← ↑ ↓.', { n:n })
+          : tx('{wer} – als Schlange, die um Ecken biegt.', { wer:wer }) + ' ' +
+            tx(o.start ? 'Beginne beim Kreis und folge dem Satz Buchstabe für Buchstabe. Jedes gerade Stück der Schlange zeigt eine Richtung: → ← ↑ ↓. Schreibe die {n} Richtungen der Reihe nach auf.'
+              : 'Folge dem Satz Buchstabe für Buchstabe. Jedes gerade Stück der Schlange zeigt eine Richtung: → ← ↑ ↓. Schreibe die {n} Richtungen der Reihe nach auf.', { n:n })) +
+        ' ' + tx('Das ist der Code für das Richtungsschloss.') + '</p>';
     }
     html += '<div class="rs-gitter"></div>';
     html += tx('<div class="rs-codebox"><p>Code für das Richtungsschloss</p><div class="rs-kaestchen">') + F.code.map(function(c, i){
       return '<span class="rs-k"><small>' + (i + 1) + '</small><b>' + (art === 'loesung' ? Kern.PFEIL[c] : '') + '</b></span>'; }).join('') + '</div></div>';
-    if (art === 'loesung') html += tx('<p class="rs-anleitung">Satz: <b>') + esc(satz) + tx('</b> · Code: ') + F.code.map(function(c){ return Kern.NAME[c]; }).join(', ') + '</p>';
+    if (art === 'loesung') html += '<p class="rs-anleitung">' + tx('Satz:') + ' <b>' + esc(satz) + '</b> · ' + tx('Code:') + ' ' + F.code.map(function(c){ return tx(Kern.NAME[c]); }).join(', ') + '</p>';
     if (art === 'spiel') html += '<p class="rs-fortschritt nur-bildschirm" id="rsFortschritt" aria-live="polite"></p>';
     return html;
   }
@@ -404,9 +418,10 @@ function starte(bereich){
   function fortschritt(){
     var p = $('#rsFortschritt'); if (!p || !F) return;
     var n = Object.keys(gefunden).length;
-    p.className = 'rs-fortschritt nur-bildschirm' + (n === F.woerter.length ? tx(' fertig') : '');
-    var wort = F.gerade ? [tx('Satz'), tx('Sätze'), tx('Sätzen')] : [tx('Stück'), tx('Stücke'), tx('Stücken')];
-    p.textContent = n === F.woerter.length ? tx('🎉 Alle ') + n + ' ' + wort[1] + tx(' gefunden! Jetzt die Richtungen der Reihe nach aufschreiben.') : n + tx(' von ') + F.woerter.length + ' ' + wort[2] + tx(' gefunden.');
+    p.className = 'rs-fortschritt nur-bildschirm' + (n === F.woerter.length ? ' fertig' : '');
+    p.textContent = n === F.woerter.length
+      ? tx(F.gerade ? '🎉 Alle {n} Sätze gefunden! Jetzt die Richtungen der Reihe nach aufschreiben.' : '🎉 Alle {n} Stücke gefunden! Jetzt die Richtungen der Reihe nach aufschreiben.', { n:n })
+      : tx(F.gerade ? '{n} von {m} Sätzen gefunden.' : '{n} von {m} Stücken gefunden.', { n:n, m:F.woerter.length });
   }
 
   /* ---------- PDF, Herunterladen ---------- */
