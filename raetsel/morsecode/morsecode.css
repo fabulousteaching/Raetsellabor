@@ -1,0 +1,95 @@
+/* Rätsellabor · Morsecode – nur aktiv, solange dieser Generator offen ist.
+   Gemeinsame Bausteine (Karten, Knöpfe, Eingabefelder, Meldungen) stehen in gemeinsam/labor.css.
+   Das Blatt ist 703 Pixel breit (= 186 mm im PDF). */
+.mc{max-width:1440px;margin:0 auto;padding-block:22px 48px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.mc-kopf{display:grid;gap:4px;margin:0 0 20px}
+.mc-kopf h1{font-family:var(--display);font-weight:600;font-size:clamp(1.7rem,3vw,2.2rem);letter-spacing:-.01em;line-height:1.1;margin:0;color:var(--ink)}
+.mc-kopf h1:focus{outline:none}
+.mc-kopf p:last-child{margin:2px 0 0;color:var(--muted);max-width:70ch}
+.mc-layout{display:grid;grid-template-columns:minmax(300px,400px) minmax(0,1fr);gap:24px;align-items:start}
+.mc-eingabe{display:grid;gap:16px;min-width:0}
+@media (min-width:961px){ .mc-eingabe{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--kopf-h) + 16px);max-height:calc(100vh - var(--kopf-h) - 32px);overflow:auto;padding:2px 4px 2px 2px;scrollbar-width:thin} }
+@media (max-width:960px){ .mc-layout{grid-template-columns:minmax(0,1fr);gap:18px} }
+@media (max-width:640px){ .mc{padding-block:18px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))} }
+
+/* ---------- Eingaben ---------- */
+.mc .feld-label{display:block;margin-top:4px}
+.mc-text{display:block;width:100%;box-sizing:border-box;margin-top:6px;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;font:inherit;font-size:1rem;line-height:1.45;resize:vertical;min-height:80px;transition:border-color .15s,box-shadow .15s}
+.mc-text:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+.mc-zaehler{font-size:.88rem}
+.mc-zaehler p{margin:8px 0 0}
+.mc-zaehler .warnung{color:var(--accent-2)}
+.mc-zaehler .mc-info{color:var(--muted)}
+.mc .hinweis:empty{display:none}
+.mc .opt[hidden]{display:none}
+.mc-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+.mc-chips label{position:relative;cursor:pointer}
+.mc-chips input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.mc-chips span{display:inline-block;padding:6px 14px;text-align:center;border:1px solid var(--line-2);border-radius:999px;background:#fff;font-size:.88rem;font-weight:600;color:var(--muted);transition:border-color .15s,background .15s,color .15s}
+.mc-chips label:hover span{border-color:var(--accent-line)}
+.mc-chips input:checked + span{background:var(--accent);border-color:var(--accent);color:var(--alk-akzent)}
+.mc-chips input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+.mc .hinweis:empty{display:none}
+.mc .opt{display:flex;align-items:flex-start;gap:10px;margin:6px 0 0;font-size:.9rem}
+.mc .opt input[type=checkbox]{width:16px;height:16px;margin:3px 0 0;accent-color:var(--accent);flex:none}
+
+/* ---------- Ausgabe ---------- */
+.mc-ausgabe{min-width:0}
+.mc-werkzeug{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.mc-werkzeug .abstand{flex:1}
+.mc-werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
+.mc-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+.mc-rahmen{overflow-x:auto;padding-bottom:4px}
+.mc-rahmen[hidden]{display:none}
+.mc-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C1714;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(45,28,12,.06),0 12px 32px rgba(45,28,12,.08);padding:26px 32px 30px}
+.mc-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C1714}
+.mc-anleitung{margin:0 0 14px;color:#554C45;line-height:1.45;font-size:.95rem}
+.mc-mitte{display:flex;justify-content:center;margin:6px 0 0}
+.mc-loesung-text{white-space:pre-wrap}
+/* Spieler am Bildschirm */
+.mc-spieler{margin-bottom:16px;display:grid;gap:12px}
+.mc-spieler[hidden]{display:none}
+.mc-knoepfe{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.mc-dauer{color:var(--muted);font-size:.9rem;margin-left:4px}
+.mc-band{display:flex;flex-wrap:wrap;gap:6px 18px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;max-height:260px;overflow:auto}
+.mc-wort{display:inline-flex;flex-wrap:wrap;gap:4px}
+.mc-zeichen{display:inline-grid;justify-items:center;padding:3px 6px;border-radius:7px;transition:background .1s}
+.mc-zeichen b{font-size:1.05rem}
+.mc-zeichen i{font-style:normal;font-weight:700;letter-spacing:.08em;color:var(--muted)}
+.mc-zeichen.an{background:var(--accent);color:var(--alk-akzent)}
+.mc-zeichen.an i{color:var(--alk-akzent)}
+.mc-notiz{margin:0;font-size:.78rem;color:var(--muted)}
+.mc-wahl{display:block;margin-top:6px;padding:7px 10px;border:1px solid var(--line-2);border-radius:8px;background:#fff;font:inherit}
+.mc input[type=range]{width:100%;accent-color:var(--accent)}
+/* Blatt */
+.mc-woerter{display:flex;flex-wrap:wrap;gap:16px 30px;margin:10px 0 18px}
+.mc-blattwort{display:inline-flex;gap:6px}
+.mc-feld{display:inline-grid;justify-items:center;gap:4px}
+.mc-feld i{font-style:normal;font-weight:700;font-size:1.05rem;letter-spacing:.06em;min-height:1.3em}
+.mc-kaestchen{display:grid;place-items:center;width:38px;height:44px;border:2px solid #1C1714;border-radius:6px;font-size:1.4rem;font-weight:700}
+.mc-tabtitel{margin:18px 0 8px;font-size:1.05rem}
+.mc-tabelle{display:grid;grid-template-columns:repeat(5,1fr);gap:3px 14px;font-size:.92rem}
+.mc-tabelle span{display:flex;gap:10px;align-items:baseline;padding:2px 0;border-bottom:1px solid #EEE7E1}
+.mc-tabelle b{min-width:1.6em}
+.mc-tabelle i{font-style:normal;font-weight:700;letter-spacing:.08em}
+.mc-loesung-text{margin:10px 0 0;font-size:1.15rem}
+.mc-loesungsblatt{display:none;margin-top:16px}
+.mc-blaetter{display:grid;gap:16px}
+.mc-loesungsblatt.zeigen{display:block;margin-top:0}
+.mc-loesung-rahmen:has(.zeigen){order:-1}
+.mc-loesung-rahmen:not(:has(.zeigen)){display:none}
+
+/* ---------- Drucken (gilt auch für das PDF) ---------- */
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#fff!important}
+  .mc-kopf,.mc-eingabe,.mc-werkzeug,#mcMeldung,.nur-bildschirm{display:none!important}
+  .mc{padding:0;max-width:none}
+  .mc-layout{display:block}
+  .mc-rahmen{overflow:visible;padding:0}
+  .mc-blatt{box-shadow:none;border:0;border-radius:0;padding:0 32px}
+  .mc-blaetter{display:block}
+  .mc-loesung-rahmen:not(:has(.zeigen)){display:block}
+  .mc-loesungsblatt.zeigen{display:none}
+  body.mit-loesung .mc-loesungsblatt{display:block;break-before:page;margin-top:0}
+}

@@ -320,10 +320,20 @@ Ein eigener Text füllt eine Form. Zum Lesen dreht man das Blatt.
 
 - **Text:** bis 800 Zeichen (Satz, Gedicht, Geschichte).
 - **Formen** (keine Vorauswahl): *Spirale* von aussen nach innen, im Uhrzeigersinn, Beginn oben links – Kreis (Schnecke), Herz, Stern, Blume, Quadrat, Dreieck, Tropfen; *Zeilen* – Welle (parallele Wellenlinien über die ganze Breite, Zeilen in der Mitte) und Regenbogen (Bögen von aussen nach innen).
-- **Spirale:** Jede Form als Radius je Winkel (Herz und Tropfen aus ihrer Kurve; Mittelpunkt so gesucht, dass der kleinste Radius möglichst gross ist; Ecken und Spitzen gerundet). Pro Umlauf wird die Form kleiner; der Abstand der Umläufe wird quer zur Linie gemessen und an der fertigen Spirale nachgestellt, damit er überall mindestens 1.22 Schriftgrössen beträgt. Aussen hat die Spirale genau die Form, nach innen wird sie runder (enge Kurven liessen die Buchstaben zusammenstossen). Stern und Blume sind darum sanft geschwungen; die kleine Form in der Mitte zeigt den spitzen Stern und die Blüte. Die Schriftgrösse wird gesucht (Halbierung), so dass der Text die Spirale füllt (höchstens 34 px); unter etwa 2.4 mm kommt eine Warnung.
+- **Spirale:** Jede Form als Radius je Winkel (Herz und Tropfen aus ihrer Kurve; Mittelpunkt so gesucht, dass der kleinste Radius möglichst gross ist; Ecken und Spitzen gerundet). Pro Umlauf wird die Form kleiner; der Abstand der Umläufe wird quer zur Linie gemessen und an der fertigen Spirale nachgestellt, damit er überall mindestens 1.05 Schriftgrössen beträgt (eng wie im Vorbild). Aussen hat die Spirale genau die Form, nach innen wird sie runder (enge Kurven liessen die Buchstaben zusammenstossen). Stern und Blume sind darum sanft geschwungen; die kleine Form in der Mitte zeigt den spitzen Stern und die Blüte. Die Schriftgrösse wird gesucht (Halbierung), so dass der Text die Spirale füllt (höchstens 34 px); unter etwa 2.4 mm kommt eine Warnung.
 - **Welle, Regenbogen:** Wörter werden auf Zeilen verteilt; die grösste Schrift, bei der alles Platz hat.
 - **Farbe** (ohne Wahl schwarz): Schwarz, Dunkelblau, Dunkelrot, Dunkelgrün, Violett oder Bunt (jedes Wort eine Farbe; beim Regenbogen jeder Bogen eine Farbe).
 - **Blatt:** auf Wunsch eine kleine Form in der Mitte (Herz rot, Stern gelb, Blume pink …; nur bei Spiralen) und Linien zum Abschreiben. Lösungsblatt: der Text. PDF.
+
+### Morsecode
+
+Ein eigener Text wird zu Morsecode – kurze und lange Töne. Am Bildschirm abspielen und als MP3 herunterladen.
+
+- **Text:** bis 300 Zeichen; internationales Morsealphabet (A–Z, 0–9), dazu Ä, Ö, Ü, auf Wunsch CH als eigenes Zeichen, und Satzzeichen (. , ? ! - / : ' ( ) = + @ "). ß wird SS; andere Zeichen fallen weg (mit Hinweis).
+- **Zeiten** nach dem üblichen Mass: kurz 1 Einheit, lang 3, Pause im Zeichen 1, zwischen Zeichen 3, zwischen Wörtern 7; Einheit = 1.2 s / Tempo (Wörter pro Minute, Schieberegler 4–25, Standard 8). «Längere Pausen zum Mitschreiben» (Standard: an) verdoppelt die Pausen zwischen Zeichen und Wörtern. Tonhöhe 400–1000 Hz (Standard 650), Sinuston mit weichen Flanken (5 ms, kein Knacksen), vorne und hinten 0.6 s Stille; auf Wunsch 2- oder 3-mal mit 2.5 s Pause.
+- **Abspielen** mit der Web-Audio-Schnittstelle; das gerade klingende Zeichen ist im Band (Zeichen mit Code) markiert. Dauer wird angezeigt.
+- **MP3 herunterladen:** 22'050 Hz, mono, 64 kbit/s, erstellt im Browser mit lamejs (eine JavaScript-Fassung von [LAME](https://lame.sourceforge.net), Lizenz LGPL-3.0) – unverändert als eigene Datei `gemeinsam/extern/lame.min.js`, erst beim ersten MP3 geladen; Lizenztexte daneben (`LIZENZ-lamejs.txt`, `LIZENZ-lamejs-LGPL-3.0.txt`). Geprüft: die MP3-Datei wieder in Töne zerlegt und zurückübersetzt ergibt genau den Text.
+- **Arbeitsblatt:** je Zeichen ein Kästchen (nach Wörtern gruppiert); auf Wunsch der Code über den Kästchen (zum Lesen statt Hören) und das Morsealphabet als Tabelle (mit den Satzzeichen, die im Text vorkommen). Lösungsblatt: Kästchen ausgefüllt mit Code, darunter der Text. PDF.
 
 ## Aufbau
 
@@ -368,6 +378,7 @@ raetsel/blickwinkel/            der Generator «Blickwinkel» (Kern: Strichschri
 raetsel/uhren/                  der Generator «Uhrenrätsel» (Kern: Ziffern als Striche zwischen 6 Uhren, Richtungen je Uhr, Uhrzeiten und Drehungen suchen, Zeit als Text; Uhren als SVG)
 raetsel/nonogramm/              der Generator «Nonogramm» (Kern: Text in Blockschrift aufs Raster, Zahlen, Linie lösen, Rätsel lösen, Hilfsfelder; Raster als SVG)
 raetsel/textformen/             der Generator «Textformen» (Kern: Formen als Radien, Spirale mit gemessenem Abstand, Schrift einpassen, Zeilen umbrechen; textPath in SVG)
+raetsel/morsecode/              der Generator «Morsecode» (Kern: Alphabet, Text lesen, Ablauf in Einheiten, Ton als Abtastwerte; Abspielen mit Web Audio, MP3 mit lamejs)
 raetsel/triomino/               der Generator «Triomino» (Kern: Formen, Kanten, Aufgaben, Belegung; Zeichnen mit Schriftanpassung)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)

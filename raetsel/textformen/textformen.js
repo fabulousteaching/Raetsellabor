@@ -68,7 +68,7 @@ var Kern = (function(){
      delta so, dass der Abstand der Umläufe auch an der engsten Stelle mindestens ABSTAND · Schriftgrösse ist. Die äusseren
      Umläufe haben genau die Form, nach innen wird sie runder (Zacken und Einbuchtungen flacher) – kleine, enge Kurven
      würden die Buchstaben zusammenstossen lassen. → { punkte, laengen (aufsummiert), delta } */
-  var START = -50 * Math.PI / 180, ABSTAND = 1.22;
+  var START = -50 * Math.PI / 180, ABSTAND = 1.05;
   function rund(r, s, sEnde){
     var mittel = r.reduce(function(a, b){ return a + b; }, 0) / N, t = Math.max(0, Math.min(1, (s - sEnde) / (1 - sEnde))), g = 0.25 + 0.75 * Math.pow(t, 0.8);
     return function(i){ return mittel + (r[i] - mittel) * g; };
@@ -263,7 +263,7 @@ function starte(bereich){
   function welleSvg(text, hoehe){
     var woerter = text.split(' '), best = null;
     for (var f = 30; f >= 7; f -= 0.5){
-      var A = f * 1.1, lambda = B / 1.6, zeile = f * 1.5, laenge = 0, pts = [];
+      var A = f * 1.1, lambda = B / 1.6, zeile = f * 1.25, laenge = 0, pts = [];
       for (var x = 0; x <= B; x += 4){ var p = [x, A * Math.sin(2 * Math.PI * x / lambda)]; if (pts.length) laenge += Math.hypot(p[0] - pts[pts.length - 1][0], p[1] - pts[pts.length - 1][1]); pts.push(p); }
       var maxZ = Math.floor((hoehe - 2 * A - f) / zeile);
       var z = Kern.umbrechen(woerter, function(){ return (laenge - f) * 0.97; }, function(t){ return breite(t, f); }, maxZ);
@@ -280,7 +280,7 @@ function starte(bereich){
   function regenbogenSvg(text, hoehe){
     var woerter = text.split(' '), best = null, WINKEL = 100 * Math.PI / 180;
     for (var f = 34; f >= 7; f -= 0.5){
-      var Ra = Math.min(B / 2 / Math.sin(WINKEL), (hoehe - f) / (1 - Math.cos(WINKEL))) - f * 1.1, abst = f * 1.45, maxZ = Math.floor(Ra * 0.75 / abst) + 1;
+      var Ra = Math.min(B / 2 / Math.sin(WINKEL), (hoehe - f) / (1 - Math.cos(WINKEL))) - f * 1.1, abst = f * 1.22, maxZ = Math.floor(Ra * 0.75 / abst) + 1;
       var z = Kern.umbrechen(woerter, function(i){ return (Ra - i * abst) * 2 * WINKEL * 0.96 - f; }, function(t){ return breite(t, f); }, maxZ);
       if (z){ best = { f:f, Ra:Ra, abst:abst, z:z }; break; }
     }
