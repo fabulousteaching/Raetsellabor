@@ -373,8 +373,9 @@ Ein Satz ist in gleich lange Teile zerschnitten (die Abstände zwischen den Wör
 
 - **Satz:** eintippen (bis 200 Zeichen) oder vorschlagen lassen. Mehrere Abstände werden zu einem.
 - **Teile** (keine Vorauswahl): 2, 3, 4 oder 5 Zeichen je Teil; Schreibweise wie geschrieben oder GROSS. Das letzte Teil wird mit leeren Kästchen aufgefüllt. Mischen: kein Teil an seinem Platz und keine zwei Teile, die auch im Satz aufeinander folgen, nebeneinander (bestes von 300 Versuchen; getestet an 2940 Rätseln – nur bei drei Teilen geht das nicht immer). «Neu mischen».
-- **Optionen:** Abstände sichtbar (␣), erstes Teil schon eingesetzt (leichter), Felder mit Kästchen je Zeichen, Teile gestrichelt zum Ausschneiden. Teile und Felder sind genau gleich gross – ausgeschnittene Teile passen in die Felder.
-- **Blätter:** Grösse automatisch (höchstens 34 px je Zeichen, so dass das Blatt eine A4-Seite bleibt). Lösungsblatt mit den ausgefüllten Feldern und dem Satz. PDF.
+- **Optionen:** Abstände sichtbar (␣), erstes Teil schon eingesetzt (leichter), Felder mit Kästchen je Zeichen. Teile und Felder sind immer genau gleich gross – ausgeschnittene Teile passen in die Felder.
+- **Eintragen oder ausschneiden:** Ohne Häkchen ist alles auf einem Blatt (Teile oben, Felder unten; höchstens 34 px je Zeichen). Mit «Zum Ausschneiden» kommen die Felder auf das erste Blatt und die Teile (gestrichelt) auf ein eigenes zweites Blatt – so gross wie möglich (bis 60 px ≈ 16 mm je Zeichen), auf beiden Blättern gleich. Jedes Blatt bleibt eine A4-Seite.
+- **Blätter:** Lösungsblatt mit den ausgefüllten Feldern und dem Satz. PDF (Felder, Teile, Lösung je eine Seite).
 
 ## Aufbau
 

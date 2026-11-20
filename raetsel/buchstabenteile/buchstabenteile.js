@@ -61,7 +61,8 @@ var VORLAGE = '<div class="bt">' +
       '<label class="opt"><input type="checkbox" id="btLeer"><span>Abstände sichtbar machen (␣)</span></label>' +
       '<label class="opt"><input type="checkbox" id="btErstes"><span>Erstes Teil schon eingesetzt (leichter)</span></label>' +
       '<label class="opt"><input type="checkbox" id="btUnterteilt"><span>Felder für die Lösung mit Kästchen (je Zeichen eines)</span></label>' +
-      '<label class="opt"><input type="checkbox" id="btSchneiden"><span>Teile zum Ausschneiden (gestrichelt)</span></label>' +
+      '<label class="opt"><input type="checkbox" id="btSchneiden"><span>Zum Ausschneiden: Felder und Teile auf zwei Blättern, möglichst gross</span></label>' +
+      '<p class="hinweis bt-einzug">Ohne Häkchen ist alles auf einem Blatt – zum Eintragen.</p>' +
     '</div>' +
   '</section>' +
   '<section class="bt-ausgabe" aria-label="Ergebnis">' +
@@ -75,6 +76,7 @@ var VORLAGE = '<div class="bt">' +
       '<button type="button" class="btn klein primary" id="btHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
     '</div>' +
     '<div class="bt-blaetter"><div class="bt-rahmen"><article class="bt-blatt" id="btBlatt" hidden></article></div>' +
+    '<div class="bt-rahmen" id="btTeileRahmen" hidden><article class="bt-blatt bt-seite" id="btTeileBlatt"></article></div>' +
     '<div class="bt-rahmen bt-loesung-rahmen"><article class="bt-blatt bt-loesungsblatt" id="btLoesung" aria-hidden="true"></article></div></div>' +
   '</section></div></div>';
 
@@ -153,38 +155,48 @@ function starte(bereich){
     $('#btTeileInfo').textContent = T.length ? T.length + ' Teile zu je ' + k + ' Zeichen' + (z.length % k ? '; das letzte ist kürzer.' : '.') : '';
     var fehlt = !z.length ? 'Schreib links einen Satz oder lass dir einen vorschlagen.' : !k ? 'Wähle links, wie viele Zeichen ein Teil hat.' : !o.schreib ? 'Wähle links die Schreibweise.' : T.length < 3 ? 'Der Satz ist zu kurz für so grosse Teile – schreib einen längeren Satz oder nimm kleinere Teile.' : '';
     ['#btPdf', '#btHerunterladen', '#btZeigeLoesung', '#btNeu'].forEach(function(s){ $(s).disabled = !!fehlt; });
-    if (fehlt){ R = null; $('#btBlatt').hidden = true; $('#btBlatt').innerHTML = ''; $('#btLoesung').parentNode.hidden = true; meldung('info', '<p>' + fehlt + '</p>'); return; }
+    if (fehlt){ R = null; $('#btBlatt').hidden = true; $('#btBlatt').innerHTML = ''; $('#btTeileRahmen').hidden = true; $('#btLoesung').parentNode.hidden = true; meldung('info', '<p>' + fehlt + '</p>'); return; }
     meldung(''); $('#btBlatt').hidden = false; $('#btLoesung').parentNode.hidden = false;
     // Mischen; mit «erstes Teil eingesetzt» wird es aus den Teilen genommen
     var reihe = Kern.mischen(T.length, Kern.zufall(st.seed));
     if (o.erstes) reihe = reihe.filter(function(i){ return i !== 0; });
     R = { T:T, reihe:reihe };
-    var anleitung = 'Der Satz ist in Teile zu je ' + k + ' Zeichen zerschnitten – auch die Abstände zwischen den Wörtern sind darin. Bringe die Teile in die richtige Reihenfolge und ' +
-      (o.schneiden ? 'lege oder klebe' : 'schreibe') + ' sie in die Felder. Dann kannst du den Satz lesen.' + (o.leer ? ' ␣ steht für einen Abstand.' : '') + (o.erstes ? ' Das erste Teil ist schon eingesetzt.' : '');
+    var anleitung = 'Der Satz ist in Teile zu je ' + k + ' Zeichen zerschnitten – auch die Abstände zwischen den Wörtern sind darin. ' +
+      (o.schneiden ? 'Schneide die Teile aus (zweites Blatt), bringe sie in die richtige Reihenfolge und lege oder klebe sie in die Felder.' : 'Bringe die Teile in die richtige Reihenfolge und schreibe sie in die Felder.') +
+      ' Dann kannst du den Satz lesen.' + (o.leer ? ' ␣ steht für einen Abstand.' : '') + (o.erstes ? ' Das erste Teil ist schon eingesetzt.' : '');
     var kopf = (o.titelAn ? '<h2>Buchstaben-Teile</h2>' : '') + (o.anleitungAn ? '<p class="bt-anleitung">' + esc(anleitung) + '</p>' : '');
     var klassen = 'bt-inhalt' + (o.unterteilt ? ' bt-unterteilt' : '') + (o.schneiden ? ' bt-schneiden' : '');
-    $('#btBlatt').innerHTML = kopf + '<div class="' + klassen + '" style="--k:' + k + '">' +
-      '<div class="bt-teile">' + reihe.map(function(i){ return teilHtml(T[i]); }).join('') + '</div>' +
-      '<div class="bt-felder">' + T.map(function(t, i){ return feldHtml(o.erstes && i === 0 ? t : null, o.erstes && i === 0); }).join('') + '</div></div>';
+    var teileHtml = '<div class="bt-teile">' + reihe.map(function(i){ return teilHtml(T[i]); }).join('') + '</div>';
+    var felderHtml = '<div class="bt-felder">' + T.map(function(t, i){ return feldHtml(o.erstes && i === 0 ? t : null, o.erstes && i === 0); }).join('') + '</div>';
+    // Zum Ausschneiden: Felder auf dem ersten Blatt, die Teile auf einem eigenen zweiten; sonst beides auf einem Blatt
+    $('#btBlatt').innerHTML = kopf + '<div class="' + klassen + '" style="--k:' + k + '">' + (o.schneiden ? felderHtml : teileHtml + felderHtml) + '</div>';
+    $('#btTeileRahmen').hidden = !o.schneiden;
+    $('#btTeileBlatt').innerHTML = o.schneiden ? (o.titelAn ? '<h2>Buchstaben-Teile – zum Ausschneiden</h2>' : '') +
+      (o.anleitungAn ? '<p class="bt-anleitung">Schneide die Teile entlang der gestrichelten Linien aus.</p>' : '') + '<div class="' + klassen + '" style="--k:' + k + '">' + teileHtml + '</div>' : '';
     $('#btLoesung').innerHTML = (o.titelAn ? '<h2>Buchstaben-Teile – Lösung</h2>' : '<p class="bt-anleitung"><b>Lösung</b></p>') +
       '<div class="' + klassen + '" style="--k:' + k + '"><div class="bt-felder">' + T.map(function(t){ return feldHtml(t, true); }).join('') + '</div></div>' +
       '<p class="bt-loesung-text">' + esc(z.join('')) + '</p>';
     passen();
   }
-  // Feldgrösse: so gross wie möglich (höchstens 34 px je Zeichen), aber das Blatt bleibt eine A4-Seite (980 px hoch)
+  /* Feldgrösse: so gross wie möglich, aber jedes Blatt bleibt eine A4-Seite (980 px hoch). Zum Eintragen höchstens 34 px
+     je Zeichen; zum Ausschneiden bis 60 px (etwa 16 mm) – Felder- und Teile-Blatt gleich, damit die Teile genau passen. */
   function passen(){
-    [$('#btBlatt'), $('#btLoesung')].forEach(function(b){
-      var war = b.classList.contains('zeigen'), versteckt = b === $('#btLoesung') && !war;
-      if (versteckt) b.classList.add('bt-messen');
-      var c = 34;
-      for (; c > 16; c -= 2){ b.style.setProperty('--c', c + 'px'); if (b.offsetHeight <= 980) break; }
-      b.style.setProperty('--c', c + 'px');
-      if (versteckt) b.classList.remove('bt-messen');
+    var gruppen = st.opt.schneiden ? [[$('#btBlatt'), $('#btTeileBlatt')], [$('#btLoesung')]] : [[$('#btBlatt')], [$('#btLoesung')]];
+    gruppen.forEach(function(g){
+      var loes = g[0] === $('#btLoesung'), versteckt = loes && !g[0].classList.contains('zeigen');
+      if (versteckt) g[0].classList.add('bt-messen');
+      var c = st.opt.schneiden && !loes ? 60 : 34;
+      for (; c > 16; c -= 2){
+        g.forEach(function(b){ b.style.setProperty('--c', c + 'px'); });
+        if (g.every(function(b){ return b.offsetHeight <= 980; })) break;
+      }
+      g.forEach(function(b){ b.style.setProperty('--c', c + 'px'); });
+      if (versteckt) g[0].classList.remove('bt-messen');
     });
   }
 
   /* ---------- PDF, Herunterladen ---------- */
-  function blaetter(){ return [$('#btBlatt')].concat(st.opt.mitLoesung ? [$('#btLoesung')] : []); }
+  function blaetter(){ return [$('#btBlatt')].concat(st.opt.schneiden ? [$('#btTeileBlatt')] : [], st.opt.mitLoesung ? [$('#btLoesung')] : []); }
   function druckVorbereiten(){ document.body.classList.toggle('mit-loesung', !!st.opt.mitLoesung); }
   window.addEventListener('beforeprint', druckVorbereiten);
   function fehler(t){ meldung('fehler', '<p>' + esc(t) + '</p>'); }

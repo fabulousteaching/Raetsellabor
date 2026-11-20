@@ -90,3 +90,4 @@
 /* Lösungsblatt kurz sichtbar machen, um die Feldgrösse zu messen */
 .bt-loesung-rahmen:has(.bt-messen){display:block!important;position:absolute;visibility:hidden;pointer-events:none}
 .bt-loesungsblatt.bt-messen{display:block}
+.bt-einzug{margin:2px 0 0 26px}
