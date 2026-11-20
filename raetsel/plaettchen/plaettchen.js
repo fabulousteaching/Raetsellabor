@@ -124,7 +124,9 @@ var Kern = (function(){
 /* KERN-ENDE */
 
 var TINTE = '#1C1714', B = 639, MM = 703 / 186, MAX = 4;
-var FAECHER = [['deutsch', tx('Deutsch')], ['mathe', tx('Mathe')], ['englisch', tx('Englisch')], ['franzoesisch', tx('Französisch')], ['eigene', tx('Eigene Paare')]];
+// Fach «deutsch» = Sprache der Seite (Reime, Mehrzahl, Gegenteile in dieser Sprache); Englisch und Französisch = Wörter mit deutscher Übersetzung
+var SPRACHFACH = { en:'English', fr:'Français' }[Labor.sprache] || 'Deutsch';
+var FAECHER = [['deutsch', SPRACHFACH], ['mathe', tx('Mathe')], ['englisch', Labor.sprache === 'de' ? tx('Englisch') : tx('Deutsch – Englisch')], ['franzoesisch', Labor.sprache === 'de' ? tx('Französisch') : tx('Deutsch – Französisch')], ['eigene', tx('Eigene Paare')]];
 var DEUTSCH = [['reime', tx('Reimwörter')], ['mehrzahl', tx('Einzahl – Mehrzahl')], ['gegenteile', tx('Gegenteile')]];
 var MATHE = [['plusminus', tx('Plus & Minus')], ['einmaleins', tx('Einmaleins')], ['dezimal', tx('Dezimalzahlen')], ['brueche', tx('Brüche')]];
 var KOEPFE = { englisch:[tx('Deutsch'), tx('Englisch'), tx('Körper = body')], franzoesisch:[tx('Deutsch'), tx('Französisch'), tx('Pferd = le cheval')], eigene:[tx('Aufgabe (Plättchen)'), tx('Antwort (Raster)'), tx('Hauptstadt der Schweiz = Bern')] };
@@ -145,7 +147,7 @@ var VORLAGE = '<div class="pt">' +
     '</div>' +
     tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Aufgaben</h2><p>Auf den Plättchen die Aufgabe, im Raster die Antwort.</p></div></div>') +
       tx('<div class="pt-chips" role="radiogroup" aria-label="Fach">') + chips('ptFach', FAECHER) + '</div>' +
-      tx('<div class="pt-stufe pt-teil" data-fach="deutsch"><p class="feld-label">Deutsch: Art der Paare</p>') +
+      '<div class="pt-stufe pt-teil" data-fach="deutsch"><p class="feld-label">' + tx('{fach}: Art der Paare', { fach:SPRACHFACH }) + '</p>' +
         tx('<div class="pt-chips" role="radiogroup" aria-label="Deutsch">') + chips('ptDeutsch', DEUTSCH) + '</div></div>' +
       tx('<div class="pt-stufe pt-teil" data-fach="mathe"><p class="feld-label">Mathe: Thema</p>') +
         tx('<div class="pt-chips" role="radiogroup" aria-label="Mathe">') + chips('ptMathe', MATHE) + '</div>' +
@@ -271,7 +273,7 @@ function starte(bereich){
   function fehltNoch(){
     var o = st.opt;
     if (!o.fach) return tx('ein Fach');
-    if (o.fach === 'deutsch' && !o.deutschArt) return tx('bei Deutsch die Art der Paare');
+    if (o.fach === 'deutsch' && !o.deutschArt) return tx('bei {fach} die Art der Paare', { fach:SPRACHFACH });
     if (o.fach === 'mathe'){
       if (!o.matheArt) return tx('bei Mathe ein Thema');
       if (o.matheArt === 'plusminus' && !o.zr) return tx('den Zahlenraum');

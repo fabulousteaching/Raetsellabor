@@ -61,5 +61,9 @@ Labor.woerter('plaettchen', {
   'Nicht jede Antwort im Raster gehört zu einem Plättchen. Welche Ziffer oder welcher Buchstabe entsteht?': ['Not every answer in the grid belongs to a tile. Which digit or letter appears?', 'Chaque réponse de la grille ne correspond pas à un jeton. Quel chiffre ou quelle lettre apparaît ?'],
   '✂ Plättchen zum Ausschneiden': ['✂ Tiles to cut out', '✂ Jetons à découper'],
   '{n} Stück': ['{n} pieces', '{n} pièces'],
-  'Plättchenrätsel – Lösung': ['Tile Puzzle – Solution', 'Énigme des jetons – Solution']
+  'Plättchenrätsel – Lösung': ['Tile Puzzle – Solution', 'Énigme des jetons – Solution'],
+  'Deutsch – Englisch': ['German – English', 'Allemand – anglais'],
+  'Deutsch – Französisch': ['German – French', 'Allemand – français'],
+  '{fach}: Art der Paare': ['{fach}: type of pairs', '{fach} : type de paires'],
+  'bei {fach} die Art der Paare': ['for {fach}, the type of pairs', 'pour {fach}, le type de paires']
 });
