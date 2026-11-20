@@ -362,7 +362,11 @@ function analyse(ziffern, laengen, o){
 }
 
 /* Buchstabenhäufigkeit im Deutschen (für unauffällige Füllbuchstaben) */
-var HAEUFIG = { E:17.4, N:9.8, I:7.6, S:7.3, R:7, A:6.5, T:6.2, D:5.1, H:4.8, U:4.4, L:3.4, C:3.1, G:3, M:2.5, O:2.5, B:1.9, W:1.9,
+// Buchstabenhäufigkeit der Sprache der Seite (Füllbuchstaben)
+var SPRACHE = (typeof Labor !== 'undefined' && Labor.sprache) || 'de';
+var HAEUFIG = SPRACHE === 'en' ? { E:12.7, T:9.1, A:8.2, O:7.5, I:7, N:6.7, S:6.3, H:6.1, R:6, D:4.3, L:4, C:2.8, U:2.8, M:2.4, W:2.4, F:2.2, G:2, Y:2, P:1.9, B:1.5, V:1, K:0.8, J:0.15, X:0.15, Q:0.1, Z:0.07 }
+  : SPRACHE === 'fr' ? { E:14.7, S:7.9, A:7.6, I:7.5, T:7.2, N:7.1, R:6.6, U:6.3, O:5.8, L:5.5, D:3.7, C:3.3, M:3, P:3, V:1.6, Q:1.4, F:1.1, G:1, B:0.9, H:0.7, J:0.6, X:0.4, Y:0.1, Z:0.1, K:0.05, W:0.04 }
+  : { E:17.4, N:9.8, I:7.6, S:7.3, R:7, A:6.5, T:6.2, D:5.1, H:4.8, U:4.4, L:3.4, C:3.1, G:3, M:2.5, O:2.5, B:1.9, W:1.9,
   F:1.7, K:1.2, Z:1.1, P:0.8, V:0.7, J:0.3, Y:0.1, X:0.1, Q:0.05, 'Ä':0.6, 'Ö':0.3, 'Ü':0.7 };
 var RICHTUNGEN = [[0, 1], [1, 0], [1, 1], [1, -1], [0, -1], [-1, 0], [-1, -1], [-1, 1]];
 
@@ -620,7 +624,7 @@ var VORLAGE = tx(`<div class="zs">
         <label class="opt"><input type="checkbox" id="optLiegen"><span>Ziffern dürfen liegen (zufällig um 90° gedreht)</span></label>
         <label class="opt"><input type="checkbox" id="optRueckwaerts"><span>Wörter auch rückwärts verstecken (schwieriger)</span></label>
         <label class="opt"><input type="checkbox" id="optSchraeg"><span>Die 1 darf ein schräges Fähnchen haben (ein Wort steht dann schräg)</span></label>
-        <label class="opt"><input type="checkbox" id="optUmlaute"><span>Umlaute ersetzen (Ä → AE, Ö → OE, Ü → UE)</span></label>
+        <label class="opt"><input type="checkbox" id="optUmlaute"><span>${Labor.sprache === 'de' ? 'Umlaute ersetzen (Ä → AE, Ö → OE, Ü → UE)' : 'Akzente weglassen (É → E, Ç → C)'}</span></label>
         <label class="opt"><input type="checkbox" id="optWortliste"><span>Wörter auf dem Blatt auflisten</span></label>
         <label class="opt"><input type="checkbox" id="optLinien"><span>Gitterlinien zeichnen</span></label>
         <div class="opt-raster">
@@ -698,11 +702,11 @@ function starte(bereich){
   var aus = false;
   var $ = function(s){ return document.querySelector(s); };
   var SPEICHER = 'zahlen-suchsel-v2', SPEICHER_TAB = 'zahlen-suchsel-eingaben', SPEICHER_OPT = 'zahlen-suchsel-einstellungen';
-  var STANDARD = { rueckwaerts:false, schraeg:true, umlaute:false, wortliste:true, linien:true, anordnung:'neben', abstand:1, rand:2, mitLoesung:true,
+  var STANDARD = { rueckwaerts:false, schraeg:true, umlaute:Labor.sprache !== 'de', wortliste:true, linien:true, anordnung:'neben', abstand:1, rand:2, mitLoesung:true,
     ueberlappen:true, verschieden:false, liegen:false, ziffern:'neben', titelAn:true, anleitungAn:true };
   var FARBEN = ['#FAD852', '#68D77E', '#63C2EA', '#F7A25D', '#F27A8A', '#C4B5FD', '#5EEAD4', '#D8BC94'];
   var S = 10, NS = 'http://www.w3.org/2000/svg';
-  var ZAHLWORT = ['null', 'eine', 'zwei', 'drei', 'vier', tx('fünf'), 'sechs', 'sieben', 'acht'];
+
 
   /* ---------- Zustand ---------- */
   var st = laden();
@@ -738,10 +742,12 @@ function starte(bereich){
 
   /* ---------- Hilfen ---------- */
   function esc(t){ return String(t).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); }
-  function aufzaehlung(a){ return a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + tx(' und ') + a[a.length - 1]; }
+  function aufzaehlung(a){ return a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' ' + tx('und') + ' ' + a[a.length - 1]; }
   function norm(t){
     var s = String(t || '').normalize('NFC').toLocaleUpperCase('de-CH');
-    if (st.opt.umlaute) s = s.replace(/Ä/g, 'AE').replace(/Ö/g, 'OE').replace(/Ü/g, 'UE');
+    // Deutsch: Umlaute ersetzen; Englisch/Französisch: Akzente weglassen (É → E, Ç → C, Œ → OE)
+    if (st.opt.umlaute) s = Labor.sprache === 'de' ? s.replace(/Ä/g, 'AE').replace(/Ö/g, 'OE').replace(/Ü/g, 'UE')
+      : s.replace(/Œ/g, 'OE').replace(/Æ/g, 'AE').normalize('NFD').replace(/[\u0300-\u036f]/g, '').normalize('NFC');
     return s.replace(/[^\p{L}]/gu, '');
   }
   function rueckwaerts(t){ return Array.from(t).reverse().join(''); }
@@ -796,7 +802,7 @@ function starte(bereich){
   /* ---------- Live-Hinweise ---------- */
   function infoAktualisieren(){
     var a = auswerten(), N = a.woerter.length, teile = [];
-    $('#wortZaehler').textContent = N ? N + ' · ' + a.buchstaben + tx(' Buchstaben') : '';
+    $('#wortZaehler').textContent = N ? N + ' · ' + tx('{n} Buchstaben', { n:a.buchstaben }) : '';
     if (wortNotiz) teile.push(wortNotiz);
     if (a.kurz.length) teile.push(tx('Zu kurz, wird weggelassen: ') + a.kurz.map(esc).join(', '));
     if (a.doppelt.length) teile.push(tx('Doppelt, wird weggelassen: ') + a.doppelt.map(esc).join(', '));
@@ -806,22 +812,22 @@ function starte(bereich){
     st.zahlen.forEach(function(z, i){
       var c = chips[i]; if (!c) return;
       z = String(z || '').replace(/\D/g, '');
-      c.textContent = z ? tx('mind. ') + minWoerterZahl(z) + tx(' Wörter') : '';
+      c.textContent = z ? tx('mind. {n} Wörter', { n:minWoerterZahl(z) }) : '';
       c.hidden = !z;
     });
     var zahlen = zahlenListe(), box = $('#bedarf');
-    if (!zahlen.length){ box.className = tx('bedarf schlecht'); box.textContent = tx('Gib mindestens eine Lösungszahl ein.'); return; }
+    if (!zahlen.length){ box.className = 'bedarf schlecht'; box.textContent = tx('Gib mindestens eine Lösungszahl ein.'); return; }
     var noetig = zahlen.reduce(function(s, z){ return s + minWoerterZahl(z); }, 0), gut = noetig + 2;
-    var was = zahlen.length === 1 ? tx('Die Zahl ') + zahlen[0] + tx(' braucht') : tx('Die Zahlen brauchen zusammen');
+    var was = zahlen.length === 1 ? tx('Die Zahl {z} braucht mindestens {n} Wörter', { z:zahlen[0], n:noetig }) : tx('Die Zahlen brauchen zusammen mindestens {n} Wörter', { n:noetig });
     if (N < noetig){
-      box.className = tx('bedarf schlecht');
-      box.textContent = was + tx(' mindestens ') + noetig + tx(' Wörter (jeder Strich mindestens eines). Es ') + zahlWort(noetig - N, 'fehlt', 'fehlen') + tx(' noch ') + (noetig - N) + '.';
+      box.className = 'bedarf schlecht';
+      box.textContent = was + ' ' + tx(noetig - N === 1 ? '(jeder Strich mindestens eines). Es fehlt noch 1.' : '(jeder Strich mindestens eines). Es fehlen noch {f}.', { f:noetig - N });
     } else if (N < gut){
-      box.className = tx('bedarf knapp');
-      box.textContent = was + tx(' mindestens ') + noetig + tx(' Wörter – du hast ') + N + tx('. Das ist knapp; mit ') + gut + tx(' oder mehr klappt es fast immer.');
+      box.className = 'bedarf knapp';
+      box.textContent = was + ' ' + tx('– du hast {h}. Das ist knapp; mit {g} oder mehr klappt es fast immer.', { h:N, g:gut });
     } else {
-      box.className = tx('bedarf gut');
-      box.textContent = was + tx(' mindestens ') + noetig + tx(' Wörter – du hast ') + N + tx('. Das reicht gut.');
+      box.className = 'bedarf gut';
+      box.textContent = was + ' ' + tx('– du hast {h}. Das reicht gut.', { h:N });
     }
   }
   var wortNotiz = '';
@@ -927,17 +933,16 @@ function starte(bereich){
 
   /* ---------- Wenn eine Zahl nicht geht: erklären und Alternativen suchen ---------- */
   function zeigeFehler(zahlen, a, an, grund, zeit, token){
-    var N = an.woerter, wer = zahlen.length === 1 ? tx('Die Zahl <b>') + zahlen[0] + tx('</b> lässt') : tx('Die Zahlen <b>') + aufzaehlung(zahlen) + tx('</b> lassen');
-    var html = '<h3>' + wer + tx(' sich mit diesen Wörtern nicht bilden.</h3>');
+    var N = an.woerter;
+    var html = '<h3>' + (zahlen.length === 1 ? tx('Die Zahl <b>{z}</b> lässt sich mit diesen Wörtern nicht bilden.', { z:zahlen[0] }) : tx('Die Zahlen <b>{z}</b> lassen sich mit diesen Wörtern nicht bilden.', { z:aufzaehlung(zahlen) })) + '</h3>';
     if (grund === 'zuWenig'){
       var teile = [];
       zahlen.join('').split('').forEach(function(d){ teile.push(d + ': ' + Kern.minWoerter(d)); });
-      html += tx('<p><b>Zu wenige Wörter.</b> Jeder Strich einer Ziffer braucht mindestens ein Wort. Zusammen sind das mindestens <b>') + an.minWoerter +
-        tx('</b> Wörter (') + teile.join(', ') + tx('), du hast ') + N + '.</p>';
+      html += '<p>' + tx('<b>Zu wenige Wörter.</b> Jeder Strich einer Ziffer braucht mindestens ein Wort. Zusammen sind das mindestens <b>{m}</b> Wörter ({t}), du hast {n}.', { m:an.minWoerter, t:teile.join(', '), n:N }) + '</p>';
     } else if (grund === 'zuKurz'){
-      html += tx('<p><b>Die Wörter sind zu kurz.</b> Zusammen haben sie ') + an.buchstaben + tx(' Buchstaben; um diese Ziffern zu zeichnen, braucht es mindestens ') + an.minBuchstaben + '.</p>';
+      html += '<p>' + tx('<b>Die Wörter sind zu kurz.</b> Zusammen haben sie {b} Buchstaben; um diese Ziffern zu zeichnen, braucht es mindestens {m}.', { b:an.buchstaben, m:an.minBuchstaben }) + '</p>';
     } else if (grund === 'zuViel'){
-      html += tx('<p><b>Zu viele Buchstaben für diese Ziffern.</b> Die Zahl würde riesig: ') + an.buchstaben + tx(' Buchstaben, Platz ist für höchstens etwa ') + an.maxBuchstaben + '.</p>';
+      html += '<p>' + tx('<b>Zu viele Buchstaben für diese Ziffern.</b> Die Zahl würde riesig: {b} Buchstaben, Platz ist für höchstens etwa {m}.', { b:an.buchstaben, m:an.maxBuchstaben }) + '</p>';
     } else {
       html += tx('<p><b>Die Wortlängen gehen nicht auf.</b> Jeder Strich muss lückenlos mit Wörtern gefüllt sein, und gleich lange Striche (z. B. oben und unten) brauchen passende Wortlängen. ') +
         (zeit ? tx('In der verfügbaren Zeit wurde keine passende Verteilung gefunden.') : tx('Mit diesen Wortlängen gibt es keine passende Verteilung.')) + '</p>';
@@ -994,12 +999,12 @@ function starte(bereich){
   function zeigeAlternativen(bereich, gefunden, fertig, zahlen, a, an, grund, token){
     var html = '';
     if (gefunden.length){
-      html += '<p><b>' + (gefunden.length === 1 ? tx('Alternativlösung') : tx('Alternativlösungen')) + tx(' mit einer anderen Ziffer:</b></p><div class="alternativen">');
+      html += '<p><b>' + tx(gefunden.length === 1 ? 'Alternativlösung mit einer anderen Ziffer:' : 'Alternativlösungen mit einer anderen Ziffer:') + '</b></p><div class="alternativen">';
       gefunden.forEach(function(g, j){
         var alt = zahlen[g.k.zi], neu = g.zahlen[g.k.zi];
-        var was = alt.length === 1 ? neu + tx(' statt ') + alt : tx('statt ') + alt + ' (' + g.k.nach + tx(' statt ') + g.k.von + ')';
+        var was = alt.length === 1 ? tx('{a} statt {b}', { a:neu, b:alt }) : tx('statt {b} ({a} statt {c})', { b:alt, a:g.k.nach, c:g.k.von });
         html += '<button type="button" class="btn alt-knopf" data-j="' + j + '"><span class="gross">' + neu + '</span>' +
-          '<span class="klein">' + was + tx(' · übernehmen</span></button>');
+          '<span class="klein">' + was + ' · ' + tx('übernehmen') + '</span></button>';
       });
       html += '</div>';
     }
@@ -1007,7 +1012,7 @@ function starte(bereich){
     else {
       if (!gefunden.length) html += tx('<p>Auch mit einer anderen Ziffer an einer Stelle geht es nicht.</p>');
       var tipp = '';
-      if (grund === 'zuWenig') tipp = tx('Oder füge noch ') + (an.minWoerter - an.woerter) + ' ' + zahlWort(an.minWoerter - an.woerter, tx('Wort'), tx('Wörter')) + tx(' hinzu, dann geht die gewünschte Zahl.');
+      if (grund === 'zuWenig') tipp = tx(an.minWoerter - an.woerter === 1 ? 'Oder füge noch 1 Wort hinzu, dann geht die gewünschte Zahl.' : 'Oder füge noch {n} Wörter hinzu, dann geht die gewünschte Zahl.', { n:an.minWoerter - an.woerter });
       else if (grund === 'zuViel') tipp = tx('Oder entferne einige Wörter oder nimm eine Zahl mit mehr Ziffern, damit sich die Buchstaben verteilen.');
       else if (grund === 'zuKurz') tipp = tx('Oder nimm ein paar längere Wörter dazu.');
       else tipp = tx('Oder füge ein, zwei Wörter hinzu (bzw. entferne eines) – oft passt es dann schon.');
@@ -1036,24 +1041,23 @@ function starte(bereich){
   function erfolgsMeldung(){
     var f = aktuell.feld, a = aktuell.auswertung, html = '', hinweise = [];
     var ue = ueberlappungen(f);
-    html += tx('<p><b>Fertig!</b> Feld mit ') + f.spalten + ' × ' + f.zeilen + tx(' Buchstaben, ') + f.woerter.length + tx(' Wörter') +
-      (ue ? ', ' + ue + ' ' + zahlWort(ue, tx('Überlappung'), tx('Überlappungen')) : '') + '. ' +
-      (f.zahlen.length === 1 ? tx('Lösungszahl: ') : tx('Lösungszahlen: ')) + '<b>' + aufzaehlung(f.zahlen) + '</b>. ' +
-      tx('Du kannst die Wörter direkt im Feld markieren (vom ersten bis zum letzten Buchstaben ziehen oder beide antippen).</p>');
-    if (a.kurz.length || a.doppelt.length) hinweise.push(tx('Weggelassen: ') + a.kurz.concat(a.doppelt).map(esc).join(', ') + tx(' (zu kurz oder doppelt).'));
-    if (f.doppelt.length) hinweise.push(tx('Achtung: ') + aufzaehlung(f.doppelt.map(function(t){ return '«' + esc(t) + '»'; })) + tx(' kommt im Feld mehr als einmal vor. «Neu mischen» kann helfen.'));
+    html += '<p><b>' + tx('Fertig!') + '</b> ' + tx('Feld mit {s} × {z} Buchstaben, {w} Wörter', { s:f.spalten, z:f.zeilen, w:f.woerter.length }) +
+      (ue ? ', ' + tx(ue === 1 ? '1 Überlappung' : '{n} Überlappungen', { n:ue }) : '') + '. ' +
+      (f.zahlen.length === 1 ? tx('Lösungszahl:') : tx('Lösungszahlen:')) + ' <b>' + aufzaehlung(f.zahlen) + '</b>. ' +
+      tx('Du kannst die Wörter direkt im Feld markieren (vom ersten bis zum letzten Buchstaben ziehen oder beide antippen).') + '</p>';
+    if (a.kurz.length || a.doppelt.length) hinweise.push(tx('Weggelassen: {w} (zu kurz oder doppelt).', { w:a.kurz.concat(a.doppelt).map(esc).join(', ') }));
+    if (f.doppelt.length) hinweise.push(tx('Achtung: {w} kommt im Feld mehr als einmal vor. «Neu mischen» kann helfen.', { w:aufzaehlung(f.doppelt.map(function(t){ return '«' + esc(t) + '»'; })) }));
     var gesehen = {};
     a.teil.forEach(function(p){
       var k = p.join('|'); if (gesehen[k]) return; gesehen[k] = true;
-      hinweise.push('«' + esc(p[0]) + tx('» steckt in «') + esc(p[1]) + tx('» – das kann beim Suchen verwirren.'));
+      hinweise.push(tx('«{a}» steckt in «{b}» – das kann beim Suchen verwirren.', { a:esc(p[0]), b:esc(p[1]) }));
     });
     if (f.spalten > 34 || f.zeilen > 34){
       var tipps = [tx('eine Ziffer mit mehr Strichen (z. B. 8)'), tx('weniger Wörter')];
       var mehrstellig = f.zahlen.join('').length > 1;
       if (mehrstellig && st.opt.ziffern !== 'unter' && f.spalten > f.zeilen * 1.5) tipps.push(tx('Ziffern «untereinander» (Einstellungen)'));
       if (mehrstellig && st.opt.ziffern === 'unter' && f.zeilen > f.spalten * 1.5) tipps.push(tx('Ziffern «nebeneinander» (Einstellungen)'));
-      hinweise.push(tx('Das Feld ist recht gross. Viele Buchstaben auf wenige Striche machen die Zahl riesig – ') +
-        tipps.slice(0, -1).join(', ') + tx(' oder ') + tipps[tipps.length - 1] + tx(' machen es kompakter.'));
+      hinweise.push(tx('Das Feld ist recht gross. Viele Buchstaben auf wenige Striche machen die Zahl riesig – {a} oder {b} machen es kompakter.', { a:tipps.slice(0, -1).join(', '), b:tipps[tipps.length - 1] }));
     }
     if (hinweise.length) html += '<ul>' + hinweise.map(function(h){ return '<li>' + h + '</li>'; }).join('') + '</ul>';
     meldung(hinweise.length ? 'warnung' : 'erfolg', html);
@@ -1074,7 +1078,7 @@ function starte(bereich){
   function baueSvg(f, art){
     var w = f.spalten * S, h = f.zeilen * S;
     var svg = el('svg', { viewBox:'0 0 ' + w + ' ' + h, 'class':'gitter', role:'img', style:'--spalten:' + f.spalten,
-      'aria-label':tx('Buchstabenfeld mit ') + f.spalten + tx(' Spalten und ') + f.zeilen + tx(' Zeilen') });
+      'aria-label':tx('Buchstabenfeld mit {s} Spalten und {z} Zeilen', { s:f.spalten, z:f.zeilen }) });
     el('rect', { x:0, y:0, width:w, height:h, fill:'#fff' }, svg);
     var gL = el('g', { 'class':'ebene-loesung' }, svg);
     f.woerter.forEach(function(wort, i){ kapsel(gL, wort.zellen, FARBEN[i % FARBEN.length]); });
@@ -1107,14 +1111,14 @@ function starte(bereich){
     $('#blattTitel').hidden = !st.opt.titelAn;
     $('#anleitung').hidden = !st.opt.anleitungAn;
     $('#loesungTitel').textContent = tx('Lösung') + (t && st.opt.titelAn ? ' – ' + t : '');
-    var wie = 'waagrecht' + (ri.schraeg ? tx(', senkrecht oder schräg') : tx(' oder senkrecht')) + (ri.rueck ? tx(', manche auch rückwärts') : '');
+    var wie = tx(ri.schraeg ? (ri.rueck ? 'Sie stehen waagrecht, senkrecht oder schräg, manche auch rückwärts.' : 'Sie stehen waagrecht, senkrecht oder schräg.') : (ri.rueck ? 'Sie stehen waagrecht oder senkrecht, manche auch rückwärts.' : 'Sie stehen waagrecht oder senkrecht.'));
     var extra = [];
     if (ueberlappungen(f)) extra.push(tx('Manche Wörter teilen sich einen Buchstaben.'));
     if (f.gedreht) extra.push(tx('Achtung: Manche Ziffern liegen quer.'));
     if (f.untereinander && f.woerter.length && f.zahlen.some(function(z){ return z.length > 1; })) extra.push(tx('Die Ziffern stehen untereinander – von oben nach unten lesen.'));
-    $('#anleitung').textContent = tx('Finde die ') + N + tx(' versteckten Wörter') + (t ? tx(' zum Thema «') + t + '»' : '') + tx(' und markiere sie. Sie stehen ') + wie + '. ' +
+    $('#anleitung').textContent = (t ? tx('Finde die {n} versteckten Wörter zum Thema «{t}» und markiere sie.', { n:N, t:t }) : tx('Finde die {n} versteckten Wörter und markiere sie.', { n:N })) + ' ' + wie + ' ' +
       (extra.length ? extra.join(' ') + ' ' : '') +
-      tx('Die markierten Felder ergeben ') + (Z === 1 ? tx('eine Zahl. Wie heisst sie?') : (ZAHLWORT[Z] || Z) + tx(' Zahlen. Wie heissen sie?'));
+      tx(Z === 1 ? 'Die markierten Felder ergeben eine Zahl. Wie heisst sie?' : 'Die markierten Felder ergeben {n} Zahlen. Wie heissen sie?', { n:Z });
   }
   /* Anzahl Felder, die zwei Wörter gemeinsam haben */
   function ueberlappungen(f){
@@ -1232,11 +1236,11 @@ function starte(bereich){
     for (var k in spiel.gefunden) if (spiel.gefunden[k]) n++;
     spiel.anzahl = n;
     if (n === f.woerter.length){
-      p.className = tx('fortschritt fertig');
-      p.textContent = tx('🎉 Geschafft! Alle Wörter gefunden – ') + (f.zahlen.length === 1 ? tx('die Lösungszahl ist ') : tx('die Lösungszahlen sind ')) + aufzaehlung(f.zahlen) + '.';
+      p.className = 'fortschritt fertig';
+      p.textContent = tx(f.zahlen.length === 1 ? '🎉 Geschafft! Alle Wörter gefunden – die Lösungszahl ist {z}.' : '🎉 Geschafft! Alle Wörter gefunden – die Lösungszahlen sind {z}.', { z:aufzaehlung(f.zahlen) });
     } else {
       p.className = 'fortschritt';
-      p.textContent = n + tx(' von ') + f.woerter.length + tx(' Wörtern gefunden.');
+      p.textContent = tx('{n} von {m} Wörtern gefunden.', { n:n, m:f.woerter.length });
     }
   }
 
@@ -1297,7 +1301,7 @@ function starte(bereich){
   $('#herunterladen').addEventListener('click', function(){
     if (!aktuell || !speicherOrt) return;
     var t = (st.titel || '').trim().replace(/[^\p{L}\p{N} _-]+/gu, '').replace(/\s+/g, '-').slice(0, 40);
-    var name = tx('Suchsel') + (t ? '-' + t : '') + '-' + aktuell.feld.zahlen.join('-') + '.html';
+    var name = 'Suchsel' + (t ? '-' + t : '') + '-' + aktuell.feld.zahlen.join('-') + '.html';
     speicherOrt.save({ filename:name, data:druckDatei() }).catch(function(e){
       if (e && e.code === 'declined') return;
       meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
