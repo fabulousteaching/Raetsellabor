@@ -800,10 +800,10 @@ function schluesselHtml(art, o){
   }
   return '';
 }
-/* In der Auswahl stehen Caesar, Emoji- und Regenbogen-Scheibe unter einem Eintrag «Verschlüsselungsscheibe»; darin wählt
+/* In der Auswahl stehen Caesar, Emoji- und Regenbogen-Scheibe unter einem Eintrag «Geheimscheibe»; darin wählt
    man zuerst die Scheibe. Intern bleiben es drei Schriften (st.opt.art), der Listeneintrag ist st.opt.wahl. */
 var SCHEIBEN = [['caesar', 'Buchstaben', 'Caesar: A wird zu D …'], ['emojis', 'Emojis', '26 Emojis zu einem Thema'], ['farben', 'Regenbogen-Farben', '26 Farben im Regenbogen']];
-var LISTE = [['scheibe', 'Verschlüsselungsscheibe', 'Buchstaben, Emojis oder Farben – mit Scheibe zum Drehen']].concat(SCHRIFTEN.filter(function(x){ return !SCHEIBEN.some(function(y){ return y[0] === x[0]; }); }));
+var LISTE = [['scheibe', 'Geheimscheibe', 'Buchstaben, Emojis oder Farben – mit Scheibe zum Drehen']].concat(SCHRIFTEN.filter(function(x){ return !SCHEIBEN.some(function(y){ return y[0] === x[0]; }); }));
 function istScheibe(art){ return SCHEIBEN.some(function(y){ return y[0] === art; }); }
 function schriftName(art, o){ var s = SCHRIFTEN.filter(function(x){ return x[0] === art; })[0]; return s[1] + (art === 'caesar' ? ' um ' + o.verschiebung : ''); }
 
@@ -904,8 +904,8 @@ var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke
 Labor.registriere({
   id:'geheimschrift',
   titel:'Geheimschriften',
-  kurz:'Verschlüsselungsscheibe, Freimaurer, Vögel, Bücher, Bärte, Segmente, Bausteine, Erpresserschrift, Noten, Runen, Morse, Hieroglyphen und mehr',
-  beschreibung:'Ein eigener Text in einer von zwanzig Geheimschriften – Verschlüsselungsscheibe (Buchstaben wie bei Caesar, Emojis oder Regenbogen-Farben), Rückwärts-Alphabet, Zahlen, Handy-Tasten, Koordinaten, Freimaurer-Code, Vögel auf dem Draht, Kreis-Code, Bücher-Code, Bärte-Code, Segment-Code, Bausteine, Erpresserschrift, Notenschrift, Altlatein, Runen, Fingeralphabet, Morse, Blindenschrift oder Hieroglyphen. Mit Schlüssel zum Entschlüsseln.',
+  kurz:'Geheimscheibe, Freimaurer, Vögel, Bücher, Bärte, Segmente, Bausteine, Erpresserschrift, Noten, Runen, Morse, Hieroglyphen und mehr',
+  beschreibung:'Ein eigener Text in einer von zwanzig Geheimschriften – Geheimscheibe (Buchstaben wie bei Caesar, Emojis oder Regenbogen-Farben), Rückwärts-Alphabet, Zahlen, Handy-Tasten, Koordinaten, Freimaurer-Code, Vögel auf dem Draht, Kreis-Code, Bücher-Code, Bärte-Code, Segment-Code, Bausteine, Erpresserschrift, Notenschrift, Altlatein, Runen, Fingeralphabet, Morse, Blindenschrift oder Hieroglyphen. Mit Schlüssel zum Entschlüsseln.',
   merkmale:['Zwanzig Geheimschriften', 'Schlüssel einzeln als PDF oder Bild', 'Mit Lösungsblatt'],
   symbol:SYMBOL,
   css:'raetsel/geheimschrift/geheimschrift.css',
@@ -930,7 +930,7 @@ function starte(bereich){
   try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.text = String(e.text || ''); st.titel = String(e.titel || ''); } } catch(x){}
   if (vorwahl){ st.opt.art = st.opt.wahl = vorwahl; vorwahl = null; }
   if (!SCHRIFTEN.some(function(s){ return s[0] === st.opt.art; })) st.opt.art = '';   // keine Vorauswahl: zuerst die Schrift wählen
-  // Listeneintrag passend zur Schrift (die drei Scheiben gehören zur «Verschlüsselungsscheibe»)
+  // Listeneintrag passend zur Schrift (die drei Scheiben gehören zur «Geheimscheibe»)
   if (istScheibe(st.opt.art)){ st.opt.wahl = 'scheibe'; st.opt.scheibenArt = st.opt.art; }
   else if (st.opt.art) st.opt.wahl = st.opt.art;
   else if (st.opt.wahl !== 'scheibe') st.opt.wahl = '';
@@ -1020,7 +1020,7 @@ function starte(bereich){
   $('#gsAndere').addEventListener('click', function(){ listeZu(false); var r = bereich.querySelector('input[name="gsSchrift"]:checked'); if (r) r.focus(); });
   $('#gsErpNeu').addEventListener('click', function(){ st.opt.erpSeed = erpNeuerZufall(); speichern(); alles(); });
   $('#gsVerschiebung').value = String(st.opt.verschiebung);
-  // Verschlüsselungsscheibe: welche Scheibe?
+  // Geheimscheibe: welche Scheibe?
   [].forEach.call(bereich.querySelectorAll('input[name="gsScheibenArt"]'), function(r){
     r.checked = r.value === st.opt.scheibenArt;
     r.addEventListener('change', function(){
