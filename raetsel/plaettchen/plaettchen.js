@@ -324,8 +324,9 @@ function starte(bereich){
     if (best){ g = best.g; zeilen = best.z; }
     return zeilen.map(function(z, k){ return '<text x="' + f1(x) + '" y="' + f1(y + (k - (zeilen.length - 1) / 2) * g * 1.12 + g * 0.36) + '" font-size="' + f1(g) + '" font-weight="600" text-anchor="middle" fill="' + TINTE + '">' + esc(z) + '</text>'; }).join('');
   }
-  function rasterSvg(R, s, loesung){
-    var H = R.feld.length, W = R.feld[0].length, x0 = (B - W * s) / 2, t = '';
+  // Raster als SVG; breite: Zeichenfläche des Blatts (hoch 639, quer 968 Pixel)
+  function rasterSvg(R, s, loesung, breite){
+    var BB = breite || B, H = R.feld.length, W = R.feld[0].length, x0 = (BB - W * s) / 2, t = '';
     R.feld.forEach(function(r, y){ r.forEach(function(c, x){
       var fx = x0 + x * s, fy = y * s;
       if (loesung && c.teil) t += '<rect x="' + f1(fx) + '" y="' + f1(fy) + '" width="' + f1(s) + '" height="' + f1(s) + '" fill="' + (st.opt.farbig ? PLATTFARBE : '#D8D2CC') + '"/>';
@@ -335,7 +336,7 @@ function starte(bereich){
     for (var i = 1; i < W; i++) d += 'M' + f1(x0 + i * s) + ' 0V' + f1(H * s);
     for (var j = 1; j < H; j++) d += 'M' + f1(x0) + ' ' + f1(j * s) + 'H' + f1(x0 + W * s);
     t += '<path d="' + d + '" stroke="#8A8079" stroke-width="1"/><rect x="' + f1(x0) + '" y="0" width="' + f1(W * s) + '" height="' + f1(H * s) + '" fill="none" stroke="' + TINTE + '" stroke-width="2"/>';
-    return '<svg class="pt-raster" width="' + B + '" height="' + f1(H * s + 1) + '" viewBox="0 -0.5 ' + B + ' ' + f1(H * s + 1) + '">' + t + '</svg>';
+    return '<svg class="pt-raster" width="' + BB + '" height="' + f1(H * s + 1) + '" viewBox="0 -0.5 ' + BB + ' ' + f1(H * s + 1) + '">' + t + '</svg>';
   }
   function plaettchenSvg(liste, s, sp){
     var zeilen = Math.ceil(liste.length / sp), x0 = (B - sp * s) / 2, t = '';
@@ -358,7 +359,7 @@ function starte(bereich){
     var L = PS.lesen(st.code, MAX), h = '', o = st.opt;
     if (L.weg.length) h += '<p class="warnung">' + esc(L.weg.join(' ')) + ' gibt es in der Blockschrift nicht – nur Buchstaben A–Z und Ziffern.</p>';
     if (L.zuViele) h += '<p class="warnung">Höchstens ' + MAX + ' Zeichen.</p>';
-    var z = L.zeichen, g = z.length ? Kern.raster(z, PS.ZEICHEN, PS.BREITE, PS.HOEHE, 2, o.rand) : null;
+    var z = L.zeichen, g = z.length ? Kern.raster(z, PS.ZEICHEN, PS.BREITE, PS.HOEHE, MAX, o.rand) : null;
     var n = g ? g.reduce(function(a, r){ return a + r.filter(Boolean).length; }, 0) : 0, m = g ? g.length * g[0].length - n : 0;
     if (g) h += '<p class="pt-info">' + n + ' Plättchen, Raster ' + g[0].length + ' × ' + g.length + ' (' + m + ' Ablenk-Felder).</p>';
     $('#ptZaehler').innerHTML = h;
@@ -378,18 +379,23 @@ function starte(bereich){
     R = { g:g, feld:feld, plaettchen:vert.plaettchen, code:z.join('') };
     meldung(''); ['#ptPdf', '#ptHerunterladen', '#ptZeigeLoesung', '#ptNeu'].forEach(function(s){ $(s).disabled = false; }); $('#ptLoesung').parentNode.hidden = false;
     // Feldgrösse: Raster und Plättchen gleich gross (höchstens 26 mm), Raster passt aufs Blatt
-    var W = g[0].length, H = g.length, s = Math.min(26 * MM, (B - 2) / W, (o.anleitungAn ? 770 : 850) / H), sp = Math.floor((B - 2) / s), proSeite = sp * Math.floor(940 / s);
+    /* Alle Zeichen in einer Reihe. Feldgrösse: Raster und Plättchen gleich gross, höchstens 26 mm. Würden die Felder
+       hochkant kleiner als 20 mm, kommen Raster und Lösung auf ein Blatt im Querformat (PDF: A4 quer). */
+    var W = g[0].length, H = g.length, BQ = 968;
+    var sHoch = Math.min(26 * MM, (B - 2) / W, (o.anleitungAn ? 770 : 850) / H), sQuer = Math.min(26 * MM, (BQ - 2) / W, (o.anleitungAn ? 470 : 540) / H);
+    var quer = sHoch < 20 * MM && sQuer > sHoch, s = quer ? sQuer : sHoch, BB = quer ? BQ : B, sp = Math.floor((B - 2) / s), proSeite = sp * Math.floor(940 / s);
     var anleitung = 'Schneide die Plättchen aus. Löse die Aufgabe auf jedem Plättchen und lege es auf das Feld mit der richtigen Antwort. ' +
       'Nicht jede Antwort im Raster gehört zu einem Plättchen. Welche ' + (z.length > 1 ? 'Zeichen entstehen?' : 'Ziffer oder welcher Buchstabe entsteht?');
-    var html = '<div class="pt-rahmen"><article class="pt-blatt pt-seite">' + (o.titelAn ? '<h2>Plättchenrätsel</h2>' : '') + (o.anleitungAn ? '<p class="pt-anleitung">' + esc(anleitung) + '</p>' : '') +
-      rasterSvg(R, s, false) + (o.linie ? '<p class="pt-antwort">Lösung: <span class="pt-linie"></span></p>' : '') + '</article></div>';
+    var html = '<div class="pt-rahmen"><article class="pt-blatt pt-seite' + (quer ? ' blatt-quer' : '') + '">' + (o.titelAn ? '<h2>Plättchenrätsel</h2>' : '') + (o.anleitungAn ? '<p class="pt-anleitung">' + esc(anleitung) + '</p>' : '') +
+      rasterSvg(R, s, false, BB) + (o.linie ? '<p class="pt-antwort">Lösung: <span class="pt-linie"></span></p>' : '') + '</article></div>';
     for (var i = 0; i < R.plaettchen.length; i += proSeite){
       var teil = R.plaettchen.slice(i, i + proSeite), seiten = Math.ceil(R.plaettchen.length / proSeite);
       html += '<div class="pt-rahmen"><article class="pt-blatt pt-seite"><p class="pt-seitenkopf">✂ Plättchen zum Ausschneiden' + (seiten > 1 ? ' – Seite ' + (i / proSeite + 1) + ' von ' + seiten : '') + ' · ' + R.plaettchen.length + ' Stück</p>' +
         plaettchenSvg(teil, s, sp) + '</article></div>';
     }
     $('#ptSeiten').innerHTML = html;
-    $('#ptLoesung').innerHTML = (o.titelAn ? '<h2>Plättchenrätsel – Lösung</h2>' : '<p class="pt-anleitung"><b>Lösung</b></p>') + rasterSvg(R, s, true) + '<p class="pt-loesung-text">Lösung: <b>' + esc(R.code) + '</b></p>';
+    $('#ptLoesung').classList.toggle('blatt-quer', quer);
+    $('#ptLoesung').innerHTML = (o.titelAn ? '<h2>Plättchenrätsel – Lösung</h2>' : '<p class="pt-anleitung"><b>Lösung</b></p>') + rasterSvg(R, s, true, BB) + '<p class="pt-loesung-text">Lösung: <b>' + esc(R.code) + '</b></p>';
   }
 
   /* ---------- PDF, Herunterladen ---------- */

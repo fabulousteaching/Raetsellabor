@@ -555,19 +555,21 @@ var Labor = (function(){
     blaetter = blaetter.filter(Boolean);
     if (!blaetter.length) return Promise.resolve();
     var ausgeschaltet = [].filter.call(document.styleSheets, function(s){ return s.disabled && s.href; }).map(function(s){ return s.href; });
-    var BREITE = 703;   // 186 mm bei 96 dpi: A4 mit 12 mm Rand
+    var BREITE = 703, BREITE_QUER = 1032;   // 186 mm (hoch) und 273 mm (quer) bei 96 dpi: A4 mit 12 mm Rand
+    // Ein Blatt mit der Klasse «blatt-quer» kommt auf eine Seite im Querformat (A4 quer), alle anderen hochkant
+    var quer = blaetter.map(function(b){ return b.classList.contains('blatt-quer'); });
     return Promise.all([ladeSkript('gemeinsam/extern/html2canvas.min.js'), ladeSkript('gemeinsam/extern/jspdf.umd.min.js')]).then(function(){
-      var pdf = new window.jspdf.jsPDF({ unit:'mm', format:'a4', orientation:'portrait', compress:true });
+      var pdf = new window.jspdf.jsPDF({ unit:'mm', format:'a4', orientation:quer[0] ? 'landscape' : 'portrait', compress:true });
       var kette = Promise.resolve();
       blaetter.forEach(function(blatt, i){
         kette = kette.then(function(){
-          return window.html2canvas(blatt, { scale:3, backgroundColor:'#ffffff', logging:false, useCORS:true, windowWidth:BREITE, scrollX:0, scrollY:0,
+          return window.html2canvas(blatt, { scale:3, backgroundColor:'#ffffff', logging:false, useCORS:true, windowWidth:quer[i] ? BREITE_QUER : BREITE, scrollX:0, scrollY:0,
             onclone:function(doc, kopie){ return druckKopie(doc, kopie, blatt, ausgeschaltet); } });
         }).then(function(cv){
-          if (i) pdf.addPage();
-          var w = 186, h = cv.height * w / cv.width;
-          if (h > 273){ h = 273; w = cv.width * h / cv.height; }
-          pdf.addImage(cv, 'PNG', (210 - w) / 2, 12, w, h, undefined, 'FAST');
+          if (i) pdf.addPage('a4', quer[i] ? 'landscape' : 'portrait');
+          var bw = quer[i] ? 273 : 186, bh = quer[i] ? 186 : 273, pw = quer[i] ? 297 : 210, w = bw, h = cv.height * w / cv.width;
+          if (h > bh){ h = bh; w = cv.width * h / cv.height; }
+          pdf.addImage(cv, 'PNG', (pw - w) / 2, 12, w, h, undefined, 'FAST');
         });
       });
       return kette.then(function(){ pdf.save(dateiname || 'Arbeitsblatt.pdf'); });

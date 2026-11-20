@@ -78,3 +78,5 @@
   .pt-loesungsblatt.zeigen{display:none}
   body.mit-loesung .pt-loesungsblatt{display:block;break-before:page;margin-top:0}
 }
+/* Querformat: Raster und Lösung bei vielen Zeichen (273 mm breit) */
+.pt-blatt.blatt-quer{width:1032px}
