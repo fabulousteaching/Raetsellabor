@@ -477,6 +477,10 @@ var ERP_FARBEN = [   // [Papier, Buchstabe] – immer gut lesbar
 function erpZufall(seed){ var a = seed >>> 0; return function(){ a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 /* Aussehen des Schnipsels Nummer nr: Schrift und Farbe nie gleich wie beim Schnipsel davor */
 var erpListen = {};
+/* Zufall für die Erpresserschrift: bei jedem Öffnen des Generators und jedes Mal, wenn man die Schrift wählt, neu –
+   so sieht sie nie zweimal gleich aus (kein festes Alphabet). Während man tippt, bleiben die Schnipsel stehen. */
+function erpNeuerZufall(){ erpListen = {}; return Math.floor(Math.random() * 1e6) + 2; }
+var erpVorschau = erpNeuerZufall();
 function erpStil(seed, nr){
   var liste = erpListen[seed] || (erpListen[seed] = []);
   while (liste.length <= nr){
@@ -535,7 +539,7 @@ function symbolHtml(code){
 }
 function vorschauHtml(art){
   var o = { verschiebung:3 }, w = art === 'hieroglyphen' ? 'ABC' : art === 'braille' || art === 'morse' ? 'ABC' : 'ABC';
-  return '<span class="gs-vorschau gs-v-' + art + '">' + Array.from(w).map(function(c, i){ var z = Kern.zeichen(art, c, o); if (z && z.schnipsel){ z.seed = 5; z.nr = i; z.misch = false; } return '<span class="gs-vz">' + symbolHtml(z) + '</span>'; }).join('') + '</span>';
+  return '<span class="gs-vorschau gs-v-' + art + '">' + Array.from(w).map(function(c, i){ var z = Kern.zeichen(art, c, o); if (z && z.schnipsel){ z.seed = erpVorschau; z.nr = i; z.misch = false; } return '<span class="gs-vz">' + symbolHtml(z) + '</span>'; }).join('') + '</span>';
 }
 
 /* ---------- Schlüssel ---------- */
@@ -749,6 +753,7 @@ function starte(bereich){
   try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.text = String(e.text || ''); st.titel = String(e.titel || ''); } } catch(x){}
   if (vorwahl){ st.opt.art = vorwahl; vorwahl = null; }
   if (!SCHRIFTEN.some(function(s){ return s[0] === st.opt.art; })) st.opt.art = 'caesar';
+  st.opt.erpSeed = erpNeuerZufall(); erpVorschau = erpNeuerZufall();   // Erpresserschrift: jedes Mal anders
   var timer = 0;
   function speichernJetzt(){ clearTimeout(timer); timer = 0;
     try { sessionStorage.setItem(TAB, JSON.stringify({ text:st.text, titel:st.titel })); } catch(x){}
@@ -783,7 +788,7 @@ function starte(bereich){
   $('#gsTitel').addEventListener('input', function(){ st.titel = this.value; speichern(); zeichnen(); schluesselZeichnen(); });
   [].forEach.call(bereich.querySelectorAll('input[name="gsSchrift"]'), function(r){
     r.checked = r.value === st.opt.art;
-    r.addEventListener('change', function(){ if (!r.checked) return; st.opt.art = r.value; speichern(); $('#gsZeigeLoesung').setAttribute('aria-pressed', 'false'); hieroLaden(); alles(); });
+    r.addEventListener('change', function(){ if (!r.checked) return; st.opt.art = r.value; if (r.value === 'erpresser') st.opt.erpSeed = erpNeuerZufall(); speichern(); $('#gsZeigeLoesung').setAttribute('aria-pressed', 'false'); hieroLaden(); alles(); });
   });
   [].forEach.call(bereich.querySelectorAll('input[name="gsGroesse"]'), function(r){
     r.checked = r.value === st.opt.groesse;
@@ -793,7 +798,7 @@ function starte(bereich){
     r.checked = r.value === st.opt.segArt;
     r.addEventListener('change', function(){ if (!r.checked) return; st.opt.segArt = r.value; speichern(); alles(); });
   });
-  $('#gsErpNeu').addEventListener('click', function(){ st.opt.erpSeed = Math.floor(Math.random() * 1e6) + 2; speichern(); alles(); });
+  $('#gsErpNeu').addEventListener('click', function(){ st.opt.erpSeed = erpNeuerZufall(); speichern(); alles(); });
   $('#gsVerschiebung').value = String(st.opt.verschiebung);
   $('#gsVerschiebung').addEventListener('change', function(){ st.opt.verschiebung = +this.value; speichern(); alles(); });
   [['#gsLinien', 'linien', zeichnen], ['#gsScheibe', 'scheibe', schluesselZeichnen], ['#gsErpMisch', 'erpMisch', zeichnen], ['#gsMitLoesung', 'mitLoesung'], ['#gsMitSchluessel', 'mitSchluessel']].forEach(function(c){
