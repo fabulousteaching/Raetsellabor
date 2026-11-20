@@ -298,39 +298,47 @@ function starte(bereich){
   var messer = document.createElement('canvas').getContext('2d');
   function breite(t, gr){ messer.font = '600 ' + gr + 'px ' + Labor.blattSchrift('text'); return messer.measureText(t).width; }
   // Text in ein Feld (Mitte x, y; Seite s): Brüche übereinander, sonst eine oder zwei Zeilen, so gross wie möglich
-  function feldText(x, y, s, t){
-    var m = /^(\d+)\/(\d+)$/.exec(t), g;
-    if (m){
-      g = Math.min(s * 0.28, (s * 0.8) / (Math.max(m[1].length, m[2].length) * 0.62));
+  /* Möglichkeiten, einen Text in ein Feld (Seite s) zu setzen: eine Zeile, zwei Zeilen an einem Leerzeichen, ein langes
+     Wort mit Silbentrennung – je mit der grössten Schrift, die passt. Brüche übereinander. → [{ g, z, bruch }] */
+  function varianten(t, s){
+    var m = /^(\d+)\/(\d+)$/.exec(t);
+    if (m) return [{ g:Math.min(s * 0.28, (s * 0.8) / (Math.max(m[1].length, m[2].length) * 0.62)), bruch:m }];
+    var l = [{ g:Math.min(s * 0.3, s * 0.86 / (breite(t, 100) / 100)), z:[t] }], w = t.split(' ');
+    var zwei = function(a, b){ return { g:Math.min(s * 0.26, s * 0.86 / (Math.max(breite(a, 100), breite(b, 100)) / 100)), z:[a, b] }; };
+    var bestZ = null;
+    for (var i = 1; i < w.length; i++){ var v = zwei(w.slice(0, i).join(' '), w.slice(i).join(' ')); if (!bestZ || v.g > bestZ.g) bestZ = v; }
+    if (bestZ) l.push(bestZ);
+    if (w.length === 1){   // ein langes Wort: an einer Silbengrenze nahe der Mitte trennen, mit Bindestrich
+      var stellen = Kern.trennstellen(t), mitte = t.length / 2, stelle = -1;
+      stellen.forEach(function(k){ if (k >= 3 && t.length - k >= 3 && (stelle < 0 || Math.abs(k - mitte) < Math.abs(stelle - mitte))) stelle = k; });
+      if (stelle > 0) l.push(zwei(t.slice(0, stelle) + '-', t.slice(stelle)));
+    }
+    return l;
+  }
+  // Grösste Schrift für diesen Text (zwei Zeilen nur, wenn sie deutlich grösser werden)
+  function groesste(t, s){ var l = varianten(t, s), g = l[0].g; l.slice(1).forEach(function(v){ if (v.g > l[0].g * 1.15) g = Math.max(g, v.g); }); return g; }
+  // Einheitliche Schrift für viele Texte: die kleinste der grössten – so sind alle Felder eines Blatts gleich gross beschriftet
+  function einheit(texte, s){ return Math.min.apply(null, texte.map(function(t){ return groesste(t, s); })); }
+  // Text ins Feld (Mitte x, y) mit der Schriftgrösse g: eine Zeile, wenn sie passt, sonst die passende Variante mit zwei Zeilen
+  function feldText(x, y, s, t, g){
+    var l = varianten(t, s), v = l[0];
+    if (!v.bruch && v.g < g - 0.01) v = l.filter(function(x2){ return x2.g >= g - 0.01; })[0] || l.reduce(function(a, b2){ return b2.g > a.g ? b2 : a; });
+    if (v.bruch){
+      var m = v.bruch, n = Math.max(m[1].length, m[2].length);
       return '<text x="' + f1(x) + '" y="' + f1(y - g * 0.18) + '" font-size="' + f1(g) + '" font-weight="600" text-anchor="middle" fill="' + TINTE + '">' + m[1] + '</text>' +
-        '<path d="M' + f1(x - g * 0.6 * Math.max(m[1].length, m[2].length) * 0.55 - 2) + ' ' + f1(y) + 'h' + f1(g * 0.66 * Math.max(m[1].length, m[2].length) + 4) + '" stroke="' + TINTE + '" stroke-width="' + f1(Math.max(1, g * 0.08)) + '"/>' +
+        '<path d="M' + f1(x - g * 0.6 * n * 0.55 - 2) + ' ' + f1(y) + 'h' + f1(g * 0.66 * n + 4) + '" stroke="' + TINTE + '" stroke-width="' + f1(Math.max(1, g * 0.08)) + '"/>' +
         '<text x="' + f1(x) + '" y="' + f1(y + g * 0.92) + '" font-size="' + f1(g) + '" font-weight="600" text-anchor="middle" fill="' + TINTE + '">' + m[2] + '</text>';
     }
-    var w = t.split(' '), zeilen = [t], best = null;
-    g = Math.min(s * 0.3, s * 0.86 / (breite(t, 100) / 100));
-    if (w.length > 1) for (var i = 1; i < w.length; i++){
-      var a = w.slice(0, i).join(' '), b = w.slice(i).join(' '), g2 = Math.min(s * 0.26, s * 0.86 / (Math.max(breite(a, 100), breite(b, 100)) / 100));
-      if (g2 > g * 1.15 && (!best || g2 > best.g)) best = { g:g2, z:[a, b] };
-    }
-    // ein langes Wort: an einer Silbengrenze nahe der Mitte trennen, mit Bindestrich
-    if (!best && w.length === 1 && g < s * 0.2){
-      var stellen = Kern.trennstellen(t), mitte = t.length / 2, stelle = -1;
-      stellen.forEach(function(i){ if (i >= 3 && t.length - i >= 3 && (stelle < 0 || Math.abs(i - mitte) < Math.abs(stelle - mitte))) stelle = i; });
-      if (stelle > 0){
-        var a2 = t.slice(0, stelle) + '-', b2 = t.slice(stelle), g3 = Math.min(s * 0.26, s * 0.86 / (Math.max(breite(a2, 100), breite(b2, 100)) / 100));
-        if (g3 > g * 1.15) best = { g:g3, z:[a2, b2] };
-      }
-    }
-    if (best){ g = best.g; zeilen = best.z; }
-    return zeilen.map(function(z, k){ return '<text x="' + f1(x) + '" y="' + f1(y + (k - (zeilen.length - 1) / 2) * g * 1.12 + g * 0.36) + '" font-size="' + f1(g) + '" font-weight="600" text-anchor="middle" fill="' + TINTE + '">' + esc(z) + '</text>'; }).join('');
+    return v.z.map(function(z, k){ return '<text x="' + f1(x) + '" y="' + f1(y + (k - (v.z.length - 1) / 2) * g * 1.12 + g * 0.36) + '" font-size="' + f1(g) + '" font-weight="600" text-anchor="middle" fill="' + TINTE + '">' + esc(z) + '</text>'; }).join('');
   }
   // Raster als SVG; breite: Zeichenfläche des Blatts (hoch 639, quer 968 Pixel)
   function rasterSvg(R, s, loesung, breite){
     var BB = breite || B, H = R.feld.length, W = R.feld[0].length, x0 = (BB - W * s) / 2, t = '';
+    var g = einheit([].concat.apply([], R.feld.map(function(r){ return r.map(function(c){ return c.b; }); })), s);
     R.feld.forEach(function(r, y){ r.forEach(function(c, x){
       var fx = x0 + x * s, fy = y * s;
       if (loesung && c.teil) t += '<rect x="' + f1(fx) + '" y="' + f1(fy) + '" width="' + f1(s) + '" height="' + f1(s) + '" fill="' + (st.opt.farbig ? PLATTFARBE : '#D8D2CC') + '"/>';
-      t += feldText(fx + s / 2, fy + s / 2, s, c.b);
+      t += feldText(fx + s / 2, fy + s / 2, s, c.b, g);
     }); });
     var d = '';
     for (var i = 1; i < W; i++) d += 'M' + f1(x0 + i * s) + ' 0V' + f1(H * s);
@@ -338,12 +346,13 @@ function starte(bereich){
     t += '<path d="' + d + '" stroke="#8A8079" stroke-width="1"/><rect x="' + f1(x0) + '" y="0" width="' + f1(W * s) + '" height="' + f1(H * s) + '" fill="none" stroke="' + TINTE + '" stroke-width="2"/>';
     return '<svg class="pt-raster" width="' + BB + '" height="' + f1(H * s + 1) + '" viewBox="0 -0.5 ' + BB + ' ' + f1(H * s + 1) + '">' + t + '</svg>';
   }
-  function plaettchenSvg(liste, s, sp){
+  // Plättchen (eine Seite); gPl: eine Schriftgrösse für alle Plättchen (auch über mehrere Seiten)
+  function plaettchenSvg(liste, s, sp, gPl){
     var zeilen = Math.ceil(liste.length / sp), x0 = (B - sp * s) / 2, t = '';
     liste.forEach(function(p, i){
       var fx = x0 + (i % sp) * s, fy = Math.floor(i / sp) * s;
       if (st.opt.farbig) t += '<rect x="' + f1(fx) + '" y="' + f1(fy) + '" width="' + f1(s) + '" height="' + f1(s) + '" fill="' + PLATTFARBE + '"/>';
-      t += feldText(fx + s / 2, fy + s / 2, s, p.a);
+      t += feldText(fx + s / 2, fy + s / 2, s, p.a, gPl);
     });
     // Schnittlinien nur um die Plättchen (volle Zeilen als Raster, in der letzten Zeile nur so weit, wie Plättchen da sind)
     var d = '', voll = Math.floor(liste.length / sp), rest = liste.length % sp;
@@ -388,10 +397,11 @@ function starte(bereich){
       'Nicht jede Antwort im Raster gehört zu einem Plättchen. Welche ' + (z.length > 1 ? 'Zeichen entstehen?' : 'Ziffer oder welcher Buchstabe entsteht?');
     var html = '<div class="pt-rahmen"><article class="pt-blatt pt-seite' + (quer ? ' blatt-quer' : '') + '">' + (o.titelAn ? '<h2>Plättchenrätsel</h2>' : '') + (o.anleitungAn ? '<p class="pt-anleitung">' + esc(anleitung) + '</p>' : '') +
       rasterSvg(R, s, false, BB) + (o.linie ? '<p class="pt-antwort">Lösung: <span class="pt-linie"></span></p>' : '') + '</article></div>';
+    var gPl = einheit(R.plaettchen.map(function(x){ return x.a; }), s);
     for (var i = 0; i < R.plaettchen.length; i += proSeite){
       var teil = R.plaettchen.slice(i, i + proSeite), seiten = Math.ceil(R.plaettchen.length / proSeite);
       html += '<div class="pt-rahmen"><article class="pt-blatt pt-seite"><p class="pt-seitenkopf">✂ Plättchen zum Ausschneiden' + (seiten > 1 ? ' – Seite ' + (i / proSeite + 1) + ' von ' + seiten : '') + ' · ' + R.plaettchen.length + ' Stück</p>' +
-        plaettchenSvg(teil, s, sp) + '</article></div>';
+        plaettchenSvg(teil, s, sp, gPl) + '</article></div>';
     }
     $('#ptSeiten').innerHTML = html;
     $('#ptLoesung').classList.toggle('blatt-quer', quer);
