@@ -137,20 +137,16 @@ var Kern = (function(){
 /* KERN-ENDE */
 
 var TINTE = '#1C1714', B = 639, MM = 703 / 186, MAX = 4;
-// Farben der Uhren (Rand) – das Zifferblatt bekommt einen hellen Hauch davon
-var UHRFARBEN = ['#E53935', '#FB8C00', '#F2B705', '#7CB342', '#43A047', '#00897B', '#00ACC1', '#1E88E5', '#3949AB', '#8E24AA', '#D81B60', '#6D4C41'];
-function hslHex(h, s, l){ s /= 100; l /= 100; var k = function(n){ return (n + h / 30) % 12; }, a = s * Math.min(l, 1 - l);
-  var f = function(n){ return Math.round(255 * (l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1))))).toString(16).padStart(2, '0'); };
-  return '#' + f(0) + f(8) + f(4); }
-/* n Farben, keine zweimal: bis 12 aus der Liste oben (gemischt), sonst Farbtöne gleichmässig über den Farbkreis
-   verteilt, abwechselnd heller und dunkler, gemischt */
-function farbenListe(n, rnd){
-  var l = [], i;
-  if (n <= UHRFARBEN.length) l = UHRFARBEN.slice();
-  else { var start = rnd() * 360; for (i = 0; i < n; i++) l.push(hslHex((start + i * 360 / n) % 360, 72, i % 2 ? 36 : 47)); }
-  for (i = l.length - 1; i > 0; i--){ var j = Math.floor(rnd() * (i + 1)), x = l[i]; l[i] = l[j]; l[j] = x; }
-  return l.slice(0, n);
-}
+/* Farben der Uhren (Rand; das Zifferblatt bekommt einen hellen Hauch davon): 24 von Auge gut unterscheidbare Farben,
+   nach Unterscheidbarkeit geordnet – zuerst die ganz verschiedenen, dann hellere und dunklere. Bis 12 Farben höchstens
+   drei Blau-/Grüntöne (blau, grün, hellblau). Keine Farbe kommt zweimal vor. */
+var FARBLISTE = [
+  '#E53935', /* rot */ '#1E5BD6', /* blau */ '#F9C80E', /* gelb */ '#2E9E3E', /* grün */ '#F57C00', /* orange */ '#8E24AA', /* lila */
+  '#F48FB1', /* rosa */ '#795548', /* braun */ '#222222', /* schwarz */ '#7E7E7E', /* grau */ '#4FC3F7', /* hellblau */ '#D2B48C', /* beige */
+  '#8B1A1A', /* weinrot */ '#D81B8C', /* pink */ '#A5D63A', /* hellgrün */ '#1A2A7A', /* dunkelblau */ '#B39DDB', /* flieder */ '#FF9E80', /* lachs */
+  '#00A99D', /* türkis */ '#808000', /* oliv */ '#C9971C', /* ocker */ '#1B5E20', /* dunkelgrün */ '#CFCFCF', /* hellgrau */ '#5B3FBF' /* violett */
+];
+function mischen(l, rnd){ l = l.slice(); for (var i = l.length - 1; i > 0; i--){ var j = Math.floor(rnd() * (i + 1)), x = l[i]; l[i] = l[j]; l[j] = x; } return l; }
 var ARTEN = [['12', '3:00'], ['24', '15:00'], ['worte', 'in Worten'], ['en', 'Englisch'], ['fr', 'Französisch']];
 var LOESUNGSFARBE = '#F28C38';
 function esc(t){ return Labor.esc(t); }
@@ -420,8 +416,11 @@ function starte(bereich){
     // Farben: jede Uhr eine eigene – keine Farbe zweimal; Nummern der Reihe nach (für schwarz-weiss zum Ausschneiden)
     var alle = [];
     PLAN.forEach(function(Zf){ Zf.uhren.forEach(function(U){ U.nachmittags = rnd() < 0.5; alle.push(U); }); });
-    var farben = farbenListe(alle.length, rnd);
-    alle.forEach(function(U, i){ U.farbe = farben[i]; U.nr = i + 1; });
+    // Uhren mit Zeit (die zu einem Wecker passen müssen) bekommen die am besten unterscheidbaren Farben, die leeren den Rest
+    var mitZeit = alle.filter(function(U){ return U.zeit; }), ohne = alle.filter(function(U){ return !U.zeit; });
+    var f1l = mischen(FARBLISTE.slice(0, mitZeit.length), rnd), f2l = mischen(FARBLISTE.slice(mitZeit.length, alle.length), rnd);
+    mitZeit.forEach(function(U, i){ U.farbe = f1l[i]; }); ohne.forEach(function(U, i){ U.farbe = f2l[i]; });
+    alle.forEach(function(U, i){ U.nr = i + 1; });
     $('#urAusschneidenInfo').textContent = !o.ausschneiden ? '' : o.farbig ? 'Jeder Wecker hat die Farbe seiner Uhr.' : 'Ohne Farben gehören Uhr und Wecker über die Nummer zusammen.';
     var anleitung = (o.drehen ? 'Achtung, die Uhren sind gedreht: Das Dreieck zeigt, wo die 12 ist. ' : '') +
       (o.ausschneiden ? 'Jeder Wecker gehört zur Uhr mit ' + (o.farbig ? 'der gleichen Farbe' : 'der gleichen Nummer') + '. Zeichne dort die Zeiger ein' : 'Zeichne bei jeder Uhr mit einer Zeit die Zeiger ein') +
