@@ -41,18 +41,18 @@
 </head>
 <body>
 <main>
-  <h1>🎵 Hör genau hin!</h1>
-  <p class="einleitung">Die Geheimbotschaft besteht aus Tönen. Tippe auf einen Ton der Botschaft und dann auf die Töne im Tonalphabet unten.
+  <h1 data-t="titel">🎵 Hör genau hin!</h1>
+  <p class="einleitung" data-t="einleitung">Die Geheimbotschaft besteht aus Tönen. Tippe auf einen Ton der Botschaft und dann auf die Töne im Tonalphabet unten.
     Klingen zwei Töne gleich, hast du den Buchstaben gefunden.</p>
   <section class="karte" id="botschaft" aria-labelledby="titelBotschaft">
-    <h2 id="titelBotschaft">Die Töne der Botschaft</h2>
-    <div class="leiste"><button type="button" class="knopf haupt" id="alles">▶ Ganze Botschaft</button><button type="button" class="knopf" id="stopp">■ Stopp</button></div>
+    <h2 id="titelBotschaft" data-t="toene">Die Töne der Botschaft</h2>
+    <div class="leiste"><button type="button" class="knopf haupt" id="alles" data-t="alles">▶ Ganze Botschaft</button><button type="button" class="knopf" id="stopp" data-t="stopp">■ Stopp</button></div>
     <div class="woerter" id="woerter"></div>
   </section>
   <section class="karte" aria-labelledby="titelAbc">
-    <h2 id="titelAbc">Tonalphabet</h2>
+    <h2 id="titelAbc" data-t="abc">Tonalphabet</h2>
     <div class="abc" id="abc"></div>
-    <p class="tipp">Tipp: Hör dir zuerst einen Ton der Botschaft an, dann probierst du die Töne im Tonalphabet aus. Das C gibt es zweimal: tief und hoch.</p>
+    <p class="tipp" data-t="tipp">Tipp: Hör dir zuerst einen Ton der Botschaft an, dann probierst du die Töne im Tonalphabet aus. Das C gibt es zweimal: tief und hoch.</p>
   </section>
   <footer>Rätsellabor · <a href="../">raetsellabor.fabulousteaching.ch</a></footer>
 </main>
@@ -63,7 +63,32 @@
   // Tonalphabet: [MIDI, Buchstabe, Zusatz, Farbe]; S (Es) und B nur mit bs=1
   var ABC = [[60, 'C', 'tief', '#E5484D'], [62, 'D', '', '#F2843B'], [63, 'S', 'Es', '#C9822B'], [64, 'E', '', '#E2B203'], [65, 'F', '', '#4CAF50'],
     [67, 'G', '', '#1E9E8B'], [69, 'A', '', '#3B82F6'], [70, 'B', '', '#5B5BD6'], [71, 'H', '', '#8B5CF6'], [72, 'C', 'hoch', '#D6409F']];
-  var q = new URLSearchParams(location.search), bs = q.get('bs') === '1';
+  var q = new URLSearchParams(location.search), L = { en:1, fr:2 }[q.get('l')] || 0, bs = !L && q.get('bs') === '1';
+  // Sprache (l=en|fr, sonst Deutsch): auf Englisch und Französisch heisst der Ton zwischen A und dem hohen C «B» (deutsch H)
+  var TEXTE = {
+    titel:['🎵 Hör genau hin!', '🎵 Listen carefully!', '🎵 Écoute bien !'],
+    einleitung:['Die Geheimbotschaft besteht aus Tönen. Tippe auf einen Ton der Botschaft und dann auf die Töne im Tonalphabet unten. Klingen zwei Töne gleich, hast du den Buchstaben gefunden.',
+      'The secret message is made of notes. Tap a note of the message and then the notes in the note alphabet below. When two notes sound the same, you have found the letter.',
+      'Le message secret est fait de notes. Touche une note du message, puis les notes de l’alphabet des notes en bas. Quand deux notes sonnent pareil, tu as trouvé la lettre.'],
+    toene:['Die Töne der Botschaft', 'The notes of the message', 'Les notes du message'],
+    alles:['▶ Ganze Botschaft', '▶ Whole message', '▶ Tout le message'], stopp:['■ Stopp', '■ Stop', '■ Stop'],
+    abc:['Tonalphabet', 'Note alphabet', 'Alphabet des notes'],
+    tipp:['Tipp: Hör dir zuerst einen Ton der Botschaft an, dann probierst du die Töne im Tonalphabet aus. Das C gibt es zweimal: tief und hoch.',
+      'Tip: first listen to a note of the message, then try the notes in the note alphabet. There are two Cs: low and high.',
+      'Astuce : écoute d’abord une note du message, puis essaie les notes de l’alphabet des notes. Le C existe deux fois : grave et aigu.'],
+    leer:['Dieser Link enthält keine Töne. Scanne den QR-Code auf dem Arbeitsblatt nochmals.', 'This link contains no notes. Scan the QR code on the worksheet again.', 'Ce lien ne contient pas de notes. Scanne à nouveau le code QR de la fiche.'],
+    wort:['Wort {n}', 'Word {n}', 'Mot {n}'], ton:['Ton {n} anhören', 'Play note {n}', 'Écouter la note {n}'], wortTon:['▶ Wort', '▶ Word', '▶ Mot'],
+    wortGanz:['Wort {n} ganz anhören', 'Play the whole word {n}', 'Écouter tout le mot {n}'],
+    tief:['tief', 'low', 'grave'], hoch:['hoch', 'high', 'aigu'],
+    geht:['Dieser Browser kann leider keine Töne abspielen. Versuche es mit einem anderen Browser.', 'Sorry, this browser cannot play sounds. Try another browser.', 'Désolé, ce navigateur ne peut pas jouer de sons. Essaie un autre navigateur.']
+  };
+  function t(k, n){ return TEXTE[k][L].replace('{n}', n); }
+  if (L){
+    document.documentElement.lang = q.get('l');
+    document.title = t('titel').replace('🎵 ', '') + ' – Rätsellabor';
+    [].forEach.call(document.querySelectorAll('[data-t]'), function(e){ e.textContent = t(e.getAttribute('data-t')); });
+    ABC.forEach(function(a){ if (a[1] === 'H') a[1] = 'B'; else if (a[1] === 'B') a[1] = 'B♭'; if (a[2] === 'tief') a[2] = t('tief'); if (a[2] === 'hoch') a[2] = t('hoch'); });
+  }
   var erlaubt = {}; ABC.forEach(function(a){ erlaubt[a[0]] = true; });
   // Töne lesen: Wörter durch «-», je Ton zwei Ziffern
   var woerter = String(q.get('t') || '').split('-').map(function(w){ return (w.match(/\d\d/g) || []).map(Number); })
@@ -73,19 +98,19 @@
   function aufleuchten(b){ b.classList.add('spielt'); setTimeout(function(){ b.classList.remove('spielt'); }, 420); }
   if (!woerter.length){
     document.getElementById('botschaft').classList.add('fehler');
-    $w.appendChild(el('p', '', 'Dieser Link enthält keine Töne. Scanne den QR-Code auf dem Arbeitsblatt nochmals.'));
+    $w.appendChild(el('p', '', t('leer')));
     document.getElementById('alles').hidden = document.getElementById('stopp').hidden = true;
   }
   var nr = 0;
   woerter.forEach(function(w, wi){
-    var zeile = el('div', 'wort'); zeile.appendChild(el('span', 'wort-name', 'Wort ' + (wi + 1)));
+    var zeile = el('div', 'wort'); zeile.appendChild(el('span', 'wort-name', t('wort', wi + 1)));
     var erste = nr;
     w.forEach(function(m){
-      var b = el('button', 'ton', String(++nr)); b.type = 'button'; b.setAttribute('aria-label', 'Ton ' + nr + ' anhören');
+      var b = el('button', 'ton', String(++nr)); b.type = 'button'; b.setAttribute('aria-label', t('ton', nr));
       b.addEventListener('click', function(){ Toene.spiele(m); aufleuchten(b); });
       zeile.appendChild(b); knoepfe.push(b);
     });
-    var ganz = el('button', 'ton wort-ganz', '▶ Wort'); ganz.type = 'button'; ganz.setAttribute('aria-label', 'Wort ' + (wi + 1) + ' ganz anhören');
+    var ganz = el('button', 'ton wort-ganz', t('wortTon')); ganz.type = 'button'; ganz.setAttribute('aria-label', t('wortGanz', wi + 1));
     ganz.addEventListener('click', function(){ Toene.folge([w], { beiTon:function(i){ aufleuchten(knoepfe[erste + i]); } }); });
     zeile.appendChild(ganz);
     $w.appendChild(zeile);
@@ -94,14 +119,14 @@
   document.getElementById('stopp').addEventListener('click', function(){ Toene.stopp(); });
   var $abc = document.getElementById('abc');
   ABC.forEach(function(a){
-    if (!bs && (a[1] === 'S' || a[1] === 'B')) return;
+    if (!bs && (a[0] === 63 || a[0] === 70)) return;   // S (Es) und B (H mit ♭) nur mit bs=1
     var b = el('button', 'ton'); b.type = 'button'; b.style.background = a[3];
     b.appendChild(el('span', '', a[1])); if (a[2]) b.appendChild(el('small', '', a[2]));
-    b.setAttribute('aria-label', 'Ton ' + a[1] + (a[2] ? ' ' + a[2] : '') + ' anhören');
+    b.setAttribute('aria-label', t('ton', a[1] + (a[2] ? ' ' + a[2] : '')));
     b.addEventListener('click', function(){ Toene.spiele(a[0]); aufleuchten(b); });
     $abc.appendChild(b);
   });
-  if (!Toene.geht()) document.querySelector('.einleitung').textContent = 'Dieser Browser kann leider keine Töne abspielen. Versuche es mit einem anderen Browser.';
+  if (!Toene.geht()) document.querySelector('.einleitung').textContent = t('geht');
 })();
 </script>
 </body>
