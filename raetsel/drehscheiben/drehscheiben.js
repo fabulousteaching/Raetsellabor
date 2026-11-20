@@ -23,16 +23,28 @@ var Kern = (function(){
   function norm(w){ w %= 360; return w < 0 ? w + 360 : w; }
   function abstand(a, b){ var d = Math.abs(norm(a) - norm(b)); return Math.min(d, 360 - d); }   // Winkelabstand in Grad (0 … 180)
   var ZIFFERN = '0123456789'.split(''), BUCHSTABEN = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-  var WOERTER = 'HUND KATZE MAUS SONNE BLUME APFEL BAUM HAUS STERN WOLKE REGEN VOGEL PIRAT DRACHE SCHULE FREUND ZAUBER BIRNE TIGER INSEL'.split(' ');
+  var SPR = typeof Labor !== 'undefined' && Labor.sprache ? Labor.sprache : 'de';
+  // Zufallswörter und -sätze in der Sprache der Seite
+  var WOERTER = (SPR === 'en' ? 'DOG CAT MOUSE SUN FLOWER APPLE TREE HOUSE STAR CLOUD RAIN BIRD PIRATE DRAGON SCHOOL FRIEND MAGIC PEAR TIGER ISLAND'
+    : SPR === 'fr' ? 'CHIEN CHAT SOURIS SOLEIL FLEUR POMME ARBRE MAISON ETOILE NUAGE PLUIE OISEAU PIRATE DRAGON ECOLE AMI MAGIE POIRE TIGRE ILE'
+    : 'HUND KATZE MAUS SONNE BLUME APFEL BAUM HAUS STERN WOLKE REGEN VOGEL PIRAT DRACHE SCHULE FREUND ZAUBER BIRNE TIGER INSEL').split(' ');
   // Auf dem Kopf (unten auf der Scheibe) sieht 6 wie 9 aus und M wie W – zufällig gewählt kommt nur eines davon
   var GEGENSTUECK = { 6:'9', 9:'6', M:'W', W:'M' };
 
   // Eingabe → Zeichen: Ziffern und Grossbuchstaben (auch Ä, Ö, Ü); Leerzeichen, Kommas usw. fallen weg, ß wird zu SS
-  function zeichen(text){ return String(text || '').replace(/ß/g, 'SS').toUpperCase().replace(/[^0-9A-ZÄÖÜ]/g, '').split(''); }
+  function gross(text){
+    return String(text || '').normalize('NFC').replace(/ß/g, 'SS').toUpperCase().replace(/Œ/g, 'OE').replace(/Æ/g, 'AE')
+      .replace(/[^0-9A-ZÄÖÜ ]/g, function(c){ var o = c.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); return /^[A-Z]$/.test(o) ? o : c; });
+  }
+  function zeichen(text){ return gross(text).replace(/[^0-9A-ZÄÖÜ]/g, '').split(''); }
   // Eingabe → Wort: Buchstaben und Ziffern der Reihe nach; Leerzeichen bleiben als Lücke (' ') zwischen zwei Wörtern
-  function wort(text){ return String(text || '').replace(/ß/g, 'SS').toUpperCase().replace(/[^0-9A-ZÄÖÜ ]/g, '').replace(/\s+/g, ' ').trim().split(''); }
-  var SAETZE = ['Ich kann das Rätsel lösen.', 'Heute ist ein schöner Tag.', 'Lesen macht Spass.', 'Wir gehen in den Wald.',
-    'Der Hund spielt im Garten.', 'Morgen scheint die Sonne.', 'Du bist ein Rätselprofi!', 'Die Katze schläft auf dem Sofa.'];
+  function wort(text){ return gross(text).replace(/[^0-9A-ZÄÖÜ ]/g, '').replace(/\s+/g, ' ').trim().split(''); }
+  var SAETZE = SPR === 'en' ? ['I can solve the puzzle.', 'Today is a lovely day.', 'Reading is fun.', 'We are going to the forest.',
+      'The dog is playing in the garden.', 'Tomorrow the sun will shine.', 'You are a puzzle pro!', 'The cat is sleeping on the sofa.']
+    : SPR === 'fr' ? ['Je sais résoudre l’énigme.', 'Aujourd’hui, il fait beau.', 'Lire, c’est amusant.', 'Nous allons dans la forêt.',
+      'Le chien joue dans le jardin.', 'Demain, le soleil brillera.', 'Tu es un as des énigmes !', 'Le chat dort sur le canapé.']
+    : ['Ich kann das Rätsel lösen.', 'Heute ist ein schöner Tag.', 'Lesen macht Spass.', 'Wir gehen in den Wald.',
+      'Der Hund spielt im Garten.', 'Morgen scheint die Sonne.', 'Du bist ein Rätselprofi!', 'Die Katze schläft auf dem Sofa.'];
   function zufallsSatz(rnd, ausser){ var l = SAETZE.filter(function(w){ return w !== ausser; }); return l[Math.floor(rnd() * l.length)]; }
   function zufallsWort(rnd, ausser){ var l = WOERTER.filter(function(w){ return w !== ausser; }); return l[Math.floor(rnd() * l.length)]; }
   // n verschiedene zufällige Ziffern oder Buchstaben; «schon» bleibt vorne erhalten
@@ -279,7 +291,7 @@ var Kern = (function(){
 /* KERN-ENDE */
 
 var TINTE = '#1C1714', GRAU = '#8A8079', PFEIL = '#E46F12';
-var GROESSEN = [[0.75, 'klein'], [1, 'normal'], [1.3, 'gross'], [1.6, tx('sehr gross')]];   // Wortgrössen beim Satz (Faktor zur Grundschrift)
+var GROESSEN = [[0.75, 'klein'], [1, 'normal'], [1.3, 'gross'], [1.6, 'sehr gross']];   // Wortgrössen beim Satz (Faktor zur Grundschrift)
 // «Bunt»: kräftige Farben, die auf weissem Papier gut sichtbar sind
 var BUNT = ['#D7263D', '#1B6CA8', '#2E8B57', '#E4801C', '#7B3FA0', '#C2185B', '#00838F', '#9A7400'];
 var SEITE_B = 703, SEITE_H = 1031, RAND = 30;   // Seite (Pixel) und Rand ringsum (8 mm; dazu kommen beim Drucken 12 mm)
@@ -307,7 +319,7 @@ function ringPfad(aussen, innen){
 }
 function zeichenSvg(G, c, w, farbe){
   var m = G.metrik[c], s = G.f / 100;
-  return '<text transform="rotate(' + f1(w) + tx(') translate(0 ') + f1(-G.P.rm) + ')" x="' + f1(-(m.r - m.l) / 2 * s) + '" y="' + f1((m.a - m.d) / 2 * s) + '"' +
+  return '<text transform="rotate(' + f1(w) + ') translate(0 ' + f1(-G.P.rm) + ')" x="' + f1(-(m.r - m.l) / 2 * s) + '" y="' + f1((m.a - m.d) / 2 * s) + '"' +
     (farbe ? ' fill="' + farbe + '" stroke="' + farbe + '"' : '') + '>' + esc(c) + '</text>';
 }
 // Inhalt der Scheibe k (1 = innerste … n = äusserste), ohne Drehung; id: eindeutiger Name für den Zuschnitt
@@ -351,7 +363,7 @@ function stapelSvg(G, versatz, praefix, spiel){
   var P = G.P, n = P.ringe, R = P.R, t = '';
   for (var k = n; k >= 1; k--){
     var d = versatz[k - 1] || 0;
-    t += '<g class="dr-ring" data-k="' + k + '"' + ' transform="rotate(' + f1(d) + ')"' + (spiel ? tx(' tabindex="0" role="slider" aria-label="Scheibe ') + (n - k + 1) + ' von unten drehen" aria-valuemin="0" aria-valuemax="359" aria-valuenow="' + Math.round(Kern.norm(d)) + '"' : '') + '>' +
+    t += '<g class="dr-ring" data-k="' + k + '"' + ' transform="rotate(' + f1(d) + ')"' + (spiel ? ' tabindex="0" role="slider" aria-label="' + tx('Scheibe {k} von unten drehen', { k:n - k + 1 }) + '" aria-valuemin="0" aria-valuemax="359" aria-valuenow="' + Math.round(Kern.norm(d)) + '"' : '') + '>' +
       '<circle class="dr-rand" r="' + f1(P.r[k]) + '" fill="#fff" stroke="#9C9089" stroke-width="0.8"/>' + ringInhalt(G, k, praefix + k) + '</g>';
   }
   t += '<g class="dr-deckel">' + deckel(P, '#9C9089', G.pfeil) + '</g>';
@@ -502,11 +514,11 @@ function starte(bereich){
     $('#drFarben').classList.toggle('mit-groesse', istSatz());
     $('#drFarben').innerHTML = z.map(function(c, i){
       if (c === ' ') return '';
-      var farbe = tx('<label class="dr-farbe" title="Farbe für «') + esc(c) + '»"><input type="color" data-i="' + i + '" value="' + (fl[i] || TINTE) + tx('" aria-label="Farbe für ') + esc(c) + ' (' + (istSatz() ? tx('Wort ') : tx('Stelle ')) + (i + 1) + ')"><span style="color:' + (fl[i] || TINTE) + '">' + esc(c) + '</span></label>';
+      var farbe = '<label class="dr-farbe" title="' + esc(tx('Farbe für «{c}»', { c:c })) + '"><input type="color" data-i="' + i + '" value="' + (fl[i] || TINTE) + '" aria-label="' + esc(istSatz() ? tx('Farbe für {c} (Wort {i})', { c:c, i:i + 1 }) : tx('Farbe für {c} (Stelle {i})', { c:c, i:i + 1 })) + '"><span style="color:' + (fl[i] || TINTE) + '">' + esc(c) + '</span></label>';
       if (!istSatz()) return farbe;
       var g = st.groessenSatz[i] || 1;
-      return '<span class="dr-wort-zeile">' + farbe + '<select class="dr-groesse" data-i="' + i + tx('" aria-label="Grösse für ') + esc(c) + tx(' (Wort ') + (i + 1) + ')">' +
-        GROESSEN.map(function(x){ return '<option value="' + x[0] + '"' + (x[0] === g ? tx(' selected') : '') + '>' + x[1] + '</option>'; }).join('') + '</select></span>';
+      return '<span class="dr-wort-zeile">' + farbe + '<select class="dr-groesse" data-i="' + i + '" aria-label="' + esc(tx('Grösse für {c} (Wort {i})', { c:c, i:i + 1 })) + '">' +
+        GROESSEN.map(function(x){ return '<option value="' + x[0] + '"' + (x[0] === g ? ' selected' : '') + '>' + tx(x[1]) + '</option>'; }).join('') + '</select></span>';
     }).join('');
   }
   $('#drFarben').addEventListener('change', function(ev){
@@ -539,26 +551,39 @@ function starte(bereich){
 
   /* ---------- Rätsel ---------- */
   var G = null, spielVersatz = [], zaehlerId = 0;
-  // Bezeichnung der versteckten Zeichen: [Einzahl, Mehrzahl]
-  function namen(z){
-    if (istSatz()) return [tx('Satz'), tx('Sätze')];
-    if (istWort()) return [tx('Wort'), tx('Wörter')];
+  // Art der versteckten Zeichen: 'satz', 'wort', 'zahl', 'buchstabe' oder 'zeichen'
+  function art(z){
+    if (istSatz()) return 'satz';
+    if (istWort()) return 'wort';
     var ziffern = z.every(function(c){ return /\d/.test(c); }), buchst = z.every(function(c){ return !/\d/.test(c); });
-    return ziffern ? [tx('Zahl'), tx('Zahlen')] : buchst ? [tx('Buchstabe'), tx('Buchstaben')] : [tx('Zeichen'), tx('Zeichen')];
+    return ziffern ? 'zahl' : buchst ? 'buchstabe' : 'zeichen';
   }
   function anzahlVersteckt(z){ return istSatz() ? 1 : istWort() ? z.join('').split(' ').length : z.length; }
-  function frage(z){
-    var w = namen(z), eins = anzahlVersteckt(z) === 1;
-    if (istSatz()) return tx('Wie heisst der Satz?');
-    return eins ? (w[0] === 'Buchstabe' ? tx('Welcher Buchstabe') : w[0] === 'Zahl' ? tx('Welche Zahl') : w[0] === 'Wort' ? tx('Welches Wort') : tx('Welches Zeichen')) + ' erscheint?' : tx('Welche ') + w[1] + ' erscheinen?';
+  // gesehen: nach dem Lösen im Spiel («Welche Zahl siehst du?»)
+  function frage(z, gesehen){
+    var a = art(z), eins = anzahlVersteckt(z) === 1;
+    if (a === 'satz') return tx('Wie heisst der Satz?');
+    if (gesehen) return a === 'zahl' ? (eins ? tx('Welche Zahl siehst du?') : tx('Welche Zahlen siehst du?'))
+      : a === 'buchstabe' ? (eins ? tx('Welchen Buchstaben siehst du?') : tx('Welche Buchstaben siehst du?'))
+      : a === 'wort' ? (eins ? tx('Welches Wort siehst du?') : tx('Welche Wörter siehst du?'))
+      : (eins ? tx('Welches Zeichen siehst du?') : tx('Welche Zeichen siehst du?'));
+    return a === 'zahl' ? (eins ? tx('Welche Zahl erscheint?') : tx('Welche Zahlen erscheinen?'))
+      : a === 'buchstabe' ? (eins ? tx('Welcher Buchstabe erscheint?') : tx('Welche Buchstaben erscheinen?'))
+      : a === 'wort' ? (eins ? tx('Welches Wort erscheint?') : tx('Welche Wörter erscheinen?'))
+      : (eins ? tx('Welches Zeichen erscheint?') : tx('Welche Zeichen erscheinen?'));
+  }
+  function versteckt(a, n){
+    if (a === 'zahl') return n === 1 ? tx('Es ist eine Zahl versteckt, mit dem Kopf nach aussen.') : tx('Es sind {n} Zahlen versteckt, mit dem Kopf nach aussen.', { n:n });
+    if (a === 'buchstabe') return n === 1 ? tx('Es ist ein Buchstabe versteckt, mit dem Kopf nach aussen.') : tx('Es sind {n} Buchstaben versteckt, mit dem Kopf nach aussen.', { n:n });
+    if (a === 'wort') return n === 1 ? tx('Es ist ein Wort versteckt, mit dem Kopf nach aussen; es läuft im Uhrzeigersinn.') : tx('Es sind {n} Wörter versteckt, mit dem Kopf nach aussen; sie laufen im Uhrzeigersinn.', { n:n });
+    return n === 1 ? tx('Es ist ein Zeichen versteckt, mit dem Kopf nach aussen.') : tx('Es sind {n} Zeichen versteckt, mit dem Kopf nach aussen.', { n:n });
   }
   function anleitung(z){
-    var w = namen(z), n = anzahlVersteckt(z), anfang = tx('Schneide die Kreise aus und stich in der Mitte ein kleines Loch. Lege sie der Grösse nach aufeinander – den grössten zuunterst, den ') +
-      (st.opt.pfeil ? tx('Deckel mit dem Pfeil') : tx('kleinsten Kreis')) + tx(' zuoberst – und stecke eine Musterklammer durch die Mitte. Drehe die Scheiben, bis die Stücke zusammenpassen. ');
-    if (istSatz()) return anfang + tx('Es ist ein Satz versteckt. Er steht in Zeilen von oben nach unten. ') + frage(z);
-    return anfang +
-      (n === 1 ? tx('Es ist ') + (w[0] === 'Zahl' ? tx('eine Zahl') : w[0] === 'Buchstabe' ? tx('ein Buchstabe') : w[0] === 'Wort' ? tx('ein Wort') : tx('ein Zeichen')) + tx(' versteckt') : tx('Es sind ') + n + ' ' + w[1] + tx(' versteckt')) +
-      tx(', mit dem Kopf nach aussen') + (istWort() ? '; ' + (n === 1 ? tx('es läuft') : tx('sie laufen')) + tx(' im Uhrzeigersinn. ') : '. ') + frage(z);
+    var a = art(z), n = anzahlVersteckt(z), anfang = (st.opt.pfeil
+      ? tx('Schneide die Kreise aus und stich in der Mitte ein kleines Loch. Lege sie der Grösse nach aufeinander – den grössten zuunterst, den Deckel mit dem Pfeil zuoberst – und stecke eine Musterklammer durch die Mitte. Drehe die Scheiben, bis die Stücke zusammenpassen.')
+      : tx('Schneide die Kreise aus und stich in der Mitte ein kleines Loch. Lege sie der Grösse nach aufeinander – den grössten zuunterst, den kleinsten Kreis zuoberst – und stecke eine Musterklammer durch die Mitte. Drehe die Scheiben, bis die Stücke zusammenpassen.')) + ' ';
+    if (a === 'satz') return anfang + tx('Es ist ein Satz versteckt. Er steht in Zeilen von oben nach unten.') + ' ' + frage(z);
+    return anfang + versteckt(a, n) + ' ' + frage(z);
   }
   function titel(){ return tx('Drehscheiben'); }
   function zeichnen(){
@@ -569,9 +594,9 @@ function starte(bereich){
     var h = '';
     if (alle.length > max) h += '<p class="warnung">' + (wortArt ? tx('Höchstens 12 Buchstaben – es werden die ersten 12 verwendet.') : tx('Höchstens 8 Zeichen – es werden die ersten 8 verwendet.')) + '</p>';
     var gs = wortArt ? [] : Kern.gegenstuecke(z);
-    if (gs.length) h += '<p class="warnung">' + gs.join(', ') + tx(': Auf dem Kopf sehen sie gleich aus – unten auf der Scheibe kann das verwirren.</p>');
+    if (gs.length) h += '<p class="warnung">' + tx('{z}: Auf dem Kopf sehen sie gleich aus – unten auf der Scheibe kann das verwirren.', { z:gs.join(', ') }) + '</p>';
     var nb = z.filter(function(c){ return c !== ' '; }).length;
-    $('#drZaehler').innerHTML = z.length ? '<p class="dr-zaehler-haupt ok">' + (wortArt ? tx('Wort: <b>') + esc(z.join('')) + '</b> (' + nb + (nb === 1 ? tx(' Buchstabe') : tx(' Buchstaben')) + ')' : '<b>' + z.length + tx('</b> Zeichen: ') + z.map(esc).join(' · ')) + '</p>' + h : '';
+    $('#drZaehler').innerHTML = z.length ? '<p class="dr-zaehler-haupt ok">' + (wortArt ? (nb === 1 ? tx('Wort: {w} (1 Buchstabe)', { w:'<b>' + esc(z.join('')) + '</b>' }) : tx('Wort: {w} ({n} Buchstaben)', { w:'<b>' + esc(z.join('')) + '</b>', n:nb })) : tx('{n} Zeichen: {z}', { n:'<b>' + z.length + '</b>', z:z.map(esc).join(' · ') })) + '</p>' + h : '';
     if (!z.length){
       G = null; farbenZeigen([]); $('#drInhalt').hidden = true; ['#drZeigeLoesung', '#drNeu', '#drPdf', '#drHerunterladen'].forEach(function(s){ $(s).disabled = true; });
       meldung('info', wortArt ? tx('<p>Gib links das Wort ein, das auf den Scheiben erscheinen soll.</p>') : tx('<p>Gib links die Zahlen oder Buchstaben ein, die auf den Scheiben erscheinen sollen.</p>'));
@@ -586,7 +611,7 @@ function starte(bereich){
     var P = Kern.planen({ zeichen:z, wort:wortArt, breite:breite, ringe:o.ringe, punkte:o.punkte, seed:st.seed });
     G = { P:P, metrik:M, f:P.h / (hoch / 100 + STRICH), farben:z.map(function(_, i){ return st.farben[i] || ''; }), pfeil:o.pfeil };
     var mm = P.mm, schmal = P.ringBreite < 4.5 * mm;
-    meldung(schmal ? 'warnung' : '', schmal ? tx('<p>Die Ringe sind nur ') + f1(Math.round(P.ringBreite / mm * 10) / 10) + tx(' mm breit – das ist schwierig zum Ausschneiden. ') + (wortArt ? tx('Ein kürzeres Wort') : tx('Weniger Zeichen')) + tx(' oder weniger Kreise helfen.</p>') : '');
+    meldung(schmal ? 'warnung' : '', schmal ? '<p>' + tx('Die Ringe sind nur {b} mm breit – das ist schwierig zum Ausschneiden.', { b:f1(Math.round(P.ringBreite / mm * 10) / 10) }) + ' ' + (wortArt ? tx('Ein kürzeres Wort oder weniger Kreise helfen.') : tx('Weniger Zeichen oder weniger Kreise helfen.')) + '</p>' : '');
     seitenZeichnen(z);
     spielVersatz = P.schirm.slice();
     spielZeichnen();
@@ -596,7 +621,7 @@ function starte(bereich){
   // Satz: Wörter messen, Zeilen setzen (Kern.satzSetzen), dann wie bei den Zeichen weiter
   function satzZeichnen(){
     var o = st.opt, roh = st.satzText.replace(/\s+/g, ' ').trim(), woerter = satzWoerter();
-    $('#drZaehler').innerHTML = woerter.length ? tx('<p class="dr-zaehler-haupt ok">Satz mit <b>') + woerter.length + '</b> ' + (woerter.length === 1 ? tx('Wort') : tx('Wörtern')) + '</p>' +
+    $('#drZaehler').innerHTML = woerter.length ? '<p class="dr-zaehler-haupt ok">' + (woerter.length === 1 ? tx('Satz mit {n} Wort', { n:'<b>1</b>' }) : tx('Satz mit {n} Wörtern', { n:'<b>' + woerter.length + '</b>' })) + '</p>' +
       (roh.length > 80 ? tx('<p class="warnung">Höchstens 80 Zeichen – der Rest fällt weg.</p>') : '') : '';
     if (!woerter.length){
       G = null; farbenZeigen([]); $('#drInhalt').hidden = true; ['#drZeigeLoesung', '#drNeu', '#drPdf', '#drHerunterladen'].forEach(function(s){ $(s).disabled = true; });
@@ -631,9 +656,10 @@ function starte(bereich){
   }
   var NOTIZ = tx('<p class="dr-notiz">In Originalgrösse (100 %) drucken – dann misst der grösste Kreis genau 12 cm.</p>');
   function loesungText(z){
-    var w = namen(z), eins = anzahlVersteckt(z) === 1;
-    if (istSatz()) return tx('<p class="dr-antwort dr-antwort-satz">Der Satz: <span class="dr-linie">') + esc(z.join(' ')) + '</span></p>';
-    return '<p class="dr-antwort">' + (eins ? (w[0] === 'Wort' ? tx('Das Wort') : w[0] === 'Zahl' ? tx('Die Zahl') : w[0] === 'Buchstabe' ? tx('Der Buchstabe') : tx('Das Zeichen')) : tx('Die ') + w[1]) + ': ' +
+    var a = art(z), eins = anzahlVersteckt(z) === 1;
+    if (a === 'satz') return '<p class="dr-antwort dr-antwort-satz">' + tx('Der Satz:') + ' <span class="dr-linie">' + esc(z.join(' ')) + '</span></p>';
+    return '<p class="dr-antwort">' + (a === 'wort' ? (eins ? tx('Das Wort:') : tx('Die Wörter:')) : a === 'zahl' ? (eins ? tx('Die Zahl:') : tx('Die Zahlen:'))
+      : a === 'buchstabe' ? (eins ? tx('Der Buchstabe:') : tx('Die Buchstaben:')) : (eins ? tx('Das Zeichen:') : tx('Die Zeichen:'))) + ' ' +
       '<span class="dr-linie">' + esc(istWort() ? z.join('') : z.join(' ')) + '</span></p>';
   }
   /* Kopiervorlage: die Kreise in Originalgrösse, 8 mm vom Rand (beim Drucken kommen 12 mm dazu) und mindestens 6 mm
@@ -652,22 +678,22 @@ function starte(bereich){
       var hoehe = s ? H : H1, inhalt = '';
       pk.lage.filter(function(l){ return l.seite === s; }).forEach(function(l){
         var dreh = l.id ? P.papier[l.id - 1] : Math.round(Kern.zufall(st.seed + 3)() * 360);
-        inhalt += '<g transform="translate(' + f1(l.x) + ' ' + f1(l.y) + tx(') rotate(') + dreh + ')">' + (l.id ? scheibeBlatt(G, l.id, 'drb' + nr + '-' + l.id) : deckel(P, null, G.pfeil)) + '</g>';
+        inhalt += '<g transform="translate(' + f1(l.x) + ' ' + f1(l.y) + ') rotate(' + dreh + ')">' + (l.id ? scheibeBlatt(G, l.id, 'drb' + nr + '-' + l.id) : deckel(P, null, G.pfeil)) + '</g>';
       });
-      html += '<div class="dr-seite-platz"><article class="dr-blatt dr-seite' + (s ? tx(' neue-seite') : '') + tx('" aria-label="Seite ') + (s + 1) + '">' +
+      html += '<div class="dr-seite-platz"><article class="dr-blatt dr-seite' + (s ? ' neue-seite' : '') + '" aria-label="' + tx('Seite {i}', { i:s + 1 }) + '">' +
         (s ? '' : '<div class="dr-kopf">' + kopfHtml(z) + '</div>') +
         '<svg class="dr-flaeche" width="' + B + '" height="' + f1(hoehe) + '" viewBox="0 0 ' + B + ' ' + f1(hoehe) + tx('" role="img" aria-label="Kreise zum Ausschneiden">') + inhalt + '</svg>' +
         (s ? '' : NOTIZ) + '</article></div>';
     }
     ziel.innerHTML = html;
-    $('#drSeitenInfo').textContent = tx('Kopiervorlage: ') + (pk.seiten === 1 ? tx('eine Seite') : pk.seiten + tx(' Seiten')) + tx(' mit ') + (n + 1) + tx(' Kreisen zum Ausschneiden (Originalgrösse).');
+    $('#drSeitenInfo').textContent = (pk.seiten === 1 ? tx('Kopiervorlage: eine Seite mit {k} Kreisen zum Ausschneiden (Originalgrösse).', { k:n + 1 }) : tx('Kopiervorlage: {s} Seiten mit {k} Kreisen zum Ausschneiden (Originalgrösse).', { s:pk.seiten, k:n + 1 }));
     massstab();
   }
   function loesungZeichnen(z){
     var P = G.P, o = st.opt, gr = Math.min(2 * P.R + 6, 600);
-    $('#drLoesung').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + tx(' – Lösung</h2>') : tx('<p class="dr-anleitung"><b>Lösung</b></p>')) +
+    $('#drLoesung').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + ' ' + tx('– Lösung') + '</h2>' : tx('<p class="dr-anleitung"><b>Lösung</b></p>')) +
       tx('<p class="dr-anleitung">So sehen die Scheiben richtig gedreht aus.</p>') +
-      '<div class="dr-loesung-bild" style="width:' + f1(gr) + tx('px;height:') + f1(gr) + 'px">' + stapelSvg(G, P.r.slice(1).map(function(){ return 0; }), 'drl' + zaehlerId + '-', false) + '</div>' +
+      '<div class="dr-loesung-bild" style="width:' + f1(gr) + 'px;height:' + f1(gr) + 'px">' + stapelSvg(G, P.r.slice(1).map(function(){ return 0; }), 'drl' + zaehlerId + '-', false) + '</div>' +
       loesungText(z);
     var svg = $('#drLoesung svg'); svg.setAttribute('width', f1(gr)); svg.setAttribute('height', f1(gr));
   }
@@ -690,8 +716,8 @@ function starte(bereich){
     if (!g) return;
     cancelAnimationFrame(animation[k]);
     var von = angezeigt[k] == null ? w : angezeigt[k], t0 = 0;
-    function setze(x){ angezeigt[k] = x; g.setAttribute('transform', tx('rotate(') + f1(x) + ')'); }
-    if (!sanft || Math.abs(w - von) < 0.5 || (window.matchMedia && matchMedia(tx('(prefers-reduced-motion: reduce)')).matches)){ setze(w); return; }
+    function setze(x){ angezeigt[k] = x; g.setAttribute('transform', 'rotate(' + f1(x) + ')'); }
+    if (!sanft || Math.abs(w - von) < 0.5 || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)){ setze(w); return; }
     animation[k] = requestAnimationFrame(function schritt(t){
       if (!t0) t0 = t;
       var a = Math.min(1, (t - t0) / 350), e = 1 - Math.pow(1 - a, 3);
@@ -714,7 +740,7 @@ function starte(bereich){
     var P = G.P, ok = !zeigeLoesung() && P.ringe > 0;
     for (var k = 1; k < P.ringe; k++) if (Math.abs(rel(k)) > 0.5) ok = false;
     spielfeld.classList.toggle('geloest', ok);
-    $('#drSpielText').innerHTML = ok ? tx('<b>Geschafft!</b> Alle Scheiben passen. ') + frage(P.zeichen).replace('erscheinen?', tx('siehst du?')).replace('erscheint?', tx('siehst du?'))
+    $('#drSpielText').innerHTML = ok ? tx('<b>Geschafft!</b> Alle Scheiben passen. ') + frage(P.zeichen, true)
       : zeigeLoesung() ? tx('So passen die Scheiben zusammen.') : tx('Drehe die Scheiben mit der Maus oder dem Finger, bis die Zeichen erscheinen. Mit der Tabulatortaste wählst du eine Scheibe, mit den Pfeiltasten drehst du sie.');
   }
   function winkelVon(svg, ev){
@@ -762,7 +788,7 @@ function starte(bereich){
     var b = $('#drSeiten').clientWidth || SEITE_B, s = Math.min(1, b / (SEITE_B + 2));
     [].forEach.call(bereich.querySelectorAll('.dr-seite-platz'), function(p){
       p.style.height = (SEITE_H * s + 2).toFixed(0) + 'px';
-      var a = p.firstChild; a.style.transform = tx('scale(') + s.toFixed(4) + ')'; a.style.marginLeft = Math.max(0, (b - SEITE_B * s) / 2 - 1).toFixed(1) + 'px';
+      var a = p.firstChild; a.style.transform = 'scale(' + s.toFixed(4) + ')'; a.style.marginLeft = Math.max(0, (b - SEITE_B * s) / 2 - 1).toFixed(1) + 'px';
     });
   }
   var beobachter = window.ResizeObserver ? new ResizeObserver(function(){ massstab(); }) : null;
@@ -785,7 +811,7 @@ function starte(bereich){
     var inhalt = blaetter().map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); k.style.transform = ''; k.style.marginLeft = ''; if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
     speicherOrt.save({ filename:name, data:Labor.blattDatei(name.replace(/\.html$/, '').replace(/-/g, ' '), inhalt, '.dr-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', '<p>' + tx('Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 
