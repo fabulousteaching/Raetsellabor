@@ -136,6 +136,7 @@ var Kern = (function(){
       // Erpresserschrift: Buchstaben (mit Umlauten und ß), Ziffern, ! und ? als ausgeschnittene Schnipsel; das Aussehen
       // (Schrift, Farben, Papier, Drehung) kommt beim Zeichnen aus seed und der Nummer des Schnipsels (nr, siehe zerlege)
       case 'erpresser': return /^[A-ZÄÖÜß0-9!?]$/.test(c) ? { schnipsel:c, seed:o.erpSeed || 1, misch:o.erpMisch !== false } : null;
+      case 'noten': return NOTEN.indexOf(c) >= 0 ? { note:c } : null;
       case 'morse': return MORSE[c] ? { morse:MORSE[c] } : null;
       case 'braille':
         if (/[0-9]/.test(c)){ var m = BRAILLE[ZIFFER_BRAILLE[+c]]; return { braille:/[0-9]/.test(vorher || '') ? [m] : [ZAHLZEICHEN, m] }; }
@@ -158,7 +159,21 @@ var Kern = (function(){
     }
     return aus;
   }
-  var UMLAUTE = { morse:true, braille:true, finger:true, erpresser:true };
+  var UMLAUTE = { morse:true, braille:true, finger:true, erpresser:true, noten:true };
+  /* Notenschrift: nur die Tonnamen C D E F G A H. Wörter mit anderen Buchstaben (auch Umlauten) oder Ziffern gehen nicht. */
+  var NOTEN = 'CDEFGAH';
+  var NOTEN_WOERTER = ['da', 'ach', 'aha', 'ade', 'Ehe', 'Fee', 'Gag', 'Hag', 'fad', 'geh', 'haha', 'Dach', 'Fach', 'Chef', 'Cafe', 'Affe', 'Egge', 'Gage', 'gaga', 'Dada',
+    'fade', 'Hege', 'gehe', 'fege', 'Haff', 'Fehde', 'gaffe', 'Cache', 'Gehege'];
+  // Wörter eines Textes, die sich nicht mit Noten schreiben lassen → [{ wort, falsch:'U, S' }]
+  function notenFalsch(text){
+    var aus = [], gesehen = {};
+    String(text || '').split(/\s+/).forEach(function(w){
+      var b = Array.from(normal(w, true)).filter(function(c){ return /[\p{L}\p{N}]/u.test(c) && NOTEN.indexOf(c) < 0; });
+      var rein = w.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '');
+      if (b.length && !gesehen[rein]){ gesehen[rein] = true; aus.push({ wort:rein, falsch:b.filter(function(c, i){ return b.indexOf(c) === i; }).join(', ') }); }
+    });
+    return aus;
+  }
   // Text → Zeilen → Wörter → Zellen { b: Buchstabe (Lösung), code } (code null: Zeichen bleibt stehen)
   function zerlege(text, art, o){
     if (art === 'finger') text = String(text || '').replace(/[ßẞ]/g, 'SS');   // ß hat kein eigenes Handzeichen
@@ -166,13 +181,25 @@ var Kern = (function(){
     return normal(text, UMLAUTE[art]).split(/\r?\n/).map(function(z){
       return z.split(/\s+/).filter(Boolean).map(function(w){
         var zeichenListe = teilen(w, art);
-        return zeichenListe.map(function(c, k){ var code = zeichen(art, c, o, zeichenListe[k - 1]); if (code && code.schnipsel) code.nr = nr++; return { b:c, code:code }; });
-      });
+        var zellen = zeichenListe.map(function(c, k){ var code = zeichen(art, c, o, zeichenListe[k - 1]); if (code && code.schnipsel) code.nr = nr++; return { b:c, code:code }; });
+        if (art === 'noten'){
+          // Wort mit Buchstaben, die keine Töne sind: weglassen (die Oberfläche meldet es)
+          if (zellen.some(function(z){ return !z.code && /[\p{L}\p{N}]/u.test(z.b); })) return null;
+          // Das C gibt es tief (Hilfslinie) und hoch: das, welches näher bei den Nachbarnoten liegt
+          zellen.forEach(function(z, i){
+            if (!z.code || z.code.note !== 'C') return;
+            var n = [zellen[i - 1], zellen[i + 1]].filter(function(x){ return x && x.code && x.code.note !== 'C'; }).map(function(x){ return NOTEN.indexOf(x.code.note); });
+            z.code.hoch = n.length ? n.reduce(function(a, b){ return a + b; }, 0) / n.length >= 4 : false;   // G, A, H in der Nähe → hohes C
+          });
+        }
+        return zellen;
+      }).filter(Boolean);
     });
   }
   return { ABC:ABC, GITTER:GITTER, MORSE:MORSE, BRAILLE:BRAILLE, ZAHLZEICHEN:ZAHLZEICHEN, HANDY:HANDY, HIERO:HIERO, HIERO_NAME:HIERO_NAME,
     normal:normal, zeichen:zeichen, zerlege:zerlege, freimaurer:freimaurer, VOEGEL:VOEGEL, KREISE:KREISE, BUECHER:BUECHER, BILDZEICHEN:BILDZEICHEN,
-    SEGMENTE:SEGMENTE, FINGER:FINGER, UMLAUTE:UMLAUTE, BAUSTEINE:BAUSTEINE, STEIN_FARBEN:STEIN_FARBEN };
+    SEGMENTE:SEGMENTE, FINGER:FINGER, UMLAUTE:UMLAUTE, BAUSTEINE:BAUSTEINE, STEIN_FARBEN:STEIN_FARBEN,
+    NOTEN:NOTEN, NOTEN_WOERTER:NOTEN_WOERTER, notenFalsch:notenFalsch };
 })();
 /* KERN-ENDE */
 
@@ -190,6 +217,7 @@ var SCHRIFTEN = [
   ['segmente', 'Segment-Code', 'Leuchtende Striche wie auf einer Anzeige'],
   ['bausteine', 'Bausteine', 'Farbe und Anzahl Noppen der Bausteine'],
   ['erpresser', 'Erpresserschrift', 'Wie aus Zeitungen ausgeschnitten und aufgeklebt'],
+  ['noten', 'Notenschrift', 'Wörter aus den Tönen C D E F G A H'],
   ['altlatein', 'Altlatein', 'Alte Buchstaben aus Italien, oft gespiegelt'],
   ['runen', 'Runen', 'Schriftzeichen der Germanen'],
   ['finger', 'Fingeralphabet', 'Handzeichen der Gebärdensprache'],
@@ -520,12 +548,42 @@ function erpHtml(zeichen, stil){
   return '<span class="gs-erp" style="--s:' + stil.groesse.toFixed(2) + ';--r:' + stil.dreh.toFixed(1) + 'deg;--dy:' + stil.dy.toFixed(1) + '%;--pl:' + stil.padL.toFixed(2) + 'em;--pr:' + stil.padR.toFixed(2) + 'em">' +
     svg + '<span class="gs-erp-b" style="' + stilText + '">' + esc(zeichen) + '</span></span>';
 }
+/* Notenschrift: Viertelnoten im Notensystem mit Violinschlüssel. Linien bei y = 40 … 80 (unten E, Mitte H, G-Linie 70);
+   jedes Stück ist ein eigenes SVG mit allen fünf Linien – nebeneinander ergeben sie ein durchgehendes Notensystem. */
+var NOTE_Y = { C:90, D:85, E:80, F:75, G:70, A:65, H:60 };
+var VIOLIN = 'M16.5 74.5C11.5 76 9 71 12.5 67.5C16 64.5 22 66.5 22 72C22 78.5 14 81.5 9 78C3.5 74 4.5 64.5 10.5 58.5C15 54 20.5 49.5 21 41C21.5 32 17 25.5 14.5 29C12 32.5 12.8 40 13.6 50L16.5 94C17 100.5 10.5 101.5 8.5 97.5';
+function notenSvg(inhalt, breite, klasse){
+  return '<svg class="' + (klasse || 'gs-note') + '" viewBox="0 18 ' + breite + ' 86" style="aspect-ratio:' + breite + '/86" aria-hidden="true">' +
+    '<path d="' + [40, 50, 60, 70, 80].map(function(y){ return 'M0 ' + y + 'H' + breite; }).join('') + '" stroke="' + TINTE + '" stroke-width="1.1"/>' + inhalt + '</svg>';
+}
+// Notenkopf (schräge Ellipse), Hals (unter der Mittellinie nach oben, sonst nach unten), Hilfslinie beim tiefen C
+function noteKopf(x, y){
+  var hals = y > 60 ? '<path d="M' + (x + 5.2) + ' ' + (y - 1) + 'V' + (y - 33) + '"/>' : '<path d="M' + (x - 5.2) + ' ' + (y + 1) + 'V' + (y + 33) + '"/>';
+  return (y >= 90 ? '<path d="M' + (x - 9) + ' 90H' + (x + 9) + '" stroke="' + TINTE + '" stroke-width="1.1"/>' : '') +
+    '<ellipse cx="' + x + '" cy="' + y + '" rx="5.6" ry="4.2" transform="rotate(-20 ' + x + ' ' + y + ')" fill="' + TINTE + '"/>' +
+    '<g stroke="' + TINTE + '" stroke-width="1.5">' + hals + '</g>';
+}
+function noteY(n, hoch){ return n === 'C' && hoch ? 55 : NOTE_Y[n]; }
+function noteSvg(n, hoch, klasse){ return notenSvg(noteKopf(13, noteY(n, hoch)), 26, klasse); }
+function violinPfad(dx){ return '<g transform="translate(' + (dx || 0) + ' 0)"><path d="' + VIOLIN + '" fill="none" stroke="' + TINTE + '" stroke-width="2.3" stroke-linecap="round"/><circle cx="10.3" cy="96" r="2.6" fill="' + TINTE + '"/></g>'; }
+function violinSvg(){ return notenSvg(violinPfad(0), 28); }
+function taktendeSvg(){ return notenSvg('<path d="M2.5 40V80" stroke="' + TINTE + '" stroke-width="1.2"/><path d="M6.2 40V80" stroke="' + TINTE + '" stroke-width="2.8"/>', 8); }
+// Schlüssel: alle Noten vom tiefen bis zum hohen C, darunter ihr Name
+function notenSchluesselSvg(){
+  var noten = [['C', false], ['D'], ['E'], ['F'], ['G'], ['A'], ['H'], ['C', true]], b = 44 + noten.length * 40;
+  var inhalt = violinPfad(4) + noten.map(function(n, i){ return noteKopf(56 + i * 40, noteY(n[0], n[1])); }).join('') +
+    '<g style="font-family:var(--blatt-buchstaben)" font-weight="700" font-size="15" fill="#C2410C" text-anchor="middle">' +
+    noten.map(function(n, i){ return '<text x="' + (56 + i * 40) + '" y="128">' + n[0] + '</text>'; }).join('') + '</g>';
+  return '<svg class="gs-noten-schluessel" viewBox="0 18 ' + b + ' 116" role="img" aria-label="Noten vom tiefen C bis zum hohen C mit ihren Namen">' +
+    '<path d="' + [40, 50, 60, 70, 80].map(function(y){ return 'M0 ' + y + 'H' + b; }).join('') + '" stroke="' + TINTE + '" stroke-width="1.1"/>' + inhalt + '</svg>';
+}
 function schnipselHtml(code){
   var stil = erpStil(code.seed, code.nr || 0), c = code.schnipsel;
   return erpHtml(code.misch && stil.klein < 0.42 && c !== 'ß' ? c.toLowerCase() : c, stil);
 }
 function symbolHtml(code){
   if (code.schnipsel) return schnipselHtml(code);
+  if (code.note) return noteSvg(code.note, code.hoch);
   if (code.stein) return steinSvg(code.stein);
   if (code.bild) return bildHtml(code.bild[0], code.bild[1]);
   if (code.segmente) return segmentHtml(code);
@@ -539,6 +597,7 @@ function symbolHtml(code){
 }
 function vorschauHtml(art){
   var o = { verschiebung:3 }, w = art === 'hieroglyphen' ? 'ABC' : art === 'braille' || art === 'morse' ? 'ABC' : 'ABC';
+  if (art === 'noten') w = 'CEG';
   return '<span class="gs-vorschau gs-v-' + art + '">' + Array.from(w).map(function(c, i){ var z = Kern.zeichen(art, c, o); if (z && z.schnipsel){ z.seed = erpVorschau; z.nr = i; z.misch = false; } return '<span class="gs-vz">' + symbolHtml(z) + '</span>'; }).join('') + '</span>';
 }
 
@@ -616,6 +675,11 @@ function schluesselHtml(art, o){
       return '<p class="gs-erklaerung">Jeder Buchstabe ist ein Baustein, von oben gesehen. Zähle die Noppen und schau die Farbe an: A bis I haben 4 Noppen (2 × 2), J bis R 6 Noppen (2 × 3) und S bis Z 8 Noppen (2 × 4). ' +
         'In jeder Gruppe kommen die Farben in derselben Reihenfolge: rot, orange, gelb, hellgrün, dunkelgrün, hellblau, blau, violett, rosa.</p>' +
         tabelle(A.map(function(c){ return [c, steinSvg(Kern.BAUSTEINE[c], 'gs-stein-k'), STEIN_NAME[Kern.BAUSTEINE[c][0]]]; }), 'gs-tab-steine');
+    case 'noten':
+      return '<p class="gs-erklaerung">Jeder Ton in der Musik hat einen Namen: C, D, E, F, G, A und H – nach dem H kommt wieder ein C. Im Notensystem mit dem Violinschlüssel steht jede Note auf einer Linie oder in einem Zwischenraum. ' +
+        'Der Name der Note ist der Buchstabe. Das C gibt es zweimal: tief unten auf einer kleinen Hilfslinie und hoch im dritten Zwischenraum. Darum lassen sich nur Wörter mit diesen sieben Buchstaben schreiben.</p>' +
+        notenSchluesselSvg() +
+        '<p class="gs-erklaerung gs-noten-merk">Merkhilfe: Die Note auf der untersten Linie ist das E, die auf der Mittellinie das H. Um die zweitunterste Linie (G) dreht sich der Violinschlüssel.</p>';
     case 'finger':
       return '<p class="gs-erklaerung">Mit dem Fingeralphabet buchstabieren gehörlose Menschen Namen und Wörter, für die es keine eigene Gebärde gibt. Jeder Buchstabe ist eine Handform. ' +
         'Im Fingeralphabet der Deutschschweiz haben auch Ä, Ö, Ü, CH und SCH eigene Zeichen. Bei J und Z bewegt sich die Hand (Pfeil).</p>' +
@@ -671,6 +735,11 @@ var VORLAGE = '<div class="gs">' +
           [['ausmalen', 'Segmente ausmalen'], ['anzeige', 'Anzeige lesen']].map(function(a){ return '<label><input type="radio" name="gsSegArt" value="' + a[0] + '"><span>' + a[1] + '</span></label>'; }).join('') + '</div>' +
         '<p class="hinweis">Beim Ausmalen stehen über jeder leeren Anzeige die Namen der Segmente (z. B. «a b c d g2 i l»); wer sie anmalt, sieht den Buchstaben.</p>' +
       '</div>' +
+      '<div class="gs-caesar" id="gsNoten">' +
+        '<p class="feld-label">Wörter, die mit Noten gehen</p><div class="gs-notenwoerter">' +
+          Kern.NOTEN_WOERTER.map(function(w){ return '<button type="button" class="gs-wortchip" data-wort="' + w + '">' + w + '</button>'; }).join('') + '</div>' +
+        '<p class="hinweis">Antippen fügt das Wort in den Text ein. Eigene Wörter gehen auch – wenn sie nur aus C, D, E, F, G, A und H bestehen.</p>' +
+      '</div>' +
       '<div class="gs-caesar" id="gsErpresser">' +
         '<button type="button" class="btn klein" id="gsErpNeu" title="Alle Buchstaben neu ausschneiden und aufkleben">Neu ausschneiden</button>' +
         '<label class="opt"><input type="checkbox" id="gsErpMisch"><span>Gross- und Kleinbuchstaben gemischt</span></label>' +
@@ -721,9 +790,9 @@ var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke
 Labor.registriere({
   id:'geheimschrift',
   titel:'Geheimschriften',
-  kurz:'Caesar, Freimaurer, Vögel, Bücher, Bärte, Segmente, Bausteine, Erpresserschrift, Runen, Morse, Hieroglyphen und mehr',
-  beschreibung:'Ein eigener Text in einer von neunzehn Geheimschriften – Caesar-Verschiebung, Rückwärts-Alphabet, Zahlen, Handy-Tasten, Koordinaten, Freimaurer-Code, Vögel auf dem Draht, Kreis-Code, Bücher-Code, Bärte-Code, Segment-Code, Bausteine, Erpresserschrift, Altlatein, Runen, Fingeralphabet, Morse, Blindenschrift oder Hieroglyphen. Mit Schlüssel zum Entschlüsseln.',
-  merkmale:['Neunzehn Geheimschriften', 'Schlüssel einzeln als PDF oder Bild', 'Mit Lösungsblatt'],
+  kurz:'Caesar, Freimaurer, Vögel, Bücher, Bärte, Segmente, Bausteine, Erpresserschrift, Noten, Runen, Morse, Hieroglyphen und mehr',
+  beschreibung:'Ein eigener Text in einer von zwanzig Geheimschriften – Caesar-Verschiebung, Rückwärts-Alphabet, Zahlen, Handy-Tasten, Koordinaten, Freimaurer-Code, Vögel auf dem Draht, Kreis-Code, Bücher-Code, Bärte-Code, Segment-Code, Bausteine, Erpresserschrift, Notenschrift, Altlatein, Runen, Fingeralphabet, Morse, Blindenschrift oder Hieroglyphen. Mit Schlüssel zum Entschlüsseln.',
+  merkmale:['Zwanzig Geheimschriften', 'Schlüssel einzeln als PDF oder Bild', 'Mit Lösungsblatt'],
   symbol:SYMBOL,
   css:'raetsel/geheimschrift/geheimschrift.css',
   html:VORLAGE,
@@ -792,6 +861,12 @@ function starte(bereich){
     r.checked = r.value === st.opt.segArt;
     r.addEventListener('change', function(){ if (!r.checked) return; st.opt.segArt = r.value; speichern(); alles(); });
   });
+  [].forEach.call(bereich.querySelectorAll('.gs-wortchip'), function(k){
+    k.addEventListener('click', function(){
+      var t = $('#gsText').value.replace(/\s+$/, '');
+      $('#gsText').value = (t ? t + ' ' : '') + k.dataset.wort; st.text = $('#gsText').value; speichern(); zeichnen();
+    });
+  });
   $('#gsErpNeu').addEventListener('click', function(){ st.opt.erpSeed = erpNeuerZufall(); speichern(); alles(); });
   $('#gsVerschiebung').value = String(st.opt.verschiebung);
   $('#gsVerschiebung').addEventListener('change', function(){ st.opt.verschiebung = +this.value; speichern(); alles(); });
@@ -806,15 +881,17 @@ function starte(bereich){
   function px(){ return (GROESSEN.filter(function(g){ return g[0] === st.opt.groesse; })[0] || GROESSEN[1])[2]; }
   function codeHtml(){
     // Vögel: alle Zellen ohne Abstand, dazwischen Draht – ein durchgehender Draht pro Zeile · Erpresserschrift: nur die geklebten Buchstaben, ohne Linien
-    var voegel = st.opt.art === 'voegel', ohneLinie = st.opt.art === 'erpresser';
+    var voegel = st.opt.art === 'voegel', ohneLinie = st.opt.art === 'erpresser', noten = st.opt.art === 'noten';
+    // Notenschrift: jedes Wort ein eigenes Notensystem mit Violinschlüssel vorne und Schlussstrich hinten
+    function rand(svg){ return '<span class="gs-z gs-andere gs-noten-rand"><span class="gs-s">' + svg + '</span><span class="gs-linie gs-leer"></span></span>'; }
     var luecke = '<span class="gs-z gs-andere"><span class="gs-s">' + drahtSvg('') + '</span><span class="gs-linie gs-leer"></span></span>';
     return '<div class="gs-code gs-art-' + st.opt.art + (st.opt.art === 'segmente' && st.opt.segArt === 'ausmalen' ? ' gs-seg-ausmalen' : '') + (st.opt.linien ? '' : ' ohne-linien') + '" style="--fm:' + px() + 'px">' + zellen().map(function(zeile){
       return '<div class="gs-zeile">' + zeile.map(function(wort, k){
-        return (voegel && k ? luecke : '') + '<span class="gs-wort">' + wort.map(function(c){
+        return (voegel && k ? luecke : '') + '<span class="gs-wort">' + (noten ? rand(violinSvg()) : '') + wort.map(function(c){
           if (c.code) return '<span class="gs-z"><span class="gs-s">' + symbolHtml(c.code) + '</span>' + (ohneLinie ? '' : '<span class="gs-linie"><b class="gs-loes">' + esc(c.b) + '</b></span>') + '</span>';
           if (voegel) return '<span class="gs-z gs-andere"><span class="gs-s">' + drahtSvg(c.b) + '</span><span class="gs-linie gs-leer"></span></span>';
           return '<span class="gs-z gs-andere"><span class="gs-s"><span class="gs-t gs-bleibt">' + esc(c.b) + '</span></span>' + (ohneLinie ? '' : '<span class="gs-linie gs-leer"></span>') + '</span>';
-        }).join('') + '</span>';
+        }).join('') + (noten ? rand(taktendeSvg()) : '') + '</span>';
       }).join('') + '</div>';
     }).join('') + '</div>';
   }
@@ -823,20 +900,26 @@ function starte(bereich){
     $('#gsCaesar').hidden = o.art !== 'caesar';
     $('#gsSegment').hidden = o.art !== 'segmente';
     $('#gsErpresser').hidden = o.art !== 'erpresser';
+    $('#gsNoten').hidden = o.art !== 'noten';
+    // Notenschrift: Wörter mit anderen Buchstaben gehen nicht – sagen, welche und warum
+    var nichtNoten = o.art === 'noten' ? Kern.notenFalsch(st.text) : [];
+    var notenWarnung = nichtNoten.length ? '<p><b>' + (nichtNoten.length === 1 ? 'Dieses Wort kann' : 'Diese Wörter können') + ' nicht mit Noten geschrieben werden</b> und ' + (nichtNoten.length === 1 ? 'fehlt' : 'fehlen') + ' auf dem Blatt: ' +
+      nichtNoten.map(function(x){ return '«' + esc(x.wort) + '» (' + esc(x.falsch) + ')'; }).join(', ') + '. Es gibt nur die Töne C, D, E, F, G, A und H.</p>' : '';
     var erp = o.art === 'erpresser';   // keine Geheimschrift: ohne Linien, Lösung und Schlüssel – nur die Nachricht zum Drucken oder Kopieren
     bereich.querySelector('.gs').classList.toggle('gs-erpresser', erp);
     $('.gs-teil-titel').textContent = erp ? 'Nachricht' : 'Geheimtext';
-    $('#gsTextHinweis').textContent = o.art === 'erpresser' ? 'Buchstaben (auch Ä, Ö, Ü und ß), Ziffern, ! und ? werden ausgeschnitten; andere Satzzeichen bleiben stehen.' : o.art === 'finger' ? 'Ä, Ö, Ü, CH und SCH haben eigene Handzeichen; ß wird als SS geschrieben. Ziffern und Satzzeichen bleiben stehen.' : o.art === 'segmente' ? 'Umlaute werden als AE, OE, UE geschrieben, ß als SS. Ziffern haben eigene Zeichen; Satzzeichen bleiben stehen.' : Kern.UMLAUTE[o.art] ? 'Ä, Ö, Ü und ß haben in dieser Schrift eigene Zeichen' + (o.art === 'morse' ? '; Ziffern und einige Satzzeichen auch.' : '; Ziffern bekommen das Zahlzeichen.') :
+    $('#gsTextHinweis').textContent = o.art === 'noten' ? 'Nur Wörter aus den Buchstaben C, D, E, F, G, A und H – den Namen der Töne. Andere Wörter werden weggelassen; Satzzeichen bleiben stehen.' : o.art === 'erpresser' ? 'Buchstaben (auch Ä, Ö, Ü und ß), Ziffern, ! und ? werden ausgeschnitten; andere Satzzeichen bleiben stehen.' : o.art === 'finger' ? 'Ä, Ö, Ü, CH und SCH haben eigene Handzeichen; ß wird als SS geschrieben. Ziffern und Satzzeichen bleiben stehen.' : o.art === 'segmente' ? 'Umlaute werden als AE, OE, UE geschrieben, ß als SS. Ziffern haben eigene Zeichen; Satzzeichen bleiben stehen.' : Kern.UMLAUTE[o.art] ? 'Ä, Ö, Ü und ß haben in dieser Schrift eigene Zeichen' + (o.art === 'morse' ? '; Ziffern und einige Satzzeichen auch.' : '; Ziffern bekommen das Zahlzeichen.') :
       'Umlaute werden als AE, OE, UE geschrieben, ß als SS.' + (o.art === 'polybios' ? ' J wird wie I geschrieben.' : '') + ' Ziffern und Satzzeichen bleiben stehen.';
     $('#gsBlatt').hidden = $('#gsLoesung').hidden = leer;
     ['#gsZeigeLoesung', '#gsCodeBild', '#gsPdf', '#gsHerunterladen'].forEach(function(s){ $(s).disabled = leer; });
     $('#gsTipp').hidden = leer;
     if (leer){
       $('#gsBlatt').innerHTML = $('#gsLoesung').innerHTML = '';
+      if (notenWarnung){ meldung('warnung', notenWarnung + '<p>Tipp: Unter «Notenschrift» stehen Wörter, die gehen.</p>'); return; }
       meldung('info', o.art === 'erpresser' ? '<p>Schreibe links einen Text – er erscheint hier in der Erpresserschrift.</p>' : '<p>Schreibe links einen Text – er erscheint hier in der Geheimschrift. Den Schlüssel unten kannst du schon jetzt herunterladen.</p>');
       return;
     }
-    meldung('', '');
+    meldung(notenWarnung ? 'warnung' : '', notenWarnung);
     if (erp){
       $('#gsBlatt').innerHTML = (o.titelAn && st.titel.trim() ? '<h2>' + esc(st.titel.trim()) + '</h2>' : '') + codeHtml();
       $('#gsLoesung').innerHTML = '';

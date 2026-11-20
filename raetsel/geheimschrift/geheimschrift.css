@@ -213,3 +213,18 @@
 /* Erpresserschrift ist keine Geheimschrift: ohne Lösung, Linien und Schlüssel – auch beim Drucken */
 .gs-erpresser .gs-nur-geheim,.gs-erpresser .gs-teil-schluessel,.gs-erpresser .gs-loesungsblatt{display:none!important}
 .gs-art-erpresser.gs-code{gap:calc(var(--fm) * .3)}
+
+/* Notenschrift: Stücke ohne Abstand nebeneinander → ein durchgehendes Notensystem je Wort */
+.gs-art-noten .gs-wort{gap:calc(var(--fm) * .42) 0}
+.gs-art-noten .gs-z,.gs-art-noten .gs-s{min-width:0}
+.gs-art-noten .gs-s{height:calc(var(--fm) * 2.4);padding:0}
+.gs-note{height:100%;width:auto;display:block}
+.gs-art-noten .gs-linie{width:calc(100% - 6px)}
+.gs-art-noten .gs-andere .gs-t{font-size:calc(var(--fm) * .5);align-self:end;margin-bottom:calc(var(--fm) * .45)}
+.gs-vorschau .gs-note{height:26px}
+.gs-vorschau.gs-v-noten{gap:0}
+.gs-noten-schluessel{display:block;width:100%;max-width:520px;height:auto;margin:6px 0 10px}
+.gs-notenwoerter{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
+.gs-wortchip{padding:4px 11px;border:1px solid var(--line-2);border-radius:999px;background:#fff;font:inherit;font-size:.86rem;font-weight:600;color:var(--muted);cursor:pointer;transition:border-color .15s,background .15s,color .15s}
+.gs-wortchip:hover{border-color:var(--accent-line);color:var(--ink)}
+.gs-wortchip:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
