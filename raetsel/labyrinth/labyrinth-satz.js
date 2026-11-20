@@ -6,6 +6,7 @@
    herum wachsen lassen («perfektes» Labyrinth: zwischen zwei Feldern genau ein Weg). */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('labyrinth');
 
 /* KERN-START */
 var Kern = (function(){
@@ -169,39 +170,39 @@ var Kern = (function(){
 /* KERN-ENDE */
 
 /* ===== Vorlage ===== */
-var STUFEN = { leicht:{ faktor:3, neu:0.5, name:'Leicht' }, mittel:{ faktor:5, neu:0.6, name:'Mittel' }, schwer:{ faktor:8, neu:0.7, name:'Schwer' }, sehrschwer:{ faktor:12, neu:0.75, name:'Sehr schwer' } };
+var STUFEN = { leicht:{ faktor:3, neu:0.5, name:tx('Leicht') }, mittel:{ faktor:5, neu:0.6, name:tx('Mittel') }, schwer:{ faktor:8, neu:0.7, name:tx('Schwer') }, sehrschwer:{ faktor:12, neu:0.75, name:tx('Sehr schwer') } };
 // artKarte: die Karte «Art des Labyrinths» (kommt aus labyrinth.js und steht bei beiden Arten zuoberst)
 function vorlage(artKarte){
-  return '<div class="sl"><div class="sl-layout"><section class="sl-eingabe" aria-label="Eingaben">' + artKarte +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Lösungssatz</h2><p>Dieser Satz steht Buchstabe für Buchstabe auf dem Weg vom Eingang zum Ausgang – ohne Leerzeichen.</p></div></div>' +
-      '<label class="vh" for="slSatz">Lösungssatz</label>' +
+  return tx('<div class="sl"><div class="sl-layout"><section class="sl-eingabe" aria-label="Eingaben">') + artKarte +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Lösungssatz</h2><p>Dieser Satz steht Buchstabe für Buchstabe auf dem Weg vom Eingang zum Ausgang – ohne Leerzeichen.</p></div></div>') +
+      tx('<label class="vh" for="slSatz">Lösungssatz</label>') +
       '<textarea id="slSatz" rows="3" maxlength="150"></textarea>' +
       '<p class="hinweis" id="slInfo"></p>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Schwierigkeit</h2><p>Je schwerer, desto grösser das Labyrinth und desto mehr Irrwege.</p></div></div>' +
-      '<div class="sl-stufen" role="radiogroup" aria-label="Schwierigkeit">' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Schwierigkeit</h2><p>Je schwerer, desto grösser das Labyrinth und desto mehr Irrwege.</p></div></div>') +
+      tx('<div class="sl-stufen" role="radiogroup" aria-label="Schwierigkeit">') +
         Object.keys(STUFEN).map(function(k){ return '<label><input type="radio" name="slStufe" value="' + k + '"><span>' + STUFEN[k].name + '</span></label>'; }).join('') + '</div>' +
     '</div>' +
-    '<div class="karte"><details class="optionen"><summary>Einstellungen</summary>' +
-      '<div class="opt-raster"><label for="slTitel">Titel auf dem Blatt</label><input type="text" id="slTitel" maxlength="60">' +
-        '<label for="slSchrift">Buchstaben</label><select id="slSchrift"><option value="wie">wie eingegeben</option><option value="gross">nur Grossbuchstaben</option></select>' +
-        '<label for="slLinie">Linien</label><select id="slLinie"><option value="0.6">dünn</option><option value="0.9">mittel</option><option value="1.3">dick</option></select></div>' +
+    tx('<div class="karte"><details class="optionen"><summary>Einstellungen</summary>') +
+      tx('<div class="opt-raster"><label for="slTitel">Titel auf dem Blatt</label><input type="text" id="slTitel" maxlength="60">') +
+        tx('<label for="slSchrift">Buchstaben</label><select id="slSchrift"><option value="wie">wie eingegeben</option><option value="gross">nur Grossbuchstaben</option></select>') +
+        tx('<label for="slLinie">Linien</label><select id="slLinie"><option value="0.6">dünn</option><option value="0.9">mittel</option><option value="1.3">dick</option></select></div>') +
     '</details></div>' +
-    '<button type="button" class="btn primary gross" id="slLos">Labyrinth erstellen</button>' +
+    tx('<button type="button" class="btn primary gross" id="slLos">Labyrinth erstellen</button>') +
   '</section>' +
-  '<section class="sl-ausgabe" aria-label="Ergebnis">' +
+  tx('<section class="sl-ausgabe" aria-label="Ergebnis">') +
     '<div id="slMeldung" aria-live="polite"></div>' +
-    '<div class="leer-zustand" id="slLeer"><h2>Noch kein Labyrinth</h2><p>In drei Schritten zum Arbeitsblatt:</p><ol>' +
-      '<li>Lösungssatz eingeben</li><li>Schwierigkeit wählen</li><li>«Labyrinth erstellen» klicken</li></ol></div>' +
+    tx('<div class="leer-zustand" id="slLeer"><h2>Noch kein Labyrinth</h2><p>In drei Schritten zum Arbeitsblatt:</p><ol>') +
+      tx('<li>Lösungssatz eingeben</li><li>Schwierigkeit wählen</li><li>«Labyrinth erstellen» klicken</li></ol></div>') +
     '<div class="sl-werkzeug" id="slWerkzeug" hidden>' +
-      '<button type="button" class="btn klein" id="slMischen" title="Gleicher Satz, neues Labyrinth">Neu mischen</button>' +
-      '<button type="button" class="btn klein" id="slZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
-      '<button type="button" class="btn klein" id="slWegWeg">Weg löschen</button>' +
+      tx('<button type="button" class="btn klein" id="slMischen" title="Gleicher Satz, neues Labyrinth">Neu mischen</button>') +
+      tx('<button type="button" class="btn klein" id="slZeigeLoesung" aria-pressed="false">Lösung zeigen</button>') +
+      tx('<button type="button" class="btn klein" id="slWegWeg">Weg löschen</button>') +
       '<span class="abstand"></span>' +
       Labor.blattSchalterHtml() +
-      '<label><input type="checkbox" id="slMitLoesung"> mit Lösungsblatt</label>' +
-      '<button type="button" class="btn klein primary" id="slDrucken">PDF herunterladen</button>' +
-      '<button type="button" class="btn klein primary" id="slHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
+      tx('<label><input type="checkbox" id="slMitLoesung"> mit Lösungsblatt</label>') +
+      tx('<button type="button" class="btn klein primary" id="slDrucken">PDF herunterladen</button>') +
+      tx('<button type="button" class="btn klein primary" id="slHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>') +
     '</div>' +
     '<article class="sl-blatt" id="slBlatt" hidden></article>' +
     '<article class="sl-blatt sl-loesungsblatt" id="slLoesung" aria-hidden="true"></article>' +
@@ -236,9 +237,9 @@ function starte(bereich){
   var satzFeld = $('#slSatz'); satzFeld.value = st.satz;
   function info(){
     var n = Kern.zeichen(st.satz, st.opt.schrift === 'gross').length;
-    $('#slInfo').textContent = !n ? 'Im Labyrinth stehen die Wörter ohne Lücke hintereinander, Satzzeichen fallen weg.'
-      : n < 3 ? 'Mindestens 3 Buchstaben.'
-      : n + ' Buchstaben – der richtige Weg wird genau ' + n + ' Felder lang. Die Wörter stehen ohne Lücke hintereinander.';
+    $('#slInfo').textContent = !n ? tx('Im Labyrinth stehen die Wörter ohne Lücke hintereinander, Satzzeichen fallen weg.')
+      : n < 3 ? tx('Mindestens 3 Buchstaben.')
+      : n + tx(' Buchstaben – der richtige Weg wird genau ') + n + tx(' Felder lang. Die Wörter stehen ohne Lücke hintereinander.');
   }
   satzFeld.addEventListener('input', function(){ st.satz = satzFeld.value; speichern(); info(); if (aktuell) $('#slBlatt').classList.add('veraltet'); });
   satzFeld.addEventListener('keydown', function(ev){ if (ev.key === 'Enter' && !ev.shiftKey){ ev.preventDefault(); erstellen(); } });
@@ -254,18 +255,18 @@ function starte(bereich){
     erstellt = true;
     var stufe = STUFEN[st.opt.stufe] || STUFEN.mittel;
     function fehler(html){ aktuell = null; $('#slBlatt').hidden = true; $('#slWerkzeug').hidden = true; meldung('fehler', html); }
-    if (!st.satz.trim()){ fehler('<h3>Noch kein Lösungssatz</h3><p>Schreibe zuerst den Satz, der im Labyrinth versteckt werden soll.</p>'); return; }
+    if (!st.satz.trim()){ fehler(tx('<h3>Noch kein Lösungssatz</h3><p>Schreibe zuerst den Satz, der im Labyrinth versteckt werden soll.</p>')); return; }
     var lab = Kern.erzeugen(st.satz, { seed:st.seed, faktor:stufe.faktor, neu:stufe.neu, gross:st.opt.schrift === 'gross' });
-    if (lab.fehler === 'kurz'){ fehler('<h3>Der Satz ist zu kurz</h3><p>Gib mindestens drei Buchstaben ein.</p>'); return; }
-    if (lab.fehler){ fehler('<h3>Das hat nicht geklappt</h3><p>Klicke noch einmal auf «Labyrinth erstellen» oder wähle eine andere Stufe.</p>'); st.seed = Math.floor(Math.random() * 1e9) + 1; return; }
+    if (lab.fehler === 'kurz'){ fehler(tx('<h3>Der Satz ist zu kurz</h3><p>Gib mindestens drei Buchstaben ein.</p>')); return; }
+    if (lab.fehler){ fehler(tx('<h3>Das hat nicht geklappt</h3><p>Klicke noch einmal auf «Labyrinth erstellen» oder wähle eine andere Stufe.</p>')); st.seed = Math.floor(Math.random() * 1e9) + 1; return; }
     aktuell = { lab:lab };
     weg = [lab.start];
     $('#slZeigeLoesung').setAttribute('aria-pressed', 'false');
     zeichnen();
     var mm = Math.min(186 / (lab.w + 2.4), 190 / (lab.h + 2.4));
-    meldung('erfolg', '<p><b>Fertig!</b> Labyrinth mit ' + lab.w + ' × ' + lab.h + ' Feldern. Der richtige Weg ist ' + lab.n + ' Felder lang – ein Feld für jeden Buchstaben deines Satzes. ' +
-      'Du kannst ihn hier am Bildschirm suchen: beim Pfeil links hineinziehen.</p>' +
-      (mm < 6 ? '<p>Achtung: Gedruckt werden die Felder nur etwa ' + mm.toFixed(1) + ' mm gross. Für gut lesbare Buchstaben eine leichtere Stufe oder einen kürzeren Satz wählen.</p>' : ''));
+    meldung('erfolg', tx('<p><b>Fertig!</b> Labyrinth mit ') + lab.w + ' × ' + lab.h + tx(' Feldern. Der richtige Weg ist ') + lab.n + tx(' Felder lang – ein Feld für jeden Buchstaben deines Satzes. ') +
+      tx('Du kannst ihn hier am Bildschirm suchen: beim Pfeil links hineinziehen.</p>') +
+      (mm < 6 ? tx('<p>Achtung: Gedruckt werden die Felder nur etwa ') + mm.toFixed(1) + tx(' mm gross. Für gut lesbare Buchstaben eine leichtere Stufe oder einen kürzeren Satz wählen.</p>') : ''));
   }
 
   /* ---------- Zeichnen ---------- */
@@ -291,17 +292,17 @@ function starte(bereich){
     return s;
   }
   function zeichnen(){
-    var lab = aktuell.lab, titel = st.titel.trim() || 'Finde den Lösungssatz!', blatt = $('#slBlatt'), loes = $('#slLoesung'), o = st.opt;
+    var lab = aktuell.lab, titel = st.titel.trim() || tx('Finde den Lösungssatz!'), blatt = $('#slBlatt'), loes = $('#slLoesung'), o = st.opt;
     var linien = Math.min(4, Math.max(1, Math.ceil(lab.n / 34))), l = '';
     for (var i = 1; i < linien; i++) l += '<span class="sl-linie voll"></span>';
     blatt.classList.remove('veraltet', 'zeige-loesung', 'geschafft');
     blatt.innerHTML = (o.titelAn ? '<h2>' + esc(titel) + '</h2>' : '') +
-      (o.anleitungAn ? '<p class="sl-anleitung">Finde den Weg vom Eingang zum Ausgang (bei den Pfeilen), ohne eine Wand zu überqueren. Die Buchstaben auf dem richtigen Weg ergeben einen Satz – die Wörter stehen ohne Lücke hintereinander. Schreibe ihn auf die Linie' + (linien > 1 ? 'n' : '') + '.</p>' : '') +
+      (o.anleitungAn ? tx('<p class="sl-anleitung">Finde den Weg vom Eingang zum Ausgang (bei den Pfeilen), ohne eine Wand zu überqueren. Die Buchstaben auf dem richtigen Weg ergeben einen Satz – die Wörter stehen ohne Lücke hintereinander. Schreibe ihn auf die Linie') + (linien > 1 ? 'n' : '') + '.</p>' : '') +
       '<div class="sl-feld"></div><p class="sl-fortschritt nur-bildschirm" id="slFortschritt" aria-live="polite"></p>' +
-      '<div class="sl-antwort"><span>Lösungssatz:</span><span class="sl-linie"></span>' + l + '</div>';
+      tx('<div class="sl-antwort"><span>Lösungssatz:</span><span class="sl-linie"></span>') + l + '</div>';
     var svg = labSvg(false);
     blatt.querySelector('.sl-feld').appendChild(svg);
-    loes.innerHTML = '<h2>Lösung' + (o.titelAn ? ' – ' + esc(titel) : '') + '</h2><div class="sl-feld"></div><p class="sl-satz-loesung"><b>Lösungssatz:</b> ' + esc(lab.satz) + '</p>';
+    loes.innerHTML = tx('<h2>Lösung') + (o.titelAn ? ' – ' + esc(titel) : '') + tx('</h2><div class="sl-feld"></div><p class="sl-satz-loesung"><b>Lösungssatz:</b> ') + esc(lab.satz) + '</p>';
     loes.querySelector('.sl-feld').appendChild(labSvg(true));
     blatt.hidden = false; $('#slWerkzeug').hidden = false; leer();
     wegVerbinden(svg); wegZeichnen();
@@ -342,9 +343,9 @@ function starte(bereich){
     $('#slBlatt').classList.toggle('geschafft', fertig);
     var gelesen = weg.map(function(q){ return lab.feld[q[0]][q[1]]; }).join(''), p = $('#slFortschritt');
     if (!p) return;
-    p.className = 'sl-fortschritt nur-bildschirm' + (fertig ? ' fertig' : '');
-    p.textContent = fertig ? '🎉 Geschafft! Der Satz lautet: «' + lab.satz + '»'
-      : weg.length > 1 ? 'Gelesen: «' + gelesen + '» – zurückziehen löscht den Weg wieder.' : 'Starte beim Pfeil links und ziehe durch die Gänge.';
+    p.className = 'sl-fortschritt nur-bildschirm' + (fertig ? tx(' fertig') : '');
+    p.textContent = fertig ? tx('🎉 Geschafft! Der Satz lautet: «') + lab.satz + '»'
+      : weg.length > 1 ? tx('Gelesen: «') + gelesen + tx('» – zurückziehen löscht den Weg wieder.') : tx('Starte beim Pfeil links und ziehe durch die Gänge.');
   }
 
   /* ---------- Werkzeuge ---------- */
@@ -370,9 +371,9 @@ function starte(bereich){
     if (!aktuell || !speicherOrt) return;
     var inhalt = sauber($('#slBlatt')).outerHTML;
     if (st.opt.mitLoesung){ var l = sauber($('#slLoesung')); l.classList.add('neue-seite'); inhalt += l.outerHTML; }
-    speicherOrt.save({ filename:'Labyrinth-Loesungssatz.html', data:Labor.blattDatei('Labyrinth mit Lösungssatz', inhalt, '.sl-loesungsblatt{display:block}') }).catch(function(e){
+    speicherOrt.save({ filename:'Labyrinth-Loesungssatz.html', data:Labor.blattDatei(tx('Labyrinth mit Lösungssatz'), inhalt, '.sl-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 

@@ -9,6 +9,7 @@
    Linien und verrät die Lösung nicht) und Lösungsblatt (die fertige Figur). */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('triomino');
 
 /* KERN-START */
 var Kern = (function(){
@@ -208,11 +209,11 @@ var Kern = (function(){
 /* KERN-ENDE */
 
 // zuerst das Fach; die Mathe-Themen erscheinen erst, wenn Mathe gewählt ist
-var FAECHER = [['mathe', 'Mathe'], ['englisch', 'Englisch'], ['franzoesisch', 'Französisch'], ['eigene', 'Eigene Paare']];
-var MATHE = [['rechnen', 'Rechnen'], ['dezimalbrueche', 'Dezimalbrüche'], ['stellenwerte', 'Stellenwerte'], ['brueche', 'Brüche in Worten']];
+var FAECHER = [['mathe', tx('Mathe')], ['englisch', tx('Englisch')], ['franzoesisch', tx('Französisch')], ['eigene', tx('Eigene Paare')]];
+var MATHE = [['rechnen', tx('Rechnen')], ['dezimalbrueche', tx('Dezimalbrüche')], ['stellenwerte', tx('Stellenwerte')], ['brueche', tx('Brüche in Worten')]];
 var MATHE_ARTEN = MATHE.map(function(m){ return m[0]; }).join(' ');
-var SPRACHE = { englisch:['Deutsch', 'Englisch', 'Hund = dog'], franzoesisch:['Deutsch', 'Französisch', 'Hund = le chien'], eigene:['Begriff', 'Partner', 'Hauptstadt der Schweiz = Bern'] };
-var FARBEN = [['#F28C38', 'Orange'], ['#C62828', 'Rot'], ['#1E63C4', 'Blau'], ['#2E7D32', 'Grün'], ['#7B3FB5', 'Lila'], ['#E3B505', 'Gelb'], ['#9E9E9E', 'Grau']];
+var SPRACHE = { englisch:[tx('Deutsch'), tx('Englisch'), tx('Hund = dog')], franzoesisch:[tx('Deutsch'), tx('Französisch'), tx('Hund = le chien')], eigene:[tx('Begriff'), tx('Partner'), tx('Hauptstadt der Schweiz = Bern')] };
+var FARBEN = [['#F28C38', tx('Orange')], ['#C62828', tx('Rot')], ['#1E63C4', tx('Blau')], ['#2E7D32', tx('Grün')], ['#7B3FB5', tx('Lila')], ['#E3B505', tx('Gelb')], ['#9E9E9E', tx('Grau')]];
 var MARKE = '#D32F2F';   // farbige Ziffer bei den Stellenwerten
 var TINTE = '#1C1714';
 
@@ -227,33 +228,33 @@ function formBild(form){
 }
 
 var VORLAGE = '<div class="tr">' +
-  '<header class="tr-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Triomino</h1>' +
-    '<p>Dreieckige Spielsteine: Aneinanderstossende Seiten müssen zusammenpassen, dann entsteht ein Dreieck, ein Stern oder ein Sechseck. Mit fertigen Mathe-Aufgaben oder deinen eigenen Wörtern.</p></header>' +
-  '<div class="tr-layout"><section class="tr-eingabe" aria-label="Eingaben">' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Form</h2></div></div>' +
-      '<div class="tr-formen" role="radiogroup" aria-label="Form">' +
-        Object.keys(Kern.FORMEN).map(function(k){ var f = Kern.FORMEN[k]; return '<label><input type="radio" name="trForm" value="' + k + '"><span>' + formBild(k) + '<b>' + f.name + '</b><small>' + f.teile + ' Teile · ' + f.paare + ' Paare</small></span></label>'; }).join('') +
+  tx('<header class="tr-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Triomino</h1>') +
+    tx('<p>Dreieckige Spielsteine: Aneinanderstossende Seiten müssen zusammenpassen, dann entsteht ein Dreieck, ein Stern oder ein Sechseck. Mit fertigen Mathe-Aufgaben oder deinen eigenen Wörtern.</p></header>') +
+  tx('<div class="tr-layout"><section class="tr-eingabe" aria-label="Eingaben">') +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Form</h2></div></div>') +
+      tx('<div class="tr-formen" role="radiogroup" aria-label="Form">') +
+        Object.keys(Kern.FORMEN).map(function(k){ var f = Kern.FORMEN[k]; return '<label><input type="radio" name="trForm" value="' + k + '"><span>' + formBild(k) + '<b>' + f.name + '</b><small>' + f.teile + tx(' Teile · ') + f.paare + tx(' Paare</small></span></label>'); }).join('') +
       '</div></div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Inhalt</h2></div></div>' +
-      '<p class="feld-label">Fach</p><div class="tr-chips" role="radiogroup" aria-label="Fach">' + chips('trFach', FAECHER) + '</div>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Inhalt</h2></div></div>') +
+      tx('<p class="feld-label">Fach</p><div class="tr-chips" role="radiogroup" aria-label="Fach">') + chips('trFach', FAECHER) + '</div>' +
       '<div class="tr-teil" data-art="' + MATHE_ARTEN + '">' +
-      '<p class="feld-label">Thema</p><div class="tr-chips" role="radiogroup" aria-label="Mathe-Thema">' + chips('trArt', MATHE) + '</div>' +
+      tx('<p class="feld-label">Thema</p><div class="tr-chips" role="radiogroup" aria-label="Mathe-Thema">') + chips('trArt', MATHE) + '</div>' +
       '<div class="tr-unter" data-art="rechnen">' +
-        '<p class="feld-label">Rechenarten</p><div class="tr-chips tr-mehr">' +
-          [['plus', 'Plus +'], ['minus', 'Minus −'], ['mal', 'Mal ·'], ['geteilt', 'Geteilt :']].map(function(x){ return '<label><input type="checkbox" name="trOp" value="' + x[0] + '"><span>' + x[1] + '</span></label>'; }).join('') + '</div>' +
-        '<p class="feld-label">Zahlenraum</p><div class="tr-chips">' + chips('trZr', [['10', 'bis 10'], ['20', 'bis 20'], ['100', 'bis 100'], ['1000', 'bis 1000']]) + '</div>' +
+        tx('<p class="feld-label">Rechenarten</p><div class="tr-chips tr-mehr">') +
+          [['plus', tx('Plus +')], ['minus', tx('Minus −')], ['mal', tx('Mal ·')], ['geteilt', tx('Geteilt :')]].map(function(x){ return '<label><input type="checkbox" name="trOp" value="' + x[0] + '"><span>' + x[1] + '</span></label>'; }).join('') + '</div>' +
+        tx('<p class="feld-label">Zahlenraum</p><div class="tr-chips">') + chips('trZr', [['10', tx('bis 10')], ['20', tx('bis 20')], ['100', tx('bis 100')], ['1000', tx('bis 1000')]]) + '</div>' +
       '</div>' +
       '<div class="tr-unter" data-art="dezimalbrueche">' +
-        '<p class="feld-label">Brüche</p><div class="tr-chips">' + chips('trDez', [['1', 'Zehntel'], ['2', 'bis Hundertstel'], ['3', 'bis Tausendstel']]) + '</div>' +
-        '<p class="hinweis">z. B. 7/100 und 0.07</p>' +
+        tx('<p class="feld-label">Brüche</p><div class="tr-chips">') + chips('trDez', [['1', tx('Zehntel')], ['2', tx('bis Hundertstel')], ['3', tx('bis Tausendstel')]]) + '</div>' +
+        tx('<p class="hinweis">z. B. 7/100 und 0.07</p>') +
       '</div>' +
       '<div class="tr-unter" data-art="stellenwerte">' +
-        '<p class="feld-label">Zahlen</p><div class="tr-chips">' + chips('trStellen', [['dezimal', 'Dezimalzahlen'], ['ganz', 'Ganze Zahlen'], ['gemischt', 'Gemischt']]) + '</div>' +
-        '<p class="hinweis">Eine Ziffer ist farbig, z. B. 0.3<b style="color:' + MARKE + '">4</b>5 und «4 Hundertstel».</p>' +
+        tx('<p class="feld-label">Zahlen</p><div class="tr-chips">') + chips('trStellen', [['dezimal', tx('Dezimalzahlen')], ['ganz', tx('Ganze Zahlen')], ['gemischt', tx('Gemischt')]]) + '</div>' +
+        tx('<p class="hinweis">Eine Ziffer ist farbig, z. B. 0.3<b style="color:') + MARKE + tx('">4</b>5 und «4 Hundertstel».</p>') +
       '</div>' +
       '<div class="tr-unter" data-art="brueche">' +
-        '<p class="feld-label">Nenner</p><div class="tr-chips">' + chips('trBruch', [['6', 'bis Sechstel'], ['10', 'bis Zehntel'], ['12', 'bis Zwölftel']]) + '</div>' +
-        '<p class="hinweis">z. B. «drei Fünftel» und 3/5. Reichen die echten Brüche nicht, kommen unechte dazu (z. B. fünf Viertel).</p>' +
+        tx('<p class="feld-label">Nenner</p><div class="tr-chips">') + chips('trBruch', [['6', tx('bis Sechstel')], ['10', tx('bis Zehntel')], ['12', tx('bis Zwölftel')]]) + '</div>' +
+        tx('<p class="hinweis">z. B. «drei Fünftel» und 3/5. Reichen die echten Brüche nicht, kommen unechte dazu (z. B. fünf Viertel).</p>') +
       '</div>' +
       '</div>' +
       '<div class="tr-teil" data-art="englisch franzoesisch eigene">' +
@@ -261,29 +262,29 @@ var VORLAGE = '<div class="tr">' +
         '<div class="tr-zaehler" id="trZaehler" aria-live="polite"></div>' +
       '</div>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Gestaltung</h2></div></div>' +
-      '<p class="feld-label">Aussenkanten</p><div class="tr-chips">' + chips('trRand', [['leer', 'leer (leichter)'], ['ablenker', 'mit Ablenkern (schwieriger)']]) + '</div>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Gestaltung</h2></div></div>') +
+      tx('<p class="feld-label">Aussenkanten</p><div class="tr-chips">') + chips('trRand', [['leer', tx('leer (leichter)')], ['ablenker', tx('mit Ablenkern (schwieriger)')]]) + '</div>' +
       '<p class="hinweis" id="trRandInfo"></p>' +
-      '<p class="feld-label">Farbe der Ecken</p>' +
-      '<div class="tr-farben" role="radiogroup" aria-label="Farbe der Ecken">' +
+      tx('<p class="feld-label">Farbe der Ecken</p>') +
+      tx('<div class="tr-farben" role="radiogroup" aria-label="Farbe der Ecken">') +
         FARBEN.map(function(f){ return '<label title="' + f[1] + '"><input type="radio" name="trFarbe" value="' + f[0] + '"><span style="background:' + f[0] + '"></span><b class="vh">' + f[1] + '</b></label>'; }).join('') + '</div>' +
-      '<div class="opt-raster"><label for="trTitel">Titel auf dem Blatt</label><input type="text" id="trTitel" maxlength="60" autocomplete="off"></div>' +
+      tx('<div class="opt-raster"><label for="trTitel">Titel auf dem Blatt</label><input type="text" id="trTitel" maxlength="60" autocomplete="off"></div>') +
     '</div>' +
   '</section>' +
-  '<section class="tr-ausgabe" aria-label="Ergebnis">' +
+  tx('<section class="tr-ausgabe" aria-label="Ergebnis">') +
     '<div id="trMeldung" aria-live="polite"></div>' +
     '<div class="tr-werkzeug">' +
-      '<button type="button" class="btn klein" id="trNeu" title="Neue Aufgaben und neue Verteilung">Neu mischen</button>' +
-      '<button type="button" class="btn klein" id="trZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
+      tx('<button type="button" class="btn klein" id="trNeu" title="Neue Aufgaben und neue Verteilung">Neu mischen</button>') +
+      tx('<button type="button" class="btn klein" id="trZeigeLoesung" aria-pressed="false">Lösung zeigen</button>') +
       '<span class="abstand"></span>' +
       Labor.blattSchalterHtml() +
-      '<label><input type="checkbox" id="trMitLoesung"> mit Lösungsblatt</label>' +
-      '<button type="button" class="btn klein primary" id="trPdf">PDF herunterladen</button>' +
-      '<button type="button" class="btn klein primary" id="trHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
+      tx('<label><input type="checkbox" id="trMitLoesung"> mit Lösungsblatt</label>') +
+      tx('<button type="button" class="btn klein primary" id="trPdf">PDF herunterladen</button>') +
+      tx('<button type="button" class="btn klein primary" id="trHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>') +
     '</div>' +
     '<article class="tr-blatt" id="trBlatt"></article>' +
     '<article class="tr-blatt tr-loesungsblatt" id="trLoesung" aria-hidden="true"></article>' +
-    '<details class="tr-paare" id="trPaare"><summary>Verwendete Paare</summary><ol id="trPaarListe"></ol></details>' +
+    tx('<details class="tr-paare" id="trPaare"><summary>Verwendete Paare</summary><ol id="trPaarListe"></ol></details>') +
   '</section></div></div>';
 
 var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true">' +
@@ -384,7 +385,7 @@ function starte(bereich){
     art:function(){ return st.opt.art; },
     sprache:function(art){ return art === 'englisch' || art === 'franzoesisch' ? art : null; },
     kopf:function(){ return SPRACHE[st.opt.art] || ['', '', '']; },
-    hilfe:function(){ return 'Links der Begriff, rechts das Gegenstück – zum Beispiel «Hauptstadt der Schweiz» und «Bern».'; },
+    hilfe:function(){ return tx('Links der Begriff, rechts das Gegenstück – zum Beispiel «Hauptstadt der Schweiz» und «Bern».'); },
     geaendert:function(){ speichern(); baldErzeugen(); },
     aus:function(){ return aus; }
   });
@@ -403,13 +404,13 @@ function starte(bereich){
   function zaehlerZeigen(){
     if (!sprache()) return;
     var w = paare(), n = w.paare.length, f = form(), fehlt = f.paare - n;
-    var h = '<p class="tr-zaehler-haupt ' + (fehlt > 0 ? 'fehlt' : 'ok') + '"><b>' + n + '</b> ' + (n === 1 ? 'Paar' : 'Paare') + ' eingegeben · ' + f.name + ' braucht <b>' + f.paare + '</b>' +
-      (fehlt > 0 ? ' – es fehlen noch <b>' + fehlt + '</b>.' : ' ✓') + '</p>';
+    var h = '<p class="tr-zaehler-haupt ' + (fehlt > 0 ? 'fehlt' : 'ok') + '"><b>' + n + '</b> ' + (n === 1 ? tx('Paar') : tx('Paare')) + tx(' eingegeben · ') + f.name + tx(' braucht <b>') + f.paare + '</b>' +
+      (fehlt > 0 ? tx(' – es fehlen noch <b>') + fehlt + '</b>.' : ' ✓') + '</p>';
     h += '<p class="tr-zaehler-formen">' + Object.keys(Kern.FORMEN).map(function(k){ var x = Kern.FORMEN[k]; return '<span class="' + (n >= x.paare ? 'ok' : '') + '">' + x.name + ': ' + x.paare + '</span>'; }).join('') + '</p>';
-    if (fehlt < 0) h += '<p>' + (-fehlt) + ' Paare mehr als nötig: Es werden zufällig ' + f.paare + ' ausgewählt' + (st.opt.rand === 'ablenker' ? ', übrige Wörter dienen als Ablenker an den Aussenkanten.' : '.') + '</p>';
+    if (fehlt < 0) h += '<p>' + (-fehlt) + tx(' Paare mehr als nötig: Es werden zufällig ') + f.paare + tx(' ausgewählt') + (st.opt.rand === 'ablenker' ? tx(', übrige Wörter dienen als Ablenker an den Aussenkanten.') : '.') + '</p>';
     var wartend = zeilen().filter(function(z){ return z.laedt; }).length;
-    if (w.ohne > wartend) h += '<p class="warnung">' + (w.ohne - wartend) + ' Zeile' + (w.ohne - wartend > 1 ? 'n haben' : ' hat') + ' erst ein Wort – sie zählt, sobald beide Felder ausgefüllt sind.</p>';
-    if (w.doppelt) h += '<p class="warnung">' + w.doppelt + ' doppelte' + (w.doppelt > 1 ? '' : 's') + ' Wort' + (w.doppelt > 1 ? 'e' : '') + ' nicht verwendet (sonst passten zwei Teile).</p>';
+    if (w.ohne > wartend) h += '<p class="warnung">' + (w.ohne - wartend) + tx(' Zeile') + (w.ohne - wartend > 1 ? tx('n haben') : tx(' hat')) + tx(' erst ein Wort – sie zählt, sobald beide Felder ausgefüllt sind.</p>');
+    if (w.doppelt) h += '<p class="warnung">' + w.doppelt + tx(' doppelte') + (w.doppelt > 1 ? '' : 's') + tx(' Wort') + (w.doppelt > 1 ? 'e' : '') + tx(' nicht verwendet (sonst passten zwei Teile).</p>');
     $('#trZaehler').innerHTML = h;
   }
   function erzeugen(){
@@ -418,17 +419,17 @@ function starte(bereich){
     var ablenker = st.opt.rand === 'ablenker' ? k.aussen.length : 0;
     zaehlerZeigen();
     info = Kern.auswahl(quelle(f.paare + ablenker), f.paare, ablenker, rnd);
-    $('#trRandInfo').textContent = st.opt.rand === 'ablenker' ? (sprache() && info.ablenker.length < k.aussen.length ? 'Für Ablenker braucht es zusätzliche Wortpaare (bis ' + k.aussen.length + '). Jetzt: ' + info.ablenker.length + '.' : 'An den Aussenkanten stehen Aufgaben oder Lösungen, die nirgends passen.') : 'Randteile erkennt man an den leeren Seiten.';
+    $('#trRandInfo').textContent = st.opt.rand === 'ablenker' ? (sprache() && info.ablenker.length < k.aussen.length ? tx('Für Ablenker braucht es zusätzliche Wortpaare (bis ') + k.aussen.length + tx('). Jetzt: ') + info.ablenker.length + '.' : tx('An den Aussenkanten stehen Aufgaben oder Lösungen, die nirgends passen.')) : tx('Randteile erkennt man an den leeren Seiten.');
     if (info.fehlen > 0){
       trimino = null;
       $('#trBlatt').hidden = $('#trLoesung').hidden = $('#trPaare').hidden = true;
       ['#trZeigeLoesung', '#trPdf', '#trHerunterladen'].forEach(function(s){ $(s).disabled = true; });
       meldung(sprache() && !paare().paare.length ? 'info' : 'warnung', sprache()
-        ? '<p>Für ' + (st.opt.form === 'stern' ? 'einen ' : st.opt.form === 'sechseck' ? 'ein ' : 'ein ') + esc(f.name) + ' braucht es <b>' + f.paare + ' Paare</b>' + (paare().paare.length ? ' – es fehlen noch ' + info.fehlen + '.' : '. Gib links deine Wortpaare ein.') + '</p>'
-        : '<p>Mit diesen Einstellungen gibt es nicht genug verschiedene Aufgaben. Wähle einen grösseren Zahlenraum oder eine kleinere Form.</p>');
+        ? tx('<p>Für ') + (st.opt.form === 'stern' ? tx('einen ') : st.opt.form === 'sechseck' ? tx('ein ') : tx('ein ')) + esc(f.name) + tx(' braucht es <b>') + f.paare + tx(' Paare</b>') + (paare().paare.length ? tx(' – es fehlen noch ') + info.fehlen + '.' : tx('. Gib links deine Wortpaare ein.')) + '</p>'
+        : tx('<p>Mit diesen Einstellungen gibt es nicht genug verschiedene Aufgaben. Wähle einen grösseren Zahlenraum oder eine kleinere Form.</p>'));
       return;
     }
-    meldung(info.doppelt ? 'warnung' : '', info.doppelt ? '<p>Nicht genug verschiedene Ergebnisse: Einige kommen mehrmals vor – dann passen manchmal mehrere Teile an dieselbe Seite. Ein grösserer Zahlenraum oder mehr Rechenarten helfen.</p>' : '');
+    meldung(info.doppelt ? 'warnung' : '', info.doppelt ? tx('<p>Nicht genug verschiedene Ergebnisse: Einige kommen mehrmals vor – dann passen manchmal mehrere Teile an dieselbe Seite. Ein grösserer Zahlenraum oder mehr Rechenarten helfen.</p>') : '');
     $('#trBlatt').hidden = $('#trPaare').hidden = false; $('#trLoesung').hidden = false;
     ['#trZeigeLoesung', '#trPdf', '#trHerunterladen'].forEach(function(s){ $(s).disabled = false; });
     trimino = Kern.belegen(st.opt.form, info.paare, info.ablenker, rnd);
@@ -492,7 +493,7 @@ function starte(bereich){
       var A = P[k], B = P[(k + 1) % 3], M = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2], n = [C[0] - M[0], C[1] - M[1]], ln = Math.hypot(n[0], n[1]);
       n = [n[0] / ln, n[1] / ln];
       var winkel = Math.atan2(n[0], -n[1]) * 180 / Math.PI, Q = [M[0] + n[0] * l.abst, M[1] + n[1] * l.abst];   // Textrichtung (−n.y, n.x), Oberseite zur Mitte
-      return '<g transform="translate(' + Q[0].toFixed(2) + ' ' + Q[1].toFixed(2) + ') rotate(' + winkel.toFixed(2) + ')" font-size="' + l.fs.toFixed(2) + '">' + l.svg(l.fs) + '</g>';
+      return '<g transform="translate(' + Q[0].toFixed(2) + ' ' + Q[1].toFixed(2) + tx(') rotate(') + winkel.toFixed(2) + ')" font-size="' + l.fs.toFixed(2) + '">' + l.svg(l.fs) + '</g>';
     }).join('');
   }
   function figurSvg(loesung){
@@ -511,25 +512,25 @@ function starte(bereich){
       texte += teilTexte(P, C, [0, 1, 2].map(function(k){ return t.inhalt[platz.teil][(k + platz.dreh) % 3]; }));
       linien += 'M' + P.map(function(p){ return p[0].toFixed(2) + ' ' + p[1].toFixed(2); }).join('L') + 'Z';
     });
-    return '<svg class="tr-figur" viewBox="' + x0.toFixed(1) + ' ' + y0.toFixed(1) + ' ' + (x1 - x0).toFixed(1) + ' ' + (y1 - y0).toFixed(1) + '" role="img" aria-label="Triomino ' + esc(form().name) + (loesung ? ', Lösung' : '') + '">' +
+    return '<svg class="tr-figur" viewBox="' + x0.toFixed(1) + ' ' + y0.toFixed(1) + ' ' + (x1 - x0).toFixed(1) + ' ' + (y1 - y0).toFixed(1) + tx('" role="img" aria-label="Triomino ') + esc(form().name) + (loesung ? tx(', Lösung') : '') + '">' +
       '<path d="' + ecken + '" fill="' + farbe + '"/>' +
       '<path d="' + linien + '" fill="none" stroke="' + TINTE + '" stroke-width="0.9" stroke-linejoin="round"/>' +
       '<g style="font-family:var(--blatt-buchstaben)" fill="' + TINTE + '" text-anchor="middle">' + texte + '</g></svg>';
   }
-  function titel(){ return st.titel.trim() || 'Triomino'; }
+  function titel(){ return st.titel.trim() || tx('Triomino'); }
   function zeichnen(){
     if (!trimino) return;
     var o = st.opt, f = form();
     $('#trBlatt').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + '</h2>' : '') +
-      (o.anleitungAn ? '<p class="tr-anleitung">Schneide die Dreiecke aus. Lege sie so aneinander, dass die Seiten zusammenpassen – es entsteht ' + f.figur + '.</p>' : '') +
+      (o.anleitungAn ? tx('<p class="tr-anleitung">Schneide die Dreiecke aus. Lege sie so aneinander, dass die Seiten zusammenpassen – es entsteht ') + f.figur + '.</p>' : '') +
       '<div class="tr-figur-rahmen tr-' + o.form + '">' + figurSvg(false) + '</div>';
-    $('#trLoesung').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + ' – Lösung</h2>' : '<p class="tr-anleitung"><b>Lösung</b></p>') +
+    $('#trLoesung').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + tx(' – Lösung</h2>') : tx('<p class="tr-anleitung"><b>Lösung</b></p>')) +
       '<div class="tr-figur-rahmen tr-' + o.form + '">' + figurSvg(true) + '</div>';
     $('#trPaarListe').innerHTML = info.paare.map(function(p){ return '<li>' + kurz(p.a) + ' <span aria-hidden="true">↔</span> ' + kurz(p.b) + '</li>'; }).join('') +
-      (info.ablenker.length ? '<li class="tr-ablenker">Ablenker: ' + info.ablenker.map(kurz).join(' · ') + '</li>' : '');
-    $('#trPaare').querySelector('summary').textContent = 'Verwendete Paare (' + info.paare.length + ')';
+      (info.ablenker.length ? tx('<li class="tr-ablenker">Ablenker: ') + info.ablenker.map(kurz).join(' · ') + '</li>' : '');
+    $('#trPaare').querySelector('summary').textContent = tx('Verwendete Paare (') + info.paare.length + ')';
   }
-  function kurz(x){ return x.bruch ? '<span class="bruch" aria-label="' + x.bruch[0] + ' durch ' + x.bruch[1] + '"><span>' + x.bruch[0] + '</span><span>' + x.bruch[1] + '</span></span>' : x.zahl ? esc(x.zahl.slice(0, x.mark)) + '<b style="color:' + MARKE + '">' + esc(x.zahl.charAt(x.mark)) + '</b>' + esc(x.zahl.slice(x.mark + 1)) : esc(x.t); }
+  function kurz(x){ return x.bruch ? '<span class="bruch" aria-label="' + x.bruch[0] + tx(' durch ') + x.bruch[1] + '"><span>' + x.bruch[0] + '</span><span>' + x.bruch[1] + '</span></span>' : x.zahl ? esc(x.zahl.slice(0, x.mark)) + '<b style="color:' + MARKE + '">' + esc(x.zahl.charAt(x.mark)) + '</b>' + esc(x.zahl.slice(x.mark + 1)) : esc(x.t); }
 
   /* ---------- Werkzeuge, PDF ---------- */
   $('#trNeu').addEventListener('click', function(){ st.seed = Math.floor(Math.random() * 1e9) + 1; speichern(); erzeugen(); });
@@ -547,9 +548,9 @@ function starte(bereich){
     if (!trimino || !speicherOrt) return;
     var bl = [$('#trBlatt')].concat(st.opt.mitLoesung ? [$('#trLoesung')] : []);
     var inhalt = bl.map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); k.removeAttribute('hidden'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
-    speicherOrt.save({ filename:Labor.pdfName('Triomino', st.titel).replace(/\.pdf$/, '.html'), data:Labor.blattDatei('Triomino', inhalt, '.tr-loesungsblatt{display:block}') }).catch(function(e){
+    speicherOrt.save({ filename:Labor.pdfName('Triomino', st.titel).replace(/\.pdf$/, '.html'), data:Labor.blattDatei(tx('Triomino'), inhalt, '.tr-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 

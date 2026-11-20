@@ -5,6 +5,7 @@
    maske(c) → 15 Werte 0/1, Zeile für Zeile von oben links; schluessel(maske) → Text aus 0/1, um Masken zu vergleichen. */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('labor');
 var ZEICHEN = {
   0:['###', '#.#', '#.#', '#.#', '###'], 1:['.#.', '##.', '.#.', '.#.', '###'], 2:['###', '..#', '###', '#..', '###'],
   3:['###', '..#', '###', '..#', '###'], 4:['#.#', '#.#', '###', '..#', '..#'], 5:['###', '#..', '###', '..#', '###'],

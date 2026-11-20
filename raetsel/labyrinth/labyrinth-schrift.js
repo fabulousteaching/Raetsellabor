@@ -8,6 +8,7 @@
    läuft er rückwärts ab). Alle übrigen Felder werden als Irrwege angehängt («perfektes» Labyrinth: genau ein Weg). */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('labyrinth');
 
 /* KERN-START */
 var Kern = (function(){
@@ -239,40 +240,40 @@ var Kern = (function(){
 /* KERN-ENDE */
 
 /* ===== Vorlage ===== */
-var STUFEN = { leicht:{ neu:0.3, name:'Leicht' }, mittel:{ neu:0.6, name:'Mittel' }, schwer:{ neu:0.85, name:'Schwer' } };
+var STUFEN = { leicht:{ neu:0.3, name:tx('Leicht') }, mittel:{ neu:0.6, name:tx('Mittel') }, schwer:{ neu:0.85, name:tx('Schwer') } };
 var PLATZ = { b:639, h:740 };   // Platz für das Labyrinth auf dem Blatt (Pixel; 703 Pixel = 186 mm)
 function mm(px){ return px * 186 / 703; }
 // artKarte: die Karte «Art des Labyrinths» (kommt aus labyrinth.js und steht bei allen Arten zuoberst)
 function vorlage(artKarte){
-  return '<div class="sl ls"><div class="sl-layout"><section class="sl-eingabe" aria-label="Eingaben">' + artKarte +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Satz</h2><p>Der richtige Weg schreibt ihn in Blockschrift – wer ihn nachzeichnet, kann ihn lesen.</p></div></div>' +
-      '<label class="vh" for="lsSatz">Satz</label>' +
+  return tx('<div class="sl ls"><div class="sl-layout"><section class="sl-eingabe" aria-label="Eingaben">') + artKarte +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Satz</h2><p>Der richtige Weg schreibt ihn in Blockschrift – wer ihn nachzeichnet, kann ihn lesen.</p></div></div>') +
+      tx('<label class="vh" for="lsSatz">Satz</label>') +
       '<textarea id="lsSatz" rows="2" maxlength="60"></textarea>' +
       '<p class="hinweis" id="lsInfo"></p>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Irrwege</h2><p>Je schwerer, desto länger und verschlungener die Sackgassen.</p></div></div>' +
-      '<div class="sl-stufen" role="radiogroup" aria-label="Irrwege">' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Irrwege</h2><p>Je schwerer, desto länger und verschlungener die Sackgassen.</p></div></div>') +
+      tx('<div class="sl-stufen" role="radiogroup" aria-label="Irrwege">') +
         Object.keys(STUFEN).map(function(k){ return '<label><input type="radio" name="lsStufe" value="' + k + '"><span>' + STUFEN[k].name + '</span></label>'; }).join('') + '</div>' +
     '</div>' +
-    '<div class="karte"><details class="optionen"><summary>Einstellungen</summary>' +
-      '<div class="opt-raster"><label for="lsTitel">Titel auf dem Blatt</label><input type="text" id="lsTitel" maxlength="60">' +
-        '<label for="lsLinie">Linien</label><select id="lsLinie"><option value="0.7">dünn</option><option value="1">mittel</option><option value="1.4">dick</option></select></div>' +
+    tx('<div class="karte"><details class="optionen"><summary>Einstellungen</summary>') +
+      tx('<div class="opt-raster"><label for="lsTitel">Titel auf dem Blatt</label><input type="text" id="lsTitel" maxlength="60">') +
+        tx('<label for="lsLinie">Linien</label><select id="lsLinie"><option value="0.7">dünn</option><option value="1">mittel</option><option value="1.4">dick</option></select></div>') +
     '</details></div>' +
-    '<button type="button" class="btn primary gross" id="lsLos">Labyrinth erstellen</button>' +
+    tx('<button type="button" class="btn primary gross" id="lsLos">Labyrinth erstellen</button>') +
   '</section>' +
-  '<section class="sl-ausgabe" aria-label="Ergebnis">' +
+  tx('<section class="sl-ausgabe" aria-label="Ergebnis">') +
     '<div id="lsMeldung" aria-live="polite"></div>' +
-    '<div class="leer-zustand" id="lsLeer"><h2>Noch kein Labyrinth</h2><p>In drei Schritten zum Arbeitsblatt:</p><ol>' +
-      '<li>Satz eingeben</li><li>Irrwege wählen</li><li>«Labyrinth erstellen» klicken</li></ol></div>' +
+    tx('<div class="leer-zustand" id="lsLeer"><h2>Noch kein Labyrinth</h2><p>In drei Schritten zum Arbeitsblatt:</p><ol>') +
+      tx('<li>Satz eingeben</li><li>Irrwege wählen</li><li>«Labyrinth erstellen» klicken</li></ol></div>') +
     '<div class="sl-werkzeug" id="lsWerkzeug" hidden>' +
-      '<button type="button" class="btn klein" id="lsMischen" title="Gleicher Satz, neue Irrwege">Neu mischen</button>' +
-      '<button type="button" class="btn klein" id="lsZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
-      '<button type="button" class="btn klein" id="lsWegWeg">Weg löschen</button>' +
+      tx('<button type="button" class="btn klein" id="lsMischen" title="Gleicher Satz, neue Irrwege">Neu mischen</button>') +
+      tx('<button type="button" class="btn klein" id="lsZeigeLoesung" aria-pressed="false">Lösung zeigen</button>') +
+      tx('<button type="button" class="btn klein" id="lsWegWeg">Weg löschen</button>') +
       '<span class="abstand"></span>' +
       Labor.blattSchalterHtml() +
-      '<label><input type="checkbox" id="lsMitLoesung"> mit Lösungsblatt</label>' +
-      '<button type="button" class="btn klein primary" id="lsDrucken">PDF herunterladen</button>' +
-      '<button type="button" class="btn klein primary" id="lsHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
+      tx('<label><input type="checkbox" id="lsMitLoesung"> mit Lösungsblatt</label>') +
+      tx('<button type="button" class="btn klein primary" id="lsDrucken">PDF herunterladen</button>') +
+      tx('<button type="button" class="btn klein primary" id="lsHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>') +
     '</div>' +
     '<article class="sl-blatt" id="lsBlatt" hidden></article>' +
     '<article class="sl-blatt sl-loesungsblatt" id="lsLoesung" aria-hidden="true"></article>' +
@@ -305,10 +306,10 @@ function starte(bereich){
   var satzFeld = $('#lsSatz'); satzFeld.value = st.satz;
   function info(){
     var ws = Kern.woerter(st.satz), n = ws.join('').length;
-    if (!n){ $('#lsInfo').textContent = 'Kurze Sätze werden grösser. Ä, Ö, Ü werden zu AE, OE, UE; Satzzeichen fallen weg.'; return; }
+    if (!n){ $('#lsInfo').textContent = tx('Kurze Sätze werden grösser. Ä, Ö, Ü werden zu AE, OE, UE; Satzzeichen fallen weg.'); return; }
     var A = Kern.anordnen(ws, PLATZ), groesse = mm(A.s);
-    $('#lsInfo').textContent = n + ' Buchstaben in ' + A.zeilen.length + (A.zeilen.length === 1 ? ' Zeile' : ' Zeilen') + ' (' + A.zeilen.map(function(z){ return z.join(' '); }).join(' / ') + '). ' +
-      'Gedruckt ist ein Feld etwa ' + groesse.toFixed(1) + ' mm gross' + (groesse < 2.5 ? ' – sehr fein; ein kürzerer Satz wird grösser.' : '.');
+    $('#lsInfo').textContent = n + tx(' Buchstaben in ') + A.zeilen.length + (A.zeilen.length === 1 ? tx(' Zeile') : tx(' Zeilen')) + ' (' + A.zeilen.map(function(z){ return z.join(' '); }).join(' / ') + '). ' +
+      tx('Gedruckt ist ein Feld etwa ') + groesse.toFixed(1) + tx(' mm gross') + (groesse < 2.5 ? tx(' – sehr fein; ein kürzerer Satz wird grösser.') : '.');
   }
   satzFeld.addEventListener('input', function(){ st.satz = satzFeld.value; speichern(); info(); if (aktuell) $('#lsBlatt').classList.add('veraltet'); });
   satzFeld.addEventListener('keydown', function(ev){ if (ev.key === 'Enter' && !ev.shiftKey){ ev.preventDefault(); erstellen(); } });
@@ -322,18 +323,18 @@ function starte(bereich){
   function erstellen(){
     erstellt = true;
     function fehler(html){ aktuell = null; $('#lsBlatt').hidden = true; $('#lsWerkzeug').hidden = true; meldung('fehler', html); }
-    if (!Kern.woerter(st.satz).length){ fehler('<h3>Noch kein Satz</h3><p>Schreibe zuerst den Satz, den der Weg schreiben soll – Buchstaben oder Ziffern.</p>'); return; }
+    if (!Kern.woerter(st.satz).length){ fehler(tx('<h3>Noch kein Satz</h3><p>Schreibe zuerst den Satz, den der Weg schreiben soll – Buchstaben oder Ziffern.</p>')); return; }
     var lab;
     try { lab = Kern.erzeugen(st.satz, { seed:st.seed, neu:STUFEN[st.opt.stufe].neu, platz:PLATZ }); }
-    catch(x){ console.error(x); fehler('<h3>Das hat nicht geklappt</h3><p>Klicke noch einmal auf «Labyrinth erstellen».</p>'); st.seed = Math.floor(Math.random() * 1e9) + 1; return; }
+    catch(x){ console.error(x); fehler(tx('<h3>Das hat nicht geklappt</h3><p>Klicke noch einmal auf «Labyrinth erstellen».</p>')); st.seed = Math.floor(Math.random() * 1e9) + 1; return; }
     aktuell = { lab:lab };
     weg = [lab.start];
     $('#lsZeigeLoesung').setAttribute('aria-pressed', 'false');
     zeichnen();
     var groesse = mm(Math.min(PLATZ.b / (lab.w + 2), PLATZ.h / (lab.h + 1)));
-    meldung('erfolg', '<p><b>Fertig!</b> Labyrinth mit ' + lab.w + ' × ' + lab.h + ' Feldern. Der richtige Weg ist ' + lab.weg.length + ' Felder lang und schreibt «' + esc(lab.satz) + '». ' +
-      'Du kannst ihn hier am Bildschirm suchen: beim Pfeil links hineinziehen.</p>' +
-      (groesse < 2.5 ? '<p>Achtung: Gedruckt sind die Felder nur etwa ' + groesse.toFixed(1) + ' mm gross. Ein kürzerer Satz macht sie grösser.</p>' : ''));
+    meldung('erfolg', tx('<p><b>Fertig!</b> Labyrinth mit ') + lab.w + ' × ' + lab.h + tx(' Feldern. Der richtige Weg ist ') + lab.weg.length + tx(' Felder lang und schreibt «') + esc(lab.satz) + '». ' +
+      tx('Du kannst ihn hier am Bildschirm suchen: beim Pfeil links hineinziehen.</p>') +
+      (groesse < 2.5 ? tx('<p>Achtung: Gedruckt sind die Felder nur etwa ') + groesse.toFixed(1) + tx(' mm gross. Ein kürzerer Satz macht sie grösser.</p>') : ''));
   }
 
   /* ---------- Zeichnen ---------- */
@@ -361,17 +362,17 @@ function starte(bereich){
     return s;
   }
   function zeichnen(){
-    var lab = aktuell.lab, titel = st.titel.trim() || 'Welcher Satz versteckt sich im Weg?', blatt = $('#lsBlatt'), loes = $('#lsLoesung'), o = st.opt;
+    var lab = aktuell.lab, titel = st.titel.trim() || tx('Welcher Satz versteckt sich im Weg?'), blatt = $('#lsBlatt'), loes = $('#lsLoesung'), o = st.opt;
     var linien = Math.min(3, Math.max(1, Math.ceil(lab.satz.length / 30))), l = '';
     for (var i = 1; i < linien; i++) l += '<span class="sl-linie voll"></span>';
     blatt.classList.remove('veraltet', 'zeige-loesung', 'geschafft');
     blatt.innerHTML = (o.titelAn ? '<h2>' + esc(titel) + '</h2>' : '') +
-      (o.anleitungAn ? '<p class="sl-anleitung">Finde den Weg vom Pfeil hinein bis zum Pfeil hinaus, ohne eine Wand zu überqueren, und zeichne ihn mit einem Stift nach. Der Weg schreibt einen Satz. Schreibe ihn auf die Linie' + (linien > 1 ? 'n' : '') + '.</p>' : '') +
+      (o.anleitungAn ? tx('<p class="sl-anleitung">Finde den Weg vom Pfeil hinein bis zum Pfeil hinaus, ohne eine Wand zu überqueren, und zeichne ihn mit einem Stift nach. Der Weg schreibt einen Satz. Schreibe ihn auf die Linie') + (linien > 1 ? 'n' : '') + '.</p>' : '') +
       '<div class="sl-feld"></div><p class="sl-fortschritt nur-bildschirm" id="lsFortschritt" aria-live="polite"></p>' +
-      '<div class="sl-antwort"><span>Satz:</span><span class="sl-linie"></span>' + l + '</div>';
+      tx('<div class="sl-antwort"><span>Satz:</span><span class="sl-linie"></span>') + l + '</div>';
     var svg = labSvg(false);
     blatt.querySelector('.sl-feld').appendChild(svg);
-    loes.innerHTML = '<h2>Lösung' + (o.titelAn ? ' – ' + esc(titel) : '') + '</h2><div class="sl-feld"></div><p class="sl-satz-loesung"><b>Der Weg schreibt:</b> ' + esc(lab.satz) +
+    loes.innerHTML = tx('<h2>Lösung') + (o.titelAn ? ' – ' + esc(titel) : '') + tx('</h2><div class="sl-feld"></div><p class="sl-satz-loesung"><b>Der Weg schreibt:</b> ') + esc(lab.satz) +
       (Labor.esc(st.satz.trim()).toUpperCase() !== esc(lab.satz) ? ' <span class="ls-eingabe">(' + esc(st.satz.trim()) + ')</span>' : '') + '</p>';
     loes.querySelector('.sl-feld').appendChild(labSvg(true));
     blatt.hidden = false; $('#lsWerkzeug').hidden = false; leer();
@@ -413,9 +414,9 @@ function starte(bereich){
     pfad.setAttribute('d', 'M' + xs + ' ' + (lab.start[0] * 10 + 5) + linie(weg).replace(/^M/, 'L') + (fertig ? 'L' + xz + ' ' + (z[0] * 10 + 5) : ''));
     $('#lsBlatt').classList.toggle('geschafft', fertig);
     var p = $('#lsFortschritt'); if (!p) return;
-    p.className = 'sl-fortschritt nur-bildschirm' + (fertig ? ' fertig' : '');
-    p.textContent = fertig ? '🎉 Geschafft! Der Weg schreibt: «' + lab.satz + '»'
-      : weg.length > 1 ? 'Weiter so – ' + (weg.length - 1) + ' Felder geschafft. Zurückziehen löscht den Weg wieder.' : 'Starte beim Pfeil links und ziehe durch die Gänge.';
+    p.className = 'sl-fortschritt nur-bildschirm' + (fertig ? tx(' fertig') : '');
+    p.textContent = fertig ? tx('🎉 Geschafft! Der Weg schreibt: «') + lab.satz + '»'
+      : weg.length > 1 ? tx('Weiter so – ') + (weg.length - 1) + tx(' Felder geschafft. Zurückziehen löscht den Weg wieder.') : tx('Starte beim Pfeil links und ziehe durch die Gänge.');
   }
 
   /* ---------- Werkzeuge ---------- */
@@ -442,9 +443,9 @@ function starte(bereich){
     if (!aktuell || !speicherOrt) return;
     var inhalt = sauber($('#lsBlatt')).outerHTML;
     if (st.opt.mitLoesung){ var l = sauber($('#lsLoesung')); l.classList.add('neue-seite'); inhalt += l.outerHTML; }
-    speicherOrt.save({ filename:'Labyrinth-Satzweg.html', data:Labor.blattDatei('Labyrinth: Der Weg schreibt den Satz', inhalt, '.sl-loesungsblatt{display:block}') }).catch(function(e){
+    speicherOrt.save({ filename:'Labyrinth-Satzweg.html', data:Labor.blattDatei(tx('Labyrinth: Der Weg schreibt den Satz'), inhalt, '.sl-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 

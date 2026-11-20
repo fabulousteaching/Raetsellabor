@@ -14,30 +14,31 @@
             ww.zeichne();                                     // Wort-Chips anzeigen */
 var Wortwahl = (function(){
   'use strict';
+var tx = Labor.uebersetzer('labor');
 
   var THEMEN = [
-    { name:'Tiere', alias:['tier', 'haustiere', 'zoo', 'bauernhof'], w:'Hund Katze Pferd Kuh Schaf Ziege Schwein Hase Maus Fuchs Wolf Bär Löwe Tiger Elefant Giraffe Zebra Affe Igel Eule Adler Frosch Delfin Krokodil Pinguin Biber Hirsch Dachs Esel Kamel Papagei Schildkröte' },
-    { name:'Fussball', alias:['fußball', 'fussballspiel', 'soccer', 'kicken'], w:'Tor Ball Torwart Stürmer Verteidiger Schiedsrichter Elfmeter Penalty Abseits Ecke Freistoss Trikot Stadion Rasen Pfiff Karte Fans Pokal Meister Liga Trainer Mannschaft Kopfball Flanke Dribbling Anstoss Halbzeit Tribüne Mittelfeld Fussballschuh Schienbeinschoner Weltmeister' },
-    { name:'Obst und Gemüse', alias:['obst', 'gemüse', 'früchte', 'frucht'], w:'Apfel Birne Banane Kirsche Traube Erdbeere Himbeere Pflaume Zitrone Orange Melone Ananas Mango Kiwi Karotte Gurke Tomate Paprika Zwiebel Kartoffel Salat Spinat Kürbis Lauch Erbse Bohne Brokkoli Radieschen Sellerie Knoblauch Aprikose Feige' },
-    { name:'Berufe', alias:['beruf', 'arbeit'], w:'Bäcker Lehrerin Arzt Pilot Koch Maler Gärtner Polizist Förster Bauer Metzger Schreiner Elektriker Pflegerin Coiffeur Fischer Kellner Zahnarzt Tierarzt Richter Journalist Architekt Mechaniker Floristin Sänger Schneider Apotheker Postbote Dachdecker Informatiker Hebamme Zimmermann' },
-    { name:'Sport', alias:['sportarten'], w:'Fussball Tennis Handball Hockey Golf Rudern Segeln Skifahren Schwimmen Turnen Boxen Judo Reiten Klettern Laufen Radfahren Volleyball Basketball Badminton Curling Biathlon Fechten Tischtennis Surfen Tauchen Rugby Eishockey Snowboard Kanu Yoga Schwingen Unihockey' },
-    { name:'Musikinstrumente', alias:['musik', 'instrumente', 'instrument'], w:'Gitarre Klavier Geige Flöte Trompete Posaune Trommel Harfe Cello Orgel Tuba Oboe Fagott Klarinette Saxofon Bratsche Kontrabass Akkordeon Xylofon Banjo Ukulele Mundharmonika Alphorn Hackbrett Triangel Pauke Zither Dudelsack Blockflöte Schlagzeug Horn Tamburin' },
-    { name:'Länder', alias:['land', 'staaten', 'geografie', 'europa'], w:'Schweiz Deutschland Österreich Italien Frankreich Spanien Portugal Belgien Polen Ungarn Schweden Norwegen Finnland Dänemark Irland Island Griechenland Türkei Kroatien Rumänien Japan China Indien Brasilien Kanada Mexiko Ägypten Kenia Peru Chile Australien Marokko' },
-    { name:'Wetter', alias:['klima', 'wetterlage'], w:'Regen Sonne Wolke Wind Sturm Nebel Schnee Hagel Gewitter Blitz Donner Regenbogen Frost Tau Glatteis Hitze Orkan Tornado Föhn Bise Lawine Schauer Graupel Dunst Thermometer Hochdruck Tiefdruck Wetterbericht Nieselregen Schneeflocke Sonnenschein Kälte' },
-    { name:'Schule', alias:['schulsachen', 'schulzimmer', 'unterricht'], w:'Heft Buch Füller Bleistift Radiergummi Lineal Schere Leim Pinsel Wandtafel Kreide Pause Lehrerin Klasse Zeugnis Prüfung Hausaufgabe Stundenplan Turnhalle Pult Zirkel Atlas Etui Spitzer Mathematik Deutsch Musik Zeichnen Schulweg Ferien Pausenplatz Wörterbuch' },
-    { name:'Körper', alias:['körperteile', 'mensch', 'menschlicher körper'], w:'Kopf Auge Nase Mund Ohr Hals Schulter Arm Ellbogen Hand Finger Daumen Bauch Rücken Bein Knie Fuss Zehe Herz Lunge Magen Leber Niere Gehirn Haut Knochen Muskel Zahn Zunge Wimper Stirn Kinn' },
-    { name:'Verkehr', alias:['fahrzeuge', 'fahrzeug', 'mobilität'], w:'Auto Bus Zug Tram Velo Motorrad Lastwagen Traktor Flugzeug Schiff Fähre Helikopter Rakete Taxi Ampel Strasse Brücke Tunnel Bahnhof Flughafen Hafen Kreisel Trottoir Fahrplan Gondel Seilbahn Roller Kutsche Ballon Lokomotive Zebrastreifen Autobahn' },
-    { name:'Weltraum', alias:['all', 'weltall', 'universum', 'planeten', 'astronomie'], w:'Sonne Mond Erde Mars Venus Merkur Jupiter Saturn Uranus Neptun Stern Komet Planet Galaxie Rakete Astronaut Satellit Meteorit Krater Teleskop Raumstation Umlaufbahn Asteroid Sternbild Milchstrasse Schwerkraft Raumanzug Mondlandung Polarstern Sonnensystem Weltall Sternschnuppe' },
-    { name:'Pflanzen und Wald', alias:['pflanzen', 'wald', 'bäume', 'blumen'], w:'Baum Blume Tanne Fichte Buche Eiche Birke Ahorn Linde Moos Farn Pilz Rose Tulpe Nelke Lilie Sonnenblume Löwenzahn Klee Efeu Kaktus Wurzel Stamm Rinde Blatt Knospe Blüte Samen Zapfen Lichtung Waldboden Brombeere' },
-    { name:'Essen und Küche', alias:['essen', 'küche', 'lebensmittel', 'kochen'], w:'Brot Butter Käse Milch Joghurt Honig Nudeln Reis Suppe Pizza Salat Kuchen Gipfeli Rösti Fondue Raclette Müesli Wurst Schinken Pfanne Topf Löffel Gabel Messer Teller Tasse Ofen Herd Rezept Gewürz Schokolade Zopf' },
-    { name:'Kleidung', alias:['kleider', 'mode'], w:'Hose Hemd Jacke Mantel Pullover Rock Kleid Socke Schuh Stiefel Mütze Schal Handschuh Gürtel Krawatte Bluse Weste Pyjama Badehose Sandale Kappe Hut Regenjacke Strumpfhose Unterhemd Turnschuh Kapuze Knopf Reissverschluss Anzug Schürze Halstuch' },
-    { name:'Farben und Formen', alias:['farben', 'formen', 'geometrie'], w:'Rot Blau Gelb Grün Violett Rosa Braun Schwarz Weiss Grau Türkis Silber Gold Kreis Dreieck Quadrat Rechteck Kugel Würfel Kegel Zylinder Pyramide Oval Raute Stern Herz Spirale Linie Punkt Fünfeck Sechseck Prisma' },
-    { name:'Meer und Wasser', alias:['meer', 'wasser', 'see', 'ozean'], w:'Meer See Fluss Bach Welle Strand Insel Muschel Koralle Qualle Fisch Wal Robbe Krebs Seestern Anker Leuchtturm Boot Segel Hafen Ebbe Flut Ufer Quelle Wasserfall Gletscher Tropfen Algen Möwe Tintenfisch Seepferdchen Delfin' },
-    { name:'Jahreszeiten', alias:['herbst', 'winter', 'frühling', 'sommer', 'jahreszeit'], w:'Frühling Sommer Herbst Winter Kastanie Eichel Laub Drachen Ernte Kürbis Nebel Pilz Igel Eichhörnchen Vogelzug Regenschirm Gummistiefel Marroni Laterne Schneemann Schlitten Knospe Badesee Glace Gewitter Blütenduft Osterhase Maikäfer Sonnenhut Erntedank Raureif Eiszapfen' },
-    { name:'Weihnachten', alias:['advent', 'weihnacht', 'winterfest'], w:'Advent Kerze Krippe Engel Stern Geschenk Tannenbaum Christkind Lebkuchen Guetzli Schlitten Rentier Schneemann Glocke Kugel Lametta Adventskranz Samichlaus Schmutzli Grittibänz Zimtstern Mandarine Nüsse Krippenspiel Lichterkette Bescherung Hirten Ochse Esel Weihnachtsmarkt Tannzapfen Geschenkpapier' },
-    { name:'Steinzeit', alias:['urgeschichte', 'altsteinzeit', 'jungsteinzeit', 'steinzeitmenschen'], w:'Faustkeil Mammut Höhle Feuer Speer Jäger Sammler Fell Knochen Beeren Pfeil Bogen Nadel Hirsch Zelt Rentier Harpune Feuerstein Höhlenbild Wollnashorn Sippe Schaber Speerschleuder Bernstein Pfahlbau Getreide Töpfern Sichel Mahlstein Langhaus Webstuhl Steinbeil' },
-    { name:'Römer', alias:['römerzeit', 'rom', 'antike', 'römisches reich'], w:'Kolosseum Aquädukt Legionär Toga Therme Forum Tempel Senat Kaiser Gladiator Amphore Mosaik Villa Strasse Münze Latrine Tunika Wagen Schild Arena Zenturio Sklave Konsul Triumphbogen Kastell Helm Sandalen Galeere Lorbeerkranz Hypokaustum Abakus Wölfin' },
-    { name:'Mittelalter', alias:['ritter', 'burg', 'ritterzeit'], w:'Burg Ritter König Königin Knappe Page Turnier Lanze Schwert Rüstung Wappen Zugbrücke Burggraben Bergfried Kloster Mönch Nonne Markt Händler Bauer Zunft Handwerker Pest Kathedrale Gaukler Minnesänger Pranger Stadtmauer Schmied Kogge Burgfräulein Urkunde' }
+    { name:tx('Tiere'), alias:['tier', 'haustiere', 'zoo', 'bauernhof'], w:tx('Hund Katze Pferd Kuh Schaf Ziege Schwein Hase Maus Fuchs Wolf Bär Löwe Tiger Elefant Giraffe Zebra Affe Igel Eule Adler Frosch Delfin Krokodil Pinguin Biber Hirsch Dachs Esel Kamel Papagei Schildkröte') },
+    { name:tx('Fussball'), alias:[tx('fußball'), 'fussballspiel', 'soccer', 'kicken'], w:tx('Tor Ball Torwart Stürmer Verteidiger Schiedsrichter Elfmeter Penalty Abseits Ecke Freistoss Trikot Stadion Rasen Pfiff Karte Fans Pokal Meister Liga Trainer Mannschaft Kopfball Flanke Dribbling Anstoss Halbzeit Tribüne Mittelfeld Fussballschuh Schienbeinschoner Weltmeister') },
+    { name:tx('Obst und Gemüse'), alias:['obst', tx('gemüse'), tx('früchte'), 'frucht'], w:tx('Apfel Birne Banane Kirsche Traube Erdbeere Himbeere Pflaume Zitrone Orange Melone Ananas Mango Kiwi Karotte Gurke Tomate Paprika Zwiebel Kartoffel Salat Spinat Kürbis Lauch Erbse Bohne Brokkoli Radieschen Sellerie Knoblauch Aprikose Feige') },
+    { name:tx('Berufe'), alias:['beruf', 'arbeit'], w:tx('Bäcker Lehrerin Arzt Pilot Koch Maler Gärtner Polizist Förster Bauer Metzger Schreiner Elektriker Pflegerin Coiffeur Fischer Kellner Zahnarzt Tierarzt Richter Journalist Architekt Mechaniker Floristin Sänger Schneider Apotheker Postbote Dachdecker Informatiker Hebamme Zimmermann') },
+    { name:tx('Sport'), alias:['sportarten'], w:tx('Fussball Tennis Handball Hockey Golf Rudern Segeln Skifahren Schwimmen Turnen Boxen Judo Reiten Klettern Laufen Radfahren Volleyball Basketball Badminton Curling Biathlon Fechten Tischtennis Surfen Tauchen Rugby Eishockey Snowboard Kanu Yoga Schwingen Unihockey') },
+    { name:tx('Musikinstrumente'), alias:['musik', 'instrumente', 'instrument'], w:tx('Gitarre Klavier Geige Flöte Trompete Posaune Trommel Harfe Cello Orgel Tuba Oboe Fagott Klarinette Saxofon Bratsche Kontrabass Akkordeon Xylofon Banjo Ukulele Mundharmonika Alphorn Hackbrett Triangel Pauke Zither Dudelsack Blockflöte Schlagzeug Horn Tamburin') },
+    { name:tx('Länder'), alias:['land', 'staaten', 'geografie', 'europa'], w:tx('Schweiz Deutschland Österreich Italien Frankreich Spanien Portugal Belgien Polen Ungarn Schweden Norwegen Finnland Dänemark Irland Island Griechenland Türkei Kroatien Rumänien Japan China Indien Brasilien Kanada Mexiko Ägypten Kenia Peru Chile Australien Marokko') },
+    { name:tx('Wetter'), alias:['klima', 'wetterlage'], w:tx('Regen Sonne Wolke Wind Sturm Nebel Schnee Hagel Gewitter Blitz Donner Regenbogen Frost Tau Glatteis Hitze Orkan Tornado Föhn Bise Lawine Schauer Graupel Dunst Thermometer Hochdruck Tiefdruck Wetterbericht Nieselregen Schneeflocke Sonnenschein Kälte') },
+    { name:tx('Schule'), alias:['schulsachen', 'schulzimmer', 'unterricht'], w:tx('Heft Buch Füller Bleistift Radiergummi Lineal Schere Leim Pinsel Wandtafel Kreide Pause Lehrerin Klasse Zeugnis Prüfung Hausaufgabe Stundenplan Turnhalle Pult Zirkel Atlas Etui Spitzer Mathematik Deutsch Musik Zeichnen Schulweg Ferien Pausenplatz Wörterbuch') },
+    { name:tx('Körper'), alias:[tx('körperteile'), 'mensch', tx('menschlicher körper')], w:tx('Kopf Auge Nase Mund Ohr Hals Schulter Arm Ellbogen Hand Finger Daumen Bauch Rücken Bein Knie Fuss Zehe Herz Lunge Magen Leber Niere Gehirn Haut Knochen Muskel Zahn Zunge Wimper Stirn Kinn') },
+    { name:tx('Verkehr'), alias:['fahrzeuge', 'fahrzeug', tx('mobilität')], w:tx('Auto Bus Zug Tram Velo Motorrad Lastwagen Traktor Flugzeug Schiff Fähre Helikopter Rakete Taxi Ampel Strasse Brücke Tunnel Bahnhof Flughafen Hafen Kreisel Trottoir Fahrplan Gondel Seilbahn Roller Kutsche Ballon Lokomotive Zebrastreifen Autobahn') },
+    { name:tx('Weltraum'), alias:['all', 'weltall', 'universum', 'planeten', 'astronomie'], w:tx('Sonne Mond Erde Mars Venus Merkur Jupiter Saturn Uranus Neptun Stern Komet Planet Galaxie Rakete Astronaut Satellit Meteorit Krater Teleskop Raumstation Umlaufbahn Asteroid Sternbild Milchstrasse Schwerkraft Raumanzug Mondlandung Polarstern Sonnensystem Weltall Sternschnuppe') },
+    { name:tx('Pflanzen und Wald'), alias:['pflanzen', 'wald', tx('bäume'), 'blumen'], w:tx('Baum Blume Tanne Fichte Buche Eiche Birke Ahorn Linde Moos Farn Pilz Rose Tulpe Nelke Lilie Sonnenblume Löwenzahn Klee Efeu Kaktus Wurzel Stamm Rinde Blatt Knospe Blüte Samen Zapfen Lichtung Waldboden Brombeere') },
+    { name:tx('Essen und Küche'), alias:['essen', tx('küche'), 'lebensmittel', 'kochen'], w:tx('Brot Butter Käse Milch Joghurt Honig Nudeln Reis Suppe Pizza Salat Kuchen Gipfeli Rösti Fondue Raclette Müesli Wurst Schinken Pfanne Topf Löffel Gabel Messer Teller Tasse Ofen Herd Rezept Gewürz Schokolade Zopf') },
+    { name:tx('Kleidung'), alias:['kleider', 'mode'], w:tx('Hose Hemd Jacke Mantel Pullover Rock Kleid Socke Schuh Stiefel Mütze Schal Handschuh Gürtel Krawatte Bluse Weste Pyjama Badehose Sandale Kappe Hut Regenjacke Strumpfhose Unterhemd Turnschuh Kapuze Knopf Reissverschluss Anzug Schürze Halstuch') },
+    { name:tx('Farben und Formen'), alias:['farben', 'formen', 'geometrie'], w:tx('Rot Blau Gelb Grün Violett Rosa Braun Schwarz Weiss Grau Türkis Silber Gold Kreis Dreieck Quadrat Rechteck Kugel Würfel Kegel Zylinder Pyramide Oval Raute Stern Herz Spirale Linie Punkt Fünfeck Sechseck Prisma') },
+    { name:tx('Meer und Wasser'), alias:['meer', 'wasser', 'see', 'ozean'], w:tx('Meer See Fluss Bach Welle Strand Insel Muschel Koralle Qualle Fisch Wal Robbe Krebs Seestern Anker Leuchtturm Boot Segel Hafen Ebbe Flut Ufer Quelle Wasserfall Gletscher Tropfen Algen Möwe Tintenfisch Seepferdchen Delfin') },
+    { name:tx('Jahreszeiten'), alias:['herbst', 'winter', tx('frühling'), 'sommer', 'jahreszeit'], w:tx('Frühling Sommer Herbst Winter Kastanie Eichel Laub Drachen Ernte Kürbis Nebel Pilz Igel Eichhörnchen Vogelzug Regenschirm Gummistiefel Marroni Laterne Schneemann Schlitten Knospe Badesee Glace Gewitter Blütenduft Osterhase Maikäfer Sonnenhut Erntedank Raureif Eiszapfen') },
+    { name:tx('Weihnachten'), alias:['advent', 'weihnacht', 'winterfest'], w:tx('Advent Kerze Krippe Engel Stern Geschenk Tannenbaum Christkind Lebkuchen Guetzli Schlitten Rentier Schneemann Glocke Kugel Lametta Adventskranz Samichlaus Schmutzli Grittibänz Zimtstern Mandarine Nüsse Krippenspiel Lichterkette Bescherung Hirten Ochse Esel Weihnachtsmarkt Tannzapfen Geschenkpapier') },
+    { name:tx('Steinzeit'), alias:['urgeschichte', 'altsteinzeit', 'jungsteinzeit', 'steinzeitmenschen'], w:tx('Faustkeil Mammut Höhle Feuer Speer Jäger Sammler Fell Knochen Beeren Pfeil Bogen Nadel Hirsch Zelt Rentier Harpune Feuerstein Höhlenbild Wollnashorn Sippe Schaber Speerschleuder Bernstein Pfahlbau Getreide Töpfern Sichel Mahlstein Langhaus Webstuhl Steinbeil') },
+    { name:tx('Römer'), alias:[tx('römerzeit'), 'rom', 'antike', tx('römisches reich')], w:tx('Kolosseum Aquädukt Legionär Toga Therme Forum Tempel Senat Kaiser Gladiator Amphore Mosaik Villa Strasse Münze Latrine Tunika Wagen Schild Arena Zenturio Sklave Konsul Triumphbogen Kastell Helm Sandalen Galeere Lorbeerkranz Hypokaustum Abakus Wölfin') },
+    { name:tx('Mittelalter'), alias:['ritter', 'burg', 'ritterzeit'], w:tx('Burg Ritter König Königin Knappe Page Turnier Lanze Schwert Rüstung Wappen Zugbrücke Burggraben Bergfried Kloster Mönch Nonne Markt Händler Bauer Zunft Handwerker Pest Kathedrale Gaukler Minnesänger Pranger Stadtmauer Schmied Kogge Burgfräulein Urkunde') }
   ];
   function schluessel(t){ return String(t || '').toLocaleLowerCase('de-CH').replace(/ß/g, 'ss').replace(/[^\p{L} ]/gu, '').replace(/\s+/g, ' ').trim(); }
   function findeThema(t){
@@ -55,9 +56,9 @@ var Wortwahl = (function(){
 
   /* ---------- Wortarten ---------- */
   var ARTEN = {
-    nomen:    { name:'Nomen',     schluessel:'nomen',     regel:'Nomen in der Einzahl, mit grossem Anfangsbuchstaben, ohne Artikel (z. B. «Kamera»)' },
-    verb:     { name:'Verben',    schluessel:'verben',    regel:'Verben in der Grundform (Infinitiv), klein geschrieben (z. B. «rennen»)' },
-    adjektiv: { name:'Adjektive', schluessel:'adjektive', regel:'Adjektive in der Grundform, klein geschrieben (z. B. «schnell»)' }
+    nomen:    { name:tx('Nomen'),     schluessel:'nomen',     regel:tx('Nomen in der Einzahl, mit grossem Anfangsbuchstaben, ohne Artikel (z. B. «Kamera»)') },
+    verb:     { name:tx('Verben'),    schluessel:'verben',    regel:tx('Verben in der Grundform (Infinitiv), klein geschrieben (z. B. «rennen»)') },
+    adjektiv: { name:tx('Adjektive'), schluessel:'adjektive', regel:tx('Adjektive in der Grundform, klein geschrieben (z. B. «schnell»)') }
   };
   var REIHE = ['nomen', 'verb', 'adjektiv'], ARTEN_SPEICHER = 'raetsellabor-wortarten';
   function wortarten(neu){
@@ -70,7 +71,7 @@ var Wortwahl = (function(){
   }
   function artenText(arten){   // «Nomen», «Nomen und Verben», «Nomen, Verben und Adjektive»
     var n = arten.map(function(a){ return ARTEN[a].name; });
-    return n.length < 2 ? n.join('') : n.slice(0, -1).join(', ') + ' und ' + n[n.length - 1];
+    return n.length < 2 ? n.join('') : n.slice(0, -1).join(', ') + tx(' und ') + n[n.length - 1];
   }
   // Nomen gross, Verben und Adjektive klein
   function schreibweise(w, art){
@@ -79,7 +80,7 @@ var Wortwahl = (function(){
   }
 
   /* ---------- Kein Wort, das das Suchwort enthält (Film → kein «Spielfilm»; Vulkane → kein «Vulkanausbruch») ---------- */
-  var FUELL = {}; 'und oder im in der die das den dem des von vom mit am für zum zur ein eine auf bei aus the'.split(' ').forEach(function(w){ FUELL[w] = 1; });
+  var FUELL = {}; tx('und oder im in der die das den dem des von vom mit am für zum zur ein eine auf bei aus the').split(' ').forEach(function(w){ FUELL[w] = 1; });
   function ohneUmlaut(w){ return w.replace(/ä/g, 'a').replace(/ö/g, 'o').replace(/ü/g, 'u'); }
   function themaStaemme(thema){
     return schluessel(thema).split(' ').filter(function(w){ return w.length >= 3 && !FUELL[w]; }).map(function(w){
@@ -99,18 +100,18 @@ var Wortwahl = (function(){
   function kiAuftrag(thema, arten, schon){
     var t = String(thema).slice(0, 80), je = Math.round(30 / arten.length);
     return {
-      system:'Du hilfst Lehrpersonen in der Schweiz, Worträtsel für Kinder zu erstellen. Du antwortest nur mit JSON.',
-      text:'Thema: «' + t + '»\n' +
-        'Gesucht sind Wörter, die eng zu diesem Thema gehören:\n' +
+      system:tx('Du hilfst Lehrpersonen in der Schweiz, Worträtsel für Kinder zu erstellen. Du antwortest nur mit JSON.'),
+      text:tx('Thema: «') + t + '»\n' +
+        tx('Gesucht sind Wörter, die eng zu diesem Thema gehören:\n') +
         arten.map(function(a){ return '- ' + je + ' ' + ARTEN[a].regel; }).join('\n') + '\n' +
-        'Ganz wichtig: Kinder von 8 bis 14 Jahren müssen jedes Wort sicher kennen und verstehen. Nimm einfache, alltagsnahe Wörter ' +
-        'aus dem Grundwortschatz – keine Fachbegriffe, keine Fremdwörter, keine seltenen oder altmodischen Wörter. ' +
-        'Lieber ein einfaches, bekanntes Wort als ein genaues, schwieriges.\n' +
-        'Regeln:\n- Je ein einzelnes Wort ohne Leerzeichen, Bindestriche, Ziffern oder Abkürzungen, 3 bis 12 Buchstaben, gemischte Längen.\n' +
-        '- Kein Wort darf «' + t + '» enthalten (keine Zusammensetzungen mit dem Thema selbst).\n' +
-        '- Keine Namen von Personen, Marken oder Orten.\n- Schweizer Rechtschreibung: ss statt ß.\n' +
-        (schon.length ? '- Nicht diese Wörter (schon vorgeschlagen): ' + schon.slice(-80).join(', ') + '\n' : '') +
-        'Antworte nur mit JSON in dieser Form: {' + arten.map(function(a){ return '"' + ARTEN[a].schluessel + '": ["…"]'; }).join(', ') + '}'
+        tx('Ganz wichtig: Kinder von 8 bis 14 Jahren müssen jedes Wort sicher kennen und verstehen. Nimm einfache, alltagsnahe Wörter ') +
+        tx('aus dem Grundwortschatz – keine Fachbegriffe, keine Fremdwörter, keine seltenen oder altmodischen Wörter. ') +
+        tx('Lieber ein einfaches, bekanntes Wort als ein genaues, schwieriges.\n') +
+        tx('Regeln:\n- Je ein einzelnes Wort ohne Leerzeichen, Bindestriche, Ziffern oder Abkürzungen, 3 bis 12 Buchstaben, gemischte Längen.\n') +
+        tx('- Kein Wort darf «') + t + tx('» enthalten (keine Zusammensetzungen mit dem Thema selbst).\n') +
+        tx('- Keine Namen von Personen, Marken oder Orten.\n- Schweizer Rechtschreibung: ss statt ß.\n') +
+        (schon.length ? tx('- Nicht diese Wörter (schon vorgeschlagen): ') + schon.slice(-80).join(', ') + '\n' : '') +
+        tx('Antworte nur mit JSON in dieser Form: {') + arten.map(function(a){ return '"' + ARTEN[a].schluessel + '": ["…"]'; }).join(', ') + '}'
     };
   }
   // Antwort der KI (Objekt mit Listen je Wortart, oder eine einfache Liste) → [{ wort, art }]
@@ -168,25 +169,25 @@ var Wortwahl = (function(){
   function html(nr){
     return '<div class="karte">' +
       '<div class="karte-kopf"><span class="stufe" aria-hidden="true">' + (nr || 1) + '</span>' +
-        '<div><h2>Thema und Wörter</h2><p>Thema eingeben, Wortarten wählen und Wörter vorschlagen lassen. Vorschläge anklicken – eigene Wörter gehen immer.</p></div></div>' +
-      '<label class="feld-label" for="titel">Thema</label>' +
+        tx('<div><h2>Thema und Wörter</h2><p>Thema eingeben, Wortarten wählen und Wörter vorschlagen lassen. Vorschläge anklicken – eigene Wörter gehen immer.</p></div></div>') +
+      tx('<label class="feld-label" for="titel">Thema</label>') +
       '<div class="zeile"><input type="text" id="titel" maxlength="60" autocomplete="off">' +
-        '<button type="button" class="btn soft" id="vorschlagen">Wörter vorschlagen</button></div>' +
-      '<div class="wortarten" role="group" aria-label="Wortarten für die Vorschläge"><span class="wortarten-titel">Vorschlagen:</span>' +
+        tx('<button type="button" class="btn soft" id="vorschlagen">Wörter vorschlagen</button></div>') +
+      tx('<div class="wortarten" role="group" aria-label="Wortarten für die Vorschläge"><span class="wortarten-titel">Vorschlagen:</span>') +
         REIHE.map(function(a){ return '<label class="wortart"><input type="checkbox" value="' + a + '"><span>' + ARTEN[a].name + '</span></label>'; }).join('') + '</div>' +
       '<div class="vorschlaege" id="vorschlaege" hidden>' +
         '<div class="vorschlaege-kopf"><strong id="vorschlagTitel"></strong><span>' +
-          '<button type="button" class="btn ghost klein" id="alleUebernehmen">Alle übernehmen</button>' +
-          '<button type="button" class="btn ghost klein" id="mehrVorschlaege">Andere Vorschläge</button></span></div>' +
-        '<div class="chips" id="vorschlagChips" role="group" aria-label="Vorgeschlagene Wörter"></div>' +
+          tx('<button type="button" class="btn ghost klein" id="alleUebernehmen">Alle übernehmen</button>') +
+          tx('<button type="button" class="btn ghost klein" id="mehrVorschlaege">Andere Vorschläge</button></span></div>') +
+        tx('<div class="chips" id="vorschlagChips" role="group" aria-label="Vorgeschlagene Wörter"></div>') +
         '<p class="hinweis" id="vorschlagInfo" aria-live="polite"></p></div>' +
       '<div class="trenner"></div>' +
-      '<div class="woerter-kopf"><span class="feld-label">Deine Wörter<span class="zaehler" id="wortZaehler"></span></span>' +
-        '<button type="button" class="btn ghost klein" id="alleWeg">Alle entfernen</button></div>' +
+      tx('<div class="woerter-kopf"><span class="feld-label">Deine Wörter<span class="zaehler" id="wortZaehler"></span></span>') +
+        tx('<button type="button" class="btn ghost klein" id="alleWeg">Alle entfernen</button></div>') +
       '<div class="chips gewaehlt" id="wortChips" aria-live="polite"></div>' +
-      '<label class="feld-label eigenes-label" for="eigenesWort">Eigene Wörter (mehrere mit Komma trennen)</label>' +
+      tx('<label class="feld-label eigenes-label" for="eigenesWort">Eigene Wörter (mehrere mit Komma trennen)</label>') +
       '<div class="zeile"><input type="text" id="eigenesWort" maxlength="200" autocomplete="off" spellcheck="false">' +
-        '<button type="button" class="btn" id="wortPlus">Hinzufügen</button></div>' +
+        tx('<button type="button" class="btn" id="wortPlus">Hinzufügen</button></div>') +
       '<p class="hinweis" id="wortInfo" aria-live="polite"></p>' +
     '</div>';
   }
@@ -217,7 +218,7 @@ var Wortwahl = (function(){
 
     function vorschlagen(mehr){
       var t = titel.value.trim(), token = ++lauf, arten = wortarten(), key = t + '|' + arten.join(',');
-      if (!t){ titel.focus(); info('Gib zuerst ein Thema ein.'); return; }
+      if (!t){ titel.focus(); info(tx('Gib zuerst ein Thema ein.')); return; }
       if (!mehr || !vorschlag || vorschlag.key !== key) vorschlag = { thema:t, arten:arten, key:key, woerter:[], gezeigt:{}, pool:null, alle:[] };
       var th = findeThema(t), staemme = themaStaemme(t);
       // eingebaute Liste (Nomen) als Ersatz, falls die KI nicht antwortet; ohne Wörter, die das Suchwort enthalten
@@ -240,7 +241,7 @@ var Wortwahl = (function(){
     }
     function kiVersuch(token){
       if (Labor.imArtefakt()){ claudeFragen(token); return; }   // im Artefakt ist das Internet gesperrt
-      laedt(true, 'Die KI sucht passende ' + artenText(vorschlag.arten) + ' …');
+      laedt(true, tx('Die KI sucht passende ') + artenText(vorschlag.arten) + ' …');
       kiFragen(vorschlag.thema, vorschlag.arten, vorschlag.alle).then(function(r){
         if (token !== lauf || aus) return;
         var gut = aufbereiten(r.woerter);
@@ -254,20 +255,20 @@ var Wortwahl = (function(){
       });
     }
     function kiNotiz(code){
-      return code === 'keinServer' ? 'Die KI ist auf dieser Seite nicht verfügbar.' :
-        code === 'nichtEingerichtet' ? 'Die KI ist noch nicht eingerichtet: Auf dem Server fehlt der Schlüssel.' :
-        code === 'guthaben' ? 'Das Kontingent der KI ist aufgebraucht.' :
-        code === 'zuViele' ? 'Die KI hat gerade zu viele Anfragen – bitte in einem Moment nochmals versuchen.' :
-        code === 'serverSchluessel' ? 'Der KI-Schlüssel auf dem Server wurde abgelehnt.' :
-        code === 'keineNeuen' ? 'Die KI hatte keine weiteren Vorschläge.' :
-        code === 'netz' || code === 'ki' ? 'Die KI hat gerade nicht geantwortet – bitte nochmals versuchen.' : 'Die KI hat nicht brauchbar geantwortet – bitte nochmals versuchen.';
+      return code === 'keinServer' ? tx('Die KI ist auf dieser Seite nicht verfügbar.') :
+        code === 'nichtEingerichtet' ? tx('Die KI ist noch nicht eingerichtet: Auf dem Server fehlt der Schlüssel.') :
+        code === 'guthaben' ? tx('Das Kontingent der KI ist aufgebraucht.') :
+        code === 'zuViele' ? tx('Die KI hat gerade zu viele Anfragen – bitte in einem Moment nochmals versuchen.') :
+        code === 'serverSchluessel' ? tx('Der KI-Schlüssel auf dem Server wurde abgelehnt.') :
+        code === 'keineNeuen' ? tx('Die KI hatte keine weiteren Vorschläge.') :
+        code === 'netz' || code === 'ki' ? tx('Die KI hat gerade nicht geantwortet – bitte nochmals versuchen.') : tx('Die KI hat nicht brauchbar geantwortet – bitte nochmals versuchen.');
     }
     // Ohne KI: eingebaute Liste, falls es eine gibt, sonst eine Erklärung
     function ohneKi(notiz){
       laedt(false);
       vorschlag.notiz = notiz;
       var liste = vorschlag.ctx.liste.filter(function(x){ return !vorschlag.gezeigt[norm(x.w)]; });
-      if (liste.length){ vorschlag.quelle = 'Themenliste'; zeige(mischen(liste).slice(0, 20), 'Themenliste'); return; }
+      if (liste.length){ vorschlag.quelle = tx('Themenliste'); zeige(mischen(liste).slice(0, 20), tx('Themenliste')); return; }
       info(esc(notiz) + (vorschlag.woerter.length ? '' : ' ' + eingebaute()));
     }
     // Aus dem Vorrat der KI: bis 20 Wörter, die Wortarten abwechselnd; ist er fast leer, die KI nochmals fragen
@@ -281,31 +282,31 @@ var Wortwahl = (function(){
       zeige(neu, vorschlag.quelle || 'KI');
     }
     function claudeFragen(token){
-      laedt(true, 'Claude sucht passende ' + artenText(vorschlag.arten) + ' …');
+      laedt(true, tx('Claude sucht passende ') + artenText(vorschlag.arten) + ' …');
       Labor.claude('sample').then(function(ki){
         if (token !== lauf || aus) return;
-        if (!ki || kiAus){ ohneKi('Vorschläge von Claude sind hier nicht verfügbar.'); return; }
+        if (!ki || kiAus){ ohneKi(tx('Vorschläge von Claude sind hier nicht verfügbar.')); return; }
         var a = kiAuftrag(vorschlag.thema, vorschlag.arten, vorschlag.alle);
         ki.json(a.system + '\n\n' + a.text, vorschlag.woerter.length ? { modelTier:'quick', cache:false } : { modelTier:'quick' }).then(function(d){
           if (token !== lauf || aus) return;
           var gut = aufbereiten(kiListe(d, vorschlag.arten));
-          if (gut.length < 3){ ohneKi('Es kamen keine brauchbaren Vorschläge. Versuch es nochmals oder formuliere das Thema etwas anders.'); return; }
+          if (gut.length < 3){ ohneKi(tx('Es kamen keine brauchbaren Vorschläge. Versuch es nochmals oder formuliere das Thema etwas anders.')); return; }
           laedt(false);
-          vorschlag.kiName = 'Claude'; vorschlag.pool = gut; vorschlag.quelle = 'Claude';
+          vorschlag.kiName = tx('Claude'); vorschlag.pool = gut; vorschlag.quelle = tx('Claude');
           ausPool();
         }).catch(function(e){
           if (token !== lauf || aus) return;
           var c = e && e.code;
           if (c === 'cancelled'){ laedt(false); return; }
-          if (['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'].indexOf(c) >= 0){ kiAus = true; ohneKi('Vorschläge von Claude sind hier nicht verfügbar.'); }
-          else if (c === 'rate_limited') ohneKi('Gerade zu viele Anfragen – bitte in einem Moment nochmals versuchen.');
-          else if (c === 'session_expired') ohneKi('Bitte melde dich bei Claude neu an und versuche es dann nochmals.');
-          else ohneKi('Die Vorschläge konnten nicht geladen werden. Versuch es nochmals oder formuliere das Thema etwas anders.');
+          if (['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'].indexOf(c) >= 0){ kiAus = true; ohneKi(tx('Vorschläge von Claude sind hier nicht verfügbar.')); }
+          else if (c === 'rate_limited') ohneKi(tx('Gerade zu viele Anfragen – bitte in einem Moment nochmals versuchen.'));
+          else if (c === 'session_expired') ohneKi(tx('Bitte melde dich bei Claude neu an und versuche es dann nochmals.'));
+          else ohneKi(tx('Die Vorschläge konnten nicht geladen werden. Versuch es nochmals oder formuliere das Thema etwas anders.'));
         });
       });
     }
-    function eingebaute(){ return 'Ohne KI gibt es Nomen zu diesen Themen: ' + THEMEN.map(function(th){ return th.name; }).join(', ') + '. Eigene Wörter gehen immer.'; }
-    function kopf(){ return artenText(vorschlag.arten) + ' zu «' + esc(vorschlag.thema) + '»'; }
+    function eingebaute(){ return tx('Ohne KI gibt es Nomen zu diesen Themen: ') + THEMEN.map(function(th){ return th.name; }).join(', ') + tx('. Eigene Wörter gehen immer.'); }
+    function kopf(){ return artenText(vorschlag.arten) + tx(' zu «') + esc(vorschlag.thema) + '»'; }
     function laedt(ja, text){
       $('#vorschlagen').disabled = ja; $('#mehrVorschlaege').disabled = ja;
       if (ja){
@@ -316,7 +317,7 @@ var Wortwahl = (function(){
     }
     function info(h){
       $('#vorschlaege').hidden = false;
-      if (!vorschlag || !vorschlag.woerter.length){ $('#vorschlagChips').innerHTML = ''; $('#vorschlagTitel').innerHTML = vorschlag ? kopf() : 'Wortvorschläge'; }
+      if (!vorschlag || !vorschlag.woerter.length){ $('#vorschlagChips').innerHTML = ''; $('#vorschlagTitel').innerHTML = vorschlag ? kopf() : tx('Wortvorschläge'); }
       $('#vorschlagInfo').innerHTML = h;
       $('#alleUebernehmen').hidden = $('#mehrVorschlaege').hidden = !vorschlag || !vorschlag.woerter.length;
     }
@@ -327,9 +328,9 @@ var Wortwahl = (function(){
       eintraege.forEach(function(x){ vorschlag.gezeigt[norm(x.w)] = true; });
       $('#vorschlaege').hidden = false;
       $('#vorschlagTitel').innerHTML = kopf() + '<span class="quelle">' +
-        (quelle === 'KI' || quelle === 'Claude' ? 'von ' + (quelle === 'Claude' ? 'Claude' : 'der KI') : 'eingebaute Liste') + '</span>';
-      $('#vorschlagInfo').innerHTML = 'Anklicken, um ein Wort zu übernehmen oder wieder zu entfernen.' +
-        (quelle === 'KI' ? ' Vorgeschlagen von einer KI (' + esc(vorschlag.kiName || 'KI') + ') – kurz prüfen, ob alles passt.' : '') +
+        (quelle === 'KI' || quelle === 'Claude' ? tx('von ') + (quelle === 'Claude' ? tx('Claude') : tx('der KI')) : tx('eingebaute Liste')) + '</span>';
+      $('#vorschlagInfo').innerHTML = tx('Anklicken, um ein Wort zu übernehmen oder wieder zu entfernen.') +
+        (quelle === 'KI' ? tx(' Vorgeschlagen von einer KI (') + esc(vorschlag.kiName || 'KI') + tx(') – kurz prüfen, ob alles passt.') : '') +
         (quelle === 'Themenliste' && vorschlag.notiz ? '<br><span class="ki-notiz">' + esc(vorschlag.notiz) + '</span>' : '');
       $('#alleUebernehmen').hidden = $('#mehrVorschlaege').hidden = false;
       var box = $('#vorschlagChips'); box.innerHTML = '';
@@ -360,8 +361,8 @@ var Wortwahl = (function(){
         drin[n] = true; st.woerter.push(w);
       });
       var notiz = [];
-      if (kurz.length) notiz.push('Zu kurz: ' + kurz.map(esc).join(', '));
-      if (schon.length && liste.length === 1) notiz.push('«' + esc(schon[0]) + '» ist schon in der Liste');
+      if (kurz.length) notiz.push(tx('Zu kurz: ') + kurz.map(esc).join(', '));
+      if (schon.length && liste.length === 1) notiz.push('«' + esc(schon[0]) + tx('» ist schon in der Liste'));
       zeichne(); o.geaendert(notiz.join(' · '));
     }
     function entferne(n){ st.woerter = st.woerter.filter(function(w){ return norm(w) !== n; }); zeichne(); o.geaendert(''); }
@@ -369,11 +370,11 @@ var Wortwahl = (function(){
       var box = $('#wortChips'), gesehen = {};
       box.innerHTML = '';
       st.woerter.forEach(function(w){
-        var n = norm(w), chip = document.createElement('span'), problem = n.length < 2 ? 'zu kurz' : gesehen[n] ? 'doppelt' : '';
+        var n = norm(w), chip = document.createElement('span'), problem = n.length < 2 ? tx('zu kurz') : gesehen[n] ? 'doppelt' : '';
         gesehen[n] = true;
-        chip.className = 'chip-wort' + (problem ? ' ungueltig' : '');
-        if (problem) chip.title = 'Wird weggelassen (' + problem + ')';
-        chip.innerHTML = '<span></span><button type="button" aria-label="' + esc(w) + ' entfernen" title="Entfernen">×</button>';
+        chip.className = 'chip-wort' + (problem ? tx(' ungueltig') : '');
+        if (problem) chip.title = tx('Wird weggelassen (') + problem + ')';
+        chip.innerHTML = '<span></span><button type="button" aria-label="' + esc(w) + tx(' entfernen" title="Entfernen">×</button>');
         chip.firstChild.textContent = w;
         chip.lastChild.addEventListener('click', function(){ var i = st.woerter.indexOf(w); if (i >= 0) st.woerter.splice(i, 1); zeichne(); o.geaendert(''); });
         box.appendChild(chip);
@@ -398,11 +399,11 @@ var Wortwahl = (function(){
       var b = this;
       if (!st.woerter.length) return;
       if (!b.classList.contains('sicher')){
-        b.classList.add('sicher'); b.textContent = 'Wirklich alle entfernen?';
-        clearTimeout(loeschTimer); loeschTimer = setTimeout(function(){ b.classList.remove('sicher'); b.textContent = 'Alle entfernen'; }, 4000);
+        b.classList.add('sicher'); b.textContent = tx('Wirklich alle entfernen?');
+        clearTimeout(loeschTimer); loeschTimer = setTimeout(function(){ b.classList.remove('sicher'); b.textContent = tx('Alle entfernen'); }, 4000);
         return;
       }
-      clearTimeout(loeschTimer); b.classList.remove('sicher'); b.textContent = 'Alle entfernen';
+      clearTimeout(loeschTimer); b.classList.remove('sicher'); b.textContent = tx('Alle entfernen');
       st.woerter = []; zeichne(); o.geaendert('');
     });
 

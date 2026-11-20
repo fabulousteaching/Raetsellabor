@@ -7,6 +7,7 @@
    Das Aussehen (Schrift, Farben der Ebenen) steht im Stylesheet des Generators. */
 var Gitter = (function(){
   'use strict';
+var tx = Labor.uebersetzer('labor');
   var S = 10, NS = 'http://www.w3.org/2000/svg';
   var FARBEN = ['#FAD852', '#68D77E', '#63C2EA', '#F7A25D', '#F27A8A', '#C4B5FD', '#5EEAD4', '#D8BC94'];   // aus den Flüssigkeiten im Fabulous-Teaching-Logo
   var RICHTUNGEN = [[0, 1], [1, 0], [1, 1], [1, -1], [0, -1], [-1, 0], [-1, -1], [-1, 1]];
@@ -71,7 +72,7 @@ var Gitter = (function(){
     o = o || {};
     var w = f.spalten * S, h = f.zeilen * S;
     var s = el('svg', { viewBox:'0 0 ' + w + ' ' + h, 'class':'gitter', role:'img', style:'--spalten:' + f.spalten,
-      'aria-label':'Buchstabenfeld mit ' + f.spalten + ' Spalten und ' + f.zeilen + ' Zeilen' });
+      'aria-label':tx('Buchstabenfeld mit ') + f.spalten + tx(' Spalten und ') + f.zeilen + tx(' Zeilen') });
     el('rect', { x:0, y:0, width:w, height:h, fill:'#fff' }, s);
     var gL = el('g', { 'class':'ebene-loesung' }, s);
     f.woerter.forEach(function(wort, i){ kapsel(gL, wort.zellen, FARBEN[i % FARBEN.length]); });

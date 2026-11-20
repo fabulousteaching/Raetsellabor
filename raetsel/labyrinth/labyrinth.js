@@ -5,6 +5,7 @@
    Beide am Bildschirm lösbar (Weg ziehen), Druck mit Lösungsblatt. */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('labyrinth');
 
 /* KERN-START */
 var Kern = (function(){
@@ -190,61 +191,61 @@ var Kern = (function(){
 
 /* ===== Vorlage ===== */
 var PAARE = [   // Kürzel, Start, Ziel, «Hilf … », «… zum …»
-  ['pfeile', '▶', '🏁', '', 'zum Ziel'],
-  ['maus', '🐭', '🧀', 'der Maus', 'zum Käse'], ['hase', '🐰', '🥕', 'dem Hasen', 'zum Rüebli'], ['biene', '🐝', '🌻', 'der Biene', 'zur Blume'],
-  ['rakete', '🚀', '🪐', 'der Rakete', 'zum Planeten'], ['hund', '🐶', '🦴', 'dem Hund', 'zum Knochen'], ['pirat', '🦜', '💰', 'dem Papagei', 'zum Schatz']
+  ['pfeile', '▶', '🏁', '', tx('zum Ziel')],
+  ['maus', '🐭', '🧀', tx('der Maus'), tx('zum Käse')], ['hase', '🐰', '🥕', tx('dem Hasen'), tx('zum Rüebli')], ['biene', '🐝', '🌻', tx('der Biene'), tx('zur Blume')],
+  ['rakete', '🚀', '🪐', tx('der Rakete'), tx('zum Planeten')], ['hund', '🐶', '🦴', tx('dem Hund'), tx('zum Knochen')], ['pirat', '🦜', '💰', tx('dem Papagei'), tx('zum Schatz')]
 ];
-var STUFEN = { leicht:{ figur:10, neu:0.55, name:'Leicht' }, mittel:{ figur:16, neu:0.7, name:'Mittel' }, schwer:{ figur:24, neu:0.8, name:'Schwer' }, sehrschwer:{ figur:34, neu:0.85, name:'Sehr schwer' } };
-var FORMEN = { rechteck:'Rechteck', kreis:'Kreis', herz:'Herz', stern:'Stern', zufall:'Zufall' };
+var STUFEN = { leicht:{ figur:10, neu:0.55, name:tx('Leicht') }, mittel:{ figur:16, neu:0.7, name:tx('Mittel') }, schwer:{ figur:24, neu:0.8, name:tx('Schwer') }, sehrschwer:{ figur:34, neu:0.85, name:tx('Sehr schwer') } };
+var FORMEN = { rechteck:tx('Rechteck'), kreis:tx('Kreis'), herz:tx('Herz'), stern:tx('Stern'), zufall:tx('Zufall') };
 var KOPF = '<div class="lb">' +
-  '<header class="lb-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Labyrinth</h1>' +
-    '<p>Ein Labyrinth als Rechteck, Kreis, Herz, Stern oder in einer zufälligen Form – mit einem versteckten Lösungssatz (in jedem Feld ein Buchstabe, nur auf dem richtigen Weg ergeben sie deinen Satz) – oder ein Labyrinth, dessen richtiger Weg deinen Satz schreibt.</p></header>' +
+  tx('<header class="lb-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Labyrinth</h1>') +
+    tx('<p>Ein Labyrinth als Rechteck, Kreis, Herz, Stern oder in einer zufälligen Form – mit einem versteckten Lösungssatz (in jedem Feld ein Buchstabe, nur auf dem richtigen Weg ergeben sie deinen Satz) – oder ein Labyrinth, dessen richtiger Weg deinen Satz schreibt.</p></header>') +
   '<div class="lb-art-ort"></div></div>';
 // Karte 1 (bei allen Arten gleich): welche Art von Labyrinth?
 function artKarte(art){
-  function wahl(wert, titel, text){ return '<label><input type="radio" name="lbArt" value="' + wert + '"' + (art === wert ? ' checked' : '') + '><span><b>' + titel + '</b><small>' + text + '</small></span></label>'; }
-  return '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Art des Labyrinths</h2></div></div>' +
-    '<div class="lb-art" role="radiogroup" aria-label="Art des Labyrinths">' +
-      wahl('figur', 'Mit Start und Ziel', 'Rechteck, Kreis, Herz, Stern oder eine zufällige Form') +
-      wahl('satz', 'Mit Lösungssatz', 'In jedem Feld ein Buchstabe – der richtige Weg ergibt deinen Satz') +
-      wahl('schrift', 'Weg schreibt den Satz', 'Zeichnet man den richtigen Weg nach, erscheint dein Satz in Blockschrift') +
+  function wahl(wert, titel, text){ return '<label><input type="radio" name="lbArt" value="' + wert + '"' + (art === wert ? tx(' checked') : '') + '><span><b>' + titel + '</b><small>' + text + '</small></span></label>'; }
+  return tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Art des Labyrinths</h2></div></div>') +
+    tx('<div class="lb-art" role="radiogroup" aria-label="Art des Labyrinths">') +
+      wahl('figur', tx('Mit Start und Ziel'), tx('Rechteck, Kreis, Herz, Stern oder eine zufällige Form')) +
+      wahl('satz', tx('Mit Lösungssatz'), tx('In jedem Feld ein Buchstabe – der richtige Weg ergibt deinen Satz')) +
+      wahl('schrift', tx('Weg schreibt den Satz'), tx('Zeichnet man den richtigen Weg nach, erscheint dein Satz in Blockschrift')) +
     '</div></div>';
 }
 function figurVorlage(karte){
-  return '<div class="lb-layout"><section class="lb-eingabe" aria-label="Eingaben">' + karte +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Form</h2><p>«Zufall» erfindet bei jedem Erstellen und Mischen eine neue Form.</p></div></div>' +
-      '<div class="lb-wahl" role="radiogroup" aria-label="Form">' +
+  return tx('<div class="lb-layout"><section class="lb-eingabe" aria-label="Eingaben">') + karte +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Form</h2><p>«Zufall» erfindet bei jedem Erstellen und Mischen eine neue Form.</p></div></div>') +
+      tx('<div class="lb-wahl" role="radiogroup" aria-label="Form">') +
         Object.keys(FORMEN).map(function(f){ return '<label><input type="radio" name="lbForm" value="' + f + '"><span>' + FORMEN[f] + '</span></label>'; }).join('') + '</div>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Schwierigkeit</h2><p>Je schwerer, desto schmaler die Gänge und desto mehr Abzweigungen.</p></div></div>' +
-      '<div class="lb-stufen" role="radiogroup" aria-label="Schwierigkeit">' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Schwierigkeit</h2><p>Je schwerer, desto schmaler die Gänge und desto mehr Abzweigungen.</p></div></div>') +
+      tx('<div class="lb-stufen" role="radiogroup" aria-label="Schwierigkeit">') +
         Object.keys(STUFEN).map(function(k){ return '<label class="lb-stufe"><input type="radio" name="lbStufe" value="' + k + '"><span>' + STUFEN[k].name + '</span></label>'; }).join('') + '</div>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">4</span><div><h2>Start und Ziel</h2><p>Wer sucht den Weg wohin?</p></div></div>' +
-      '<div class="lb-paare" role="radiogroup" aria-label="Start und Ziel">' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">4</span><div><h2>Start und Ziel</h2><p>Wer sucht den Weg wohin?</p></div></div>') +
+      tx('<div class="lb-paare" role="radiogroup" aria-label="Start und Ziel">') +
         PAARE.map(function(p){ return '<label><input type="radio" name="lbPaar" value="' + p[0] + '"><span>' + p[1] + ' → ' + p[2] + '</span></label>'; }).join('') + '</div>' +
     '</div>' +
-    '<div class="karte"><details class="optionen"><summary>Einstellungen</summary>' +
-      '<div class="opt-raster"><label for="lbTitel">Titel auf dem Blatt</label><input type="text" id="lbTitel" maxlength="60">' +
-        '<label for="lbLinie">Linien</label><select id="lbLinie"><option value="0.9">dünn</option><option value="1.4">mittel</option><option value="2">dick</option></select>' +
-        '<label for="lbFarbe">Farbe der Wände</label><input type="color" id="lbFarbe"></div>' +
-      '<label class="opt"><input type="checkbox" id="lbToenen"><span>Form leicht einfärben</span></label>' +
+    tx('<div class="karte"><details class="optionen"><summary>Einstellungen</summary>') +
+      tx('<div class="opt-raster"><label for="lbTitel">Titel auf dem Blatt</label><input type="text" id="lbTitel" maxlength="60">') +
+        tx('<label for="lbLinie">Linien</label><select id="lbLinie"><option value="0.9">dünn</option><option value="1.4">mittel</option><option value="2">dick</option></select>') +
+        tx('<label for="lbFarbe">Farbe der Wände</label><input type="color" id="lbFarbe"></div>') +
+      tx('<label class="opt"><input type="checkbox" id="lbToenen"><span>Form leicht einfärben</span></label>') +
     '</details></div>' +
-    '<button type="button" class="btn primary gross" id="lbLos">Labyrinth erstellen</button>' +
+    tx('<button type="button" class="btn primary gross" id="lbLos">Labyrinth erstellen</button>') +
   '</section>' +
-  '<section class="lb-ausgabe" aria-label="Ergebnis">' +
+  tx('<section class="lb-ausgabe" aria-label="Ergebnis">') +
     '<div id="lbMeldung" aria-live="polite"></div>' +
-    '<div class="leer-zustand" id="lbLeer"><h2>Noch kein Labyrinth</h2><p>In drei Schritten zum Arbeitsblatt:</p><ol>' +
-      '<li>Eine Form wählen</li><li>Schwierigkeit und Start/Ziel wählen</li><li>«Labyrinth erstellen» klicken</li></ol></div>' +
+    tx('<div class="leer-zustand" id="lbLeer"><h2>Noch kein Labyrinth</h2><p>In drei Schritten zum Arbeitsblatt:</p><ol>') +
+      tx('<li>Eine Form wählen</li><li>Schwierigkeit und Start/Ziel wählen</li><li>«Labyrinth erstellen» klicken</li></ol></div>') +
     '<div class="lb-werkzeug" id="lbWerkzeug" hidden>' +
-      '<button type="button" class="btn klein" id="lbMischen" title="Gleiche Form, neues Labyrinth">Neu mischen</button>' +
-      '<button type="button" class="btn klein" id="lbZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
-      '<button type="button" class="btn klein" id="lbWegWeg">Weg löschen</button>' +
+      tx('<button type="button" class="btn klein" id="lbMischen" title="Gleiche Form, neues Labyrinth">Neu mischen</button>') +
+      tx('<button type="button" class="btn klein" id="lbZeigeLoesung" aria-pressed="false">Lösung zeigen</button>') +
+      tx('<button type="button" class="btn klein" id="lbWegWeg">Weg löschen</button>') +
       '<span class="abstand"></span>' +
       Labor.blattSchalterHtml() +
-      '<label><input type="checkbox" id="lbMitLoesung"> mit Lösungsblatt</label>' +
-      '<button type="button" class="btn klein primary" id="lbDrucken">PDF herunterladen</button>' +
-      '<button type="button" class="btn klein primary" id="lbHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
+      tx('<label><input type="checkbox" id="lbMitLoesung"> mit Lösungsblatt</label>') +
+      tx('<button type="button" class="btn klein primary" id="lbDrucken">PDF herunterladen</button>') +
+      tx('<button type="button" class="btn klein primary" id="lbHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>') +
     '</div>' +
     '<article class="lb-blatt" id="lbBlatt" hidden></article>' +
     '<article class="lb-blatt lb-loesungsblatt" id="lbLoesung" aria-hidden="true"></article>' +
@@ -330,13 +331,13 @@ function starteFigur(bereich){
       var m = Kern.figur(st.opt.form, g, Math.round(g * breit), st.seed);
       Kern.verbinden(m, 3);
       var lab = Kern.erzeugen(m, { seed:st.seed, neu:stufe.neu });
-      if (!lab){ meldung('fehler', '<h3>Das hat nicht geklappt</h3><p>Klicke noch einmal auf «Neu mischen».</p>'); return; }
+      if (!lab){ meldung('fehler', tx('<h3>Das hat nicht geklappt</h3><p>Klicke noch einmal auf «Neu mischen».</p>')); return; }
       aktuell = { lab:lab, loesung:Kern.loesung(lab), paar:PAARE.filter(function(p){ return p[0] === st.opt.paar; })[0] || PAARE[0] };
       weg = [lab.start];
       $('#lbZeigeLoesung').setAttribute('aria-pressed', 'false');
       zeichnen();
       var n = 0; lab.maske.forEach(function(z){ z.forEach(function(v){ if (v) n++; }); });
-      meldung('erfolg', '<p><b>Fertig!</b> Labyrinth mit ' + n + ' Feldern, der Weg ist ' + aktuell.loesung.length + ' Felder lang. Du kannst ihn hier am Bildschirm suchen: vom ' + aktuell.paar[1] + ' aus ziehen.</p>');
+      meldung('erfolg', tx('<p><b>Fertig!</b> Labyrinth mit ') + n + tx(' Feldern, der Weg ist ') + aktuell.loesung.length + tx(' Felder lang. Du kannst ihn hier am Bildschirm suchen: vom ') + aktuell.paar[1] + tx(' aus ziehen.</p>'));
     })();
   }
 
@@ -370,7 +371,7 @@ function starteFigur(bereich){
     }
     h2.push('<path class="lb-loesung" d="' + linie(aktuell.loesung) + '" style="stroke-width:' + Math.max(2.4, S * 0.38) + '"/>');
     if (!mitWeg) h2.push('<path class="lb-weg" d="" style="stroke-width:' + Math.max(2.4, S * 0.38) + '"/>');
-    h2.push('<path class="lb-waende" d="' + Kern.waende(lab) + '" style="stroke:' + esc(st.opt.farbe) + ';stroke-width:' + lw + '"/>');
+    h2.push('<path class="lb-waende" d="' + Kern.waende(lab) + '" style="stroke:' + esc(st.opt.farbe) + tx(';stroke-width:') + lw + '"/>');
     h2.push('<text class="lb-figur" x="' + z2(sa.x) + '" y="' + z2(sa.y) + '" style="font-size:' + z2(gross) + 'px">' + p[1] + '</text>');
     h2.push('<text class="lb-figur" x="' + z2(sz.x) + '" y="' + z2(sz.y) + '" style="font-size:' + z2(gross) + 'px">' + p[2] + '</text>');
     s.innerHTML = h2.join('');
@@ -379,15 +380,15 @@ function starteFigur(bereich){
   function z2(x){ return String(Math.round(x * 10) / 10); }
   function linie(zellen){ return zellen.map(function(q, i){ return (i ? 'L' : 'M') + (q[1] * 10 + 5) + ' ' + (q[0] * 10 + 5); }).join(''); }
   function zeichnen(){
-    var titel = st.titel.trim() || 'Finde den Weg!', p = aktuell.paar, blatt = $('#lbBlatt'), loes = $('#lbLoesung'), o = st.opt;
+    var titel = st.titel.trim() || tx('Finde den Weg!'), p = aktuell.paar, blatt = $('#lbBlatt'), loes = $('#lbLoesung'), o = st.opt;
     blatt.classList.remove('veraltet', 'zeige-loesung', 'geschafft');
-    var auftrag = p[3] ? 'Hilf ' + p[3] + ' ' + p[1] + ' ' + p[4] + ' ' + p[2] + '!' : 'Finde den Weg vom Start ' + p[1] + ' zum Ziel ' + p[2] + '!';
+    var auftrag = p[3] ? tx('Hilf ') + p[3] + ' ' + p[1] + ' ' + p[4] + ' ' + p[2] + '!' : tx('Finde den Weg vom Start ') + p[1] + tx(' zum Ziel ') + p[2] + '!';
     blatt.innerHTML = (o.titelAn ? '<h2>' + esc(titel) + '</h2>' : '') +
-      (o.anleitungAn ? '<p class="lb-anleitung">' + auftrag + ' Zeichne den Weg durch das Labyrinth, ohne eine Wand zu überqueren.</p>' : '') +
+      (o.anleitungAn ? '<p class="lb-anleitung">' + auftrag + tx(' Zeichne den Weg durch das Labyrinth, ohne eine Wand zu überqueren.</p>') : '') +
       '<div class="lb-feld"></div><p class="lb-fortschritt nur-bildschirm" id="lbFortschritt" aria-live="polite"></p>';
     var svg = labSvg(false);
     blatt.querySelector('.lb-feld').appendChild(svg);
-    loes.innerHTML = '<h2>Lösung' + (o.titelAn ? ' – ' + esc(titel) : '') + '</h2><div class="lb-feld"></div>';
+    loes.innerHTML = tx('<h2>Lösung') + (o.titelAn ? ' – ' + esc(titel) : '') + '</h2><div class="lb-feld"></div>';
     loes.querySelector('.lb-feld').appendChild(labSvg(true));
     blatt.hidden = false; $('#lbWerkzeug').hidden = false; leer();
     wegVerbinden(svg); wegZeichnen();
@@ -427,8 +428,8 @@ function starteFigur(bereich){
     pfad.setAttribute('d', weg.length > 1 ? linie(weg) : '');
     var z = aktuell.lab.ziel, fertig = weg[weg.length - 1][0] === z[0] && weg[weg.length - 1][1] === z[1], p = $('#lbFortschritt');
     $('#lbBlatt').classList.toggle('geschafft', fertig);
-    if (p){ p.className = 'lb-fortschritt nur-bildschirm' + (fertig ? ' fertig' : '');
-      p.textContent = fertig ? '🎉 Geschafft! ' + (aktuell.paar[3] ? aktuell.paar[1] + ' hat ' + aktuell.paar[2] + ' gefunden.' : 'Du hast das Ziel gefunden.') : weg.length > 1 ? 'Weiter so! Zurückziehen löscht den Weg wieder.' : 'Starte bei ' + aktuell.paar[1] + ' und ziehe durch die Gänge.'; }
+    if (p){ p.className = 'lb-fortschritt nur-bildschirm' + (fertig ? tx(' fertig') : '');
+      p.textContent = fertig ? tx('🎉 Geschafft! ') + (aktuell.paar[3] ? aktuell.paar[1] + tx(' hat ') + aktuell.paar[2] + tx(' gefunden.') : tx('Du hast das Ziel gefunden.')) : weg.length > 1 ? tx('Weiter so! Zurückziehen löscht den Weg wieder.') : tx('Starte bei ') + aktuell.paar[1] + tx(' und ziehe durch die Gänge.'); }
   }
 
   /* ---------- Werkzeuge ---------- */
@@ -454,9 +455,9 @@ function starteFigur(bereich){
     if (!aktuell || !speicherOrt) return;
     var inhalt = sauber($('#lbBlatt')).outerHTML;
     if (st.opt.mitLoesung){ var l = sauber($('#lbLoesung')); l.classList.add('neue-seite'); inhalt += l.outerHTML; }
-    speicherOrt.save({ filename:'Labyrinth.html', data:Labor.blattDatei('Labyrinth', inhalt, '.lb-loesungsblatt{display:block}') }).catch(function(e){
+    speicherOrt.save({ filename:'Labyrinth.html', data:Labor.blattDatei(tx('Labyrinth'), inhalt, '.lb-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 

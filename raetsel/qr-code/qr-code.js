@@ -8,6 +8,7 @@
    Die QR-Codes berechnet gemeinsam/extern/qrcode.js (Kazuhiko Arase, MIT-Lizenz). */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('qr-code');
 
 /* KERN-START */
 var Kern = (function(){
@@ -245,109 +246,109 @@ var Kern = (function(){
 /* ===== Vorlage: Oberfläche des Generators ===== */
 var SYMBOLE = ['🎉', '⭐', '🏆', '💡', '🔑', '🗺️', '🎁', '❤️'];   // wie in api/botschaft.php
 var VORLAGE = '<div class="qr">' +
-  '<header class="qr-kopf"><p class="augenbraue">Rätselgenerator</p><h1>QR-Code</h1>' +
-    '<p>Aus einem Text oder Link wird ein QR-Code: zum Ausmalen mit eingebauter Selbstkontrolle oder fertig zum Ausdrucken.</p></header>' +
-  '<div class="qr-modus" role="tablist" aria-label="Was möchtest du erstellen?">' +
-    '<button type="button" role="tab" id="qrTabMalen" data-modus="malen">Zum Ausmalen</button>' +
-    '<button type="button" role="tab" id="qrTabFertig" data-modus="fertig">Fertige QR-Codes</button></div>' +
-  '<div class="qr-layout"><section class="qr-eingabe" aria-label="Eingaben">' +
+  tx('<header class="qr-kopf"><p class="augenbraue">Rätselgenerator</p><h1>QR-Code</h1>') +
+    tx('<p>Aus einem Text oder Link wird ein QR-Code: zum Ausmalen mit eingebauter Selbstkontrolle oder fertig zum Ausdrucken.</p></header>') +
+  tx('<div class="qr-modus" role="tablist" aria-label="Was möchtest du erstellen?">') +
+    tx('<button type="button" role="tab" id="qrTabMalen" data-modus="malen">Zum Ausmalen</button>') +
+    tx('<button type="button" role="tab" id="qrTabFertig" data-modus="fertig">Fertige QR-Codes</button></div>') +
+  tx('<div class="qr-layout"><section class="qr-eingabe" aria-label="Eingaben">') +
     /* ---- Zum Ausmalen ---- */
     '<div class="qr-teil" data-teil="malen">' +
-      '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Was erscheint beim Scannen?</h2><p>Ist alles richtig ausgemalt, zeigt das Handy einen Text oder öffnet einen Link.</p></div></div>' +
-        '<div class="qr-ziel" role="radiogroup" aria-label="Was erscheint beim Scannen?">' +
-          '<label><input type="radio" name="qrZiel" value="text"><span>Text</span></label>' +
-          '<label><input type="radio" name="qrZiel" value="link"><span>Link</span></label>' +
-          '<label id="qrZielBotschaft" hidden><input type="radio" name="qrZiel" value="botschaft"><span>Botschaft</span></label></div>' +
-        '<div data-ziel="text"><label class="vh" for="qrText">Text</label>' +
+      tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Was erscheint beim Scannen?</h2><p>Ist alles richtig ausgemalt, zeigt das Handy einen Text oder öffnet einen Link.</p></div></div>') +
+        tx('<div class="qr-ziel" role="radiogroup" aria-label="Was erscheint beim Scannen?">') +
+          tx('<label><input type="radio" name="qrZiel" value="text"><span>Text</span></label>') +
+          tx('<label><input type="radio" name="qrZiel" value="link"><span>Link</span></label>') +
+          tx('<label id="qrZielBotschaft" hidden><input type="radio" name="qrZiel" value="botschaft"><span>Botschaft</span></label></div>') +
+        tx('<div data-ziel="text"><label class="vh" for="qrText">Text</label>') +
           '<textarea id="qrText" rows="3" maxlength="300" spellcheck="true"></textarea></div>' +
-        '<div data-ziel="link"><label class="vh" for="qrLink">Ziellink</label>' +
+        tx('<div data-ziel="link"><label class="vh" for="qrLink">Ziellink</label>') +
           '<input type="url" id="qrLink" maxlength="300" autocomplete="url" spellcheck="false" inputmode="url"></div>' +
-        '<div data-ziel="botschaft" class="qr-botschaft-eingabe"><label class="feld-label" for="qrBTitel">Titel der Botschaft</label>' +
+        tx('<div data-ziel="botschaft" class="qr-botschaft-eingabe"><label class="feld-label" for="qrBTitel">Titel der Botschaft</label>') +
           '<input type="text" id="qrBTitel" maxlength="80" autocomplete="off">' +
-          '<label class="feld-label" for="qrBText">Botschaft</label>' +
+          tx('<label class="feld-label" for="qrBText">Botschaft</label>') +
           '<textarea id="qrBText" rows="5" maxlength="1500"></textarea>' +
-          '<div class="qr-symbole" role="radiogroup" aria-label="Symbol auf der Botschaftsseite">' +
+          tx('<div class="qr-symbole" role="radiogroup" aria-label="Symbol auf der Botschaftsseite">') +
             SYMBOLE.map(function(x){ return '<label><input type="radio" name="qrSymbol" value="' + x + '"><span>' + x + '</span></label>'; }).join('') + '</div></div>' +
         '<p class="hinweis" id="qrTextInfo" aria-live="polite"></p></div>' +
-      '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Raster</h2><p>Kleine Raster sind schnell ausgemalt, grosse verzeihen mehr Fehler beim Ausmalen. Sind schon viele Felder schwarz, bleibt weniger zum Ausmalen.</p></div></div>' +
-        '<div class="opt-raster"><label for="qrRaster">Grösse</label><select id="qrRaster"></select>' +
-          '<label for="qrSchwarz">Schon schwarz vorgedruckt</label><select id="qrSchwarz"><option value="0">keine Felder</option><option value="0.5">die Hälfte</option><option value="0.75">drei Viertel</option><option value="0.9">neun Zehntel</option></select></div>' +
+      tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Raster</h2><p>Kleine Raster sind schnell ausgemalt, grosse verzeihen mehr Fehler beim Ausmalen. Sind schon viele Felder schwarz, bleibt weniger zum Ausmalen.</p></div></div>') +
+        tx('<div class="opt-raster"><label for="qrRaster">Grösse</label><select id="qrRaster"></select>') +
+          tx('<label for="qrSchwarz">Schon schwarz vorgedruckt</label><select id="qrSchwarz"><option value="0">keine Felder</option><option value="0.5">die Hälfte</option><option value="0.75">drei Viertel</option><option value="0.9">neun Zehntel</option></select></div>') +
         '<p class="hinweis" id="qrRasterInfo" aria-live="polite"></p></div>' +
-      '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Welche Felder ausmalen?</h2><p>Woran die Kinder erkennen, welche Felder sie ausmalen.</p></div></div>' +
-        '<div class="qr-arten" role="radiogroup" aria-label="Ausmal-Art">' +
-          '<label class="qr-art"><input type="radio" name="qrArt" value="punkte"><span><b>Kreise</b><small>Felder mit einem Kreis ausmalen – schon ab der 1. Klasse</small></span></label>' +
-          '<label class="qr-art"><input type="radio" name="qrArt" value="zahlen"><span><b>Zahlen</b><small>gerade Zahlen oder Zahlen einer Einmaleins-Reihe ausmalen</small></span></label>' +
-          '<label class="qr-art"><input type="radio" name="qrArt" value="rechnungen"><span><b>Rechnungen</b><small>rechnen – ist das Ergebnis gerade, wird ausgemalt</small></span></label>' +
-          '<label class="qr-art"><input type="radio" name="qrArt" value="buchstaben"><span><b>Buchstaben</b><small>Vokale, Konsonanten oder bestimmte Buchstaben ausmalen</small></span></label>' +
+      tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Welche Felder ausmalen?</h2><p>Woran die Kinder erkennen, welche Felder sie ausmalen.</p></div></div>') +
+        tx('<div class="qr-arten" role="radiogroup" aria-label="Ausmal-Art">') +
+          tx('<label class="qr-art"><input type="radio" name="qrArt" value="punkte"><span><b>Kreise</b><small>Felder mit einem Kreis ausmalen – schon ab der 1. Klasse</small></span></label>') +
+          tx('<label class="qr-art"><input type="radio" name="qrArt" value="zahlen"><span><b>Zahlen</b><small>gerade Zahlen oder Zahlen einer Einmaleins-Reihe ausmalen</small></span></label>') +
+          tx('<label class="qr-art"><input type="radio" name="qrArt" value="rechnungen"><span><b>Rechnungen</b><small>rechnen – ist das Ergebnis gerade, wird ausgemalt</small></span></label>') +
+          tx('<label class="qr-art"><input type="radio" name="qrArt" value="buchstaben"><span><b>Buchstaben</b><small>Vokale, Konsonanten oder bestimmte Buchstaben ausmalen</small></span></label>') +
         '</div>' +
-        '<div class="opt-raster" data-fuer="zahlen"><label for="qrRegel">Ausmalen, wenn die Zahl …</label><select id="qrRegel"><option value="gerade">gerade ist</option>' +
-          [3, 4, 5, 6, 7, 8, 9, 10].map(function(k){ return '<option value="' + k + '">in der ' + k + 'er-Reihe ist</option>'; }).join('') + '</select>' +
-          '<label for="qrZahlenraum" data-gerade>Zahlenraum</label><select id="qrZahlenraum" data-gerade><option value="20">bis 20</option><option value="50">bis 50</option><option value="100">bis 100</option></select></div>' +
-        '<div class="opt-raster" data-fuer="buchstaben"><label for="qrBuchstaben">Ausmalen</label><select id="qrBuchstaben">' +
-          '<option value="vokale">Vokale (A, E, I, O, U)</option><option value="konsonanten">Konsonanten</option><option value="zufall">zufällige Buchstaben (z. B. B, M, R)</option></select></div>' +
-        '<div class="opt-raster" data-fuer="rechnungen"><label for="qrRechenart">Rechnungen</label><select id="qrRechenart">' +
-          '<option value="plus20">Plus bis 20</option><option value="minus20">Minus bis 20</option><option value="pm100">Plus und Minus bis 100</option>' +
-          '<option value="mal">Einmaleins (mal)</option><option value="geteilt">Einmaleins (geteilt)</option></select></div>' +
+        tx('<div class="opt-raster" data-fuer="zahlen"><label for="qrRegel">Ausmalen, wenn die Zahl …</label><select id="qrRegel"><option value="gerade">gerade ist</option>') +
+          [3, 4, 5, 6, 7, 8, 9, 10].map(function(k){ return '<option value="' + k + tx('">in der ') + k + 'er-Reihe ist</option>'; }).join('') + '</select>' +
+          tx('<label for="qrZahlenraum" data-gerade>Zahlenraum</label><select id="qrZahlenraum" data-gerade><option value="20">bis 20</option><option value="50">bis 50</option><option value="100">bis 100</option></select></div>') +
+        tx('<div class="opt-raster" data-fuer="buchstaben"><label for="qrBuchstaben">Ausmalen</label><select id="qrBuchstaben">') +
+          tx('<option value="vokale">Vokale (A, E, I, O, U)</option><option value="konsonanten">Konsonanten</option><option value="zufall">zufällige Buchstaben (z. B. B, M, R)</option></select></div>') +
+        tx('<div class="opt-raster" data-fuer="rechnungen"><label for="qrRechenart">Rechnungen</label><select id="qrRechenart">') +
+          tx('<option value="plus20">Plus bis 20</option><option value="minus20">Minus bis 20</option><option value="pm100">Plus und Minus bis 100</option>') +
+          tx('<option value="mal">Einmaleins (mal)</option><option value="geteilt">Einmaleins (geteilt)</option></select></div>') +
       '</div>' +
-      '<div class="karte"><details class="optionen"><summary>Einstellungen</summary>' +
+      tx('<div class="karte"><details class="optionen"><summary>Einstellungen</summary>') +
         '<div class="opt-raster">' +
-          '<label for="qrTitel">Titel auf dem Blatt</label><input type="text" id="qrTitel" maxlength="60"></div>' +
-        '<label class="opt"><input type="checkbox" id="qrEcken"><span>Erkennungsquadrate in den Ecken schon ausgemalt</span></label>' +
-        '<label class="opt"><input type="checkbox" id="qrNummern"><span>Zeilen und Spalten nummerieren</span></label>' +
+          tx('<label for="qrTitel">Titel auf dem Blatt</label><input type="text" id="qrTitel" maxlength="60"></div>') +
+        tx('<label class="opt"><input type="checkbox" id="qrEcken"><span>Erkennungsquadrate in den Ecken schon ausgemalt</span></label>') +
+        tx('<label class="opt"><input type="checkbox" id="qrNummern"><span>Zeilen und Spalten nummerieren</span></label>') +
       '</details></div>' +
-      '<button type="button" class="btn primary gross" id="qrLos">QR-Code erstellen</button>' +
+      tx('<button type="button" class="btn primary gross" id="qrLos">QR-Code erstellen</button>') +
     '</div>' +
     /* ---- Fertige QR-Codes ---- */
     '<div class="qr-teil" data-teil="fertig" hidden>' +
-      '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>QR-Codes</h2><p>Pro Code ein Inhalt (Text oder Link), der Titel ist freiwillig.</p></div></div>' +
+      tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>QR-Codes</h2><p>Pro Code ein Inhalt (Text oder Link), der Titel ist freiwillig.</p></div></div>') +
         '<ol class="qr-liste" id="qrListe"></ol>' +
-        '<button type="button" class="btn" id="qrPlus">+ Weiterer QR-Code</button></div>' +
-      '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Blatt</h2><p>Wie die Codes auf dem Blatt stehen.</p></div></div>' +
-        '<div class="opt-raster"><label for="qrProBlatt">Codes pro Blatt</label><select id="qrProBlatt">' +
+        tx('<button type="button" class="btn" id="qrPlus">+ Weiterer QR-Code</button></div>') +
+      tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Blatt</h2><p>Wie die Codes auf dem Blatt stehen.</p></div></div>') +
+        tx('<div class="opt-raster"><label for="qrProBlatt">Codes pro Blatt</label><select id="qrProBlatt">') +
           [1, 2, 4, 6, 12].map(function(k){ return '<option value="' + k + '">' + k + '</option>'; }).join('') + '</select>' +
-          '<label for="qrStufeFertig">Fehlertoleranz</label><select id="qrStufeFertig"><option value="L">7 %</option><option value="M">15 %</option><option value="Q">25 %</option><option value="H">30 %</option></select></div>' +
-        '<label class="opt"><input type="checkbox" id="qrTitelZeigen"><span>Titel unter dem Code zeigen</span></label>' +
-        '<label class="opt"><input type="checkbox" id="qrInhaltZeigen"><span>Inhalt klein als Text darunter</span></label>' +
-        '<label class="opt"><input type="checkbox" id="qrSchnitt"><span>Schnittlinien zum Ausschneiden</span></label>' +
+          tx('<label for="qrStufeFertig">Fehlertoleranz</label><select id="qrStufeFertig"><option value="L">7 %</option><option value="M">15 %</option><option value="Q">25 %</option><option value="H">30 %</option></select></div>') +
+        tx('<label class="opt"><input type="checkbox" id="qrTitelZeigen"><span>Titel unter dem Code zeigen</span></label>') +
+        tx('<label class="opt"><input type="checkbox" id="qrInhaltZeigen"><span>Inhalt klein als Text darunter</span></label>') +
+        tx('<label class="opt"><input type="checkbox" id="qrSchnitt"><span>Schnittlinien zum Ausschneiden</span></label>') +
       '</div>' +
-      '<div class="karte qr-gestaltung"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Gestaltung</h2><p>Vorlage wählen oder selbst gestalten. Jeder Code wird geprüft, ob er sich noch scannen lässt.</p></div></div>' +
-        '<div class="qr-vorlagen" id="qrVorlagen" role="group" aria-label="Vorlagen"></div>' +
-        '<h3 class="qr-gest-titel">Punkte</h3><div class="qr-formen" data-wahl="form" role="radiogroup" aria-label="Form der Punkte"></div>' +
-        '<h3 class="qr-gest-titel">Ecken aussen</h3><div class="qr-formen" data-wahl="rahmen" role="radiogroup" aria-label="Form der Ecken aussen"></div>' +
-        '<h3 class="qr-gest-titel">Ecken innen</h3><div class="qr-formen" data-wahl="mitte" role="radiogroup" aria-label="Form der Ecken innen"></div>' +
-        '<h3 class="qr-gest-titel">Farben</h3><div class="qr-farben">' +
-          '<label class="qr-farbe"><input type="color" id="qrFarbe"><span>Punkte</span></label>' +
-          '<label class="qr-farbe" data-verlauf><input type="color" id="qrFarbe2"><span>Verlauf bis</span></label>' +
-          '<label class="qr-farbe" data-augen><input type="color" id="qrAugen"><span>Ecken</span></label>' +
-          '<label class="qr-farbe" data-grund><input type="color" id="qrHintergrund"><span>Hintergrund</span></label></div>' +
-        '<div class="opt-raster"><label for="qrVerlauf">Farbverlauf</label><select id="qrVerlauf"><option value="">keiner</option><option value="linear">schräg</option><option value="radial">von innen nach aussen</option></select></div>' +
-        '<label class="opt"><input type="checkbox" id="qrAugenEigen"><span>Ecken in eigener Farbe</span></label>' +
-        '<label class="opt"><input type="checkbox" id="qrDurchsichtig"><span>Hintergrund durchsichtig (z. B. für farbiges Papier)</span></label>' +
-        '<h3 class="qr-gest-titel">Logo in der Mitte</h3>' +
-        '<div class="qr-ziel" role="radiogroup" aria-label="Logo in der Mitte">' +
-          '<label><input type="radio" name="qrLogo" value="kein"><span>Keines</span></label>' +
-          '<label><input type="radio" name="qrLogo" value="labor"><span>Rätsellabor</span></label>' +
-          '<label><input type="radio" name="qrLogo" value="eigen"><span>Eigenes Bild</span></label></div>' +
-        '<div data-logo-eigen><label class="vh" for="qrLogoDatei">Bild für das Logo</label><input type="file" id="qrLogoDatei" accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif"></div>' +
-        '<div data-logo><div class="opt-raster"><label for="qrLogoGroesse">Grösse</label><input type="range" id="qrLogoGroesse" min="12" max="30" step="1"></div>' +
-          '<label class="opt"><input type="checkbox" id="qrLogoFrei"><span>Punkte hinter dem Logo weglassen</span></label></div>' +
+      tx('<div class="karte qr-gestaltung"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Gestaltung</h2><p>Vorlage wählen oder selbst gestalten. Jeder Code wird geprüft, ob er sich noch scannen lässt.</p></div></div>') +
+        tx('<div class="qr-vorlagen" id="qrVorlagen" role="group" aria-label="Vorlagen"></div>') +
+        tx('<h3 class="qr-gest-titel">Punkte</h3><div class="qr-formen" data-wahl="form" role="radiogroup" aria-label="Form der Punkte"></div>') +
+        tx('<h3 class="qr-gest-titel">Ecken aussen</h3><div class="qr-formen" data-wahl="rahmen" role="radiogroup" aria-label="Form der Ecken aussen"></div>') +
+        tx('<h3 class="qr-gest-titel">Ecken innen</h3><div class="qr-formen" data-wahl="mitte" role="radiogroup" aria-label="Form der Ecken innen"></div>') +
+        tx('<h3 class="qr-gest-titel">Farben</h3><div class="qr-farben">') +
+          tx('<label class="qr-farbe"><input type="color" id="qrFarbe"><span>Punkte</span></label>') +
+          tx('<label class="qr-farbe" data-verlauf><input type="color" id="qrFarbe2"><span>Verlauf bis</span></label>') +
+          tx('<label class="qr-farbe" data-augen><input type="color" id="qrAugen"><span>Ecken</span></label>') +
+          tx('<label class="qr-farbe" data-grund><input type="color" id="qrHintergrund"><span>Hintergrund</span></label></div>') +
+        tx('<div class="opt-raster"><label for="qrVerlauf">Farbverlauf</label><select id="qrVerlauf"><option value="">keiner</option><option value="linear">schräg</option><option value="radial">von innen nach aussen</option></select></div>') +
+        tx('<label class="opt"><input type="checkbox" id="qrAugenEigen"><span>Ecken in eigener Farbe</span></label>') +
+        tx('<label class="opt"><input type="checkbox" id="qrDurchsichtig"><span>Hintergrund durchsichtig (z. B. für farbiges Papier)</span></label>') +
+        tx('<h3 class="qr-gest-titel">Logo in der Mitte</h3>') +
+        tx('<div class="qr-ziel" role="radiogroup" aria-label="Logo in der Mitte">') +
+          tx('<label><input type="radio" name="qrLogo" value="kein"><span>Keines</span></label>') +
+          tx('<label><input type="radio" name="qrLogo" value="labor"><span>Rätsellabor</span></label>') +
+          tx('<label><input type="radio" name="qrLogo" value="eigen"><span>Eigenes Bild</span></label></div>') +
+        tx('<div data-logo-eigen><label class="vh" for="qrLogoDatei">Bild für das Logo</label><input type="file" id="qrLogoDatei" accept="image/png,image/jpeg,image/svg+xml,image/webp,image/gif"></div>') +
+        tx('<div data-logo><div class="opt-raster"><label for="qrLogoGroesse">Grösse</label><input type="range" id="qrLogoGroesse" min="12" max="30" step="1"></div>') +
+          tx('<label class="opt"><input type="checkbox" id="qrLogoFrei"><span>Punkte hinter dem Logo weglassen</span></label></div>') +
         '<p class="hinweis" id="qrDesignInfo" aria-live="polite"></p>' +
       '</div>' +
     '</div>' +
   '</section>' +
-  '<section class="qr-ausgabe" aria-label="Ergebnis">' +
+  tx('<section class="qr-ausgabe" aria-label="Ergebnis">') +
     '<div id="qrMeldung" aria-live="polite"></div>' +
-    '<div class="leer-zustand" id="qrLeer"><h2>Noch kein QR-Code</h2><p>So entsteht ein QR-Code zum Ausmalen:</p><ol>' +
-      '<li>Botschaft eingeben, z. B. ein Lob, ein Lösungswort oder einen Link</li><li>Wählen, woran die Kinder die Felder erkennen</li><li>«QR-Code erstellen» klicken</li></ol></div>' +
+    tx('<div class="leer-zustand" id="qrLeer"><h2>Noch kein QR-Code</h2><p>So entsteht ein QR-Code zum Ausmalen:</p><ol>') +
+      tx('<li>Botschaft eingeben, z. B. ein Lob, ein Lösungswort oder einen Link</li><li>Wählen, woran die Kinder die Felder erkennen</li><li>«QR-Code erstellen» klicken</li></ol></div>') +
     '<div class="qr-werkzeug" id="qrWerkzeug" hidden>' +
-      '<button type="button" class="btn klein" id="qrMischen" title="Gleicher Code, neue Zahlen oder Rechnungen">Neu mischen</button>' +
-      '<button type="button" class="btn klein" id="qrZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
-      '<button type="button" class="btn klein" id="qrMalWeg">Ausmalen löschen</button>' +
+      tx('<button type="button" class="btn klein" id="qrMischen" title="Gleicher Code, neue Zahlen oder Rechnungen">Neu mischen</button>') +
+      tx('<button type="button" class="btn klein" id="qrZeigeLoesung" aria-pressed="false">Lösung zeigen</button>') +
+      tx('<button type="button" class="btn klein" id="qrMalWeg">Ausmalen löschen</button>') +
       '<span class="abstand"></span>' +
       '<span class="qr-blatt-schalter" id="qrBlattSchalter">' + Labor.blattSchalterHtml() + '</span>' +
-      '<label id="qrMitLoesungWahl"><input type="checkbox" id="qrMitLoesung"> mit Lösungsblatt</label>' +
-      '<button type="button" class="btn klein primary" id="qrDrucken">PDF herunterladen</button>' +
-      '<button type="button" class="btn klein primary" id="qrHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
+      tx('<label id="qrMitLoesungWahl"><input type="checkbox" id="qrMitLoesung"> mit Lösungsblatt</label>') +
+      tx('<button type="button" class="btn klein primary" id="qrDrucken">PDF herunterladen</button>') +
+      tx('<button type="button" class="btn klein primary" id="qrHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>') +
     '</div>' +
     '<div id="qrBlaetter"></div>' +
   '</section></div></div>';
@@ -450,16 +451,16 @@ function starte(bereich){
   function textInfo(){
     var link = st.opt.ziel === 'link', t = malInhalt(), box = $('#qrTextInfo');
     if (st.opt.ziel === 'botschaft'){
-      box.textContent = 'Die Botschaft wird auf deinem Server gespeichert, der QR-Code enthält nur einen kurzen Link darauf. Darum bleibt das Raster klein – egal wie lang die Botschaft ist.' +
-        (t ? ' Beim Scannen öffnet sich eine eigene Seite mit ' + (st.bTitel.trim() ? 'Titel und ' : '') + 'Botschaft.' : '');
+      box.textContent = tx('Die Botschaft wird auf deinem Server gespeichert, der QR-Code enthält nur einen kurzen Link darauf. Darum bleibt das Raster klein – egal wie lang die Botschaft ist.') +
+        (t ? tx(' Beim Scannen öffnet sich eine eigene Seite mit ') + (st.bTitel.trim() ? tx('Titel und ') : '') + tx('Botschaft.') : '');
     } else if (!t){
-      box.textContent = link ? 'Der Link öffnet sich, wenn der fertig ausgemalte Code gescannt wird. Tipp: Kurze Links ergeben kleinere Raster.'
-        : 'Tipp: Ein kurzer Text ergibt ein kleines Raster, das schneller ausgemalt ist.';
+      box.textContent = link ? tx('Der Link öffnet sich, wenn der fertig ausgemalte Code gescannt wird. Tipp: Kurze Links ergeben kleinere Raster.')
+        : tx('Tipp: Ein kurzer Text ergibt ein kleines Raster, das schneller ausgemalt ist.');
     } else if (link && !linkGueltig(t)){
-      box.textContent = 'Das sieht noch nicht wie ein Link aus – z. B. www.beispiel.ch oder https://www.beispiel.ch/seite';
+      box.textContent = tx('Das sieht noch nicht wie ein Link aus – z. B. www.beispiel.ch oder https://www.beispiel.ch/seite');
     } else {
-      box.innerHTML = link ? 'Öffnet: <b>' + esc(t) + '</b>' + (t !== st.link.trim() ? ' («https://» ergänzt, damit das Handy den Link direkt öffnet)' : '')
-        : /^www\./i.test(st.text.trim()) ? 'Der Link bekommt automatisch «https://» davor, damit das Handy ihn direkt öffnet.' : '';
+      box.innerHTML = link ? tx('Öffnet: <b>') + esc(t) + '</b>' + (t !== st.link.trim() ? tx(' («https://» ergänzt, damit das Handy den Link direkt öffnet)') : '')
+        : /^www\./i.test(st.text.trim()) ? tx('Der Link bekommt automatisch «https://» davor, damit das Handy ihn direkt öffnet.') : '';
     }
     rasterZeigen();
   }
@@ -468,33 +469,33 @@ function starte(bereich){
   function rasterZeigen(){
     var t = malInhalt(), grenze = Kern.GRENZE[st.opt.art] || 41, gueltig = t && !(st.opt.ziel === 'link' && !linkGueltig(t));
     var min = gueltig ? Kern.kleinstesRaster(t) : null;
-    var h = '<option value="0">So klein wie möglich' + (min ? ' (' + min + ' × ' + min + ')' : '') + '</option>';
+    var h = tx('<option value="0">So klein wie möglich') + (min ? ' (' + min + ' × ' + min + ')' : '') + '</option>';
     Kern.GROESSEN.forEach(function(n){
       var q = gueltig ? Kern.imRaster(t, n) : null, v = q && Kern.verzeiht(n, q.stufe), zu = '';
-      if (n > grenze) zu = ' – zu gross für «' + artName() + '»';
-      else if (gueltig && !q) zu = ' – zu klein für diesen Inhalt';
-      h += '<option value="' + n + '"' + (zu ? ' disabled' : '') + '>' + n + ' × ' + n + (zu || (v ? ' – verzeiht etwa ' + v + ' Fehler' : '')) + '</option>';
+      if (n > grenze) zu = tx(' – zu gross für «') + artName() + '»';
+      else if (gueltig && !q) zu = tx(' – zu klein für diesen Inhalt');
+      h += '<option value="' + n + '"' + (zu ? tx(' disabled') : '') + '>' + n + ' × ' + n + (zu || (v ? tx(' – verzeiht etwa ') + v + tx(' Fehler') : '')) + '</option>';
     });
     rasterWahl.innerHTML = h;
     rasterWahl.value = String(st.opt.raster || 0);
     // gewählte Grösse passt nicht mehr (Inhalt zu lang oder für die Ausmal-Art zu gross) → so klein wie möglich
     if (rasterWahl.selectedIndex < 0 || rasterWahl.options[rasterWahl.selectedIndex].disabled){ rasterWahl.value = '0'; if (st.opt.raster){ st.opt.raster = 0; speichern(); } }
     var info = $('#qrRasterInfo');
-    if (!gueltig){ info.textContent = 'Das Raster richtet sich nach dem Inhalt: Je kürzer, desto kleiner.'; return; }
+    if (!gueltig){ info.textContent = tx('Das Raster richtet sich nach dem Inhalt: Je kürzer, desto kleiner.'); return; }
     var o = { art:st.opt.art, regel:st.opt.regel, reihe:st.opt.reihe || 3, zahlenraum:st.opt.zahlenraum, rechenart:st.opt.rechenart, buchstaben:st.opt.buchstaben, raster:+rasterWahl.value, schwarz:+st.opt.schwarz || 0, ecken:st.opt.ecken, seed:st.seed };
     var r = Kern.raster(t, o);
-    if (r.fehler === 'zuLang'){ info.textContent = 'Der Inhalt ist zu lang für einen QR-Code.'; return; }
-    if (r.fehler === 'passtNicht'){ info.textContent = 'Für diesen Inhalt braucht es mindestens ' + r.min + ' × ' + r.min + ' Felder.'; return; }
-    if (r.fehler === 'zuGross'){ info.textContent = 'Dieser Inhalt braucht ' + r.n + ' × ' + r.n + ' Felder – für «' + artName() + '» sind höchstens ' + r.grenze + ' × ' + r.grenze + ' möglich. Kürze ihn oder wähle «Kreise».'; return; }
+    if (r.fehler === 'zuLang'){ info.textContent = tx('Der Inhalt ist zu lang für einen QR-Code.'); return; }
+    if (r.fehler === 'passtNicht'){ info.textContent = tx('Für diesen Inhalt braucht es mindestens ') + r.min + ' × ' + r.min + tx(' Felder.'); return; }
+    if (r.fehler === 'zuGross'){ info.textContent = tx('Dieser Inhalt braucht ') + r.n + ' × ' + r.n + tx(' Felder – für «') + artName() + tx('» sind höchstens ') + r.grenze + ' × ' + r.grenze + tx(' möglich. Kürze ihn oder wähle «Kreise».'); return; }
     var v = Kern.verzeiht(r.n, r.stufe);
-    info.innerHTML = '<b>' + r.n + ' × ' + r.n + ' Felder</b>, davon <b>' + r.anzahl + ' zum Ausmalen</b>' + (v ? ' · verzeiht etwa ' + v + ' falsch ausgemalte Felder' : '') + '.' + grossTipp(t, r.n);
+    info.innerHTML = '<b>' + r.n + ' × ' + r.n + tx(' Felder</b>, davon <b>') + r.anzahl + tx(' zum Ausmalen</b>') + (v ? tx(' · verzeiht etwa ') + v + tx(' falsch ausgemalte Felder') : '') + '.' + grossTipp(t, r.n);
   }
   // Tipp, wenn der Text in Grossbuchstaben (ohne Umlaute und seltene Zeichen) ein kleineres Raster ergäbe
   function grossTipp(t, n){
     if (st.opt.ziel !== 'text') return '';
     var gross = t.toLocaleUpperCase('de-CH').replace(/Ä/g, 'AE').replace(/Ö/g, 'OE').replace(/Ü/g, 'UE').replace(/[^0-9A-Z $%*+\-.\/:]/g, '').replace(/\s+/g, ' ').trim();
     var k = gross && Kern.kleinstesRaster(gross);
-    return gross !== t && k && k < Kern.kleinstesRaster(t) ? '<br>Tipp: In GROSSBUCHSTABEN, ohne Umlaute, ! und ?, würde der Text in ein Raster von nur ' + k + ' × ' + k + ' Feldern passen.' : '';
+    return gross !== t && k && k < Kern.kleinstesRaster(t) ? tx('<br>Tipp: In GROSSBUCHSTABEN, ohne Umlaute, ! und ?, würde der Text in ein Raster von nur ') + k + ' × ' + k + tx(' Feldern passen.') : '';
   }
   rasterWahl.addEventListener('change', function(){ st.opt.raster = +rasterWahl.value; speichern(); rasterZeigen(); if (erstellt) erstellen(); });
   function zielZeigen(){
@@ -520,7 +521,7 @@ function starte(bereich){
     r.addEventListener('change', function(){ if (r.checked){ st.opt.symbol = r.value; speichern(); veraltet(); } });
   });
   linkFeld.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); erstellen(); } });
-  function artName(){ return { punkte:'Kreise', zahlen:'Zahlen', rechnungen:'Rechnungen', buchstaben:'Buchstaben' }[st.opt.art]; }
+  function artName(){ return { punkte:tx('Kreise'), zahlen:tx('Zahlen'), rechnungen:tx('Rechnungen'), buchstaben:tx('Buchstaben') }[st.opt.art]; }
   textFeld.addEventListener('input', function(){ st.text = textFeld.value; speichern(); textInfo(); veraltet(); });
   $('#qrTitel').addEventListener('input', function(){ st.titel = this.value; speichern(); if (aktuell) zeichnen(); });
   function veraltet(){ var b = bereich.querySelector('.qr-blatt'); if (b && st.opt.modus === 'malen' && aktuell) b.classList.add('veraltet'); }
@@ -552,13 +553,13 @@ function starte(bereich){
     erstellt = true;
     var token = ++bLauf;
     if (st.opt.ziel === 'botschaft'){
-      if (!st.bText.trim()){ nichts('<h3>Noch keine Botschaft</h3><p>Schreib zuerst die Botschaft, die sich beim Scannen öffnen soll.</p>'); return; }
-      meldung('info', '<p><span class="lade" aria-hidden="true"></span>Die Botschaft wird gespeichert …</p>');
+      if (!st.bText.trim()){ nichts(tx('<h3>Noch keine Botschaft</h3><p>Schreib zuerst die Botschaft, die sich beim Scannen öffnen soll.</p>')); return; }
+      meldung('info', tx('<p><span class="lade" aria-hidden="true"></span>Die Botschaft wird gespeichert …</p>'));
       botschaftSpeichern().then(function(id){ if (token === bLauf && !aus) bauen(botschaftUrl(id), 'botschaft', id); }, function(e){
         if (token !== bLauf || aus) return;
         var c = e && e.code;
-        nichts('<h3>Die Botschaft konnte nicht gespeichert werden</h3><p>' + (c === 'zuViele' ? 'Gerade wurden sehr viele Botschaften erstellt. Versuch es in einer Stunde nochmals.'
-          : c === 'netz' ? 'Der Server war nicht erreichbar. Prüfe die Internetverbindung und versuch es nochmals.' : 'Auf dem Server ist etwas schiefgegangen. Versuch es nochmals.') + '</p>');
+        nichts(tx('<h3>Die Botschaft konnte nicht gespeichert werden</h3><p>') + (c === 'zuViele' ? tx('Gerade wurden sehr viele Botschaften erstellt. Versuch es in einer Stunde nochmals.')
+          : c === 'netz' ? tx('Der Server war nicht erreichbar. Prüfe die Internetverbindung und versuch es nochmals.') : tx('Auf dem Server ist etwas schiefgegangen. Versuch es nochmals.')) + '</p>');
       });
       return;
     }
@@ -566,17 +567,17 @@ function starte(bereich){
   }
   function bauen(t, ziel, id){
     var link = ziel === 'link';
-    if (!t){ nichts(link ? '<h3>Noch kein Link</h3><p>Gib zuerst den Ziellink ein, z. B. www.fabulousteaching.ch.</p>' : '<h3>Noch keine Botschaft</h3><p>Gib zuerst einen Text ein.</p>'); return; }
-    if (link && !linkGueltig(t)){ nichts('<h3>Kein gültiger Link</h3><p>«' + esc(st.link.trim()) + '» sieht nicht wie ein Link aus. Gib eine Adresse wie www.beispiel.ch oder https://www.beispiel.ch/seite ein.</p>'); return; }
+    if (!t){ nichts(link ? tx('<h3>Noch kein Link</h3><p>Gib zuerst den Ziellink ein, z. B. www.fabulousteaching.ch.</p>') : tx('<h3>Noch keine Botschaft</h3><p>Gib zuerst einen Text ein.</p>')); return; }
+    if (link && !linkGueltig(t)){ nichts(tx('<h3>Kein gültiger Link</h3><p>«') + esc(st.link.trim()) + tx('» sieht nicht wie ein Link aus. Gib eine Adresse wie www.beispiel.ch oder https://www.beispiel.ch/seite ein.</p>')); return; }
     var o = { art:st.opt.art, regel:st.opt.regel, reihe:st.opt.reihe || 3, zahlenraum:st.opt.zahlenraum, rechenart:st.opt.rechenart, buchstaben:st.opt.buchstaben, raster:st.opt.raster || 0, schwarz:+st.opt.schwarz || 0, ecken:st.opt.ecken, seed:st.seed };
     var r = Kern.raster(t, o);
     if (r.fehler){
       aktuell = null; $('#qrBlaetter').innerHTML = ''; $('#qrWerkzeug').hidden = true;
-      if (r.fehler === 'zuLang') meldung('fehler', '<h3>' + (link ? 'Der Link ist zu lang' : 'Der Text ist zu lang') + '</h3><p>So viel passt in keinen QR-Code. Kürze ihn bitte.</p>');
-      else if (r.fehler === 'passtNicht') meldung('fehler', '<h3>Das Raster ist zu klein</h3><p>Für diesen Inhalt braucht es mindestens ' + r.min + ' × ' + r.min + ' Felder. Wähle unter «Raster» eine grössere Grösse oder «So klein wie möglich» – oder ' + (link ? 'nimm einen kürzeren Link' : 'kürze den Text') + '.</p>');
-      else meldung('fehler', '<h3>Das Raster wird zu gross</h3><p>Dieser Inhalt braucht ' + r.n + ' × ' + r.n + ' Felder. Für «' + artName() + '» sind höchstens ' +
-          r.grenze + ' × ' + r.grenze + ' möglich, damit alles gut lesbar bleibt.</p><ul><li>' + (link ? 'Nimm einen kürzeren Link' : 'Kürze den Text') +
-          (st.opt.art !== 'punkte' ? ',</li><li>oder wähle «Kreise» – damit sind bis 41 × 41 Felder möglich' : '') + '.</li></ul>');
+      if (r.fehler === 'zuLang') meldung('fehler', '<h3>' + (link ? tx('Der Link ist zu lang') : tx('Der Text ist zu lang')) + tx('</h3><p>So viel passt in keinen QR-Code. Kürze ihn bitte.</p>'));
+      else if (r.fehler === 'passtNicht') meldung('fehler', tx('<h3>Das Raster ist zu klein</h3><p>Für diesen Inhalt braucht es mindestens ') + r.min + ' × ' + r.min + tx(' Felder. Wähle unter «Raster» eine grössere Grösse oder «So klein wie möglich» – oder ') + (link ? tx('nimm einen kürzeren Link') : tx('kürze den Text')) + '.</p>');
+      else meldung('fehler', tx('<h3>Das Raster wird zu gross</h3><p>Dieser Inhalt braucht ') + r.n + ' × ' + r.n + tx(' Felder. Für «') + artName() + tx('» sind höchstens ') +
+          r.grenze + ' × ' + r.grenze + tx(' möglich, damit alles gut lesbar bleibt.</p><ul><li>') + (link ? tx('Nimm einen kürzeren Link') : tx('Kürze den Text')) +
+          (st.opt.art !== 'punkte' ? tx(',</li><li>oder wähle «Kreise» – damit sind bis 41 × 41 Felder möglich') : '') + '.</li></ul>');
       return;
     }
     aktuell = { r:r, text:t, o:o, ziel:ziel, oeffnet:ziel !== 'text', id:id, botschaft:ziel === 'botschaft' ? { titel:st.bTitel.trim(), text:st.bText.trim() } : null }; gemalt = {};
@@ -586,34 +587,34 @@ function starte(bereich){
   }
   function erfolgsMeldung(){
     var r = aktuell.r;
-    meldung('erfolg', '<p><b>Fertig!</b> Raster mit ' + r.n + ' × ' + r.n + ' Feldern, davon <b>' + r.anzahl + ' zum Ausmalen</b>. ' +
-      (Kern.verzeiht(r.n, r.stufe) ? 'Der Code verzeiht etwa ' + Kern.verzeiht(r.n, r.stufe) + ' falsch ausgemalte oder vergessene Felder. ' : '') +
-      'Du kannst ihn auch hier am Bildschirm ausmalen.</p>');
+    meldung('erfolg', tx('<p><b>Fertig!</b> Raster mit ') + r.n + ' × ' + r.n + tx(' Feldern, davon <b>') + r.anzahl + tx(' zum Ausmalen</b>. ') +
+      (Kern.verzeiht(r.n, r.stufe) ? tx('Der Code verzeiht etwa ') + Kern.verzeiht(r.n, r.stufe) + tx(' falsch ausgemalte oder vergessene Felder. ') : '') +
+      tx('Du kannst ihn auch hier am Bildschirm ausmalen.</p>'));
   }
 
   /* ---------- Blatt zeichnen ---------- */
   function anleitung(){
     var o = aktuell.o, a;
-    if (o.art === 'punkte') a = 'Male alle Felder mit einem Kreis aus.';
+    if (o.art === 'punkte') a = tx('Male alle Felder mit einem Kreis aus.');
     else if (o.art === 'zahlen') a = o.regel === 'reihe'
-      ? 'Male alle Felder aus, deren Zahl in der ' + o.reihe + 'er-Reihe vorkommt (' + o.reihe + ', ' + 2 * o.reihe + ', ' + 3 * o.reihe + ' … ' + 10 * o.reihe + ').'
-      : 'Male alle Felder mit einer geraden Zahl aus (2, 4, 6, 8, …).';
-    else if (o.art === 'buchstaben') a = o.buchstaben === 'konsonanten' ? 'Male alle Felder mit einem Konsonanten aus – also alle Buchstaben ausser A, E, I, O und U.'
-      : o.buchstaben === 'zufall' ? 'Male alle Felder mit den Buchstaben ' + aktuell.r.auswahl.split('').join(', ').replace(/, (\w)$/, ' oder $1') + ' aus.'
-      : 'Male alle Felder mit einem Vokal aus (A, E, I, O, U).';
-    else a = 'Rechne in jedem Feld. Ist das Ergebnis gerade, malst du das Feld aus.';
-    var vor = o.ecken && o.schwarz ? ' Die Quadrate in den Ecken und viele weitere Felder sind schon schwarz.' : o.ecken ? ' Die Quadrate in den Ecken sind schon ausgemalt.' : o.schwarz ? ' Viele Felder sind schon schwarz.' : '';
-    return a + vor + ' Nimm einen dunklen Stift und male die Felder ganz aus.';
+      ? tx('Male alle Felder aus, deren Zahl in der ') + o.reihe + tx('er-Reihe vorkommt (') + o.reihe + ', ' + 2 * o.reihe + ', ' + 3 * o.reihe + ' … ' + 10 * o.reihe + ').'
+      : tx('Male alle Felder mit einer geraden Zahl aus (2, 4, 6, 8, …).');
+    else if (o.art === 'buchstaben') a = o.buchstaben === 'konsonanten' ? tx('Male alle Felder mit einem Konsonanten aus – also alle Buchstaben ausser A, E, I, O und U.')
+      : o.buchstaben === 'zufall' ? tx('Male alle Felder mit den Buchstaben ') + aktuell.r.auswahl.split('').join(', ').replace(/, (\w)$/, tx(' oder $1')) + tx(' aus.')
+      : tx('Male alle Felder mit einem Vokal aus (A, E, I, O, U).');
+    else a = tx('Rechne in jedem Feld. Ist das Ergebnis gerade, malst du das Feld aus.');
+    var vor = o.ecken && o.schwarz ? tx(' Die Quadrate in den Ecken und viele weitere Felder sind schon schwarz.') : o.ecken ? tx(' Die Quadrate in den Ecken sind schon ausgemalt.') : o.schwarz ? tx(' Viele Felder sind schon schwarz.') : '';
+    return a + vor + tx(' Nimm einen dunklen Stift und male die Felder ganz aus.');
   }
   // Raster als SVG. art: 'spiel' (mit Inhalt, ausmalbar) oder 'loesung' (fertiger Code)
   function rasterSvg(art){
     var r = aktuell.r, n = r.n, S = 10, rand = st.opt.nummern && art === 'spiel' ? 9 : 0, w = n * S + rand;
     var s = document.createElementNS(NS, 'svg');
     s.setAttribute('viewBox', (-rand) + ' ' + (-rand) + ' ' + w + ' ' + w);
-    s.setAttribute('class', 'qr-raster ' + (art === 'spiel' ? 'spiel' : 'fertig'));
+    s.setAttribute('class', tx('qr-raster ') + (art === 'spiel' ? 'spiel' : 'fertig'));
     s.style.setProperty('--felder', n);
     s.setAttribute('role', 'img');
-    s.setAttribute('aria-label', art === 'spiel' ? 'Raster mit ' + n + ' mal ' + n + ' Feldern zum Ausmalen' : 'Fertiger QR-Code');
+    s.setAttribute('aria-label', art === 'spiel' ? tx('Raster mit ') + n + tx(' mal ') + n + tx(' Feldern zum Ausmalen') : tx('Fertiger QR-Code'));
     var h = [];
     if (rand) for (var i = 0; i < n; i++){
       h.push('<text class="nr" x="' + (i * S + S / 2) + '" y="' + (-rand / 2) + '">' + (i + 1) + '</text>');
@@ -642,12 +643,12 @@ function starte(bereich){
     return s;
   }
   function zeichnen(){
-    var titel = st.titel.trim() || 'Male den QR-Code aus!', box = $('#qrBlaetter'), o = st.opt;
+    var titel = st.titel.trim() || tx('Male den QR-Code aus!'), box = $('#qrBlaetter'), o = st.opt;
     box.innerHTML = '';
     var blatt = document.createElement('article');
     blatt.className = 'qr-blatt';
     blatt.innerHTML = (o.titelAn ? '<h2>' + esc(titel) + '</h2>' : '') + (o.anleitungAn ? '<p class="qr-anleitung">' + esc(anleitung()) + '</p>' : '') + '<div class="qr-gitter"></div>' +
-      (o.anleitungAn ? '<p class="qr-fuss">Fertig? Scanne den Code mit einem Tablet oder Handy – ' + (aktuell.ziel === 'link' ? 'er führt dich zu einer Überraschung.' : aktuell.ziel === 'botschaft' ? 'er öffnet eine Botschaft für dich.' : 'er verrät dir eine Botschaft.') + '</p>' : '') +
+      (o.anleitungAn ? tx('<p class="qr-fuss">Fertig? Scanne den Code mit einem Tablet oder Handy – ') + (aktuell.ziel === 'link' ? tx('er führt dich zu einer Überraschung.') : aktuell.ziel === 'botschaft' ? tx('er öffnet eine Botschaft für dich.') : tx('er verrät dir eine Botschaft.')) + '</p>' : '') +
       '<p class="qr-fortschritt nur-bildschirm" id="qrFortschritt" aria-live="polite"></p>';
     var svg = rasterSvg('spiel');
     blatt.querySelector('.qr-gitter').appendChild(svg);
@@ -656,8 +657,8 @@ function starte(bereich){
     loes.className = 'qr-blatt qr-loesungsblatt';
     loes.setAttribute('aria-hidden', 'true');
     var b = aktuell.botschaft;
-    loes.innerHTML = '<h2>Lösung' + (o.titelAn ? ' – ' + esc(titel) : '') + '</h2><p class="qr-anleitung">So sieht der fertig ausgemalte Code aus. ' +
-      (aktuell.ziel === 'link' ? 'Er öffnet diesen Link:' : aktuell.ziel === 'botschaft' ? 'Er öffnet diese Botschaftsseite:' : 'Er enthält:') + '</p>' +
+    loes.innerHTML = tx('<h2>Lösung') + (o.titelAn ? ' – ' + esc(titel) : '') + tx('</h2><p class="qr-anleitung">So sieht der fertig ausgemalte Code aus. ') +
+      (aktuell.ziel === 'link' ? tx('Er öffnet diesen Link:') : aktuell.ziel === 'botschaft' ? tx('Er öffnet diese Botschaftsseite:') : tx('Er enthält:')) + '</p>' +
       '<p class="qr-botschaft">' + (aktuell.oeffnet ? '<a href="' + esc(aktuell.text) + '" target="_blank" rel="noopener">' + esc(aktuell.text) + '</a>' : esc(aktuell.text)) + '</p>' +
       (b ? '<div class="qr-botschaft qr-botschaft-voll">' + (b.titel ? '<b>' + esc(b.titel) + '</b>' : '') + '<span>' + esc(b.text) + '</span></div>' : '') +
       '<div class="qr-gitter"></div>';
@@ -692,15 +693,15 @@ function starte(bereich){
     var r = aktuell.r, n = r.n, richtig = 0, falsch = 0;
     Object.keys(gemalt).forEach(function(f){ f = +f; if (r.dunkel[Math.floor(f / n)][f % n]) richtig++; else falsch++; });
     var fertig = richtig === r.anzahl && !falsch;
-    p.className = 'qr-fortschritt nur-bildschirm' + (fertig ? ' fertig' : '');
+    p.className = 'qr-fortschritt nur-bildschirm' + (fertig ? tx(' fertig') : '');
     if (fertig){
       // Wer am Tablet ausmalt, kann den eigenen Bildschirm nicht scannen – darum gibt es das Ziel auch als Knopf
-      p.innerHTML = '🎉 Geschafft! Der Code ist komplett – scanne ihn jetzt mit dem Handy oder Tablet. ' +
-        (aktuell.oeffnet ? '<a class="btn klein primary" href="' + esc(aktuell.text) + '" target="_blank" rel="noopener">' + (aktuell.ziel === 'botschaft' ? 'Botschaft öffnen' : 'Link öffnen') + '</a>'
-          : '<button type="button" class="btn klein" id="qrBotschaftZeigen">Botschaft zeigen</button>');
+      p.innerHTML = tx('🎉 Geschafft! Der Code ist komplett – scanne ihn jetzt mit dem Handy oder Tablet. ') +
+        (aktuell.oeffnet ? '<a class="btn klein primary" href="' + esc(aktuell.text) + '" target="_blank" rel="noopener">' + (aktuell.ziel === 'botschaft' ? tx('Botschaft öffnen') : tx('Link öffnen')) + '</a>'
+          : tx('<button type="button" class="btn klein" id="qrBotschaftZeigen">Botschaft zeigen</button>'));
       var bz = $('#qrBotschaftZeigen');
       if (bz) bz.addEventListener('click', function(){ var x = document.createElement('span'); x.className = 'qr-botschaft-gezeigt'; x.textContent = aktuell.text; bz.replaceWith(x); });
-    } else p.textContent = Object.keys(gemalt).length ? Object.keys(gemalt).length + ' Felder ausgemalt.' : 'Tippe auf ein Feld oder fahre mit gedrückter Maus über mehrere Felder, um sie auszumalen.';
+    } else p.textContent = Object.keys(gemalt).length ? Object.keys(gemalt).length + tx(' Felder ausgemalt.') : tx('Tippe auf ein Feld oder fahre mit gedrückter Maus über mehrere Felder, um sie auszumalen.');
     var blatt = bereich.querySelector('.qr-blatt:not(.qr-loesungsblatt)');
     if (blatt) blatt.classList.toggle('geschafft', fertig);
   }
@@ -721,9 +722,9 @@ function starte(bereich){
     liste.innerHTML = '';
     st.liste.forEach(function(x, i){
       var li = document.createElement('li');
-      li.innerHTML = '<label class="qr-feld"><span>Titel (freiwillig)</span><input type="text" class="qr-titel" maxlength="60" aria-label="Titel von Code ' + (i + 1) + '"></label>' +
-        '<label class="qr-feld"><span>Text oder Link</span><input type="text" class="qr-inhalt" maxlength="500" aria-label="Inhalt von Code ' + (i + 1) + '"></label>' +
-        '<button type="button" class="qr-weg" aria-label="Code ' + (i + 1) + ' entfernen" title="Entfernen">×</button>';
+      li.innerHTML = tx('<label class="qr-feld"><span>Titel (freiwillig)</span><input type="text" class="qr-titel" maxlength="60" aria-label="Titel von Code ') + (i + 1) + '"></label>' +
+        tx('<label class="qr-feld"><span>Text oder Link</span><input type="text" class="qr-inhalt" maxlength="500" aria-label="Inhalt von Code ') + (i + 1) + '"></label>' +
+        tx('<button type="button" class="qr-weg" aria-label="Code ') + (i + 1) + tx(' entfernen" title="Entfernen">×</button>');
       var ti = li.querySelector('.qr-titel'), inh = li.querySelector('.qr-inhalt');
       ti.value = x.titel; inh.value = x.inhalt;
       ti.addEventListener('input', function(){ x.titel = ti.value; speichern(); fertigSpaeter(); });
@@ -755,23 +756,23 @@ function starte(bereich){
       var q = Kern.code(t, logoUrl() ? 'H' : st.opt.stufeFertig);   // mit Logo immer höchste Fehlertoleranz
       if (!q){ zuLang.push(i + 1); return; }
       var c = { titel:x.titel.trim(), text:t, q:q };
-      c.svg = Kern.gestaltet(q, designKern(), 'c' + i).replace('<svg ', '<svg role="img" aria-label="QR-Code' + (c.titel ? ': ' + esc(c.titel) : '') + '" ');
+      c.svg = Kern.gestaltet(q, designKern(), 'c' + i).replace('<svg ', tx('<svg role="img" aria-label="QR-Code') + (c.titel ? ': ' + esc(c.titel) : '') + '" ');
       codes.push(c);
     });
     if (!codes.length){
       box.innerHTML = ''; $('#qrWerkzeug').hidden = true;
-      meldung(zuLang.length ? 'fehler' : 'info', zuLang.length ? '<p>Code ' + zuLang.join(', ') + ': Der Text ist zu lang für einen QR-Code.</p>' : '<p>Gib links einen Text oder Link ein – die QR-Codes erscheinen sofort hier.</p>');
+      meldung(zuLang.length ? 'fehler' : 'info', zuLang.length ? tx('<p>Code ') + zuLang.join(', ') + tx(': Der Text ist zu lang für einen QR-Code.</p>') : tx('<p>Gib links einen Text oder Link ein – die QR-Codes erscheinen sofort hier.</p>'));
       return;
     }
-    meldung(zuLang.length ? 'warnung' : '', zuLang.length ? '<p>Code ' + zuLang.join(', ') + ' ist zu lang und wird weggelassen.</p>' : '');
+    meldung(zuLang.length ? 'warnung' : '', zuLang.length ? tx('<p>Code ') + zuLang.join(', ') + tx(' ist zu lang und wird weggelassen.</p>') : '');
     var pro = st.opt.proBlatt, html = '';
     for (var s = 0; s < codes.length; s += pro){
-      html += '<article class="qr-blatt qr-karten pro-' + pro + (st.opt.schnitt ? ' schnitt' : '') + (s ? ' neue-seite' : '') + '">';
+      html += '<article class="qr-blatt qr-karten pro-' + pro + (st.opt.schnitt ? tx(' schnitt') : '') + (s ? tx(' neue-seite') : '') + '">';
       codes.slice(s, s + pro).forEach(function(c, k){
         html += '<figure class="qr-karte">' + c.svg +
           (st.opt.titelZeigen && c.titel ? '<figcaption class="qr-karte-titel">' + esc(c.titel) + '</figcaption>' : '') +
           (st.opt.inhaltZeigen ? '<p class="qr-karte-text">' + esc(c.text) + '</p>' : '') +
-          '<p class="qr-lesbar nur-bildschirm" data-i="' + (s + k) + '"><span class="lade" aria-hidden="true"></span>wird geprüft …</p>' +
+          '<p class="qr-lesbar nur-bildschirm" data-i="' + (s + k) + tx('"><span class="lade" aria-hidden="true"></span>wird geprüft …</p>') +
           '<span class="qr-downloads nur-bildschirm"><button type="button" class="btn ghost klein qr-png" data-i="' + (s + k) + '">PNG</button>' +
           '<button type="button" class="btn ghost klein qr-svg" data-i="' + (s + k) + '">SVG</button></span></figure>';
       });
@@ -788,17 +789,17 @@ function starte(bereich){
   }
   /* ---------- Gestaltung ---------- */
   var VORLAGEN = [
-    { k:'klassisch', name:'Klassisch', d:{ form:'quadrat', rahmen:'quadrat', mitte:'quadrat', farbe:'#000000', farbe2:'#555555', verlauf:'', augenEigen:false, augen:'#000000', hintergrund:'#ffffff' } },
-    { k:'fabulous', name:'Fabulous', d:{ form:'fliessend', rahmen:'abgerundet', mitte:'abgerundet', farbe:'#B4530F', farbe2:'#1A1411', verlauf:'linear', augenEigen:true, augen:'#1A1411', hintergrund:'#ffffff' } },
-    { k:'punkte', name:'Punkte', d:{ form:'punkte', rahmen:'kreis', mitte:'kreis', farbe:'#1A1411', farbe2:'#555555', verlauf:'', augenEigen:false, augen:'#1A1411', hintergrund:'#ffffff' } },
-    { k:'weich', name:'Weich', d:{ form:'abgerundet', rahmen:'abgerundet', mitte:'kreis', farbe:'#3D3530', farbe2:'#555555', verlauf:'', augenEigen:true, augen:'#A9490B', hintergrund:'#ffffff' } },
-    { k:'blatt', name:'Blatt', d:{ form:'fliessend', rahmen:'blatt', mitte:'blatt', farbe:'#2E6B3A', farbe2:'#173D20', verlauf:'radial', augenEigen:true, augen:'#173D20', hintergrund:'#ffffff' } },
-    { k:'nacht', name:'Nacht', d:{ form:'raute', rahmen:'abgerundet', mitte:'abgerundet', farbe:'#3B2A7A', farbe2:'#7A1F4D', verlauf:'linear', augenEigen:true, augen:'#1A1411', hintergrund:'#ffffff' } }
+    { k:'klassisch', name:tx('Klassisch'), d:{ form:'quadrat', rahmen:'quadrat', mitte:'quadrat', farbe:'#000000', farbe2:'#555555', verlauf:'', augenEigen:false, augen:'#000000', hintergrund:'#ffffff' } },
+    { k:'fabulous', name:tx('Fabulous'), d:{ form:'fliessend', rahmen:'abgerundet', mitte:'abgerundet', farbe:'#B4530F', farbe2:'#1A1411', verlauf:'linear', augenEigen:true, augen:'#1A1411', hintergrund:'#ffffff' } },
+    { k:'punkte', name:tx('Punkte'), d:{ form:'punkte', rahmen:'kreis', mitte:'kreis', farbe:'#1A1411', farbe2:'#555555', verlauf:'', augenEigen:false, augen:'#1A1411', hintergrund:'#ffffff' } },
+    { k:'weich', name:tx('Weich'), d:{ form:'abgerundet', rahmen:'abgerundet', mitte:'kreis', farbe:'#3D3530', farbe2:'#555555', verlauf:'', augenEigen:true, augen:'#A9490B', hintergrund:'#ffffff' } },
+    { k:'blatt', name:tx('Blatt'), d:{ form:'fliessend', rahmen:'blatt', mitte:'blatt', farbe:'#2E6B3A', farbe2:'#173D20', verlauf:'radial', augenEigen:true, augen:'#173D20', hintergrund:'#ffffff' } },
+    { k:'nacht', name:tx('Nacht'), d:{ form:'raute', rahmen:'abgerundet', mitte:'abgerundet', farbe:'#3B2A7A', farbe2:'#7A1F4D', verlauf:'linear', augenEigen:true, augen:'#1A1411', hintergrund:'#ffffff' } }
   ];
   var FORMEN = {
-    form:[['quadrat', 'Quadrate'], ['abgerundet', 'Abgerundet'], ['punkte', 'Punkte'], ['fliessend', 'Fliessend'], ['raute', 'Rauten']],
-    rahmen:[['quadrat', 'Eckig'], ['abgerundet', 'Abgerundet'], ['kreis', 'Rund'], ['blatt', 'Blatt']],
-    mitte:[['quadrat', 'Eckig'], ['abgerundet', 'Abgerundet'], ['kreis', 'Rund'], ['blatt', 'Blatt']]
+    form:[['quadrat', tx('Quadrate')], ['abgerundet', tx('Abgerundet')], ['punkte', tx('Punkte')], ['fliessend', tx('Fliessend')], ['raute', tx('Rauten')]],
+    rahmen:[['quadrat', tx('Eckig')], ['abgerundet', tx('Abgerundet')], ['kreis', tx('Rund')], ['blatt', tx('Blatt')]],
+    mitte:[['quadrat', tx('Eckig')], ['abgerundet', tx('Abgerundet')], ['kreis', tx('Rund')], ['blatt', tx('Blatt')]]
   };
   var D = st.opt.design = Object.assign({ logoArt:'kein', logoGroesse:22, logoFrei:true, durchsichtig:false, vorlage:'klassisch' }, VORLAGEN[0].d, st.opt.design || {});
   // Logo «Rätsellabor»: der Kolben aus dem Kopf der Seite, auf weissem Grund
@@ -829,7 +830,7 @@ function starte(bereich){
       var box = bereich.querySelector('.qr-formen[data-wahl="' + art + '"]'), erlaubt = art === 'mitte' ? Kern.MITTE_ZU[D.rahmen] : null;
       box.innerHTML = FORMEN[art].map(function(f){
         var aus = erlaubt && erlaubt.indexOf(f[0]) < 0, an = (art === 'mitte' ? Kern.passendeMitte(D.rahmen, D.mitte) : D[art]) === f[0];
-        return '<button type="button" role="radio" class="qr-form" data-wert="' + f[0] + '" aria-checked="' + an + '"' + (aus ? ' disabled title="Passt nicht zu dieser äusseren Ecke – so liessen sich die Codes schlecht scannen"' : '') + '>' +
+        return '<button type="button" role="radio" class="qr-form" data-wert="' + f[0] + '" aria-checked="' + an + '"' + (aus ? tx(' disabled title="Passt nicht zu dieser äusseren Ecke – so liessen sich die Codes schlecht scannen"') : '') + '>' +
           formBild(art, f[0]) + '<span>' + f[1] + '</span></button>';
       }).join('');
       [].forEach.call(box.querySelectorAll('.qr-form'), function(b){
@@ -838,7 +839,7 @@ function starte(bereich){
     });
   }
   function vorlagenZeichnen(){
-    var q = Kern.code('Rätsellabor', 'M');
+    var q = Kern.code(tx('Rätsellabor'), 'M');
     $('#qrVorlagen').innerHTML = VORLAGEN.map(function(v){
       return '<button type="button" class="qr-vorlage" data-k="' + v.k + '" aria-pressed="' + (D.vorlage === v.k) + '">' +
         Kern.gestaltet(q, Object.assign({}, v.d, { mitte:Kern.passendeMitte(v.d.rahmen, v.d.mitte), augen:v.d.augenEigen ? v.d.augen : '' }), 'v' + v.k) + '<span>' + v.name + '</span></button>';
@@ -854,7 +855,7 @@ function starte(bereich){
     [].forEach.call(bereich.querySelectorAll('input[name="qrLogo"]'), function(r){ r.checked = r.value === D.logoArt; });
     bereich.querySelector('[data-verlauf]').hidden = !D.verlauf; bereich.querySelector('[data-augen]').hidden = !D.augenEigen; bereich.querySelector('[data-grund]').hidden = D.durchsichtig;
     bereich.querySelector('[data-logo]').hidden = D.logoArt === 'kein'; bereich.querySelector('[data-logo-eigen]').hidden = D.logoArt !== 'eigen';
-    var sf = $('#qrStufeFertig'); sf.disabled = !!logoUrl(); sf.title = logoUrl() ? 'Mit Logo wird automatisch die höchste Fehlertoleranz (30 %) verwendet.' : '';
+    var sf = $('#qrStufeFertig'); sf.disabled = !!logoUrl(); sf.title = logoUrl() ? tx('Mit Logo wird automatisch die höchste Fehlertoleranz (30 %) verwendet.') : '';
     formenZeichnen(); designInfo();
   }
   function geaendertDesign(vorlage){
@@ -884,25 +885,25 @@ function starte(bereich){
         cv.width = Math.max(1, Math.round((img.naturalWidth || 320) * m)); cv.height = Math.max(1, Math.round((img.naturalHeight || 320) * m));
         cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
         try { st.logoDaten = cv.toDataURL('image/png'); } catch(e){ st.logoDaten = String(leser.result); }
-        try { sessionStorage.setItem(TAB + '-logo', st.logoDaten); } catch(e){}
+        try { sessionStorage.setItem(TAB + tx('-logo'), st.logoDaten); } catch(e){}
         D.logoArt = 'eigen'; geaendertDesign();
       };
-      img.onerror = function(){ $('#qrDesignInfo').textContent = 'Dieses Bild lässt sich nicht verwenden. Nimm ein PNG-, JPG- oder SVG-Bild.'; };
+      img.onerror = function(){ $('#qrDesignInfo').textContent = tx('Dieses Bild lässt sich nicht verwenden. Nimm ein PNG-, JPG- oder SVG-Bild.'); };
       img.src = String(leser.result);
     };
     leser.readAsDataURL(f);
   });
-  try { st.logoDaten = sessionStorage.getItem(TAB + '-logo') || ''; } catch(e){}
+  try { st.logoDaten = sessionStorage.getItem(TAB + tx('-logo')) || ''; } catch(e){}
   // Kontrast prüfen (WCAG-Formel); helle Punkte auf dunklem Grund lesen viele Handys nicht
   function hell(h){ var c = [1, 3, 5].map(function(i){ var v = parseInt(h.substr(i, 2), 16) / 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2]; }
   function designInfo(){
     var grund = D.durchsichtig ? '#ffffff' : D.hintergrund, vorne = [D.farbe].concat(D.verlauf ? [D.farbe2] : [], D.augenEigen ? [D.augen] : []), h = [];
     var kontrast = Math.min.apply(null, vorne.map(function(f){ var a = hell(f), b = hell(grund); return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05); }));
-    if (vorne.some(function(f){ return hell(f) > hell(grund); })) h.push('⚠ Helle Punkte auf dunklem Hintergrund können viele Handys nicht lesen.');
-    else if (kontrast < 4) h.push('⚠ Wenig Kontrast zwischen Punkten und Hintergrund – nimm dunklere Punkte oder einen helleren Hintergrund.');
-    if (logoUrl()) h.push('Mit Logo wird automatisch die höchste Fehlertoleranz (30 %) verwendet.');
-    if (D.logoArt === 'eigen' && !st.logoDaten) h.push('Wähle ein Bild für das Logo.');
-    if (D.durchsichtig) h.push('Durchsichtig: Auf farbigem Papier muss der Hintergrund hell genug bleiben.');
+    if (vorne.some(function(f){ return hell(f) > hell(grund); })) h.push(tx('⚠ Helle Punkte auf dunklem Hintergrund können viele Handys nicht lesen.'));
+    else if (kontrast < 4) h.push(tx('⚠ Wenig Kontrast zwischen Punkten und Hintergrund – nimm dunklere Punkte oder einen helleren Hintergrund.'));
+    if (logoUrl()) h.push(tx('Mit Logo wird automatisch die höchste Fehlertoleranz (30 %) verwendet.'));
+    if (D.logoArt === 'eigen' && !st.logoDaten) h.push(tx('Wähle ein Bild für das Logo.'));
+    if (D.durchsichtig) h.push(tx('Durchsichtig: Auf farbigem Papier muss der Hintergrund hell genug bleiben.'));
     $('#qrDesignInfo').innerHTML = h.join('<br>');
   }
 
@@ -941,8 +942,8 @@ function starte(bereich){
           }, function(){ return false; }); });
         }, Promise.resolve(false)).then(function(ok){
           if (lauf !== fertigLauf || aus || !feld) return;
-          feld.className = 'qr-lesbar nur-bildschirm ' + (ok ? 'gut' : 'schlecht');
-          feld.textContent = ok ? '✓ Lässt sich scannen' : '⚠ Schwer lesbar – mehr Kontrast, einfachere Formen oder ein kleineres Logo wählen.';
+          feld.className = tx('qr-lesbar nur-bildschirm ') + (ok ? 'gut' : 'schlecht');
+          feld.textContent = ok ? tx('✓ Lässt sich scannen') : tx('⚠ Schwer lesbar – mehr Kontrast, einfachere Formen oder ein kleineres Logo wählen.');
         });
       });
     }, function(){
@@ -950,7 +951,7 @@ function starte(bereich){
     });
   }
   /* ---------- Herunterladen: PNG (Webseite) und SVG (auch im Artefakt) ---------- */
-  function dateiName(c, endung){ return 'QR-Code' + (c.titel ? '-' + Labor.dateiname(c.titel) : '') + '.' + endung; }
+  function dateiName(c, endung){ return tx('QR-Code') + (c.titel ? '-' + Labor.dateiname(c.titel) : '') + '.' + endung; }
   function herunterladen(blob, name){
     var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
     document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
@@ -959,8 +960,8 @@ function starte(bereich){
     var w = +c.svg.match(/viewBox="0 0 (\d+)/)[1];
     svgBild(c.svg, Math.max(8, Math.round(1200 / w)), false).then(function(cv){
       try { cv.toBlob(function(b){ if (b) herunterladen(b, dateiName(c, 'png')); }, 'image/png'); }
-      catch(e){ meldung('warnung', '<p>Als PNG klappt es mit diesem Logo nicht – speichere den Code als SVG.</p>'); }
-    }, function(){ meldung('warnung', '<p>Das Bild konnte nicht erstellt werden – speichere den Code als SVG.</p>'); });
+      catch(e){ meldung('warnung', tx('<p>Als PNG klappt es mit diesem Logo nicht – speichere den Code als SVG.</p>')); }
+    }, function(){ meldung('warnung', tx('<p>Das Bild konnte nicht erstellt werden – speichere den Code als SVG.</p>')); });
   }
   function svgSpeichern(c){
     var text = '<?xml version="1.0" encoding="UTF-8"?>\n' + c.svg.replace(/ role="img" aria-label="[^"]*"/, '');
@@ -977,7 +978,7 @@ function starte(bereich){
   Labor.pdfKnopf($('#qrDrucken'), function(){
     var malen = st.opt.modus === 'malen';
     var b = [].filter.call(bereich.querySelectorAll('#qrBlaetter .qr-blatt'), function(x){ return !x.classList.contains('qr-loesungsblatt') || (malen && st.opt.mitLoesung); });
-    return { blaetter:b, name:Labor.pdfName(malen ? 'QR-Code-Ausmalen' : 'QR-Codes', malen ? st.titel : '') };
+    return { blaetter:b, name:Labor.pdfName(malen ? tx('QR-Code-Ausmalen') : tx('QR-Codes'), malen ? st.titel : '') };
   }, function(t){ meldung('fehler', '<p>' + Labor.esc(t) + '</p>'); });
   var speicherOrt = null;
   if (Labor.imArtefakt()){
@@ -997,10 +998,10 @@ function starte(bereich){
     if (st.opt.modus === 'malen' && !st.opt.mitLoesung) blaetter = blaetter.filter(function(b){ return !b.classList.contains('qr-loesungsblatt'); });
     if (!blaetter.length) return;
     var inhaltHtml = blaetter.map(function(b, i){ var k = sauber(b); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
-    var name = st.opt.modus === 'malen' ? 'QR-Code-zum-Ausmalen' : 'QR-Codes';
+    var name = st.opt.modus === 'malen' ? tx('QR-Code-zum-Ausmalen') : tx('QR-Codes');
     speicherOrt.save({ filename:name + '.html', data:Labor.blattDatei(name.replace(/-/g, ' '), inhaltHtml, '.qr-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 

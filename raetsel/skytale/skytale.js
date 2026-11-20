@@ -8,6 +8,7 @@
    Kopiervorlage in echten Millimetern auf A4 quer (1 px = 0,2646 mm); lange Bänder in Streifen mit Klebeflächen. */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('skytale');
 
 /* KERN-START */
 var Kern = (function(){
@@ -87,49 +88,49 @@ var Kern = (function(){
 /* KERN-ENDE */
 
 var TINTE = '#1C1714', MM = 96 / 25.4;   // CSS-Pixel je Millimeter (beim Drucken und im PDF genau)
-var FARBEN = [['#D7263D', 'Rot'], ['#1F5FBF', 'Blau'], ['#1E8A4C', 'Grün'], ['#8E44AD', 'Violett']];
+var FARBEN = [['#D7263D', tx('Rot')], ['#1F5FBF', tx('Blau')], ['#1E8A4C', tx('Grün')], ['#8E44AD', tx('Violett')]];
 var GEGENSTAENDE = [   // [id, Name, Durchmesser mm, Länge mm]
-  ['bleistift', 'Bleistift', 7, 170], ['filzstift', 'Dicker Filzstift', 13, 135], ['leimstift', 'Leimstift', 24, 100],
-  ['wcrolle', 'WC-Rollen-Kern', 44, 98], ['kuechenrolle', 'Küchenrollen-Kern', 42, 230], ['besenstiel', 'Besenstiel', 24, 1200], ['eigene', 'Eigene Masse']
+  ['bleistift', tx('Bleistift'), 7, 170], ['filzstift', tx('Dicker Filzstift'), 13, 135], ['leimstift', tx('Leimstift'), 24, 100],
+  ['wcrolle', tx('WC-Rollen-Kern'), 44, 98], ['kuechenrolle', tx('Küchenrollen-Kern'), 42, 230], ['besenstiel', tx('Besenstiel'), 24, 1200], ['eigene', tx('Eigene Masse')]
 ];
 function esc(t){ return Labor.esc(t); }
 function f1(x){ return (Math.round(x * 10) / 10).toLocaleString('de-CH'); }
 
 var VORLAGE = '<div class="sk">' +
-  '<header class="sk-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Skytale</h1>' +
-    '<p>Ein Band voller Buchstaben – um einen runden Gegenstand gewickelt, erscheint die geheime Nachricht. So verschickten schon die alten Griechen Botschaften.</p></header>' +
-  '<div class="sk-layout"><section class="sk-eingabe" aria-label="Eingaben">' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Nachricht</h2><p>Buchstaben, Ziffern und ? ! . , – bis 160 Zeichen.</p></div></div>' +
-      '<label class="feld-label" for="skText">Nachricht</label>' +
+  tx('<header class="sk-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Skytale</h1>') +
+    tx('<p>Ein Band voller Buchstaben – um einen runden Gegenstand gewickelt, erscheint die geheime Nachricht. So verschickten schon die alten Griechen Botschaften.</p></header>') +
+  tx('<div class="sk-layout"><section class="sk-eingabe" aria-label="Eingaben">') +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Nachricht</h2><p>Buchstaben, Ziffern und ? ! . , – bis 160 Zeichen.</p></div></div>') +
+      tx('<label class="feld-label" for="skText">Nachricht</label>') +
       '<textarea id="skText" class="sk-text" rows="3" maxlength="160" spellcheck="true"></textarea>' +
       '<p class="hinweis" id="skTextInfo"></p>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Gegenstand zum Aufwickeln</h2></div></div>' +
-      '<div class="sk-chips" role="radiogroup" aria-label="Gegenstand">' + GEGENSTAENDE.map(function(g){ return '<label><input type="radio" name="skDing" value="' + g[0] + '"><span>' + g[1] + '</span></label>'; }).join('') + '</div>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Gegenstand zum Aufwickeln</h2></div></div>') +
+      tx('<div class="sk-chips" role="radiogroup" aria-label="Gegenstand">') + GEGENSTAENDE.map(function(g){ return '<label><input type="radio" name="skDing" value="' + g[0] + '"><span>' + g[1] + '</span></label>'; }).join('') + '</div>' +
       '<div class="sk-masse" id="skMasse" hidden>' +
-        '<label><span>Durchmesser</span><input type="number" id="skD" min="4" max="200" step="0.5" inputmode="decimal"> mm</label>' +
-        '<label><span>Länge</span><input type="number" id="skL" min="20" max="3000" step="1" inputmode="numeric"> mm</label>' +
-        '<p class="hinweis">Am besten nachmessen: Lege einen Papierstreifen einmal rundherum, markiere und miss den Umfang. Durchmesser = Umfang : 3,14.</p>' +
+        tx('<label><span>Durchmesser</span><input type="number" id="skD" min="4" max="200" step="0.5" inputmode="decimal"> mm</label>') +
+        tx('<label><span>Länge</span><input type="number" id="skL" min="20" max="3000" step="1" inputmode="numeric"> mm</label>') +
+        tx('<p class="hinweis">Am besten nachmessen: Lege einen Papierstreifen einmal rundherum, markiere und miss den Umfang. Durchmesser = Umfang : 3,14.</p>') +
       '</div>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Band</h2></div></div>' +
-      '<label class="feld-label" for="skB">Bandbreite: <b id="skBWert"></b></label>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Band</h2></div></div>') +
+      tx('<label class="feld-label" for="skB">Bandbreite: <b id="skBWert"></b></label>') +
       '<input type="range" id="skB" min="6" max="20" step="1">' +
       '<p class="hinweis" id="skGeoInfo"></p>' +
-      '<label class="opt"><input type="checkbox" id="skFarbig"><span>Nachricht farbig hervorheben – die übrigen Felder bekommen zufällige Buchstaben</span></label>' +
-      '<div class="sk-farbwahl" id="skFarbwahl" role="radiogroup" aria-label="Farbe der Nachricht">' +
+      tx('<label class="opt"><input type="checkbox" id="skFarbig"><span>Nachricht farbig hervorheben – die übrigen Felder bekommen zufällige Buchstaben</span></label>') +
+      tx('<div class="sk-farbwahl" id="skFarbwahl" role="radiogroup" aria-label="Farbe der Nachricht">') +
         FARBEN.map(function(f){ return '<label title="' + f[1] + '"><input type="radio" name="skFarbe" value="' + f[0] + '"><span style="background:' + f[0] + '"></span><b class="vh">' + f[1] + '</b></label>'; }).join('') + '</div>' +
     '</div>' +
   '</section>' +
-  '<section class="sk-ausgabe" aria-label="Ergebnis">' +
+  tx('<section class="sk-ausgabe" aria-label="Ergebnis">') +
     '<div id="skMeldung" aria-live="polite"></div>' +
     '<div class="sk-werkzeug">' +
-      '<button type="button" class="btn klein" id="skZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
-      '<button type="button" class="btn klein" id="skNeu" title="Andere Füllbuchstaben">Neu mischen</button>' +
+      tx('<button type="button" class="btn klein" id="skZeigeLoesung" aria-pressed="false">Lösung zeigen</button>') +
+      tx('<button type="button" class="btn klein" id="skNeu" title="Andere Füllbuchstaben">Neu mischen</button>') +
       '<span class="abstand"></span>' + Labor.blattSchalterHtml() +
-      '<label><input type="checkbox" id="skMitLoesung"> mit Lösungsblatt</label>' +
-      '<button type="button" class="btn klein primary" id="skPdf">PDF herunterladen</button>' +
-      '<button type="button" class="btn klein primary" id="skHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
+      tx('<label><input type="checkbox" id="skMitLoesung"> mit Lösungsblatt</label>') +
+      tx('<button type="button" class="btn klein primary" id="skPdf">PDF herunterladen</button>') +
+      tx('<button type="button" class="btn klein primary" id="skHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>') +
     '</div>' +
     '<div class="sk-blaetter"><div class="sk-seiten" id="skSeiten"></div>' +
     '<div class="sk-rahmen sk-loesung-rahmen"><article class="sk-blatt sk-loesungsblatt" id="skLoesung" aria-hidden="true"></article></div></div>' +
@@ -218,34 +219,34 @@ function starte(bereich){
     var o = st.opt, t = [], W = Kern.woerter(st.text);
     function passt(gg){ if (gg.fehler) return false; var a = Kern.anordnen(st.text, gg, farbig, Math.random); return !a.fehler; }
     // schmaleres Band
-    for (var b = o.b - 1; b >= 6; b--){ var gb = Kern.geometrie(o.d, o.l, b); if (passt(gb)){ t.push('ein schmaleres Band: ' + b + ' mm'); break; } }
+    for (var b = o.b - 1; b >= 6; b--){ var gb = Kern.geometrie(o.d, o.l, b); if (passt(gb)){ t.push(tx('ein schmaleres Band: ') + b + ' mm'); break; } }
     // längerer Gegenstand
-    for (var l = Math.ceil(o.l / 10) * 10 + 10; l <= 3000; l += 10){ if (passt(Kern.geometrie(o.d, l, o.b))){ t.push('ein längerer Gegenstand: mindestens ' + l + ' mm lang' + (l > 400 ? ' (z. B. ein Besenstiel)' : '')); break; } }
+    for (var l = Math.ceil(o.l / 10) * 10 + 10; l <= 3000; l += 10){ if (passt(Kern.geometrie(o.d, l, o.b))){ t.push(tx('ein längerer Gegenstand: mindestens ') + l + tx(' mm lang') + (l > 400 ? tx(' (z. B. ein Besenstiel)') : '')); break; } }
     // dickerer Gegenstand
-    for (var d = Math.ceil(o.d) + 1; d <= 200; d++){ if (passt(Kern.geometrie(d, o.l, o.b))){ t.push('ein dickerer Gegenstand: mindestens ' + d + ' mm Durchmesser'); break; } }
-    t.push(farbig ? 'eine kürzere Nachricht' : 'eine kürzere Nachricht: höchstens ' + g.k * g.Tmax + ' Zeichen (ohne Abstände)');
+    for (var d = Math.ceil(o.d) + 1; d <= 200; d++){ if (passt(Kern.geometrie(d, o.l, o.b))){ t.push(tx('ein dickerer Gegenstand: mindestens ') + d + tx(' mm Durchmesser')); break; } }
+    t.push(farbig ? tx('eine kürzere Nachricht') : tx('eine kürzere Nachricht: höchstens ') + g.k * g.Tmax + tx(' Zeichen (ohne Abstände)'));
     return t;
   }
   function zeichnen(){
     if (aus) return;
     var o = st.opt, W = Kern.woerter(st.text), n = W.reduce(function(a, w){ return a + w.length; }, 0);
-    $('#skTextInfo').textContent = n ? n + ' Zeichen in ' + W.length + (W.length === 1 ? ' Wort' : ' Wörtern') + (o.farbig ? '' : ' – ohne Farbe stehen sie ohne Abstand hintereinander') : '';
+    $('#skTextInfo').textContent = n ? n + tx(' Zeichen in ') + W.length + (W.length === 1 ? tx(' Wort') : tx(' Wörtern')) + (o.farbig ? '' : tx(' – ohne Farbe stehen sie ohne Abstand hintereinander')) : '';
     $('#skMasse').hidden = !o.ding;
     $('#skBWert').textContent = o.b + ' mm';
     $('#skFarbwahl').hidden = !o.farbig;
     var g = o.ding ? Kern.geometrie(o.d, o.l, o.b) : null;
-    $('#skGeoInfo').textContent = g && !g.fehler ? 'Rundherum ' + g.k + (g.k === 1 ? ' Reihe' : ' Reihen') + ' · der Länge nach ' + g.Tmax + ' Windungen · eine Windung braucht ' + f1(g.L / 10) + ' cm Band.' : '';
-    var fehlt = !n ? 'Schreib links eine Nachricht.' : !o.ding ? 'Wähle links, um welchen Gegenstand das Band gewickelt wird.' : '';
+    $('#skGeoInfo').textContent = g && !g.fehler ? tx('Rundherum ') + g.k + (g.k === 1 ? tx(' Reihe') : tx(' Reihen')) + tx(' · der Länge nach ') + g.Tmax + tx(' Windungen · eine Windung braucht ') + f1(g.L / 10) + tx(' cm Band.') : '';
+    var fehlt = !n ? tx('Schreib links eine Nachricht.') : !o.ding ? tx('Wähle links, um welchen Gegenstand das Band gewickelt wird.') : '';
     ['#skPdf', '#skHerunterladen', '#skZeigeLoesung', '#skNeu'].forEach(function(s){ $(s).disabled = true; });
     function leer(art, html){ R = null; $('#skSeiten').innerHTML = ''; $('#skLoesung').parentNode.hidden = true; meldung(art, html); }
     if (fehlt) return leer('info', '<p>' + fehlt + '</p>');
-    if (g.fehler === 'masse') return leer('fehler', '<p>Gib den Durchmesser und die Länge des Gegenstands in Millimetern ein.</p>');
-    if (g.fehler === 'duenn') return leer('fehler', '<h3>Der Gegenstand ist zu dünn für dieses Band</h3><p>Bei ' + f1(o.d) + ' mm Durchmesser darf das Band höchstens ' + f1(g.bMax) + ' mm breit sein. Nimm ein schmaleres Band oder einen dickeren Gegenstand.</p>');
+    if (g.fehler === 'masse') return leer('fehler', tx('<p>Gib den Durchmesser und die Länge des Gegenstands in Millimetern ein.</p>'));
+    if (g.fehler === 'duenn') return leer('fehler', tx('<h3>Der Gegenstand ist zu dünn für dieses Band</h3><p>Bei ') + f1(o.d) + tx(' mm Durchmesser darf das Band höchstens ') + f1(g.bMax) + tx(' mm breit sein. Nimm ein schmaleres Band oder einen dickeren Gegenstand.</p>'));
     var A = Kern.anordnen(st.text, g, o.farbig, Kern.zufall(st.seed));
     if (A.fehler){
-      var warum = 'Die Nachricht hat ' + A.n + ' Zeichen. Auf den Gegenstand passen ' + g.k + (g.k === 1 ? ' Reihe' : ' Reihen') + ' rundherum mit je ' + g.Tmax + ' Windungen (' + f1(o.l) + ' mm lang, je Windung ' + f1(g.p) + ' mm)' +
-        (o.farbig ? ' – mit den Abständen zwischen den Wörtern reicht das nicht.' : ' – höchstens ' + g.k * g.Tmax + ' Zeichen.');
-      return leer('fehler', '<h3>Die Nachricht passt so nicht</h3><p>' + warum + '</p><p>Was hilft:</p><ul>' + tipps(A.n, g, o.farbig).map(function(t){ return '<li>' + t + '</li>'; }).join('') + '</ul>' +
+      var warum = tx('Die Nachricht hat ') + A.n + tx(' Zeichen. Auf den Gegenstand passen ') + g.k + (g.k === 1 ? tx(' Reihe') : tx(' Reihen')) + tx(' rundherum mit je ') + g.Tmax + tx(' Windungen (') + f1(o.l) + tx(' mm lang, je Windung ') + f1(g.p) + ' mm)' +
+        (o.farbig ? tx(' – mit den Abständen zwischen den Wörtern reicht das nicht.') : tx(' – höchstens ') + g.k * g.Tmax + tx(' Zeichen.'));
+      return leer('fehler', tx('<h3>Die Nachricht passt so nicht</h3><p>') + warum + tx('</p><p>Was hilft:</p><ul>') + tipps(A.n, g, o.farbig).map(function(t){ return '<li>' + t + '</li>'; }).join('') + '</ul>' +
         '');
     }
     ['#skPdf', '#skHerunterladen', '#skZeigeLoesung', '#skNeu'].forEach(function(s){ $(s).disabled = false; });
@@ -254,10 +255,10 @@ function starte(bereich){
     var laenge = A.T * g.L, html = blaetterHtml();
     $('#skSeiten').innerHTML = html.seiten;
     $('#skLoesung').innerHTML = html.loesung;
-    meldung('erfolg', '<p><b>Passt!</b> ' + A.T + (A.T === 1 ? ' Windung' : ' Windungen') + ' (' + f1(A.T * g.p) + ' von ' + f1(o.l) + ' mm), ' + A.R + ' von ' + g.k + (g.k === 1 ? ' Reihe' : ' Reihen') + ' rundherum mit Nachricht. ' +
-      'Das Band ist ' + f1(laenge / 10) + ' cm lang: ' + html.streifen + (html.streifen === 1 ? ' Streifen' : ' Streifen') + ' auf ' + html.blaetter + (html.blaetter === 1 ? ' Blatt' : ' Blättern') + ' (A4 quer).' +
-      (A.fuell ? ' Die übrigen ' + A.fuell + ' Felder haben zufällige Buchstaben' + (o.farbig ? '' : ' – ohne Farbe muss man die Reihen mit der Nachricht finden') + '.' : '') + '</p>' +
-      '<p class="sk-druckhinweis">Wichtig: In Originalgrösse drucken (100 %, nicht «an Seite anpassen») – sonst passen die Buchstaben nicht aufeinander. Die Kontrolllinie auf dem Blatt muss 10 cm lang sein.</p>');
+    meldung('erfolg', tx('<p><b>Passt!</b> ') + A.T + (A.T === 1 ? tx(' Windung') : tx(' Windungen')) + ' (' + f1(A.T * g.p) + tx(' von ') + f1(o.l) + ' mm), ' + A.R + tx(' von ') + g.k + (g.k === 1 ? tx(' Reihe') : tx(' Reihen')) + tx(' rundherum mit Nachricht. ') +
+      tx('Das Band ist ') + f1(laenge / 10) + tx(' cm lang: ') + html.streifen + (html.streifen === 1 ? tx(' Streifen') : tx(' Streifen')) + tx(' auf ') + html.blaetter + (html.blaetter === 1 ? tx(' Blatt') : tx(' Blättern')) + tx(' (A4 quer).') +
+      (A.fuell ? tx(' Die übrigen ') + A.fuell + tx(' Felder haben zufällige Buchstaben') + (o.farbig ? '' : tx(' – ohne Farbe muss man die Reihen mit der Nachricht finden')) + '.' : '') + '</p>' +
+      tx('<p class="sk-druckhinweis">Wichtig: In Originalgrösse drucken (100 %, nicht «an Seite anpassen») – sonst passen die Buchstaben nicht aufeinander. Die Kontrolllinie auf dem Blatt muss 10 cm lang sein.</p>'));
   }
 
   /* ---------- Kopiervorlage: Streifen in echten Millimetern auf A4 quer ---------- */
@@ -293,35 +294,35 @@ function starte(bereich){
     streifen.forEach(function(z, i){ if (hoch > frei && seiten[seiten.length - 1].length){ seiten.push([]); frei = 640; } seiten[seiten.length - 1].push(i); frei -= hoch; });
     var ding = dingName();
     var anleitung = '<ol class="sk-anleitung">' +
-      '<li>Schneide die Streifen aus' + (streifen.length > 1 ? ' und klebe sie der Reihe nach zusammen: Streifen 2 genau auf die graue Fläche am Ende von Streifen 1, Streifen 3 auf die von Streifen 2 und so weiter' : '') + '.</li>' +
-      '<li>Wickle das Band um einen Gegenstand mit <b>' + f1(o.d) + ' mm Durchmesser</b>' + (ding ? ' (' + esc(ding) + ')' : '') + '. Halte den Gegenstand waagrecht und das Band so, dass die Buchstaben aufrecht stehen – das Anfangsstück mit ▶ ist unten. ' +
-        'Klebe es links vorne am Gegenstand fest und wickle das Band nach oben und hinten herum. Jede Windung kommt knapp rechts neben die vorherige: Rand an Rand, ohne Lücke und ohne Überlappung. Klebe auch das Ende fest.</li>' +
-      '<li>Drehe den Gegenstand langsam, bis du die Nachricht lesen kannst' + (o.farbig ? ' – sie ist farbig' : '') + '.</li></ol>';
+      tx('<li>Schneide die Streifen aus') + (streifen.length > 1 ? tx(' und klebe sie der Reihe nach zusammen: Streifen 2 genau auf die graue Fläche am Ende von Streifen 1, Streifen 3 auf die von Streifen 2 und so weiter') : '') + '.</li>' +
+      tx('<li>Wickle das Band um einen Gegenstand mit <b>') + f1(o.d) + tx(' mm Durchmesser</b>') + (ding ? ' (' + esc(ding) + ')' : '') + tx('. Halte den Gegenstand waagrecht und das Band so, dass die Buchstaben aufrecht stehen – das Anfangsstück mit ▶ ist unten. ') +
+        tx('Klebe es links vorne am Gegenstand fest und wickle das Band nach oben und hinten herum. Jede Windung kommt knapp rechts neben die vorherige: Rand an Rand, ohne Lücke und ohne Überlappung. Klebe auch das Ende fest.</li>') +
+      tx('<li>Drehe den Gegenstand langsam, bis du die Nachricht lesen kannst') + (o.farbig ? tx(' – sie ist farbig') : '') + '.</li></ol>';
     var kontrolle = '<div class="sk-kontrolle"><svg width="' + (100 * MM + 2).toFixed(1) + '" height="14" aria-hidden="true"><path d="M1 2V12M' + (100 * MM + 1).toFixed(2) + ' 2V12M1 7H' + (100 * MM + 1).toFixed(2) + '" stroke="' + TINTE + '" stroke-width="1.2" fill="none"/></svg>' +
-      '<span>Diese Linie muss genau 10 cm lang sein. Drucke in Originalgrösse (100 %).</span></div>';
+      tx('<span>Diese Linie muss genau 10 cm lang sein. Drucke in Originalgrösse (100 %).</span></div>');
     var defs = '<defs><pattern id="skSchraffur" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#EFE8E1"/><path d="M0 0V6" stroke="#C9BFB6" stroke-width="2"/></pattern></defs>';
     var html = '';
     seiten.forEach(function(liste, si){
       var hS = liste.length * hoch;
-      var svg = '<svg class="sk-svg" width="' + BREIT + '" height="' + hS.toFixed(1) + '" viewBox="0 0 ' + BREIT + ' ' + hS.toFixed(1) + '" role="img" aria-label="Streifen ' + (liste[0] + 1) + ' bis ' + (liste[liste.length - 1] + 1) + '">' + defs +
+      var svg = '<svg class="sk-svg" width="' + BREIT + '" height="' + hS.toFixed(1) + '" viewBox="0 0 ' + BREIT + ' ' + hS.toFixed(1) + tx('" role="img" aria-label="Streifen ') + (liste[0] + 1) + tx(' bis ') + (liste[liste.length - 1] + 1) + '">' + defs +
         '<g style="font-family:var(--blatt-buchstaben)" font-weight="700" font-size="' + fs.toFixed(1) + '" fill="' + TINTE + '" text-anchor="middle">' +
         liste.map(function(i, zi){ return '<g transform="translate(0 ' + (zi * hoch + 2).toFixed(2) + ')">' + streifenSvg(i + 1, streifen[i], i === streifen.length - 1) + '</g>'; }).join('') + '</g></svg>';
-      var kopf = si === 0 ? (o.titelAn ? '<h2>Skytale – Geheimband</h2>' : '') + (o.anleitungAn ? anleitung + kontrolle : '')
-        : '<p class="sk-seitenkopf">Skytale – Streifen ' + (liste[0] + 1) + ' bis ' + (liste[liste.length - 1] + 1) + '</p>';
+      var kopf = si === 0 ? (o.titelAn ? tx('<h2>Skytale – Geheimband</h2>') : '') + (o.anleitungAn ? anleitung + kontrolle : '')
+        : tx('<p class="sk-seitenkopf">Skytale – Streifen ') + (liste[0] + 1) + tx(' bis ') + (liste[liste.length - 1] + 1) + '</p>';
       html += '<div class="sk-rahmen"><article class="sk-blatt sk-seite blatt-quer">' + kopf + svg + '</article></div>';
     });
     // Lösung: so steht es auf dem Gegenstand – Reihen rundherum, Windungen der Länge nach
     var T = A.T, k = g.k, zw = Math.min(30, 600 / T), zh = Math.min(30, zw * 1.15), lfs = zh * 0.7;
-    var gitter = '<svg class="sk-gitter" width="' + (T * zw + 70).toFixed(0) + '" height="' + (k * zh + 6).toFixed(0) + '" role="img" aria-label="So steht es auf dem Gegenstand">' +
+    var gitter = '<svg class="sk-gitter" width="' + (T * zw + 70).toFixed(0) + '" height="' + (k * zh + 6).toFixed(0) + tx('" role="img" aria-label="So steht es auf dem Gegenstand">') +
       '<g style="font-family:var(--blatt-buchstaben)" font-weight="700" font-size="' + lfs.toFixed(1) + '" text-anchor="middle">' +
       A.raster.map(function(z, r){
         return '<text x="30" y="' + (r * zh + zh * 0.72 + 3).toFixed(1) + '" font-size="' + (lfs * 0.6).toFixed(1) + '" fill="#8A8079" font-weight="600">' + (r + 1) + '</text>' +
           z.map(function(c, t){ return '<text x="' + (66 + (t + 0.5) * zw).toFixed(1) + '" y="' + (r * zh + zh * 0.72 + 3).toFixed(1) + '" fill="' + (c.n ? (o.farbig ? o.farbe : '#C2410C') : '#B5AAA0') + '">' + esc(c.z) + '</text>'; }).join('');
       }).join('') + '</g></svg>';
-    var loesung = (o.titelAn ? '<h2>Skytale – Lösung</h2>' : '<p class="sk-anleitung"><b>Lösung</b></p>') +
+    var loesung = (o.titelAn ? tx('<h2>Skytale – Lösung</h2>') : tx('<p class="sk-anleitung"><b>Lösung</b></p>')) +
       '<p class="sk-loesung-text">' + esc(Kern.woerter(st.text).map(function(w){ return w.join(''); }).join(' ')) + '</p>' +
-      '<p class="sk-erklaerung">So steht es auf dem Gegenstand (' + f1(o.d) + ' mm Durchmesser): ' + k + (k === 1 ? ' Reihe' : ' Reihen') + ' rundherum, ' + T + (T === 1 ? ' Windung' : ' Windungen') + ' der Länge nach. ' +
-      (o.farbig ? 'Die Nachricht steht in den farbigen Reihen, alles andere sind Füllbuchstaben.' : 'Die Nachricht beginnt in Reihe 1 und geht in den nächsten Reihen weiter.') + '</p>' + gitter;
+      tx('<p class="sk-erklaerung">So steht es auf dem Gegenstand (') + f1(o.d) + tx(' mm Durchmesser): ') + k + (k === 1 ? tx(' Reihe') : tx(' Reihen')) + tx(' rundherum, ') + T + (T === 1 ? tx(' Windung') : tx(' Windungen')) + tx(' der Länge nach. ') +
+      (o.farbig ? tx('Die Nachricht steht in den farbigen Reihen, alles andere sind Füllbuchstaben.') : tx('Die Nachricht beginnt in Reihe 1 und geht in den nächsten Reihen weiter.')) + '</p>' + gitter;
     return { seiten:html, loesung:loesung, streifen:streifen.length, blaetter:seiten.length };
   }
 
@@ -341,9 +342,9 @@ function starte(bereich){
     if (!speicherOrt || !R) return;
     var name = dateiname().replace(/\.pdf$/, '.html');
     var inhalt = blaetter().map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); k.removeAttribute('hidden'); k.classList.remove('zeigen'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
-    speicherOrt.save({ filename:name, data:Labor.blattDatei('Skytale', inhalt, '.sk-loesungsblatt{display:block}') }).catch(function(e){
+    speicherOrt.save({ filename:name, data:Labor.blattDatei(tx('Skytale'), inhalt, '.sk-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 

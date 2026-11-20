@@ -5,6 +5,7 @@
    Holzschablonen. Die Schablone gibt es immer zum Ausschneiden dazu. Das Blatt wird in Originalgrösse gedruckt. */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('fleissner');
 
 /* KERN-START */
 var Kern = (function(){
@@ -61,7 +62,7 @@ var Kern = (function(){
 })();
 /* KERN-ENDE */
 
-var GROESSEN = [[4, '4 × 4', 'Holzschablone 4 × 4'], [6, '6 × 6', 'Holzschablone 6 × 6']];
+var GROESSEN = [[4, '4 × 4', tx('Holzschablone 4 × 4')], [6, '6 × 6', tx('Holzschablone 6 × 6')]];
 // Feldgrösse fest wie im Excel: Zeilen 37 pt hoch, Felder quadratisch (37 pt = 13.05 mm) – passend zu den Holzschablonen
 var FELD = 37 / 72 * 25.4;
 var FARBEN = ['#C2410C', '#1E63C4', '#2E7D32', '#7B3FB5'];   // Stellungen 1–4 im Lösungsblatt
@@ -75,12 +76,12 @@ function gitterSvg(g, n, feld, loesung){
   h += '<rect x="0.015" y="0.015" width="' + (n - 0.03) + '" height="' + (n - 0.03) + '" fill="none" stroke="' + TINTE + '" stroke-width="0.03"/>';
   for (var r = 0; r < n; r++) for (var c = 0; c < n; c++){
     var z = g.gitter[r][c];
-    h += '<text x="' + (c + 0.5) + '" y="' + (r + 0.53) + '" class="fl-b' + (z.fuell ? ' fl-fuell' : '') + '" fill="' + (loesung ? (z.fuell ? '#A0968E' : FARBEN[z.stellung]) : TINTE) + '"' +
+    h += '<text x="' + (c + 0.5) + '" y="' + (r + 0.53) + '" class="fl-b' + (z.fuell ? tx(' fl-fuell') : '') + '" fill="' + (loesung ? (z.fuell ? '#A0968E' : FARBEN[z.stellung]) : TINTE) + '"' +
       ' data-s="' + z.stellung + '">' + esc(z.b) + '</text>';
     if (loesung && !z.fuell) h += '<text x="' + (c + 0.08) + '" y="' + (r + 0.2) + '" class="fl-nr" fill="' + FARBEN[z.stellung] + '">' + (z.stellung + 1) + '</text>';
   }
   // Grösse als Attribute (nicht als style): Die PDF-Kopie ersetzt die style-Angaben von SVG-Grafiken
-  return '<svg class="fl-gitter" viewBox="0 0 ' + n + ' ' + n + '" width="' + (n * feld) + 'mm" height="' + (n * feld) + 'mm" role="img" aria-label="Buchstabenfeld ' + n + ' × ' + n + '">' +
+  return '<svg class="fl-gitter" viewBox="0 0 ' + n + ' ' + n + '" width="' + (n * feld) + 'mm" height="' + (n * feld) + tx('mm" role="img" aria-label="Buchstabenfeld ') + n + ' × ' + n + '">' +
     '<g style="font-family:var(--blatt-buchstaben)" font-weight="700" font-size="0.56" text-anchor="middle" dominant-baseline="central">' + h + '</g></svg>';
 }
 // Schablone zum Ausschneiden: Löcher grau, Rand mit den Ziffern 1–4 (die Ziffer oben zeigt die Stellung)
@@ -99,7 +100,7 @@ function schabloneSvg(n, feld){
   [[1, m, a, 0], [2, a, m, -90], [3, m, W - a, 180], [4, W - a, m, 90]].forEach(function(z){
     h += '<text x="' + z[1] + '" y="' + z[2] + '" transform="rotate(' + z[3] + ' ' + z[1] + ' ' + z[2] + ')">' + z[0] + '</text>';
   });
-  return '<svg class="fl-schablone-svg" viewBox="0 0 ' + W + ' ' + W + '" width="' + (W * feld).toFixed(2) + 'mm" height="' + (W * feld).toFixed(2) + 'mm" role="img" aria-label="Schablone ' + n + ' × ' + n + ' zum Ausschneiden">' +
+  return '<svg class="fl-schablone-svg" viewBox="0 0 ' + W + ' ' + W + '" width="' + (W * feld).toFixed(2) + 'mm" height="' + (W * feld).toFixed(2) + tx('mm" role="img" aria-label="Schablone ') + n + ' × ' + n + ' zum Ausschneiden">' +
     '<g style="font-family:var(--blatt-schrift)" font-weight="700" font-size="' + Math.min(0.42, R * 0.7).toFixed(2) + '" fill="' + TINTE + '" text-anchor="middle" dominant-baseline="central">' + h + '</g></svg>';
 }
 // Linie(n) für die Lösung: 4 × 4 eine Linie, 6 × 6 zwei; im Lösungsblatt stehen die Buchstaben darauf (Farbe = Stellung)
@@ -116,51 +117,51 @@ function linienHtml(g, n, loesung){
 }
 
 var VORLAGE = '<div class="fl">' +
-  '<header class="fl-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Fleissner-Schablone</h1>' +
-    '<p>Ein Geheimtext im Quadrat: Die Buchstaben stehen unter den Löchern einer Drehschablone. Lesen kann ihn nur, wer die passende Schablone hat – sie gibt es zum Ausschneiden dazu.</p></header>' +
-  '<div class="fl-layout"><section class="fl-eingabe" aria-label="Eingaben">' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Schablone</h2></div></div>' +
-      '<div class="fl-chips" role="radiogroup" aria-label="Grösse der Schablone">' +
-        GROESSEN.map(function(g){ return '<label><input type="radio" name="flGroesse" value="' + g[0] + '"><span><b>' + g[1] + '</b><small>' + (g[0] * g[0]) + ' Buchstaben</small></span></label>'; }).join('') + '</div>' +
+  tx('<header class="fl-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Fleissner-Schablone</h1>') +
+    tx('<p>Ein Geheimtext im Quadrat: Die Buchstaben stehen unter den Löchern einer Drehschablone. Lesen kann ihn nur, wer die passende Schablone hat – sie gibt es zum Ausschneiden dazu.</p></header>') +
+  tx('<div class="fl-layout"><section class="fl-eingabe" aria-label="Eingaben">') +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Schablone</h2></div></div>') +
+      tx('<div class="fl-chips" role="radiogroup" aria-label="Grösse der Schablone">') +
+        GROESSEN.map(function(g){ return '<label><input type="radio" name="flGroesse" value="' + g[0] + '"><span><b>' + g[1] + '</b><small>' + (g[0] * g[0]) + tx(' Buchstaben</small></span></label>'); }).join('') + '</div>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Geheimer Text</h2><p>Leerzeichen und Satzzeichen fallen weg, ß wird zu SS.</p></div></div>' +
-      '<label class="vh" for="flText">Geheimer Text</label><textarea id="flText" rows="4" maxlength="200" autocomplete="off" spellcheck="false"></textarea>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Geheimer Text</h2><p>Leerzeichen und Satzzeichen fallen weg, ß wird zu SS.</p></div></div>') +
+      tx('<label class="vh" for="flText">Geheimer Text</label><textarea id="flText" rows="4" maxlength="200" autocomplete="off" spellcheck="false"></textarea>') +
       '<div class="fl-zaehler" id="flZaehler" aria-live="polite"></div>' +
-      '<p class="feld-label">Freie Felder auffüllen mit</p>' +
-      '<div class="fl-chips fl-chips-klein" role="radiogroup" aria-label="Freie Felder auffüllen mit">' +
-        [['zufall', 'Zufallsbuchstaben'], ['x', 'X']].map(function(f){ return '<label><input type="radio" name="flFuell" value="' + f[0] + '"><span>' + f[1] + '</span></label>'; }).join('') + '</div>' +
+      tx('<p class="feld-label">Freie Felder auffüllen mit</p>') +
+      tx('<div class="fl-chips fl-chips-klein" role="radiogroup" aria-label="Freie Felder auffüllen mit">') +
+        [['zufall', tx('Zufallsbuchstaben')], ['x', 'X']].map(function(f){ return '<label><input type="radio" name="flFuell" value="' + f[0] + '"><span>' + f[1] + '</span></label>'; }).join('') + '</div>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Blatt</h2></div></div>' +
-      '<div class="opt-raster"><label for="flTitel">Titel auf dem Blatt</label><input type="text" id="flTitel" maxlength="60" autocomplete="off"></div>' +
-      '<label class="opt"><input type="checkbox" id="flLinie"><span>Linie zum Aufschreiben der Lösung</span></label>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Blatt</h2></div></div>') +
+      tx('<div class="opt-raster"><label for="flTitel">Titel auf dem Blatt</label><input type="text" id="flTitel" maxlength="60" autocomplete="off"></div>') +
+      tx('<label class="opt"><input type="checkbox" id="flLinie"><span>Linie zum Aufschreiben der Lösung</span></label>') +
     '</div>' +
   '</section>' +
-  '<section class="fl-ausgabe" aria-label="Ergebnis">' +
+  tx('<section class="fl-ausgabe" aria-label="Ergebnis">') +
     '<div id="flMeldung" aria-live="polite"></div>' +
     '<div class="fl-teil">' +
-      '<h2 class="fl-teil-titel">Arbeitsblatt</h2>' +
+      tx('<h2 class="fl-teil-titel">Arbeitsblatt</h2>') +
       '<div class="fl-werkzeug">' +
-        '<button type="button" class="btn klein" id="flZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
-        '<button type="button" class="btn klein" id="flNeu" hidden>Neue Füllbuchstaben</button>' +
+        tx('<button type="button" class="btn klein" id="flZeigeLoesung" aria-pressed="false">Lösung zeigen</button>') +
+        tx('<button type="button" class="btn klein" id="flNeu" hidden>Neue Füllbuchstaben</button>') +
         '<span class="abstand"></span>' + Labor.blattSchalterHtml() +
-        '<label><input type="checkbox" id="flMitLoesung"> mit Lösungsblatt</label>' +
-        '<label><input type="checkbox" id="flMitSchablone"> mit Schablone</label>' +
-        '<button type="button" class="btn klein primary" id="flPdf">PDF herunterladen</button>' +
-        '<button type="button" class="btn klein primary" id="flHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
+        tx('<label><input type="checkbox" id="flMitLoesung"> mit Lösungsblatt</label>') +
+        tx('<label><input type="checkbox" id="flMitSchablone"> mit Schablone</label>') +
+        tx('<button type="button" class="btn klein primary" id="flPdf">PDF herunterladen</button>') +
+        tx('<button type="button" class="btn klein primary" id="flHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>') +
       '</div>' +
       '<div class="fl-rahmen"><article class="fl-blatt" id="flBlatt"></article></div>' +
       '<div class="fl-rahmen"><article class="fl-blatt fl-loesungsblatt" id="flLoesung" aria-hidden="true"></article></div>' +
     '</div>' +
     '<div class="fl-teil">' +
-      '<h2 class="fl-teil-titel">Schablone zum Ausschneiden</h2>' +
-      '<div class="fl-werkzeug"><span class="fl-werkzeug-text">Auf Karton kleben, graue Felder ausschneiden. Gleiche Feldgrösse wie das Buchstabenfeld.</span><span class="abstand"></span>' +
-        '<button type="button" class="btn klein primary" id="flSchablonePdf">PDF herunterladen</button>' +
-        '<button type="button" class="btn klein primary" id="flSchabloneHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Schablone herunterladen</button>' +
+      tx('<h2 class="fl-teil-titel">Schablone zum Ausschneiden</h2>') +
+      tx('<div class="fl-werkzeug"><span class="fl-werkzeug-text">Auf Karton kleben, graue Felder ausschneiden. Gleiche Feldgrösse wie das Buchstabenfeld.</span><span class="abstand"></span>') +
+        tx('<button type="button" class="btn klein primary" id="flSchablonePdf">PDF herunterladen</button>') +
+        tx('<button type="button" class="btn klein primary" id="flSchabloneHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Schablone herunterladen</button>') +
       '</div>' +
       '<div class="fl-rahmen"><article class="fl-blatt fl-schablone" id="flSchablone"></article></div>' +
     '</div>' +
   '</section></div>' +
-  '<p class="fl-dank">Der Code für diesen Generator stammt von Jasmine Filippi (Excel-Generator, grafisch angepasst von myEscapeBox). Herzlichen Dank!</p></div>';
+  tx('<p class="fl-dank">Der Code für diesen Generator stammt von Jasmine Filippi (Excel-Generator, grafisch angepasst von myEscapeBox). Herzlichen Dank!</p></div>');
 
 var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
   '<rect x="3" y="3" width="15" height="15" rx="1.5"/><rect x="6.5" y="6.5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="11.5" y="11.5" width="3" height="3" fill="currentColor" stroke="none"/>' +
@@ -193,7 +194,7 @@ function starte(bereich){
     try { localStorage.setItem(OPT, JSON.stringify(st.opt)); } catch(x){} }
   function speichern(){ clearTimeout(timer); timer = setTimeout(speichernJetzt, 200); }
   function meldung(art, html){ $('#flMeldung').innerHTML = html ? '<div class="meldung ' + art + '">' + html + '</div>' : ''; }
-  function titel(){ return st.titel.trim() || 'Fleissner-Schablone'; }
+  function titel(){ return st.titel.trim() || tx('Fleissner-Schablone'); }
   var g = null;
 
   /* ---------- Eingaben ---------- */
@@ -221,39 +222,39 @@ function starte(bereich){
 
   /* ---------- Zeichnen ---------- */
   function anleitung(){
-    return 'Lege die Schablone in Stellung 1 (die 1 oben) genau auf das Buchstabenfeld. Schreibe die Buchstaben in den Löchern Zeile für Zeile von links nach rechts ab. ' +
-      'Drehe die Schablone dann eine Vierteldrehung im Uhrzeigersinn, bis die 2 oben ist, und lies weiter – ebenso mit der 3 und der 4.';
+    return tx('Lege die Schablone in Stellung 1 (die 1 oben) genau auf das Buchstabenfeld. Schreibe die Buchstaben in den Löchern Zeile für Zeile von links nach rechts ab. ') +
+      tx('Drehe die Schablone dann eine Vierteldrehung im Uhrzeigersinn, bis die 2 oben ist, und lies weiter – ebenso mit der 3 und der 4.');
   }
   function zeichnen(){
     var o = st.opt, n = o.n, f = FELD;
     g = Kern.verschluesseln(st.text, n, o.fuell, Kern.zufall(st.seed));
     var anzahl = Kern.zeichen(st.text).length, felder = n * n;
-    $('#flZaehler').innerHTML = !anzahl ? '' : '<p class="fl-zaehler-haupt ' + (g.zuLang ? 'fehlt' : 'ok') + '"><b>' + anzahl + '</b> von ' + felder + ' Feldern' +
-      (g.zuLang ? ' – <b>' + g.zuLang + ' zu viel</b>' : g.aufgefuellt ? ' · ' + g.aufgefuellt + ' werden aufgefüllt' : ' ✓') + '</p>' +
+    $('#flZaehler').innerHTML = !anzahl ? '' : '<p class="fl-zaehler-haupt ' + (g.zuLang ? 'fehlt' : 'ok') + '"><b>' + anzahl + tx('</b> von ') + felder + tx(' Feldern') +
+      (g.zuLang ? ' – <b>' + g.zuLang + tx(' zu viel</b>') : g.aufgefuellt ? ' · ' + g.aufgefuellt + tx(' werden aufgefüllt') : ' ✓') + '</p>' +
       '<p class="fl-zeichen">' + esc(g.zeichen.join('')) + '</p>';
     $('#flNeu').hidden = !(g.aufgefuellt && o.fuell === 'zufall' && anzahl);
     var leer = !anzahl;
     ['#flZeigeLoesung', '#flPdf', '#flHerunterladen'].forEach(function(s){ $(s).disabled = leer; });
     if (g.zuLang){
       var groesser = GROESSEN.filter(function(x){ return x[0] * x[0] >= anzahl; })[0];
-      meldung('warnung', '<p>Der Text hat ' + anzahl + ' Buchstaben, die Schablone ' + n + ' × ' + n + ' nur ' + felder + ' Felder. Die letzten ' + g.zuLang + ' fehlen im Rätsel. ' +
-        (groesser ? 'Wähle ' + groesser[1] + ' oder kürze den Text.' : 'Kürze den Text.') + '</p>');
-    } else meldung(leer ? 'info' : '', leer ? '<p>Schreibe links deinen geheimen Text – er erscheint hier im Buchstabenfeld. Die Schablone unten kannst du schon jetzt herunterladen.</p>' : '');
+      meldung('warnung', tx('<p>Der Text hat ') + anzahl + tx(' Buchstaben, die Schablone ') + n + ' × ' + n + tx(' nur ') + felder + tx(' Felder. Die letzten ') + g.zuLang + tx(' fehlen im Rätsel. ') +
+        (groesser ? tx('Wähle ') + groesser[1] + tx(' oder kürze den Text.') : tx('Kürze den Text.')) + '</p>');
+    } else meldung(leer ? 'info' : '', leer ? tx('<p>Schreibe links deinen geheimen Text – er erscheint hier im Buchstabenfeld. Die Schablone unten kannst du schon jetzt herunterladen.</p>') : '');
     var zeige = $('#flZeigeLoesung').getAttribute('aria-pressed') === 'true';
     $('#flBlatt').parentNode.hidden = leer;
     $('#flBlatt').innerHTML = leer ? '' : (o.titelAn ? '<h2>' + esc(titel()) + '</h2>' : '') +
       (o.anleitungAn ? '<p class="fl-anleitung">' + anleitung() + '</p>' : '') +
       '<div class="fl-mitte">' + gitterSvg(g, n, f, zeige) + '</div>' +
-      (o.linie ? '<p class="fl-unter">Lösung</p>' + linienHtml(g, n, zeige) : '');
-    $('#flLoesung').innerHTML = leer ? '' : (o.titelAn ? '<h2>' + esc(titel()) + ' – Lösung</h2>' : '<p class="fl-anleitung"><b>Lösung</b></p>') +
-      '<p class="fl-anleitung">Die Farbe zeigt, in welcher Stellung der Schablone ein Buchstabe gelesen wird' + (g.aufgefuellt ? '; graue Buchstaben sind aufgefüllt' : '') + '.</p>' +
+      (o.linie ? tx('<p class="fl-unter">Lösung</p>') + linienHtml(g, n, zeige) : '');
+    $('#flLoesung').innerHTML = leer ? '' : (o.titelAn ? '<h2>' + esc(titel()) + tx(' – Lösung</h2>') : tx('<p class="fl-anleitung"><b>Lösung</b></p>')) +
+      tx('<p class="fl-anleitung">Die Farbe zeigt, in welcher Stellung der Schablone ein Buchstabe gelesen wird') + (g.aufgefuellt ? tx('; graue Buchstaben sind aufgefüllt') : '') + '.</p>' +
       '<div class="fl-mitte">' + gitterSvg(g, n, f, true) + '</div>' +
-      '<p class="fl-unter">Lösung</p>' + linienHtml(g, n, true) +
-      '<p class="fl-text"><b>Text:</b> ' + esc(st.text.trim()) + '</p>';
-    $('#flSchablone').innerHTML = (o.titelAn ? '<h2>Schablone ' + n + ' × ' + n + '</h2>' : '') +
-      '<p class="fl-anleitung">Auf festen Karton kleben, aussen entlang der Linie und die grauen Felder ausschneiden. Die Ziffer, die oben steht, zeigt die Stellung: Start mit der 1 oben, dann im Uhrzeigersinn drehen.</p>' +
+      tx('<p class="fl-unter">Lösung</p>') + linienHtml(g, n, true) +
+      tx('<p class="fl-text"><b>Text:</b> ') + esc(st.text.trim()) + '</p>';
+    $('#flSchablone').innerHTML = (o.titelAn ? tx('<h2>Schablone ') + n + ' × ' + n + '</h2>' : '') +
+      tx('<p class="fl-anleitung">Auf festen Karton kleben, aussen entlang der Linie und die grauen Felder ausschneiden. Die Ziffer, die oben steht, zeigt die Stellung: Start mit der 1 oben, dann im Uhrzeigersinn drehen.</p>') +
       '<div class="fl-mitte">' + schabloneSvg(n, f) + '</div>' +
-      '<p class="fl-kontrolle">Kontrolle: Das Buchstabenfeld ist ' + fmt(n * f) + ' mm breit, ein Feld ' + fmt(f) + ' mm (wie im Excel). Diese Linie muss genau ' + fmt(n * f) + ' mm lang sein: ' +
+      tx('<p class="fl-kontrolle">Kontrolle: Das Buchstabenfeld ist ') + fmt(n * f) + tx(' mm breit, ein Feld ') + fmt(f) + tx(' mm (wie im Excel). Diese Linie muss genau ') + fmt(n * f) + tx(' mm lang sein: ') +
       '<span class="fl-mass" style="width:' + (n * f) + 'mm"></span></p>';
   }
   function fmt(x){ return String(Math.round(x * 10) / 10); }   // Dezimalzahlen mit Punkt
@@ -267,7 +268,7 @@ function starte(bereich){
   // vor dem PDF «Lösung zeigen» ausschalten, damit das Arbeitsblatt ohne Lösung ins PDF kommt
   function ohneLoesung(){ var k = $('#flZeigeLoesung'); if (k.getAttribute('aria-pressed') === 'true'){ k.setAttribute('aria-pressed', 'false'); zeichnen(); } }
   Labor.pdfKnopf($('#flPdf'), function(){ ohneLoesung(); return hatText() && { blaetter:blaetter(), name:Labor.pdfName('Fleissner', st.titel) }; }, fehler);
-  Labor.pdfKnopf($('#flSchablonePdf'), function(){ return { blaetter:[$('#flSchablone')], name:'Fleissner-Schablone-' + st.opt.n + 'x' + st.opt.n + '.pdf' }; }, fehler);
+  Labor.pdfKnopf($('#flSchablonePdf'), function(){ return { blaetter:[$('#flSchablone')], name:tx('Fleissner-Schablone-') + st.opt.n + 'x' + st.opt.n + '.pdf' }; }, fehler);
   var speicherOrt = null;
   if (Labor.imArtefakt()){
     ['#flPdf', '#flSchablonePdf'].forEach(function(s){ $(s).hidden = true; });
@@ -278,11 +279,11 @@ function starte(bereich){
     var inhalt = liste.map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); k.classList.remove('zeige-loesung'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
     speicherOrt.save({ filename:name, data:Labor.blattDatei(name.replace(/\.html$/, '').replace(/-/g, ' '), inhalt, '.fl-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   }
   $('#flHerunterladen').addEventListener('click', function(){ ohneLoesung(); if (hatText()) htmlSpeichern(blaetter(), Labor.pdfName('Fleissner', st.titel).replace(/\.pdf$/, '.html')); });
-  $('#flSchabloneHerunterladen').addEventListener('click', function(){ htmlSpeichern([$('#flSchablone')], 'Fleissner-Schablone-' + st.opt.n + 'x' + st.opt.n + '.html'); });
+  $('#flSchabloneHerunterladen').addEventListener('click', function(){ htmlSpeichern([$('#flSchablone')], tx('Fleissner-Schablone-') + st.opt.n + 'x' + st.opt.n + '.html'); });
 
   zeichnen();
   return function stopp(){ aus = true; if (timer) speichernJetzt(); window.removeEventListener('beforeprint', druckVorbereiten); document.body.classList.remove('mit-loesung'); };

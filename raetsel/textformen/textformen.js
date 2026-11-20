@@ -5,6 +5,7 @@
    kleine Form in der Mitte und Linien zum Abschreiben. Blatt, Lösungsblatt (der Text), PDF. */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('textformen');
 
 /* KERN-START */
 var Kern = (function(){
@@ -132,42 +133,42 @@ var Kern = (function(){
 /* KERN-ENDE */
 
 var TINTE = '#1C1714', B = 639, MAXZ = 700;
-var FORMEN = [['kreis', 'Kreis (Schnecke)'], ['herz', 'Herz'], ['stern', 'Stern'], ['blume', 'Blume'], ['quadrat', 'Quadrat'], ['dreieck', 'Dreieck'], ['tropfen', 'Tropfen'], ['welle', 'Welle'], ['regenbogen', 'Regenbogen']];
+var FORMEN = [['kreis', tx('Kreis (Schnecke)')], ['herz', tx('Herz')], ['stern', tx('Stern')], ['blume', tx('Blume')], ['quadrat', tx('Quadrat')], ['dreieck', tx('Dreieck')], ['tropfen', tx('Tropfen')], ['welle', tx('Welle')], ['regenbogen', tx('Regenbogen')]];
 var SPIRALE = { kreis:1, herz:1, stern:1, blume:1, quadrat:1, dreieck:1, tropfen:1 };
 var MITTE = { kreis:'#F9A825', herz:'#E53935', stern:'#F2B705', blume:'#EC407A', quadrat:'#1E88E5', dreieck:'#43A047', tropfen:'#29B6F6' };
-var FARBEN = [['#1C1714', 'Schwarz'], ['#1A3E8C', 'Dunkelblau'], ['#9B1C1C', 'Dunkelrot'], ['#1E6B34', 'Dunkelgrün'], ['#6A1B9A', 'Violett'], ['bunt', 'Bunt']];
+var FARBEN = [['#1C1714', tx('Schwarz')], ['#1A3E8C', tx('Dunkelblau')], ['#9B1C1C', tx('Dunkelrot')], ['#1E6B34', tx('Dunkelgrün')], ['#6A1B9A', tx('Violett')], ['bunt', tx('Bunt')]];
 var BUNT = ['#D32F2F', '#EF6C00', '#C79100', '#2E7D32', '#1565C0', '#4527A0', '#AD1457'];
 function esc(t){ return Labor.esc(t); }
 function f1(x){ return (Math.round(x * 10) / 10).toString(); }
 function chips(name, l){ return l.map(function(x){ return '<label><input type="radio" name="' + name + '" value="' + x[0] + '"><span>' + x[1] + '</span></label>'; }).join(''); }
 
 var VORLAGE = '<div class="tf">' +
-  '<header class="tf-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Textformen</h1>' +
-    '<p>Ein Text als Herz, Stern, Schnecke, Welle oder Regenbogen – zum Lesen dreht man das Blatt.</p></header>' +
-  '<div class="tf-layout"><section class="tf-eingabe" aria-label="Eingaben">' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Text</h2><p>Ein Satz, ein Gedicht, eine Geschichte – bis 800 Zeichen.</p></div></div>' +
-      '<label class="feld-label" for="tfText">Text</label>' +
+  tx('<header class="tf-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Textformen</h1>') +
+    tx('<p>Ein Text als Herz, Stern, Schnecke, Welle oder Regenbogen – zum Lesen dreht man das Blatt.</p></header>') +
+  tx('<div class="tf-layout"><section class="tf-eingabe" aria-label="Eingaben">') +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Text</h2><p>Ein Satz, ein Gedicht, eine Geschichte – bis 800 Zeichen.</p></div></div>') +
+      tx('<label class="feld-label" for="tfText">Text</label>') +
       '<textarea id="tfText" class="tf-text" rows="6" maxlength="800" spellcheck="true"></textarea>' +
       '<div class="tf-zaehler" id="tfZaehler" aria-live="polite"></div>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Form</h2><p>Spirale von aussen nach innen oder Zeilen auf Wellen und Bögen.</p></div></div>' +
-      '<div class="tf-chips" role="radiogroup" aria-label="Form">' + chips('tfForm', FORMEN) + '</div>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Form</h2><p>Spirale von aussen nach innen oder Zeilen auf Wellen und Bögen.</p></div></div>') +
+      tx('<div class="tf-chips" role="radiogroup" aria-label="Form">') + chips('tfForm', FORMEN) + '</div>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Farbe und Blatt</h2></div></div>' +
-      '<div class="tf-chips" role="radiogroup" aria-label="Schriftfarbe">' + chips('tfFarbe', FARBEN) + '</div>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Farbe und Blatt</h2></div></div>') +
+      tx('<div class="tf-chips" role="radiogroup" aria-label="Schriftfarbe">') + chips('tfFarbe', FARBEN) + '</div>' +
       '<p class="hinweis" id="tfFarbInfo"></p>' +
-      '<label class="opt" id="tfMitteOpt"><input type="checkbox" id="tfMitte"><span>Kleine Form in der Mitte</span></label>' +
-      '<label class="opt"><input type="checkbox" id="tfLinien"><span>Linien zum Abschreiben</span></label>' +
+      tx('<label class="opt" id="tfMitteOpt"><input type="checkbox" id="tfMitte"><span>Kleine Form in der Mitte</span></label>') +
+      tx('<label class="opt"><input type="checkbox" id="tfLinien"><span>Linien zum Abschreiben</span></label>') +
     '</div>' +
   '</section>' +
-  '<section class="tf-ausgabe" aria-label="Ergebnis">' +
+  tx('<section class="tf-ausgabe" aria-label="Ergebnis">') +
     '<div id="tfMeldung" aria-live="polite"></div>' +
     '<div class="tf-werkzeug">' +
-      '<button type="button" class="btn klein" id="tfZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
+      tx('<button type="button" class="btn klein" id="tfZeigeLoesung" aria-pressed="false">Lösung zeigen</button>') +
       '<span class="abstand"></span>' + Labor.blattSchalterHtml() +
-      '<label><input type="checkbox" id="tfMitLoesung"> mit Lösungsblatt</label>' +
-      '<button type="button" class="btn klein primary" id="tfPdf">PDF herunterladen</button>' +
-      '<button type="button" class="btn klein primary" id="tfHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
+      tx('<label><input type="checkbox" id="tfMitLoesung"> mit Lösungsblatt</label>') +
+      tx('<button type="button" class="btn klein primary" id="tfPdf">PDF herunterladen</button>') +
+      tx('<button type="button" class="btn klein primary" id="tfHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>') +
     '</div>' +
     '<div class="tf-blaetter"><div class="tf-rahmen"><article class="tf-blatt" id="tfBlatt"></article></div>' +
     '<div class="tf-rahmen tf-loesung-rahmen"><article class="tf-blatt tf-loesungsblatt" id="tfLoesung" aria-hidden="true"></article></div></div>' +
@@ -301,23 +302,23 @@ function starte(bereich){
     if (aus) return;
     var o = st.opt, text = st.text.replace(/\s+/g, ' ').trim(), h = '';
     $('#tfMitteOpt').hidden = !!o.form && !SPIRALE[o.form];
-    $('#tfFarbInfo').textContent = o.farbe ? (o.farbe === 'bunt' ? (o.form === 'regenbogen' ? 'Jeder Bogen eine Farbe.' : 'Jedes Wort eine Farbe.') : '') : 'Noch nichts gewählt: schwarz.';
-    if (text) h += '<p class="tf-info">' + text.length + ' Zeichen.</p>';
-    var fehlt = !text ? 'einen Text' : !o.form ? 'eine Form' : '';
+    $('#tfFarbInfo').textContent = o.farbe ? (o.farbe === 'bunt' ? (o.form === 'regenbogen' ? tx('Jeder Bogen eine Farbe.') : tx('Jedes Wort eine Farbe.')) : '') : tx('Noch nichts gewählt: schwarz.');
+    if (text) h += '<p class="tf-info">' + text.length + tx(' Zeichen.</p>');
+    var fehlt = !text ? tx('einen Text') : !o.form ? tx('eine Form') : '';
     ['#tfPdf', '#tfHerunterladen', '#tfZeigeLoesung'].forEach(function(s){ $(s).disabled = !!fehlt; });
-    if (fehlt){ R = null; $('#tfZaehler').innerHTML = h; $('#tfBlatt').parentNode.hidden = true; $('#tfLoesung').parentNode.hidden = true; meldung('info', '<p>' + (fehlt === 'einen Text' ? 'Schreibe links einen Text.' : 'Wähle links eine Form.') + '</p>'); return; }
+    if (fehlt){ R = null; $('#tfZaehler').innerHTML = h; $('#tfBlatt').parentNode.hidden = true; $('#tfLoesung').parentNode.hidden = true; meldung('info', '<p>' + (fehlt === 'einen Text' ? tx('Schreibe links einen Text.') : tx('Wähle links eine Form.')) + '</p>'); return; }
     // Platz für Linien zum Abschreiben
     var nLinien = o.linien ? Math.min(10, Math.ceil(breite(text, 15) / 600) + 1) : 0, hoehe = MAXZ - nLinien * 34 - (o.anleitungAn ? 30 : 0);
     var erg = SPIRALE[o.form] ? spiraleSvg(text, Math.min(hoehe, 680)) : o.form === 'welle' ? welleSvg(text, Math.min(hoehe, 560)) : regenbogenSvg(text, Math.min(hoehe, 520));
-    if (!erg){ R = null; $('#tfZaehler').innerHTML = h; $('#tfBlatt').parentNode.hidden = true; $('#tfLoesung').parentNode.hidden = true; meldung('warnung', '<p>Der Text ist für diese Form zu lang (oder ein Wort ist zu lang). Kürze ihn oder wähle eine Spirale.</p>'); return; }
-    if (erg.f < 9) h += '<p class="warnung">Die Schrift wird sehr klein (' + (erg.f * 186 / 703).toFixed(1) + ' mm). Ein kürzerer Text ist besser lesbar.</p>';
+    if (!erg){ R = null; $('#tfZaehler').innerHTML = h; $('#tfBlatt').parentNode.hidden = true; $('#tfLoesung').parentNode.hidden = true; meldung('warnung', tx('<p>Der Text ist für diese Form zu lang (oder ein Wort ist zu lang). Kürze ihn oder wähle eine Spirale.</p>')); return; }
+    if (erg.f < 9) h += tx('<p class="warnung">Die Schrift wird sehr klein (') + (erg.f * 186 / 703).toFixed(1) + tx(' mm). Ein kürzerer Text ist besser lesbar.</p>');
     $('#tfZaehler').innerHTML = h;
     meldung('', ''); $('#tfBlatt').parentNode.hidden = false; $('#tfLoesung').parentNode.hidden = false;
     R = { text:text };
-    var anleitung = 'Lies den Text. Drehe dazu das Blatt.' + (o.linien ? ' Schreibe ihn auf die Linien.' : '');
-    $('#tfBlatt').innerHTML = (o.titelAn ? '<h2>Textformen</h2>' : '') + (o.anleitungAn ? '<p class="tf-anleitung">' + esc(anleitung) + '</p>' : '') +
+    var anleitung = tx('Lies den Text. Drehe dazu das Blatt.') + (o.linien ? tx(' Schreibe ihn auf die Linien.') : '');
+    $('#tfBlatt').innerHTML = (o.titelAn ? tx('<h2>Textformen</h2>') : '') + (o.anleitungAn ? '<p class="tf-anleitung">' + esc(anleitung) + '</p>' : '') +
       '<div class="tf-mitte">' + erg.svg + '</div>' + (nLinien ? '<div class="tf-linien">' + new Array(nLinien + 1).join('<span></span>') + '</div>' : '');
-    $('#tfLoesung').innerHTML = (o.titelAn ? '<h2>Textformen – Lösung</h2>' : '<p class="tf-anleitung"><b>Lösung</b></p>') + '<p class="tf-loesung-text">' + esc(text) + '</p>';
+    $('#tfLoesung').innerHTML = (o.titelAn ? tx('<h2>Textformen – Lösung</h2>') : tx('<p class="tf-anleitung"><b>Lösung</b></p>')) + '<p class="tf-loesung-text">' + esc(text) + '</p>';
   }
 
   /* ---------- PDF, Herunterladen ---------- */
@@ -335,9 +336,9 @@ function starte(bereich){
     if (!speicherOrt || !R) return;
     var name = Labor.pdfName('Textformen', '').replace(/\.pdf$/, '.html');
     var inhalt = blaetter().map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); k.classList.remove('zeigen'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
-    speicherOrt.save({ filename:name, data:Labor.blattDatei('Textformen', inhalt, '.tf-loesungsblatt{display:block}') }).catch(function(e){
+    speicherOrt.save({ filename:name, data:Labor.blattDatei(tx('Textformen'), inhalt, '.tf-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 

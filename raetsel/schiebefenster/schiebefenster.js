@@ -7,6 +7,7 @@
    Stelle zeigt das Fenster ein Zeichen. Streifen, Fensterfolie, Lösungsblatt, PDF. */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('schiebefenster');
 
 /* KERN-START */
 var Kern = (function(){
@@ -69,7 +70,7 @@ var WOERTER = ['SCHATZ', 'PIRAT', 'TIGER', 'HALLO', 'ROBOTER', 'ZAUBER', 'DRACHE
 /* ---------- Zeichnen ---------- */
 // Farben, die gut gedruckt werden und auf denen ein weisses Zeichen gut zu sehen ist
 var FARBEN = ['#1E88E5', '#E53935', '#43A047', '#8E24AA', '#FB8C00', '#D81B60', '#00897B', '#3949AB', '#6D4C41', '#F9A825'];
-var FARBNAMEN = ['Blau', 'Rot', 'Grün', 'Violett', 'Orange', 'Pink', 'Türkis', 'Indigo', 'Braun', 'Gelb'];
+var FARBNAMEN = [tx('Blau'), tx('Rot'), tx('Grün'), tx('Violett'), tx('Orange'), tx('Pink'), tx('Türkis'), tx('Indigo'), tx('Braun'), tx('Gelb')];
 /* die Felder eines Streifens ab (x, y), Feldgrösse z; nebeneinanderliegende Felder einer Zeile mit gleicher Farbe als ein
    Rechteck. Farbe je Feld aus s.farben[Spalte][Zeile] (sonst schwarz). */
 function felderSvg(s, x, y, z){
@@ -108,7 +109,7 @@ function masse(z){ var m = Math.max(5 * MM, z * 0.8); return { z:z, m:m, balkenH
 /* Ein Streifen fürs Blatt: Nummer, Führungslinien (dort liegen die Kanten der Folie), Startpfeil, Felder. → { svg, h } */
 function streifenSvg(s, M, nr, mehrere, loesung){
   var w = s.spalten.length * M.z, x0 = (B - w) / 2, kopf = 18, y0 = kopf + M.m, h = kopf + M.balkenH + 4, t = '';
-  t += '<text x="' + f1(x0) + '" y="12" font-size="12" font-weight="700" fill="' + TINTE + '">' + (mehrere ? 'Streifen ' + nr : 'Streifen') + '</text>';
+  t += '<text x="' + f1(x0) + '" y="12" font-size="12" font-weight="700" fill="' + TINTE + '">' + (mehrere ? tx('Streifen ') + nr : tx('Streifen')) + '</text>';
   var lx0 = Math.max(0, x0 - 18), lx1 = Math.min(B, x0 + w + 18);
   [kopf, kopf + M.balkenH].forEach(function(y){ t += '<line x1="' + f1(lx0) + '" y1="' + f1(y) + '" x2="' + f1(lx1) + '" y2="' + f1(y) + '" stroke="#8A8079" stroke-width="0.8" stroke-dasharray="4 3"/>'; });
   t += '<polygon points="' + f1(x0 - 14) + ',' + f1(y0 + 2.5 * M.z - 6) + ' ' + f1(x0 - 4) + ',' + f1(y0 + 2.5 * M.z) + ' ' + f1(x0 - 14) + ',' + f1(y0 + 2.5 * M.z + 6) + '" fill="#E0741C"/>';
@@ -131,44 +132,44 @@ function balkenSvg(M, anzahl){
 }
 
 var VORLAGE = '<div class="sf">' +
-  '<header class="sf-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Schiebefenster</h1>' +
-    '<p>Ein Streifen mit schwarzen Bruchstücken und eine Folie mit einem Fenster: Schiebt man das Fenster über den Streifen, erscheinen an bestimmten Stellen Zeichen – zusammen ein Code.</p></header>' +
-  '<div class="sf-layout"><section class="sf-eingabe" aria-label="Eingaben">' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Code</h2><p>Diese Zeichen erscheinen der Reihe nach im Fenster.</p></div></div>' +
-      '<label class="feld-label" for="sfCode">Code</label>' +
+  tx('<header class="sf-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Schiebefenster</h1>') +
+    tx('<p>Ein Streifen mit schwarzen Bruchstücken und eine Folie mit einem Fenster: Schiebt man das Fenster über den Streifen, erscheinen an bestimmten Stellen Zeichen – zusammen ein Code.</p></header>') +
+  tx('<div class="sf-layout"><section class="sf-eingabe" aria-label="Eingaben">') +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Code</h2><p>Diese Zeichen erscheinen der Reihe nach im Fenster.</p></div></div>') +
+      tx('<label class="feld-label" for="sfCode">Code</label>') +
       '<div class="sf-zeile"><input type="text" id="sfCode" maxlength="24" autocomplete="off" spellcheck="false">' +
-        '<button type="button" class="btn klein" id="sfZufall" title="Einen anderen Code vorschlagen">Andere</button></div>' +
-      '<p class="hinweis">1 bis 12 Ziffern oder Buchstaben (A–Z). Passen nicht alle auf einen Streifen, gibt es mehrere.</p>' +
+        tx('<button type="button" class="btn klein" id="sfZufall" title="Einen anderen Code vorschlagen">Andere</button></div>') +
+      tx('<p class="hinweis">1 bis 12 Ziffern oder Buchstaben (A–Z). Passen nicht alle auf einen Streifen, gibt es mehrere.</p>') +
       '<div class="sf-zaehler" id="sfZaehler" aria-live="polite"></div>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Streifen und Folie</h2></div></div>' +
-      '<label class="opt"><input type="checkbox" id="sfAblenkung"><span>Ablenkung: schwarze Felder zwischen den Zeichen, damit man ohne Fenster nichts erkennt</span></label>' +
-      '<label class="opt"><input type="checkbox" id="sfFarbig"><span>In Farbe</span></label>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Streifen und Folie</h2></div></div>') +
+      tx('<label class="opt"><input type="checkbox" id="sfAblenkung"><span>Ablenkung: schwarze Felder zwischen den Zeichen, damit man ohne Fenster nichts erkennt</span></label>') +
+      tx('<label class="opt"><input type="checkbox" id="sfFarbig"><span>In Farbe</span></label>') +
       '<div class="sf-farbteil" id="sfFarbTeil" hidden>' +
-        '<p class="feld-label">Farbe</p><div class="sf-farbwahl" role="radiogroup" aria-label="Farbe der Bruchstücke">' +
+        tx('<p class="feld-label">Farbe</p><div class="sf-farbwahl" role="radiogroup" aria-label="Farbe der Bruchstücke">') +
           FARBEN.map(function(f, i){ return '<label title="' + FARBNAMEN[i] + '"><input type="radio" name="sfFarbe" value="' + f + '"><span style="background:' + f + '"></span><b class="vh">' + FARBNAMEN[i] + '</b></label>'; }).join('') +
-          '<label class="sf-eigene" title="Eigene Farbe"><input type="color" id="sfEigeneFarbe"><span>eigene</span></label></div>' +
-        '<label class="opt"><input type="checkbox" id="sfJeFarbe"><span>Jedes Zeichen eine eigene Farbe</span></label>' +
+          tx('<label class="sf-eigene" title="Eigene Farbe"><input type="color" id="sfEigeneFarbe"><span>eigene</span></label></div>') +
+        tx('<label class="opt"><input type="checkbox" id="sfJeFarbe"><span>Jedes Zeichen eine eigene Farbe</span></label>') +
         '<div class="sf-farbliste" id="sfFarbListe" hidden></div>' +
-        '<p class="hinweis">Im Fenster erscheint das Zeichen weiss – auf kräftigen, dunklen Farben ist es am besten zu sehen.</p>' +
+        tx('<p class="hinweis">Im Fenster erscheint das Zeichen weiss – auf kräftigen, dunklen Farben ist es am besten zu sehen.</p>') +
       '</div>' +
-      '<label class="opt"><input type="checkbox" id="sfLinie"><span>Linie für den Code</span></label>' +
-      '<p class="hinweis">Den Streifen auf Papier drucken, die Fensterfolie auf eine Overhead-Folie (Folie für den Drucker) und die Balken ausschneiden.</p>' +
+      tx('<label class="opt"><input type="checkbox" id="sfLinie"><span>Linie für den Code</span></label>') +
+      tx('<p class="hinweis">Den Streifen auf Papier drucken, die Fensterfolie auf eine Overhead-Folie (Folie für den Drucker) und die Balken ausschneiden.</p>') +
     '</div>' +
   '</section>' +
-  '<section class="sf-ausgabe" aria-label="Ergebnis">' +
+  tx('<section class="sf-ausgabe" aria-label="Ergebnis">') +
     '<div id="sfMeldung" aria-live="polite"></div>' +
     '<div class="sf-werkzeug">' +
-      '<button type="button" class="btn klein" id="sfNeu" title="Die Ablenkung neu verteilen">Neu mischen</button>' +
+      tx('<button type="button" class="btn klein" id="sfNeu" title="Die Ablenkung neu verteilen">Neu mischen</button>') +
       '<span class="abstand"></span>' + Labor.blattSchalterHtml() +
-      '<label><input type="checkbox" id="sfMitLoesung"> mit Lösungsblatt</label>' +
-      '<button type="button" class="btn klein primary" id="sfPdf">PDF herunterladen</button>' +
-      '<button type="button" class="btn klein primary" id="sfHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
+      tx('<label><input type="checkbox" id="sfMitLoesung"> mit Lösungsblatt</label>') +
+      tx('<button type="button" class="btn klein primary" id="sfPdf">PDF herunterladen</button>') +
+      tx('<button type="button" class="btn klein primary" id="sfHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>') +
     '</div>' +
-    '<div class="karte sf-spiel nur-bildschirm"><div class="sf-spiel-kopf"><div><h2>Am Bildschirm ausprobieren</h2><p>Ziehe den schwarzen Balken nach links und rechts (oder Pfeiltasten).</p></div>' +
-      '<button type="button" class="btn klein" id="sfZeige" aria-pressed="false">Lösung zeigen</button></div>' +
+    tx('<div class="karte sf-spiel nur-bildschirm"><div class="sf-spiel-kopf"><div><h2>Am Bildschirm ausprobieren</h2><p>Ziehe den schwarzen Balken nach links und rechts (oder Pfeiltasten).</p></div>') +
+      tx('<button type="button" class="btn klein" id="sfZeige" aria-pressed="false">Lösung zeigen</button></div>') +
       '<div id="sfSpielfeld"></div>' +
-      '<div class="sf-antwort-zeile"><label for="sfAntwort">Code:</label><input type="text" id="sfAntwort" autocomplete="off" spellcheck="false"><span id="sfAntwortInfo" aria-live="polite"></span></div></div>' +
+      tx('<div class="sf-antwort-zeile"><label for="sfAntwort">Code:</label><input type="text" id="sfAntwort" autocomplete="off" spellcheck="false"><span id="sfAntwortInfo" aria-live="polite"></span></div></div>') +
     '<div class="sf-rahmen"><article class="sf-blatt" id="sfBlatt"></article></div>' +
     '<div class="sf-rahmen"><article class="sf-blatt sf-folie" id="sfFolie"></article></div>' +
     '<div class="sf-rahmen"><article class="sf-blatt sf-loesungsblatt" id="sfLoesung" aria-hidden="true"></article></div>' +
@@ -241,8 +242,8 @@ function starte(bereich){
     if (k === listeFuer) return;
     listeFuer = k; farbenErgaenzen(Z.length);
     $('#sfFarbListe').innerHTML = '<div class="sf-farbfelder">' + Z.map(function(c, i){
-      return '<label class="sf-farbe" title="Farbe von ' + esc(c) + ' (' + (i + 1) + '. Zeichen)"><input type="color" data-k="' + i + '" value="' + st.farben[i] + '"><span>' + esc(c) + '</span></label>';
-    }).join('') + '</div><div class="sf-farb-knoepfe"><button type="button" class="btn klein" id="sfBunt">Bunt</button><button type="button" class="btn klein" id="sfGleich">Alle wie oben</button></div>';
+      return tx('<label class="sf-farbe" title="Farbe von ') + esc(c) + ' (' + (i + 1) + '. Zeichen)"><input type="color" data-k="' + i + '" value="' + st.farben[i] + '"><span>' + esc(c) + '</span></label>';
+    }).join('') + tx('</div><div class="sf-farb-knoepfe"><button type="button" class="btn klein" id="sfBunt">Bunt</button><button type="button" class="btn klein" id="sfGleich">Alle wie oben</button></div>');
   }
   $('#sfFarbListe').addEventListener('input', function(ev){
     var f = ev.target.closest('input[type=color]'); if (!f) return;
@@ -269,23 +270,23 @@ function starte(bereich){
   /* ---------- Blätter ---------- */
   var P = null, Z = [];
   function anleitung(mehrere){
-    return 'Schneide einen schwarzen Balken aus der Fensterfolie aus. Lege ihn so auf ' + (mehrere ? 'den ersten Streifen' : 'den Streifen') + ', dass seine Kanten auf den gestrichelten Linien liegen, ganz links beim Pfeil. ' +
-      'Schiebe ihn langsam nach rechts: An manchen Stellen erscheint im Fenster ein weisses Zeichen. Schreibe die Zeichen der Reihe nach auf' + (mehrere ? ' – dann weiter mit dem nächsten Streifen.' : '.');
+    return tx('Schneide einen schwarzen Balken aus der Fensterfolie aus. Lege ihn so auf ') + (mehrere ? tx('den ersten Streifen') : tx('den Streifen')) + tx(', dass seine Kanten auf den gestrichelten Linien liegen, ganz links beim Pfeil. ') +
+      tx('Schiebe ihn langsam nach rechts: An manchen Stellen erscheint im Fenster ein weisses Zeichen. Schreibe die Zeichen der Reihe nach auf') + (mehrere ? tx(' – dann weiter mit dem nächsten Streifen.') : '.');
   }
   function zeichnen(){
     if (aus) return;
     var L = PS.lesen(st.code, 12), h = '', o = st.opt;
     Z = L.zeichen;
-    if (L.weg.length) h += '<p class="warnung">' + esc(L.weg.join(' ')) + ' gibt es nicht – nur Ziffern und Buchstaben A–Z (Ä, Ö, Ü werden zu AE, OE, UE).</p>';
-    if (L.zuViele) h += '<p class="warnung">Höchstens 12 Zeichen – es werden die ersten 12 verwendet.</p>';
+    if (L.weg.length) h += '<p class="warnung">' + esc(L.weg.join(' ')) + tx(' gibt es nicht – nur Ziffern und Buchstaben A–Z (Ä, Ö, Ü werden zu AE, OE, UE).</p>');
+    if (L.zuViele) h += tx('<p class="warnung">Höchstens 12 Zeichen – es werden die ersten 12 verwendet.</p>');
     var aehnlich = PS.AEHNLICH.filter(function(p){ return Z.indexOf(p[0]) >= 0 && Z.indexOf(p[1]) >= 0; });
-    if (aehnlich.length) h += '<p class="warnung">Sehen sich ähnlich: ' + aehnlich.map(function(p){ return p[0] + ' und ' + p[1]; }).join(', ') + '.</p>';
+    if (aehnlich.length) h += tx('<p class="warnung">Sehen sich ähnlich: ') + aehnlich.map(function(p){ return p[0] + tx(' und ') + p[1]; }).join(', ') + '.</p>';
     var leer = !Z.length;
     ['#sfNeu', '#sfPdf', '#sfHerunterladen', '#sfZeige'].forEach(function(s){ $(s).disabled = leer; });
-    if (leer){ P = null; $('#sfZaehler').innerHTML = h; ['#sfBlatt', '#sfFolie', '#sfLoesung'].forEach(function(s){ $(s).parentNode.hidden = true; }); $('.sf-spiel').hidden = true; meldung('info', '<p>Gib links den Code ein.</p>'); return; }
+    if (leer){ P = null; $('#sfZaehler').innerHTML = h; ['#sfBlatt', '#sfFolie', '#sfLoesung'].forEach(function(s){ $(s).parentNode.hidden = true; }); $('.sf-spiel').hidden = true; meldung('info', tx('<p>Gib links den Code ein.</p>')); return; }
     var M = masse(ZELLE * MM), pro = Kern.proStreifen(Math.floor((B - 40) / M.z));
     P = Kern.planen({ zeichen:Z, proStreifen:pro, ablenkung:o.ablenkung, seed:st.seed });
-    if (!P){ meldung('warnung', '<p>Das hat nicht geklappt – versuche «Neu mischen».</p>'); return; }
+    if (!P){ meldung('warnung', tx('<p>Das hat nicht geklappt – versuche «Neu mischen».</p>')); return; }
     // Farben: schwarz, eine Farbe oder je Zeichen eine
     farbListeZeigen(); farbenErgaenzen(Z.length);
     var frnd = Kern.zufall(st.seed + 17), k0 = 0;
@@ -297,17 +298,17 @@ function starte(bereich){
       k0 += s.zeichen.length;
     });
     var mehrere = P.streifen.length > 1;
-    $('#sfZaehler').innerHTML = '<p class="sf-zaehler-haupt ok">Code: <b>' + esc(Z.join('')) + '</b> · ' + (mehrere ? P.streifen.length + ' Streifen' : '1 Streifen') + '</p>' + h;
+    $('#sfZaehler').innerHTML = tx('<p class="sf-zaehler-haupt ok">Code: <b>') + esc(Z.join('')) + '</b> · ' + (mehrere ? P.streifen.length + tx(' Streifen') : tx('1 Streifen')) + '</p>' + h;
     meldung('', ''); ['#sfBlatt', '#sfFolie', '#sfLoesung'].forEach(function(s){ $(s).parentNode.hidden = false; }); $('.sf-spiel').hidden = false;
     var strs = P.streifen.map(function(s, i){ return streifenSvg(s, M, i + 1, mehrere, false).svg; }).join('');
-    $('#sfBlatt').innerHTML = (o.titelAn ? '<h2>Schiebefenster</h2>' : '') + (o.anleitungAn ? '<p class="sf-anleitung">' + esc(anleitung(mehrere)) + '</p>' : '') +
-      '<div class="sf-streifen-liste">' + strs + '</div>' + (o.linie ? '<p class="sf-antwort">Code: <span class="sf-linie"></span></p>' : '');
+    $('#sfBlatt').innerHTML = (o.titelAn ? tx('<h2>Schiebefenster</h2>') : '') + (o.anleitungAn ? '<p class="sf-anleitung">' + esc(anleitung(mehrere)) + '</p>' : '') +
+      '<div class="sf-streifen-liste">' + strs + '</div>' + (o.linie ? tx('<p class="sf-antwort">Code: <span class="sf-linie"></span></p>') : '');
     var kopfH = 110, anzahl = Math.max(1, Math.min(8, Math.floor((930 - kopfH) / (M.balkenH + 7 * MM))));
-    $('#sfFolie').innerHTML = '<h2>Fensterfolie</h2><p class="sf-anleitung">Auf eine Folie drucken, in Originalgrösse (100 %). Die Balken ausschneiden – einer pro Kind oder Gruppe. Das Fenster bleibt durchsichtig.</p>' + balkenSvg(M, anzahl);
-    $('#sfLoesung').innerHTML = (o.titelAn ? '<h2>Schiebefenster – Lösung</h2>' : '<p class="sf-anleitung"><b>Lösung</b></p>') +
-      '<p class="sf-anleitung">Hier steht das Fenster richtig (orange Rahmen).</p>' +
+    $('#sfFolie').innerHTML = tx('<h2>Fensterfolie</h2><p class="sf-anleitung">Auf eine Folie drucken, in Originalgrösse (100 %). Die Balken ausschneiden – einer pro Kind oder Gruppe. Das Fenster bleibt durchsichtig.</p>') + balkenSvg(M, anzahl);
+    $('#sfLoesung').innerHTML = (o.titelAn ? tx('<h2>Schiebefenster – Lösung</h2>') : tx('<p class="sf-anleitung"><b>Lösung</b></p>')) +
+      tx('<p class="sf-anleitung">Hier steht das Fenster richtig (orange Rahmen).</p>') +
       '<div class="sf-streifen-liste">' + P.streifen.map(function(s, i){ return streifenSvg(s, M, i + 1, mehrere, true).svg; }).join('') + '</div>' +
-      '<p class="sf-code-loesung">Code: <b>' + esc(Z.join('')) + '</b></p>';
+      tx('<p class="sf-code-loesung">Code: <b>') + esc(Z.join('')) + '</b></p>';
     spielAufbauen();
   }
 
@@ -319,11 +320,11 @@ function starte(bereich){
     M.m = Math.max(8, z * 0.6); M.balkenH = 5 * z + 2 * M.m;
     schienen = P.streifen.map(function(s, i){
       var w = s.spalten.length * z;
-      h += '<div class="sf-schiene" data-i="' + i + '" style="width:' + (w + 24) + 'px;height:' + f1(M.balkenH) + 'px">' +
+      h += '<div class="sf-schiene" data-i="' + i + '" style="width:' + (w + 24) + tx('px;height:') + f1(M.balkenH) + 'px">' +
         '<svg class="sf-schiene-streifen" width="' + (w + 24) + '" height="' + f1(M.balkenH) + '">' + felderSvg(s, 12, M.m, z) +
           s.ziele.map(function(x, k){ return '<g class="sf-ziel"><rect x="' + f1(12 + x * z - 1) + '" y="' + f1(M.m - 1) + '" width="' + f1(3 * z + 2) + '" height="' + f1(5 * z + 2) + '" fill="none" stroke="#E0741C" stroke-width="2"/>' +
             '<text x="' + f1(12 + (x + 1.5) * z) + '" y="' + f1(M.m - 3) + '" font-size="11" font-weight="700" fill="#C25A0E" text-anchor="middle">' + esc(s.zeichen[k]) + '</text></g>'; }).join('') + '</svg>' +
-        '<div class="sf-schieber" tabindex="0" role="slider" aria-label="Fenster verschieben' + (P.streifen.length > 1 ? ', Streifen ' + (i + 1) : '') + '" aria-valuemin="0" aria-valuemax="' + (s.spalten.length - 3) + '">' +
+        tx('<div class="sf-schieber" tabindex="0" role="slider" aria-label="Fenster verschieben') + (P.streifen.length > 1 ? tx(', Streifen ') + (i + 1) : '') + '" aria-valuemin="0" aria-valuemax="' + (s.spalten.length - 3) + '">' +
           '<svg width="' + (2 * w + 3 * z + 48) + '" height="' + f1(M.balkenH) + '"><path d="M0 0H' + (2 * w + 3 * z + 48) + 'V' + f1(M.balkenH) + 'H0Z M' + (w + 24) + ' ' + f1(M.m) + 'V' + f1(M.m + 5 * z) + 'H' + (w + 24 + 3 * z) + 'V' + f1(M.m) + 'Z" fill="' + SCHWARZ + '" fill-rule="evenodd"/></svg></div></div>';
       return { s:s, z:z, w:w, x:-1 };
     });
@@ -332,7 +333,7 @@ function starte(bereich){
   }
   function setzen(i, x){
     var sc = schienen[i]; sc.x = Math.max(-1, Math.min(sc.s.spalten.length - 2, x));
-    var el = $('#sfSpielfeld .sf-schiene[data-i="' + i + '"] .sf-schieber');
+    var el = $('#sfSpielfeld .sf-schiene[data-i="' + i + tx('"] .sf-schieber'));
     if (el){ el.style.left = f1(12 + sc.x * sc.z - (sc.w + 24)) + 'px'; el.setAttribute('aria-valuenow', String(Math.round(sc.x))); }
   }
   $('#sfSpielfeld').addEventListener('pointerdown', function(ev){
@@ -357,7 +358,7 @@ function starte(bereich){
   $('#sfAntwort').addEventListener('input', function(){
     var t = this.value.toUpperCase().replace(/[^0-9A-Z]/g, ''), ziel = Z.join(''), info = $('#sfAntwortInfo');
     info.className = t === ziel ? 'ok' : '';
-    info.textContent = !t ? '' : t === ziel ? 'Geschafft! 🎉' : ziel.indexOf(t) === 0 ? 'bis hier richtig …' : 'Da stimmt etwas noch nicht.';
+    info.textContent = !t ? '' : t === ziel ? tx('Geschafft! 🎉') : ziel.indexOf(t) === 0 ? tx('bis hier richtig …') : tx('Da stimmt etwas noch nicht.');
   });
 
   /* ---------- PDF, Herunterladen ---------- */
@@ -374,9 +375,9 @@ function starte(bereich){
     if (!speicherOrt || !P) return;
     var name = Labor.pdfName('Schiebefenster', '').replace(/\.pdf$/, '.html');
     var inhalt = [$('#sfBlatt'), $('#sfFolie'), st.opt.mitLoesung && $('#sfLoesung')].filter(Boolean).map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
-    speicherOrt.save({ filename:name, data:Labor.blattDatei('Schiebefenster', inhalt, '.sf-loesungsblatt{display:block}') }).catch(function(e){
+    speicherOrt.save({ filename:name, data:Labor.blattDatei(tx('Schiebefenster'), inhalt, '.sf-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 

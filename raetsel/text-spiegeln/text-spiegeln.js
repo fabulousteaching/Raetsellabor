@@ -5,6 +5,7 @@
    Bewusst ohne Arbeitsblatt: ein Werkzeug zum Kopieren. */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('text-spiegeln');
 
 /* KERN-START */
 var Kern = (function(){
@@ -54,24 +55,24 @@ var Kern = (function(){
 
 /* ===== Vorlage ===== */
 var ARTEN_TEXT = [   // Kürzel, Name, Erklärung
-  ['horizontal', 'Horizontal gespiegelt', 'Spiegelschrift – von rechts nach links'],
-  ['vertikal', 'Vertikal gespiegelt', 'an einer waagrechten Linie umgeklappt'],
-  ['gedreht', 'Auf den Kopf gedreht', 'horizontal und vertikal – um 180° gedreht'],
-  ['rueckwaerts', 'Rückwärts', 'Buchstaben in umgekehrter Reihenfolge'],
-  ['woerter', 'Wörter rückwärts', 'jedes Wort rückwärts, die Reihenfolge bleibt']
+  ['horizontal', tx('Horizontal gespiegelt'), tx('Spiegelschrift – von rechts nach links')],
+  ['vertikal', tx('Vertikal gespiegelt'), tx('an einer waagrechten Linie umgeklappt')],
+  ['gedreht', tx('Auf den Kopf gedreht'), tx('horizontal und vertikal – um 180° gedreht')],
+  ['rueckwaerts', tx('Rückwärts'), tx('Buchstaben in umgekehrter Reihenfolge')],
+  ['woerter', tx('Wörter rückwärts'), tx('jedes Wort rückwärts, die Reihenfolge bleibt')]
 ];
 var VORLAGE = '<div class="ts">' +
-  '<header class="ts-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Text spiegeln</h1>' +
-    '<p>Einen eigenen Text horizontal oder vertikal spiegeln, auf den Kopf drehen oder rückwärts schreiben – und mit einem Klick kopieren.</p></header>' +
-  '<div class="ts-layout"><section class="ts-eingabe" aria-label="Eingabe">' +
-    '<div class="karte"><div class="karte-kopf"><div><h2>Dein Text</h2><p>Ein Wort, ein Satz oder mehrere Zeilen.</p></div></div>' +
-      '<label class="vh" for="tsText">Dein Text</label><textarea id="tsText" rows="4" maxlength="600" spellcheck="true"></textarea>' +
+  tx('<header class="ts-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Text spiegeln</h1>') +
+    tx('<p>Einen eigenen Text horizontal oder vertikal spiegeln, auf den Kopf drehen oder rückwärts schreiben – und mit einem Klick kopieren.</p></header>') +
+  tx('<div class="ts-layout"><section class="ts-eingabe" aria-label="Eingabe">') +
+    tx('<div class="karte"><div class="karte-kopf"><div><h2>Dein Text</h2><p>Ein Wort, ein Satz oder mehrere Zeilen.</p></div></div>') +
+      tx('<label class="vh" for="tsText">Dein Text</label><textarea id="tsText" rows="4" maxlength="600" spellcheck="true"></textarea>') +
       '<p class="hinweis" id="tsInfo"></p></div>' +
   '</section>' +
-  '<section class="ts-ausgabe" aria-label="Ergebnis">' +
-    '<div class="leer-zustand" id="tsLeer"><h2>Noch kein Text</h2><p>Schreibe links einen Text – hier erscheint er sofort gespiegelt, gedreht und rückwärts.</p></div>' +
-    '<div id="tsKopien" hidden><p class="ts-tipp">Klicke auf einen Text, um ihn zu kopieren – dann kannst du ihn überall einfügen, z. B. in WhatsApp, Word oder eine E-Mail. ' +
-      'Die Zeichen sind ähnlich aussehende Sonderzeichen; nicht jeder Buchstabe hat ein perfektes Spiegelbild.</p>' +
+  tx('<section class="ts-ausgabe" aria-label="Ergebnis">') +
+    tx('<div class="leer-zustand" id="tsLeer"><h2>Noch kein Text</h2><p>Schreibe links einen Text – hier erscheint er sofort gespiegelt, gedreht und rückwärts.</p></div>') +
+    tx('<div id="tsKopien" hidden><p class="ts-tipp">Klicke auf einen Text, um ihn zu kopieren – dann kannst du ihn überall einfügen, z. B. in WhatsApp, Word oder eine E-Mail. ') +
+      tx('Die Zeichen sind ähnlich aussehende Sonderzeichen; nicht jeder Buchstabe hat ein perfektes Spiegelbild.</p>') +
       '<div class="ts-karten" id="tsKarten"></div></div>' +
   '</section></div></div>';
 
@@ -119,10 +120,10 @@ function starte(bereich){
     var k = ev.target.closest('.ts-karte'); if (!k) return;
     var marke = k.querySelector('.ts-kopiert');
     kopieren(ergebnisse[k.dataset.art] || '').then(function(){
-      k.classList.add('kopiert'); marke.textContent = '✓ Kopiert';
-      setTimeout(function(){ k.classList.remove('kopiert'); marke.textContent = 'Kopieren'; }, 1600);
+      k.classList.add('kopiert'); marke.textContent = tx('✓ Kopiert');
+      setTimeout(function(){ k.classList.remove('kopiert'); marke.textContent = tx('Kopieren'); }, 1600);
     }, function(){
-      marke.textContent = 'Markieren und kopieren';
+      marke.textContent = tx('Markieren und kopieren');
       var sel = window.getSelection(), r = document.createRange(); r.selectNodeContents(k.querySelector('.ts-text')); sel.removeAllRanges(); sel.addRange(r);
     });
   });
@@ -130,13 +131,13 @@ function starte(bereich){
   function zeigen(){
     var t = st.text, leer = !t.trim();
     $('#tsLeer').hidden = !leer; $('#tsKopien').hidden = leer;
-    $('#tsInfo').textContent = leer ? '' : Array.from(t).length + ' Zeichen';
+    $('#tsInfo').textContent = leer ? '' : Array.from(t).length + tx(' Zeichen');
     if (leer) return;
     ergebnisse = {};
     $('#tsKarten').innerHTML = ARTEN_TEXT.map(function(a){
       var r = ergebnisse[a[0]] = Kern.ARTEN[a[0]](t);
-      return '<button type="button" class="ts-karte" data-art="' + a[0] + '" title="Klicken zum Kopieren"><span class="ts-karte-kopf"><span><b>' + a[1] + '</b><small>' + a[2] + '</small></span>' +
-        '<span class="ts-kopiert">Kopieren</span></span><span class="ts-text">' + esc(r) + '</span></button>';
+      return '<button type="button" class="ts-karte" data-art="' + a[0] + tx('" title="Klicken zum Kopieren"><span class="ts-karte-kopf"><span><b>') + a[1] + '</b><small>' + a[2] + '</small></span>' +
+        tx('<span class="ts-kopiert">Kopieren</span></span><span class="ts-text">') + esc(r) + '</span></button>';
     }).join('');
   }
 

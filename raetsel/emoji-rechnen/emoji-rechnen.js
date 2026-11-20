@@ -5,6 +5,7 @@
    neuen Emojis zusammen, und die Zeilen stehen gemischt). Rechnet mit Punkt vor Strich, nur natürliche Zahlen. */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('emoji-rechnen');
 
 /* KERN-START */
 var Kern = (function(){
@@ -105,52 +106,52 @@ var Kern = (function(){
 
 /* ===== Vorlage ===== */
 var THEMEN = [   // Kürzel, Name, Emojis (verbreitete Emojis; keine, die sich in klein zu ähnlich sehen)
-  ['fruechte', 'Früchte', ['🍎', '🍌', '🍒', '🍇', '🍓', '🍐', '🍉', '🍋', '🍍', '🥝']],
-  ['tiere', 'Tiere', ['🐶', '🐱', '🐭', '🐰', '🦊', '🐻', '🐼', '🐸', '🐷', '🐵']],
-  ['meer', 'Meer', ['🐠', '🐙', '🦀', '🐬', '🐳', '🦈', '🐚', '🐢', '⚓', '🌊']],
-  ['suesses', 'Süsses', ['🍭', '🍬', '🍫', '🍩', '🍪', '🧁', '🍰', '🍦', '🍯', '🍮']],
-  ['gemuese', 'Gemüse', ['🥕', '🥦', '🌽', '🍅', '🥒', '🍆', '🥔', '🧅', '🌶️', '🥜']],
-  ['natur', 'Natur', ['🌻', '🌳', '🍄', '🌵', '🌸', '🍀', '🌈', '🌾', '🍁', '🌷']],
-  ['fahrzeuge', 'Fahrzeuge', ['🚗', '🚌', '🚲', '🚂', '🚀', '🚁', '🚜', '⛵', '🛵', '✈️']],
-  ['sport', 'Sport', ['⚽', '🏀', '🎾', '🏈', '⛳', '⚾', '🏓', '🥊', '🛹', '🏸']],
-  ['schule', 'Schule', ['✏️', '📚', '✂️', '📏', '🎒', '🖍️', '🎨', '📎', '🧮', '🔔']],
-  ['musik', 'Musik', ['🎸', '🥁', '🎺', '🎹', '🎻', '🎷', '🎤', '🎧', '🎵', '📻']],
-  ['weltall', 'Weltall', ['🚀', '🪐', '🌙', '⭐', '☀️', '👽', '🛸', '🌍', '☄️', '🛰️']],
-  ['gesichter', 'Gesichter', ['😀', '😎', '🤓', '😴', '🥳', '😍', '🤠', '😇', '🤔', '😜']],
-  ['gemischt', 'Gemischt', null]
+  ['fruechte', tx('Früchte'), ['🍎', '🍌', '🍒', '🍇', '🍓', '🍐', '🍉', '🍋', '🍍', '🥝']],
+  ['tiere', tx('Tiere'), ['🐶', '🐱', '🐭', '🐰', '🦊', '🐻', '🐼', '🐸', '🐷', '🐵']],
+  ['meer', tx('Meer'), ['🐠', '🐙', '🦀', '🐬', '🐳', '🦈', '🐚', '🐢', '⚓', '🌊']],
+  ['suesses', tx('Süsses'), ['🍭', '🍬', '🍫', '🍩', '🍪', '🧁', '🍰', '🍦', '🍯', '🍮']],
+  ['gemuese', tx('Gemüse'), ['🥕', '🥦', '🌽', '🍅', '🥒', '🍆', '🥔', '🧅', '🌶️', '🥜']],
+  ['natur', tx('Natur'), ['🌻', '🌳', '🍄', '🌵', '🌸', '🍀', '🌈', '🌾', '🍁', '🌷']],
+  ['fahrzeuge', tx('Fahrzeuge'), ['🚗', '🚌', '🚲', '🚂', '🚀', '🚁', '🚜', '⛵', '🛵', '✈️']],
+  ['sport', tx('Sport'), ['⚽', '🏀', '🎾', '🏈', '⛳', '⚾', '🏓', '🥊', '🛹', '🏸']],
+  ['schule', tx('Schule'), ['✏️', '📚', '✂️', '📏', '🎒', '🖍️', '🎨', '📎', '🧮', '🔔']],
+  ['musik', tx('Musik'), ['🎸', '🥁', '🎺', '🎹', '🎻', '🎷', '🎤', '🎧', '🎵', '📻']],
+  ['weltall', tx('Weltall'), ['🚀', '🪐', '🌙', '⭐', '☀️', '👽', '🛸', '🌍', '☄️', '🛰️']],
+  ['gesichter', tx('Gesichter'), ['😀', '😎', '🤓', '😴', '🥳', '😍', '🤠', '😇', '🤔', '😜']],
+  ['gemischt', tx('Gemischt'), null]
 ];
-var STUFEN_TEXT = { leicht:'Leicht', mittel:'Mittel', schwer:'Schwer', sehrschwer:'Sehr schwer' };
+var STUFEN_TEXT = { leicht:tx('Leicht'), mittel:tx('Mittel'), schwer:tx('Schwer'), sehrschwer:tx('Sehr schwer') };
 var VORLAGE = '<div class="em">' +
-  '<header class="em-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Emoji-Rechnen</h1>' +
-    '<p>Jedes Emoji steht für eine Zahl. Aus den Zeilen findet man heraus, welche – und rechnet damit die letzte Zeile aus. Vier Schwierigkeitsstufen und viele Emoji-Themen.</p></header>' +
-  '<div class="em-layout"><section class="em-eingabe" aria-label="Eingaben">' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Schwierigkeit</h2><p>Zahlenraum, Rechenarten und Anzahl Emojis.</p></div></div>' +
-      '<div class="em-stufen" role="radiogroup" aria-label="Schwierigkeit">' +
+  tx('<header class="em-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Emoji-Rechnen</h1>') +
+    tx('<p>Jedes Emoji steht für eine Zahl. Aus den Zeilen findet man heraus, welche – und rechnet damit die letzte Zeile aus. Vier Schwierigkeitsstufen und viele Emoji-Themen.</p></header>') +
+  tx('<div class="em-layout"><section class="em-eingabe" aria-label="Eingaben">') +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Schwierigkeit</h2><p>Zahlenraum, Rechenarten und Anzahl Emojis.</p></div></div>') +
+      tx('<div class="em-stufen" role="radiogroup" aria-label="Schwierigkeit">') +
         Object.keys(STUFEN_TEXT).map(function(k){ return '<label class="em-stufe"><input type="radio" name="emStufe" value="' + k + '"><span>' + STUFEN_TEXT[k] + '</span></label>'; }).join('') +
       '</div></div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Emoji-Thema</h2><p>Aus welchen Emojis die Rätsel bestehen.</p></div></div>' +
-      '<div class="em-themen" role="radiogroup" aria-label="Emoji-Thema">' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Emoji-Thema</h2><p>Aus welchen Emojis die Rätsel bestehen.</p></div></div>') +
+      tx('<div class="em-themen" role="radiogroup" aria-label="Emoji-Thema">') +
         THEMEN.map(function(t){ return '<label><input type="radio" name="emThema" value="' + t[0] + '"><span><i aria-hidden="true">' + (t[2] ? t[2].slice(0, 3).join('') : '🍎🐶⚽') + '</i>' + t[1] + '</span></label>'; }).join('') +
       '</div></div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Blatt</h2></div></div>' +
-      '<div class="opt-raster"><label for="emAnzahl">Rätsel pro Blatt</label><select id="emAnzahl"><option value="1">1</option><option value="2">2</option><option value="4">4</option><option value="6">6</option></select></div>' +
-      '<label class="opt"><input type="checkbox" id="emHilfe"><span>Hilfsfelder für die Werte der Emojis (🍎 = …)</span></label>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Blatt</h2></div></div>') +
+      tx('<div class="opt-raster"><label for="emAnzahl">Rätsel pro Blatt</label><select id="emAnzahl"><option value="1">1</option><option value="2">2</option><option value="4">4</option><option value="6">6</option></select></div>') +
+      tx('<label class="opt"><input type="checkbox" id="emHilfe"><span>Hilfsfelder für die Werte der Emojis (🍎 = …)</span></label>') +
     '</div>' +
-    '<div class="karte"><details class="optionen"><summary>Einstellungen</summary>' +
-      '<div class="opt-raster"><label for="emTitel">Titel auf dem Blatt</label><input type="text" id="emTitel" maxlength="60" autocomplete="off"></div>' +
+    tx('<div class="karte"><details class="optionen"><summary>Einstellungen</summary>') +
+      tx('<div class="opt-raster"><label for="emTitel">Titel auf dem Blatt</label><input type="text" id="emTitel" maxlength="60" autocomplete="off"></div>') +
     '</details></div>' +
   '</section>' +
-  '<section class="em-ausgabe" aria-label="Ergebnis">' +
+  tx('<section class="em-ausgabe" aria-label="Ergebnis">') +
     '<div id="emMeldung" aria-live="polite"></div>' +
     '<div class="em-werkzeug">' +
-      '<button type="button" class="btn klein" id="emNeu" title="Gleiche Einstellungen, neue Rätsel">Neue Rätsel</button>' +
-      '<button type="button" class="btn klein" id="emZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
-      '<button type="button" class="btn klein" id="emLeeren">Eingaben löschen</button>' +
+      tx('<button type="button" class="btn klein" id="emNeu" title="Gleiche Einstellungen, neue Rätsel">Neue Rätsel</button>') +
+      tx('<button type="button" class="btn klein" id="emZeigeLoesung" aria-pressed="false">Lösung zeigen</button>') +
+      tx('<button type="button" class="btn klein" id="emLeeren">Eingaben löschen</button>') +
       '<span class="abstand"></span>' +
       Labor.blattSchalterHtml() +
-      '<label><input type="checkbox" id="emMitLoesung"> mit Lösungsblatt</label>' +
-      '<button type="button" class="btn klein primary" id="emPdf">PDF herunterladen</button>' +
-      '<button type="button" class="btn klein primary" id="emHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
+      tx('<label><input type="checkbox" id="emMitLoesung"> mit Lösungsblatt</label>') +
+      tx('<button type="button" class="btn klein primary" id="emPdf">PDF herunterladen</button>') +
+      tx('<button type="button" class="btn klein primary" id="emHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>') +
     '</div>' +
     '<article class="em-blatt" id="emBlatt"></article>' +
     '<article class="em-blatt em-loesungsblatt" id="emLoesung" aria-hidden="true"></article>' +
@@ -231,11 +232,11 @@ function starte(bereich){
     var n = raetsel.length, h = '<section class="em-raetsel" data-i="' + i + '">' + (n > 1 ? '<span class="em-nr">' + (i + 1) + '</span>' : '') + '<div class="em-zeilen">';
     r.zeilen.forEach(function(z){ h += '<span class="em-term">' + term(z.t, r) + '</span><span class="em-gleich">=</span><span class="em-wert">' + z.r + '</span>'; });
     h += '<span class="em-term em-schluss">' + term(r.schluss.t, r) + '</span><span class="em-gleich">=</span><span class="em-wert"><span class="em-frage">' +
-      (loesung ? '<b>' + r.schluss.r + '</b>' : '<input type="text" class="em-antwort nur-bildschirm" size="3" maxlength="4" inputmode="numeric" autocomplete="off" aria-label="Ergebnis von Rätsel ' + (i + 1) + '"><span class="em-loes">' + r.schluss.r + '</span>') + '</span></span></div>';
+      (loesung ? '<b>' + r.schluss.r + '</b>' : tx('<input type="text" class="em-antwort nur-bildschirm" size="3" maxlength="4" inputmode="numeric" autocomplete="off" aria-label="Ergebnis von Rätsel ') + (i + 1) + '"><span class="em-loes">' + r.schluss.r + '</span>') + '</span></span></div>';
     if (st.opt.hilfe || loesung){
       h += '<div class="em-hilfe">' + r.emojis.map(function(em, k){
         return '<span class="em-h"><span class="em-e">' + em + '</span><span class="em-ist">=</span><span class="em-hfeld">' +
-          (loesung ? '<b>' + r.werte[k] + '</b>' : '<input type="text" class="em-wertfeld nur-bildschirm" size="3" maxlength="4" data-k="' + k + '" inputmode="numeric" autocomplete="off" aria-label="Wert von ' + em + ' in Rätsel ' + (i + 1) + '"><span class="em-loes">' + r.werte[k] + '</span>') + '</span></span>';
+          (loesung ? '<b>' + r.werte[k] + '</b>' : '<input type="text" class="em-wertfeld nur-bildschirm" size="3" maxlength="4" data-k="' + k + tx('" inputmode="numeric" autocomplete="off" aria-label="Wert von ') + em + tx(' in Rätsel ') + (i + 1) + '"><span class="em-loes">' + r.werte[k] + '</span>') + '</span></span>';
       }).join('') + '</div>';
     }
     if (!loesung) h += '<p class="em-status nur-bildschirm" aria-live="polite"></p>';
@@ -243,18 +244,18 @@ function starte(bereich){
   }
   function anleitung(){
     var punkt = raetsel.some(function(r){ return r.punkt; }), gemischt = st.opt.stufe === 'sehrschwer';
-    return 'Jedes Emoji steht für eine Zahl – gleiche Emojis haben immer den gleichen Wert. Finde die Zahlen heraus und rechne die letzte Zeile aus.' +
-      (punkt ? ' Denk an «Punkt vor Strich»!' : '') + (gemischt ? ' Tipp: Beginne bei der Zeile, die du schon lösen kannst.' : '') +
-      (st.opt.hilfe ? ' Schreibe die Werte der Emojis in die Felder.' : '');
+    return tx('Jedes Emoji steht für eine Zahl – gleiche Emojis haben immer den gleichen Wert. Finde die Zahlen heraus und rechne die letzte Zeile aus.') +
+      (punkt ? tx(' Denk an «Punkt vor Strich»!') : '') + (gemischt ? tx(' Tipp: Beginne bei der Zeile, die du schon lösen kannst.') : '') +
+      (st.opt.hilfe ? tx(' Schreibe die Werte der Emojis in die Felder.') : '');
   }
   function zeichnen(){
-    var blatt = $('#emBlatt'), loes = $('#emLoesung'), o = st.opt, titel = st.titel.trim() || 'Emoji-Rechnen', klasse = 'em-raster pro-' + raetsel.length;
+    var blatt = $('#emBlatt'), loes = $('#emLoesung'), o = st.opt, titel = st.titel.trim() || tx('Emoji-Rechnen'), klasse = 'em-raster pro-' + raetsel.length;
     blatt.classList.remove('zeige-loesung');
-    if (!raetsel.length){ blatt.innerHTML = ''; meldung('fehler', '<p>Es konnte kein Rätsel erstellt werden. Klicke auf «Neue Rätsel».</p>'); return; }
+    if (!raetsel.length){ blatt.innerHTML = ''; meldung('fehler', tx('<p>Es konnte kein Rätsel erstellt werden. Klicke auf «Neue Rätsel».</p>')); return; }
     meldung('', '');
     blatt.innerHTML = (o.titelAn ? '<h2>' + esc(titel) + '</h2>' : '') + (o.anleitungAn ? '<p class="em-anleitung">' + anleitung() + '</p>' : '') +
       '<div class="' + klasse + '">' + raetsel.map(function(r, i){ return raetselHtml(r, i, false); }).join('') + '</div>';
-    loes.innerHTML = '<h2>Lösung' + (o.titelAn ? ' – ' + esc(titel) : '') + '</h2><div class="' + klasse + '">' + raetsel.map(function(r, i){ return raetselHtml(r, i, true); }).join('') + '</div>';
+    loes.innerHTML = tx('<h2>Lösung') + (o.titelAn ? ' – ' + esc(titel) : '') + '</h2><div class="' + klasse + '">' + raetsel.map(function(r, i){ return raetselHtml(r, i, true); }).join('') + '</div>';
     $('#emZeigeLoesung').setAttribute('aria-pressed', 'false');
     pruefenVerbinden();
   }
@@ -271,7 +272,7 @@ function starte(bereich){
       a.addEventListener('input', function(){
         var v = zahl(a), ok = v === r.schluss.r;
         a.parentNode.classList.toggle('richtig', ok); a.parentNode.classList.toggle('falsch', v !== null && !ok);
-        status.textContent = ok ? '🎉 Richtig!' : v !== null && String(v).length >= String(r.schluss.r).length ? 'Noch nicht – prüfe deine Werte.' : '';
+        status.textContent = ok ? tx('🎉 Richtig!') : v !== null && String(v).length >= String(r.schluss.r).length ? tx('Noch nicht – prüfe deine Werte.') : '';
         status.classList.toggle('fertig', ok);
       });
     });
@@ -300,9 +301,9 @@ function starte(bereich){
     if (!raetsel.length || !speicherOrt) return;
     var inhalt = sauber($('#emBlatt')).outerHTML;
     if (st.opt.mitLoesung){ var l = sauber($('#emLoesung')); l.classList.add('neue-seite'); inhalt += l.outerHTML; }
-    speicherOrt.save({ filename:Labor.pdfName('Emoji-Rechnen', st.titel).replace(/\.pdf$/, '.html'), data:Labor.blattDatei('Emoji-Rechnen', inhalt, '.em-loesungsblatt{display:block}') }).catch(function(e){
+    speicherOrt.save({ filename:Labor.pdfName('Emoji-Rechnen', st.titel).replace(/\.pdf$/, '.html'), data:Labor.blattDatei(tx('Emoji-Rechnen'), inhalt, '.em-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 

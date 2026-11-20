@@ -28,6 +28,90 @@ var Labor = (function(){
   // Versionsnummer, die beim Hochladen an labor.js gehängt wird (…/labor.js?v=1a2b3c4d) – gilt auch für die Stile der Generatoren
   var VERSION = (function(){ try { var m = /[?&]v=([\w-]+)/.exec(document.currentScript.src); return m ? m[1] : ''; } catch(e){ return ''; } })();
 
+  /* ---------- Sprachen: Deutsch (Original), Englisch, Französisch ----------
+     Die Sprache bestimmt ein kleines Skript im <head> von index.html (Adresse ?lang=en, sonst die gespeicherte Wahl,
+     sonst die Sprache des Browsers, wenn er kein Deutsch kann) und schreibt sie in <html lang>. Für Englisch und
+     Französisch lädt labor.js gleich danach die Wörterbücher (gemeinsam/sprachen/*.js, je Generator eine Datei) – noch
+     bevor die Generatoren laden, damit auch ihre Tabellen übersetzt sind. Der deutsche Text ist der Schlüssel:
+     Labor.woerter('suchsel', { 'Lösung zeigen':['Show solution', 'Afficher la solution'], … }).
+     In den Generatoren: var tx = Labor.uebersetzer('suchsel'); … tx('Lösung zeigen') bzw. tx('<p>Text <b>fett</b></p>')
+     oder mit Platzhaltern tx('Seite {i} von {n}', { i:2, n:3 })
+     – bei HTML werden die Textstücke zwischen den Tags (und title/aria-label/alt) einzeln übersetzt. Fehlt eine
+     Übersetzung, bleibt der deutsche Text. Ein Sprachwechsel lädt die Seite neu; die Eingaben bleiben dabei erhalten. */
+  var SPRACHEN = [['de', 'Deutsch'], ['en', 'English'], ['fr', 'Français']];
+  var SPRACHE = (function(){ var l = String(document.documentElement.lang || '').slice(0, 2).toLowerCase(); return l === 'en' || l === 'fr' ? l : 'de'; })();
+  var SPRACH_SPEICHER = 'labor-sprache', SPRACH_WECHSEL = 'labor-sprachwechsel';
+  var SPRACHDATEIEN = ['labor', 'zahlen-suchsel', 'suchsel', 'rebus', 'qr-code', 'labyrinth', 'emoji-rechnen', 'text-spiegeln', 'puzzle', 'geheimschrift',
+    'triomino', 'kreuzwort', 'fleissner', 'kette', 'drehscheiben', 'codeschloss', 'regenbogen', 'rotfolie', 'folien', 'schiebefenster', 'legekaertchen',
+    'blickwinkel', 'uhren', 'nonogramm', 'textformen', 'morsecode', 'plaettchen', 'schuettelwoerter', 'fallbuchstaben', 'buchstabenteile', 'skytale',
+    'richtungssuchsel', 'schachraetsel'];
+  if (SPRACHE !== 'de' && document.readyState === 'loading'){
+    try { SPRACHDATEIEN.forEach(function(n){ document.write('<script src="gemeinsam/sprachen/' + n + '.js' + (VERSION ? '?v=' + VERSION : '') + '"><\/script>'); }); } catch(e){}
+  }
+  var WB = {}, FEHLT = {};
+  function wbSchluessel(k){ return String(k).replace(/\s+/g, ' ').trim(); }
+  // Französisch: geschütztes Leerzeichen vor : ; ! ? » und nach «
+  function frTypo(t){ return String(t).replace(/ ([:;!?»])/g, '\u00a0$1').replace(/« /g, '«\u00a0'); }
+  function woerter(bereich, d){
+    var i = SPRACHE === 'en' ? 0 : SPRACHE === 'fr' ? 1 : -1;
+    if (i < 0) return;
+    var z = WB[bereich] || (WB[bereich] = {});
+    Object.keys(d).forEach(function(k){ var v = d[k]; v = v && v[i]; if (typeof v === 'string') z[wbSchluessel(k)] = i === 1 ? frTypo(v) : v; });
+  }
+  function nachschlagen(bereich, k){
+    var g = WB[bereich], c = WB.labor;
+    if (g && Object.prototype.hasOwnProperty.call(g, k)) return g[k];
+    if (c && Object.prototype.hasOwnProperty.call(c, k)) return c[k];
+    (FEHLT[bereich] || (FEHLT[bereich] = {}))[k] = 1;
+    return null;
+  }
+  function textStueck(bereich, s){
+    if (!/[A-Za-zÄÖÜäöüß]/.test(s)) return s;
+    var m = /^(\s*)([\s\S]*?)(\s*)$/.exec(s), u = nachschlagen(bereich, wbSchluessel(m[2]));
+    return u === null ? s : m[1] + u + m[3];
+  }
+  function tagStueck(bereich, s){
+    return s.replace(/\b(title|aria-label|alt|label)="([^"]*)/g, function(_, a, v){ return a + '="' + textStueck(bereich, v).replace(/"/g, '&quot;'); });
+  }
+  // Text oder HTML (auch Stücke davon, z. B. '">Lösung</b>') übersetzen
+  function uebersetze(bereich, s){
+    if (SPRACHE === 'de' || s === null || s === undefined) return s;
+    s = String(s);
+    var a = s.indexOf('<'), b = s.indexOf('>');
+    if (a < 0 && b < 0) return /="/.test(s) ? tagStueck(bereich, s) : textStueck(bereich, s);   // Stück eines Tags: ' aria-label="Brett'
+    var aus = '', i = 0, imTag = b >= 0 && (a < 0 || b < a);
+    while (i < s.length){
+      if (imTag){ var e = s.indexOf('>', i); if (e < 0) e = s.length - 1; aus += tagStueck(bereich, s.slice(i, e + 1)); i = e + 1; imTag = false; }
+      else { var n = s.indexOf('<', i); if (n < 0) n = s.length; aus += textStueck(bereich, s.slice(i, n)); i = n; imTag = true; }
+    }
+    return aus;
+  }
+  // tx('Seite {i} von {n}', { i:2, n:3 }): Platzhalter nach dem Übersetzen einsetzen (Werte werden nicht übersetzt)
+  function einsetzen(s, w){ return w ? String(s).replace(/\{(\w+)\}/g, function(m, k){ return Object.prototype.hasOwnProperty.call(w, k) ? w[k] : m; }) : s; }
+  function uebersetzer(bereich){ return function tx(s, w){ return einsetzen(uebersetze(bereich, s), w); }; }
+  var txL = uebersetzer('labor');
+  // Fertiges DOM übersetzen (Texte und title/aria-label/alt/label), z. B. die Startseite aus index.html
+  function uebersetzeDom(wurzel, bereich){
+    if (SPRACHE === 'de' || !wurzel) return;
+    function attr(n){ ['title', 'aria-label', 'alt', 'label'].forEach(function(a){ if (n.hasAttribute(a)) n.setAttribute(a, textStueck(bereich, n.getAttribute(a))); }); }
+    var w = document.createTreeWalker(wurzel, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, { acceptNode:function(n){
+      return n.nodeType === 1 && (/^(SCRIPT|STYLE|TEXTAREA)$/.test(n.tagName) || n.getAttribute('translate') === 'no') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT; } }), n;
+    if (wurzel.nodeType === 1) attr(wurzel);
+    while ((n = w.nextNode())){ if (n.nodeType === 1) attr(n); else n.nodeValue = textStueck(bereich, n.nodeValue); }
+  }
+  // Sprache wechseln: Wahl speichern, Seite ohne ?lang neu laden; die Eingaben bleiben (siehe frischStarten)
+  function spracheWechseln(l){
+    if (l === SPRACHE) return;
+    try { localStorage.setItem(SPRACH_SPEICHER, l); sessionStorage.setItem(SPRACH_WECHSEL, '1'); } catch(e){}
+    var q = location.search.replace(/([?&])(lang|sprache)=[a-z]{2}&?/g, '$1').replace(/[?&]$/, '');
+    location.replace(location.pathname + q + location.hash);
+  }
+  function sprachwahlHtml(klasse){
+    return '<div class="sprachwahl ' + (klasse || '') + '" role="group" aria-label="' + esc(txL('Sprache')) + '">' + SPRACHEN.map(function(x){
+      return '<button type="button" lang="' + x[0] + '" data-sprache="' + x[0] + '" title="' + x[1] + '"' + (x[0] === SPRACHE ? ' aria-pressed="true"' : ' aria-pressed="false"') + '>' + x[0].toUpperCase() + '</button>';
+    }).join('') + '</div>';
+  }
+
   function registriere(r){ liste.push(r); }
   function finde(id){ for (var i = 0; i < liste.length; i++) if (liste[i].id === id) return liste[i]; return null; }
   function esc(t){ return String(t).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); }
@@ -35,15 +119,16 @@ var Labor = (function(){
   /* ---------- Menü ---------- */
   var knopf, menue;
   function baueMenue(){
-    var html = '<div class="menue-gruppe"><p class="menue-titel">Übersicht</p><ul class="menue-liste">' +
+    var html = '<div class="menue-gruppe menue-sprache"><p class="menue-titel">' + txL('Sprache') + txL(' · Language · Langue</p>') + sprachwahlHtml('gross') + '</div>' +
+      '<div class="menue-gruppe"><p class="menue-titel">' + txL('Übersicht') + '</p><ul class="menue-liste">' +
       '<li><a class="menue-link" href="#start" data-ziel=""><span class="sym" aria-hidden="true">' + HAUS + '</span>' +
-      '<span><b>Startseite</b><small>Was das Rätsellabor kann</small></span></a></li></ul></div>' +
-      '<div class="menue-gruppe"><p class="menue-titel">Rätselgeneratoren</p><ul class="menue-liste">';
+      '<span><b>' + txL('Startseite') + '</b><small>' + txL('Was das Rätsellabor kann') + '</small></span></a></li></ul></div>' +
+      '<div class="menue-gruppe"><p class="menue-titel">' + txL('Rätselgeneratoren') + '</p><ul class="menue-liste">';
     liste.forEach(function(r){
       html += '<li><a class="menue-link" href="#' + r.id + '" data-ziel="' + r.id + '"><span class="sym" aria-hidden="true">' + r.symbol + '</span>' +
-        '<span><b>' + esc(r.titel) + '</b><small>' + esc(r.kurz) + '</small></span></a></li>';
+        '<span><b>' + esc(titelVon(r)) + '</b><small>' + esc(uebersetze(r.id, r.kurz)) + '</small></span></a></li>';
     });
-    html += '</ul><p class="menue-bald">Weitere Generatoren folgen.</p></div>';
+    html += '</ul><p class="menue-bald">' + txL('Weitere Generatoren folgen.') + '</p></div>';
     menue.innerHTML = html;
   }
   function menueAuf(){
@@ -58,16 +143,18 @@ var Labor = (function(){
   }
 
   /* ---------- Startseite ---------- */
+  function titelVon(r){ return uebersetze(r.id, r.titel); }
   function baueStartseite(){
     var karten = '';
     liste.forEach(function(r){
-      karten += '<a class="raetsel-karte" href="#' + r.id + '" data-suche="' + esc(titelSuche(r.titel)) + '"><span class="sym" aria-hidden="true">' + r.symbol + '</span>' +
-        '<h3>' + esc(r.titel) + '</h3><p>' + esc(r.beschreibung) + '</p>' +
-        (r.merkmale && r.merkmale.length ? '<ul class="merkmale">' + r.merkmale.map(function(m){ return '<li>' + esc(m) + '</li>'; }).join('') + '</ul>' : '') +
-        '<span class="oeffnen">Öffnen →</span></a>';
+      // Suche: übersetzter und deutscher Titel
+      karten += '<a class="raetsel-karte" href="#' + r.id + '" data-suche="' + esc(titelSuche(titelVon(r)) + ' ' + titelSuche(r.titel)) + '"><span class="sym" aria-hidden="true">' + r.symbol + '</span>' +
+        '<h3>' + esc(titelVon(r)) + '</h3><p>' + esc(uebersetze(r.id, r.beschreibung)) + '</p>' +
+        (r.merkmale && r.merkmale.length ? '<ul class="merkmale">' + r.merkmale.map(function(m){ return '<li>' + esc(uebersetze(r.id, m)) + '</li>'; }).join('') + '</ul>' : '') +
+        '<span class="oeffnen">' + txL('Öffnen →') + '</span></a>';
     });
-    karten += '<div class="raetsel-karte bald"><span class="sym" aria-hidden="true">' + PLUS + '</span><h3>Weitere Generatoren</h3>' +
-      '<p>Neue Rätselarten kommen Schritt für Schritt dazu. Sie erscheinen dann hier und im Menü.</p></div>';
+    karten += '<div class="raetsel-karte bald"><span class="sym" aria-hidden="true">' + PLUS + '</span><h3>' + txL('Weitere Generatoren') + '</h3>' +
+      '<p>' + txL('Neue Rätselarten kommen Schritt für Schritt dazu. Sie erscheinen dann hier und im Menü.') + '</p></div>';
     $('#raetselKarten').innerHTML = karten;
   }
   /* Suche auf der Startseite: nach dem Titel des Generators. Mit jedem Buchstaben bleiben weniger Karten übrig.
@@ -85,7 +172,7 @@ var Labor = (function(){
     });
     $('#sucheWeg').hidden = !feld.value;
     $('#sucheLeer').hidden = n > 0;
-    $('#sucheTreffer').textContent = q ? (n ? n + (n === 1 ? ' Generator gefunden' : ' Generatoren gefunden') : 'Kein Generator gefunden') : '';
+    $('#sucheTreffer').textContent = q ? (n ? n + txL(n === 1 ? ' Generator gefunden' : ' Generatoren gefunden') : txL('Kein Generator gefunden')) : '';
   }
   function sucheEinrichten(){
     var feld = $('#sucheFeld');
@@ -131,11 +218,11 @@ var Labor = (function(){
     schliesseAktiv();
     if (!r){
       bereich.hidden = true; $('#startseite').hidden = false; $('#kopfPfad').hidden = true;
-      document.title = 'Rätsellabor'; markiere(''); window.scrollTo(0, 0);
+      document.title = txL('Rätsellabor'); markiere(''); window.scrollTo(0, 0);
       return;
     }
-    $('#startseite').hidden = true; $('#kopfPfad').hidden = false; $('#kopfPfad span').textContent = r.titel;
-    document.title = r.titel + ' – Rätsellabor'; markiere(r.id);
+    $('#startseite').hidden = true; $('#kopfPfad').hidden = false; $('#kopfPfad span').textContent = titelVon(r);
+    document.title = titelVon(r) + ' – ' + txL('Rätsellabor'); markiere(r.id);
     ladeCss(r, function(){
       if ((location.hash || '').replace(/^#/, '') !== r.id || aktiv) return;   // inzwischen weitergeklickt
       bereich.innerHTML = r.html; bereich.hidden = false; window.scrollTo(0, 0);
@@ -148,8 +235,12 @@ var Labor = (function(){
 
   // Neu laden = frisch anfangen: gespeicherte Eingaben und Einstellungen aller Generatoren löschen
   function frischStarten(){
+    var wechsel = false, l = null;
+    try { wechsel = sessionStorage.getItem(SPRACH_WECHSEL) === '1'; sessionStorage.removeItem(SPRACH_WECHSEL); } catch(e){}
+    if (wechsel) return;   // Neu geladen wegen Sprachwechsel: Eingaben behalten
+    try { l = localStorage.getItem(SPRACH_SPEICHER); } catch(e){}
     try { sessionStorage.clear(); } catch(e){}
-    try { localStorage.clear(); } catch(e){}
+    try { localStorage.clear(); if (l) localStorage.setItem(SPRACH_SPEICHER, l); } catch(e){}
   }
 
   /* ---------- Neue Version auf dem Server? ----------
@@ -166,7 +257,7 @@ var Labor = (function(){
       neueVersion = true;
       var h = document.createElement('div');
       h.className = 'labor-neu'; h.setAttribute('role', 'status');
-      h.innerHTML = '<span>Es gibt eine neue Version des Rätsellabors.</span><button type="button" class="btn klein primary">Neu laden</button>';
+      h.innerHTML = '<span>' + txL('Es gibt eine neue Version des Rätsellabors.') + '</span><button type="button" class="btn klein primary">' + txL('Neu laden') + '</button>';
       h.querySelector('button').addEventListener('click', function(){ location.reload(); });
       document.body.appendChild(h);
     }).catch(function(){});
@@ -175,7 +266,13 @@ var Labor = (function(){
 
   function start(){
     frischStarten();
+    // gewählte Sprache merken (auch wenn sie über ?lang=… kam)
+    try { if (localStorage.getItem(SPRACH_SPEICHER) !== SPRACHE && (SPRACHE !== 'de' || localStorage.getItem(SPRACH_SPEICHER))) localStorage.setItem(SPRACH_SPEICHER, SPRACHE); } catch(e){}
     knopf = $('#menueKnopf'); menue = $('#menue');
+    ['.labor-kopf', '#startseite', '.labor-fuss'].forEach(function(s){ uebersetzeDom($(s), 'labor'); });
+    var kopfWahl = $('#kopfSprache'); if (kopfWahl) kopfWahl.innerHTML = sprachwahlHtml();
+    document.addEventListener('click', function(e){ var b = e.target.closest && e.target.closest('[data-sprache]'); if (b) spracheWechseln(b.getAttribute('data-sprache')); });
+    document.documentElement.classList.remove('sprache-wartet');
     baueMenue(); baueStartseite(); sucheEinrichten();
     knopf.addEventListener('click', function(e){ e.stopPropagation(); if (menue.hidden) menueAuf(); else menueZu(true); });
     document.addEventListener('click', function(e){ if (!menue.hidden && !menue.contains(e.target) && !knopf.contains(e.target)) menueZu(false); });
@@ -212,19 +309,19 @@ var Labor = (function(){
       '\nbody{display:block;background:#F8F5F1}body::before{display:none}.seite{max-width:960px;margin:0 auto;padding:18px;display:grid;gap:22px}' +
       '.leiste{display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:#6E655E;font-size:.9rem}' +
       '@media print{.leiste{display:none}.seite{max-width:none;padding:0;display:block}.neue-seite{break-before:page}}';
-    return '<!DOCTYPE html>\n<html lang="de">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
+    return '<!DOCTYPE html>\n<html lang="' + SPRACHE + '">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' +
       '<title>' + esc(titel) + '</title>\n' +
       '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@500;600&family=Inter:wght@400;500;600;700&display=swap">\n' + schriftLinkHtml() +
       '<style>' + css + '</style>\n</head>\n<body>\n<div class="seite">\n' +
-      '<div class="leiste"><button class="btn primary" onclick="window.print()">Drucken</button><span>Tipp: Im Druckdialog «Hintergrundgrafiken» einschalten, damit Farben mitgedruckt werden.</span></div>\n' +
+      '<div class="leiste"><button class="btn primary" onclick="window.print()">' + txL('Drucken') + '</button><span>' + txL('Tipp: Im Druckdialog «Hintergrundgrafiken» einschalten, damit Farben mitgedruckt werden.') + '</span></div>\n' +
       inhalt + '\n</div>\n</body>\n</html>\n';
   }
   /* Schalter «Titel» und «Arbeitsanweisung» für die Werkzeugleiste über dem Blatt – in jedem Generator gleich.
      blattSchalterHtml() kommt in die Werkzeugleiste, blattSchalter() verbindet die Häkchen mit opt.titelAn und
      opt.anleitungAn (Standard: beide an) und ruft nachher() auf, damit der Generator das Blatt neu zeichnet. */
   function blattSchalterHtml(){
-    return schriftWahlHtml() + '<label class="blatt-schalter"><input type="checkbox" data-blatt="titelAn"> Titel</label>' +
-      '<label class="blatt-schalter"><input type="checkbox" data-blatt="anleitungAn"> Arbeitsanweisung</label>';
+    return schriftWahlHtml() + txL('<label class="blatt-schalter"><input type="checkbox" data-blatt="titelAn"> Titel</label>') +
+      txL('<label class="blatt-schalter"><input type="checkbox" data-blatt="anleitungAn"> Arbeitsanweisung</label>');
   }
   function blattSchalter(bereich, opt, nachher){
     schriftNachher = nachher; schriftBereich = bereich;
@@ -267,7 +364,7 @@ var Labor = (function(){
   function gfName(f){ return encodeURIComponent(f.trim()).replace(/%20/g, '+'); }
   function schriftStapel(f){ return "'" + String(f).replace(/['"\\;{}<>]/g, '') + "',Andika,system-ui,sans-serif"; }
   function stapelVon(s){ return s.stapel || schriftStapel(s.familie); }
-  function googleSchrift(f){ return { id:'google', name:f, info:'von Google Fonts', familie:f, gf:gfName(f) }; }
+  function googleSchrift(f){ return { id:'google', name:f, info:txL('von Google Fonts'), familie:f, gf:gfName(f) }; }
   function aktuelleSchrift(){
     var g = schriftGewaehlt;
     if (g && g.id === 'google' && g.familie) return googleSchrift(g.familie);
@@ -334,15 +431,15 @@ var Labor = (function(){
   })();
   function schriftWahlHtml(){
     var id = 'schriftListe' + (++schriftZaehler);
-    return '<span class="schrift-wahl" title="Schrift auf dem Blatt – gilt für alle Generatoren"><span class="schrift-aa" aria-hidden="true">Aa</span>' +
-      '<input type="text" class="schrift-feld" role="combobox" aria-label="Schrift auf dem Blatt (suchen oder wählen)" aria-autocomplete="list" aria-expanded="false" aria-controls="' + id + '" autocomplete="off" spellcheck="false">' +
-      '<span class="schrift-pfeil" aria-hidden="true"></span><ul class="schrift-liste" id="' + id + '" role="listbox" aria-label="Schriften" hidden></ul>' +
+    return txL('<span class="schrift-wahl" title="Schrift auf dem Blatt – gilt für alle Generatoren"><span class="schrift-aa" aria-hidden="true">Aa</span>') +
+      txL('<input type="text" class="schrift-feld" role="combobox" aria-label="Schrift auf dem Blatt (suchen oder wählen)" aria-autocomplete="list" aria-expanded="false" aria-controls="') + id + '" autocomplete="off" spellcheck="false">' +
+      '<span class="schrift-pfeil" aria-hidden="true"></span><ul class="schrift-liste" id="' + id + txL('" role="listbox" aria-label="Schriften" hidden></ul>') +
       '<span class="schrift-meldung" role="status" aria-live="polite" hidden></span></span>';
   }
   function schriftAnzeigen(feld){
     if (feld === document.activeElement) return;
     var s = aktuelleSchrift();
-    feld.value = s.name; feld.style.fontFamily = s.familie ? stapelVon(s) : '';
+    feld.value = txL(s.name); feld.style.fontFamily = s.familie ? stapelVon(s) : '';
   }
   function suchText(t){ return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
   function grossAnfang(t){ return t.replace(/(^|\s)(\S)/g, function(_, a, b){ return a + b.toUpperCase(); }); }
@@ -357,10 +454,10 @@ var Labor = (function(){
     // Basisschrift nicht installiert: Datei einmal auswählen (bleibt nur in diesem Browser)
     function basisAnbieten(text){
       clearTimeout(meldungZeit);
-      meldung.innerHTML = '<span>' + esc(text || 'Die Deutschschweizer Basisschrift ist auf diesem Computer nicht installiert.') + ' Wähle die Schriftdatei <b>DCH-Basisschrift.ttf</b> oder <b>.otf</b> einmal aus – sie bleibt nur in diesem Browser. ' +
-        'Oder installiere die Schrift auf dem Computer (gratis für Lehrpersonen).</span>' +
-        '<span class="schrift-meldung-knoepfe"><label class="btn klein primary">Schriftdatei wählen …<input type="file" class="vh" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf"></label>' +
-        '<button type="button" class="btn klein">Schliessen</button></span>';
+      meldung.innerHTML = '<span>' + esc(text || txL('Die Deutschschweizer Basisschrift ist auf diesem Computer nicht installiert.')) + txL(' Wähle die Schriftdatei <b>DCH-Basisschrift.ttf</b> oder <b>.otf</b> einmal aus – sie bleibt nur in diesem Browser. ') +
+        txL('Oder installiere die Schrift auf dem Computer (gratis für Lehrpersonen).</span>') +
+        txL('<span class="schrift-meldung-knoepfe"><label class="btn klein primary">Schriftdatei wählen …<input type="file" class="vh" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf"></label>') +
+        txL('<button type="button" class="btn klein">Schliessen</button></span>');
       meldung.hidden = false;
       meldung.querySelector('button').addEventListener('click', function(){ meldung.hidden = true; });
       meldung.querySelector('input').addEventListener('change', function(){
@@ -371,7 +468,7 @@ var Labor = (function(){
           for (var i = 0; i < b.length; i += 0x8000) t += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000));
           var daten = btoa(t);
           basisDateiLaden(daten).then(function(ok){
-            if (!ok){ basisAnbieten('Diese Datei ist keine lesbare Schrift.'); return; }
+            if (!ok){ basisAnbieten(txL('Diese Datei ist keine lesbare Schrift.')); return; }
             try { localStorage.setItem(BASIS_SPEICHER, daten); } catch(e){}
             meldung.hidden = true;
             schriftWaehlen(SCHRIFTEN.filter(function(x){ return x.lokal; })[0]).then(function(){ schriftAnzeigen(feld); });
@@ -382,16 +479,16 @@ var Labor = (function(){
     }
     function bauen(){
       var q = getippt ? feld.value.trim() : '', n = suchText(q), akt = aktuelleSchrift();   // vor dem Tippen: alle Schriften
-      treffer = SCHRIFTEN.filter(function(s){ return !n || suchText(s.name + ' ' + s.info + ' ' + (s.familie || '')).indexOf(n) >= 0; });
-      var genau = SCHRIFTEN.some(function(s){ return suchText(s.name) === n || suchText(s.familie) === n; });
-      if (n.length >= 3 && !genau){ var g = googleSchrift(q); g.suche = true; g.info = 'bei Google Fonts suchen und laden'; treffer.push(g); }
+      treffer = SCHRIFTEN.filter(function(s){ return !n || suchText(s.name + ' ' + txL(s.name) + ' ' + txL(s.info) + ' ' + (s.familie || '')).indexOf(n) >= 0; });
+      var genau = SCHRIFTEN.some(function(s){ return suchText(s.name) === n || suchText(txL(s.name)) === n || suchText(s.familie) === n; });
+      if (n.length >= 3 && !genau){ var g = googleSchrift(q); g.suche = true; g.info = txL('bei Google Fonts suchen und laden'); treffer.push(g); }
       if (aktiv >= treffer.length) aktiv = treffer.length - 1;
       liste.innerHTML = treffer.length ? treffer.map(function(s, i){
         var gewaehlt = s.id === akt.id && (s.id !== 'google' || s.familie === akt.familie);
         return '<li role="option" id="' + liste.id + '-' + i + '" data-i="' + i + '" aria-selected="' + (i === aktiv) + '"' + (gewaehlt ? ' class="gewaehlt"' : '') + '>' +
-          '<b' + (s.familie && !s.suche ? ' style="font-family:' + esc(stapelVon(s)) + '"' : '') + '>' + esc(s.suche ? '«' + s.name + '»' : s.name) + '</b>' +
-          '<small>' + esc(s.info) + '</small></li>';
-      }).join('') : '<li class="leer">Keine passende Schrift</li>';
+          '<b' + (s.familie && !s.suche ? ' style="font-family:' + esc(stapelVon(s)) + '"' : '') + '>' + esc(s.suche ? '«' + s.name + '»' : txL(s.name)) + '</b>' +
+          '<small>' + esc(txL(s.info)) + '</small></li>';
+      }).join('') : txL('<li class="leer">Keine passende Schrift</li>');
       feld.setAttribute('aria-activedescendant', aktiv >= 0 ? liste.id + '-' + aktiv : '');
       var a = liste.querySelector('[aria-selected="true"]'); if (a && a.scrollIntoView) a.scrollIntoView({ block:'nearest' });
     }
@@ -405,14 +502,14 @@ var Labor = (function(){
     function waehlen(s){
       if (!s) return;
       schliessen(); feld.blur();
-      if (s.suche){ feld.value = 'Wird geladen …'; feld.style.fontFamily = ''; }
+      if (s.suche){ feld.value = txL('Wird geladen …'); feld.style.fontFamily = ''; }
       var versuche = s.suche ? [s.familie, grossAnfang(s.familie)].filter(function(f, i, a){ return a.indexOf(f) === i; }) : [null];
       (function versuch(k){
         var x = versuche[k] === null ? s : googleSchrift(versuche[k]);
         schriftWaehlen(x).then(function(){ schriftAnzeigen(feld); }, function(e){
           if (e && e.code === 'basisFehlt'){ schriftAnzeigen(feld); basisAnbieten(); return; }
           if (k + 1 < versuche.length) return versuch(k + 1);
-          schriftAnzeigen(feld); melden(s.suche ? '«' + s.familie + '» gibt es bei Google Fonts nicht. Schreibweise prüfen, z. B. «Open Sans».' : 'Die Schrift konnte nicht geladen werden. Bitte später nochmals versuchen.');
+          schriftAnzeigen(feld); melden(s.suche ? '«' + s.familie + txL('» gibt es bei Google Fonts nicht. Schreibweise prüfen, z. B. «Open Sans».') : txL('Die Schrift konnte nicht geladen werden. Bitte später nochmals versuchen.'));
         });
       })(0);
     }
@@ -575,7 +672,7 @@ var Labor = (function(){
           pdf.addImage(cv, 'PNG', (pw - w) / 2, 12, w, h, undefined, 'FAST');
         });
       });
-      return kette.then(function(){ pdf.save(dateiname || 'Arbeitsblatt.pdf'); });
+      return kette.then(function(){ pdf.save(dateiname || txL('Arbeitsblatt.pdf')); });
     });
   }
   // Knopf «PDF herunterladen»: auftrag() liefert { blaetter:[…], name:'….pdf' }; fehler(text) zeigt eine Meldung
@@ -584,10 +681,10 @@ var Labor = (function(){
     knopf.addEventListener('click', function(){
       if (knopf.disabled) return;
       var a = auftrag(); if (!a || !a.blaetter || !a.blaetter.filter(Boolean).length) return;
-      var text = knopf.textContent; knopf.disabled = true; knopf.textContent = 'PDF wird erstellt …';
+      var text = knopf.textContent; knopf.disabled = true; knopf.textContent = txL('PDF wird erstellt …');
       pdfHerunterladen(a.blaetter, a.name).catch(function(e){
         if (window.console) console.error(e);
-        var t = 'Das PDF konnte nicht erstellt werden' + (e && e.message ? ' (' + e.message + ')' : '') + '. Bitte versuche es noch einmal.';
+        var t = txL('Das PDF konnte nicht erstellt werden') + (e && e.message ? ' (' + e.message + ')' : '') + txL('. Bitte versuche es noch einmal.');
         if (fehler) fehler(t); else alert(t);
       }).then(function(){ knopf.disabled = false; knopf.textContent = text; });
     });
@@ -635,10 +732,10 @@ var Labor = (function(){
     knopf.addEventListener('click', function(){
       if (knopf.disabled) return;
       var a = auftrag(); if (!a || !a.blatt) return;
-      var text = knopf.textContent; knopf.disabled = true; knopf.textContent = 'Bild wird erstellt …';
+      var text = knopf.textContent; knopf.disabled = true; knopf.textContent = txL('Bild wird erstellt …');
       bildHerunterladen(a.blatt, a.name).catch(function(e){
         if (window.console) console.error(e);
-        var t = 'Das Bild konnte nicht erstellt werden' + (e && e.message ? ' (' + e.message + ')' : '') + '. Bitte versuche es noch einmal.';
+        var t = txL('Das Bild konnte nicht erstellt werden') + (e && e.message ? ' (' + e.message + ')' : '') + txL('. Bitte versuche es noch einmal.');
         if (fehler) fehler(t); else alert(t);
       }).then(function(){ knopf.disabled = false; knopf.textContent = text; });
     });
@@ -648,5 +745,6 @@ var Labor = (function(){
 
   return { registriere:registriere, start:start, imArtefakt:imArtefakt, claude:claude, sammleCss:sammleCss, blattDatei:blattDatei, dateiname:dateiname, esc:esc,
     blattSchalterHtml:blattSchalterHtml, blattSchalter:blattSchalter, pdfHerunterladen:pdfHerunterladen, pdfKnopf:pdfKnopf, pdfName:pdfName,
-    bildHerunterladen:bildHerunterladen, bildKnopf:bildKnopf, bildKopieren:bildKopieren, blattSchrift:blattSchrift };
+    bildHerunterladen:bildHerunterladen, bildKnopf:bildKnopf, bildKopieren:bildKopieren, blattSchrift:blattSchrift,
+    sprache:SPRACHE, woerter:woerter, uebersetzer:uebersetzer, uebersetzeDom:uebersetzeDom, _fehlt:FEHLT, _liste:liste };
 })();

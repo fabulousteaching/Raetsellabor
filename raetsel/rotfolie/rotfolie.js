@@ -10,6 +10,7 @@
    Arbeitsblatt, Lösungsblatt, PDF. */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('rotfolie');
 
 /* KERN-START */
 var Kern = (function(){
@@ -115,10 +116,10 @@ var TINTE = '#1C1714', B = 639;   // Zeichenfläche: 703 Pixel Blatt minus Rand
 var MASSSTAB = 3;                  // Canvas-Pixel je Bildschirm-Pixel (≈ 290 dpi im PDF)
 function esc(t){ return Labor.esc(t); }
 
-var SAETZE = ['Du bist ein super Detektiv', 'Der Schatz liegt unter dem Baum', 'Heute gibt es keine Hausaufgaben', 'Schau unter dein Pult',
-  'Das Passwort heisst Regenbogen', 'Wir treffen uns beim Brunnen', 'Klatsche dreimal in die Hände', 'Morgen backen wir einen Kuchen',
-  'Rote Folien verraten Geheimnisse', 'Der nächste Hinweis ist im Bücherregal', 'Die Pause dauert heute länger', 'Spione arbeiten im Geheimen',
-  'Der Code für das Schloss ist 427', 'Im Wald wohnt ein freundlicher Fuchs', 'Lies das Buch auf Seite 12'];
+var SAETZE = [tx('Du bist ein super Detektiv'), tx('Der Schatz liegt unter dem Baum'), tx('Heute gibt es keine Hausaufgaben'), tx('Schau unter dein Pult'),
+  tx('Das Passwort heisst Regenbogen'), tx('Wir treffen uns beim Brunnen'), tx('Klatsche dreimal in die Hände'), tx('Morgen backen wir einen Kuchen'),
+  tx('Rote Folien verraten Geheimnisse'), tx('Der nächste Hinweis ist im Bücherregal'), tx('Die Pause dauert heute länger'), tx('Spione arbeiten im Geheimen'),
+  tx('Der Code für das Schloss ist 427'), tx('Im Wald wohnt ein freundlicher Fuchs'), tx('Lies das Buch auf Seite 12')];
 
 /* ---------- Zeichnen ins Canvas ---------- */
 var messer = document.createElement('canvas').getContext('2d');
@@ -219,38 +220,38 @@ function durchFolie(cv, art){
 }
 
 var VORLAGE = '<div class="rf">' +
-  '<header class="rf-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Rotfolienrätsel</h1>' +
-    '<p>Ein Satz versteckt sich unter einem dichten roten Muster – von Auge nicht zu lesen. Mit einer roten Folie darüber verschwindet das Rot, und der Satz erscheint.</p></header>' +
-  '<div class="rf-layout"><section class="rf-eingabe" aria-label="Eingaben">' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Geheimer Satz</h2><p>Er erscheint unter der roten Folie.</p></div></div>' +
-      '<label class="feld-label" for="rfSatz">Satz</label>' +
+  tx('<header class="rf-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Rotfolienrätsel</h1>') +
+    tx('<p>Ein Satz versteckt sich unter einem dichten roten Muster – von Auge nicht zu lesen. Mit einer roten Folie darüber verschwindet das Rot, und der Satz erscheint.</p></header>') +
+  tx('<div class="rf-layout"><section class="rf-eingabe" aria-label="Eingaben">') +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Geheimer Satz</h2><p>Er erscheint unter der roten Folie.</p></div></div>') +
+      tx('<label class="feld-label" for="rfSatz">Satz</label>') +
       '<div class="rf-zeile"><textarea id="rfSatz" rows="2" maxlength="90" autocomplete="off" spellcheck="false"></textarea>' +
-        '<button type="button" class="btn klein" id="rfZufall" title="Einen anderen Satz vorschlagen">Andere</button></div>' +
-      '<p class="hinweis">Bis 90 Zeichen. Je kürzer der Satz, desto grösser die Buchstaben.</p>' +
-      '<label class="feld-label" for="rfGroesse">Schriftgrösse des Satzes: <b id="rfGroesseWert"></b></label>' +
+        tx('<button type="button" class="btn klein" id="rfZufall" title="Einen anderen Satz vorschlagen">Andere</button></div>') +
+      tx('<p class="hinweis">Bis 90 Zeichen. Je kürzer der Satz, desto grösser die Buchstaben.</p>') +
+      tx('<label class="feld-label" for="rfGroesse">Schriftgrösse des Satzes: <b id="rfGroesseWert"></b></label>') +
       '<input type="range" id="rfGroesse" class="rf-balken" min="36" max="140" step="2">' +
-      '<p class="hinweis">Grösser ist durch die Folie leichter zu lesen – ohne Folie aber auch eher zu erahnen.</p>' +
-      '<label class="opt"><input type="checkbox" id="rfGross"><span>Nur Grossbuchstaben</span></label>' +
+      tx('<p class="hinweis">Grösser ist durch die Folie leichter zu lesen – ohne Folie aber auch eher zu erahnen.</p>') +
+      tx('<label class="opt"><input type="checkbox" id="rfGross"><span>Nur Grossbuchstaben</span></label>') +
       '<div class="rf-zaehler" id="rfZaehler" aria-live="polite"></div>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Blatt</h2></div></div>' +
-      '<label class="opt"><input type="checkbox" id="rfLinien"><span>Linien für die Antwort</span></label>' +
-      '<p class="hinweis">Der Satz steht in grossen hellblauen Buchstaben unter einem dichten roten Muster aus Wörtern, Herzen, Sternen und Spiralen. Durch die rote Folie wird alles Rote weiss – der Satz bleibt grau stehen.</p>' +
-      '<p class="hinweis">Zum Lösen braucht es eine rote Folie (z. B. rote Klarsichthülle oder Bastelfolie). In Farbe drucken – Drucker mischen Farben unterschiedlich, darum zuerst ein Blatt mit der Folie testen.</p>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Blatt</h2></div></div>') +
+      tx('<label class="opt"><input type="checkbox" id="rfLinien"><span>Linien für die Antwort</span></label>') +
+      tx('<p class="hinweis">Der Satz steht in grossen hellblauen Buchstaben unter einem dichten roten Muster aus Wörtern, Herzen, Sternen und Spiralen. Durch die rote Folie wird alles Rote weiss – der Satz bleibt grau stehen.</p>') +
+      tx('<p class="hinweis">Zum Lösen braucht es eine rote Folie (z. B. rote Klarsichthülle oder Bastelfolie). In Farbe drucken – Drucker mischen Farben unterschiedlich, darum zuerst ein Blatt mit der Folie testen.</p>') +
     '</div>' +
   '</section>' +
-  '<section class="rf-ausgabe" aria-label="Ergebnis">' +
+  tx('<section class="rf-ausgabe" aria-label="Ergebnis">') +
     '<div id="rfMeldung" aria-live="polite"></div>' +
     '<div class="rf-werkzeug">' +
-      '<button type="button" class="btn klein" id="rfFolieKnopf" aria-pressed="false" title="Eine rote Folie über das Bild legen und verschieben">Rote Folie</button>' +
-      '<button type="button" class="btn klein" id="rfZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
-      '<button type="button" class="btn klein" id="rfNeu" title="Die Tarnung neu verteilen">Neu mischen</button>' +
+      tx('<button type="button" class="btn klein" id="rfFolieKnopf" aria-pressed="false" title="Eine rote Folie über das Bild legen und verschieben">Rote Folie</button>') +
+      tx('<button type="button" class="btn klein" id="rfZeigeLoesung" aria-pressed="false">Lösung zeigen</button>') +
+      tx('<button type="button" class="btn klein" id="rfNeu" title="Die Tarnung neu verteilen">Neu mischen</button>') +
       '<span class="abstand"></span>' + Labor.blattSchalterHtml() +
-      '<label><input type="checkbox" id="rfMitLoesung"> mit Lösungsblatt</label>' +
-      '<button type="button" class="btn klein primary" id="rfPdf">PDF herunterladen</button>' +
-      '<button type="button" class="btn klein primary" id="rfHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
+      tx('<label><input type="checkbox" id="rfMitLoesung"> mit Lösungsblatt</label>') +
+      tx('<button type="button" class="btn klein primary" id="rfPdf">PDF herunterladen</button>') +
+      tx('<button type="button" class="btn klein primary" id="rfHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>') +
     '</div>' +
-    '<p class="rf-folie-info" id="rfFolieInfo" hidden>Schiebe die rote Folie mit der Maus, dem Finger oder den Pfeiltasten über das Bild.</p>' +
+    tx('<p class="rf-folie-info" id="rfFolieInfo" hidden>Schiebe die rote Folie mit der Maus, dem Finger oder den Pfeiltasten über das Bild.</p>') +
     '<div class="rf-rahmen"><article class="rf-blatt" id="rfBlatt"></article></div>' +
     '<div class="rf-rahmen"><article class="rf-blatt rf-loesungsblatt" id="rfLoesung" aria-hidden="true"></article></div>' +
   '</section></div></div>';
@@ -341,7 +342,7 @@ function starte(bereich){
   var P = null, bilder = null, schluessel = '';
   function satzJetzt(){ var t = Kern.text(st.satz); return st.opt.gross ? t.toUpperCase().replace(/ß/g, 'SS') : t; }
   function anleitung(){
-    return 'Unter dem roten Muster versteckt sich ein geheimer Satz. Lege eine rote Folie auf das Bild – das Rot verschwindet, und der Satz erscheint.' + (st.opt.linien ? ' Schreibe ihn auf die Linien.' : ' Wie heisst er?');
+    return tx('Unter dem roten Muster versteckt sich ein geheimer Satz. Lege eine rote Folie auf das Bild – das Rot verschwindet, und der Satz erscheint.') + (st.opt.linien ? tx(' Schreibe ihn auf die Linien.') : tx(' Wie heisst er?'));
   }
   // Antwortlinien: so viele, wie der Satz in Kinderhandschrift braucht (etwa 24 Zeichen pro Linie, mindestens 2)
   function linienHtml(satz, loesung){
@@ -352,35 +353,35 @@ function starte(bereich){
     return '<div class="rf-linien">' + h + '</div>';
   }
   function bildHtml(src, mitFolie, alt){
-    return '<div class="rf-bild" style="width:' + B + 'px;height:' + P.h + 'px"><img src="' + src + '" width="' + B + '" height="' + P.h + '" alt="' + esc(alt) + '">' +
-      (mitFolie ? '<div class="rf-folie nur-bildschirm" tabindex="0" role="slider" aria-label="Rote Folie verschieben" aria-valuemin="0" aria-valuemax="100" hidden style="width:' + folieBreite() + 'px">' +
+    return '<div class="rf-bild" style="width:' + B + tx('px;height:') + P.h + 'px"><img src="' + src + '" width="' + B + '" height="' + P.h + '" alt="' + esc(alt) + '">' +
+      (mitFolie ? tx('<div class="rf-folie nur-bildschirm" tabindex="0" role="slider" aria-label="Rote Folie verschieben" aria-valuemin="0" aria-valuemax="100" hidden style="width:') + folieBreite() + 'px">' +
         '<img src="' + bilder.rot + '" width="' + B + '" height="' + P.h + '" alt=""></div>' : '') + '</div>';
   }
   function blattHtml(satz, loesung){
     var o = st.opt;
-    return (o.titelAn ? '<h2>Rotfolienrätsel</h2>' : '') + (o.anleitungAn ? '<p class="rf-anleitung">' + esc(anleitung()) + '</p>' : '') +
-      bildHtml(bilder.normal, true, 'Bild mit verstecktem Satz') + (o.linien ? linienHtml(satz, loesung) : '');
+    return (o.titelAn ? tx('<h2>Rotfolienrätsel</h2>') : '') + (o.anleitungAn ? '<p class="rf-anleitung">' + esc(anleitung()) + '</p>' : '') +
+      bildHtml(bilder.normal, true, tx('Bild mit verstecktem Satz')) + (o.linien ? linienHtml(satz, loesung) : '');
   }
   function loesungHtml(satz){
     var o = st.opt;
-    return (o.titelAn ? '<h2>Rotfolienrätsel – Lösung</h2>' : '<p class="rf-anleitung"><b>Lösung</b></p>') +
-      '<p class="rf-anleitung">So sieht das Bild durch die rote Folie aus:</p>' + bildHtml(bilder.grau, false, 'Das Bild durch die rote Folie: ' + satz) +
-      '<p class="rf-satz-loesung">Der Satz: <b>' + esc(satz) + '</b></p>';
+    return (o.titelAn ? tx('<h2>Rotfolienrätsel – Lösung</h2>') : tx('<p class="rf-anleitung"><b>Lösung</b></p>')) +
+      tx('<p class="rf-anleitung">So sieht das Bild durch die rote Folie aus:</p>') + bildHtml(bilder.grau, false, tx('Das Bild durch die rote Folie: ') + satz) +
+      tx('<p class="rf-satz-loesung">Der Satz: <b>') + esc(satz) + '</b></p>';
   }
   function zeichnen(){
     if (aus) return;
     var satz = satzJetzt(), h = '';
     var leer = !satz;
     ['#rfZeigeLoesung', '#rfNeu', '#rfPdf', '#rfHerunterladen', '#rfFolieKnopf'].forEach(function(s){ $(s).disabled = leer; });
-    if (leer){ P = null; $('#rfZaehler').innerHTML = ''; $('#rfBlatt').parentNode.hidden = true; $('#rfLoesung').parentNode.hidden = true; meldung('info', '<p>Gib links den Satz ein, der unter der Tarnung stehen soll.</p>'); return; }
+    if (leer){ P = null; $('#rfZaehler').innerHTML = ''; $('#rfBlatt').parentNode.hidden = true; $('#rfLoesung').parentNode.hidden = true; meldung('info', tx('<p>Gib links den Satz ein, der unter der Tarnung stehen soll.</p>')); return; }
     // Schrift laden, bevor gemessen und gezeichnet wird
     var f = schrift(40);
     if (document.fonts && document.fonts.check && !document.fonts.check(f)){ document.fonts.load(f).then(function(){ if (!aus && document.fonts.check(f)) zeichnen(); }, function(){}); }
     P = plan(satz, st.opt.groesse);
-    if (!P){ $('#rfZaehler').innerHTML = ''; $('#rfBlatt').parentNode.hidden = true; $('#rfLoesung').parentNode.hidden = true; ['#rfZeigeLoesung', '#rfNeu', '#rfPdf', '#rfHerunterladen', '#rfFolieKnopf'].forEach(function(s){ $(s).disabled = true; }); meldung('warnung', '<p>Ein Wort ist zu lang für eine Zeile – kürze es oder trenne es mit einem Leerzeichen.</p>'); return; }
+    if (!P){ $('#rfZaehler').innerHTML = ''; $('#rfBlatt').parentNode.hidden = true; $('#rfLoesung').parentNode.hidden = true; ['#rfZeigeLoesung', '#rfNeu', '#rfPdf', '#rfHerunterladen', '#rfFolieKnopf'].forEach(function(s){ $(s).disabled = true; }); meldung('warnung', tx('<p>Ein Wort ist zu lang für eine Zeile – kürze es oder trenne es mit einem Leerzeichen.</p>')); return; }
     meldung('', ''); $('#rfBlatt').parentNode.hidden = false; $('#rfLoesung').parentNode.hidden = false;
-    $('#rfZaehler').innerHTML = '<p class="rf-zaehler-haupt ok"><b>' + satz.length + '</b> Zeichen · ' + P.zeilen.length + (P.zeilen.length === 1 ? ' Zeile' : ' Zeilen') + ', Schrift ' + P.gr + ' px</p>' +
-      (P.kleiner ? '<p class="warnung">Kleiner gesetzt als gewählt (' + st.opt.groesse + ' px): Sonst wäre ein Wort zu lang für die Zeile oder das Bild höher als die Seite.</p>' : '') + h;
+    $('#rfZaehler').innerHTML = '<p class="rf-zaehler-haupt ok"><b>' + satz.length + tx('</b> Zeichen · ') + P.zeilen.length + (P.zeilen.length === 1 ? tx(' Zeile') : tx(' Zeilen')) + tx(', Schrift ') + P.gr + ' px</p>' +
+      (P.kleiner ? tx('<p class="warnung">Kleiner gesetzt als gewählt (') + st.opt.groesse + tx(' px): Sonst wäre ein Wort zu lang für die Zeile oder das Bild höher als die Seite.</p>') : '') + h;
     var k = [satz, P.gr, st.seed, Labor.blattSchrift('buchstaben')].join('|');
     if (k !== schluessel || !bilder){
       var cv = malen(P, Kern.muster({ seed:st.seed, b:P.b, h:P.h, gr:P.gr }), st.seed);
@@ -414,9 +415,9 @@ function starte(bereich){
       [].forEach.call(k.querySelectorAll('.nur-bildschirm'), function(x){ x.remove(); });
       return k.outerHTML;
     }).join('');
-    speicherOrt.save({ filename:name, data:Labor.blattDatei('Rotfolienrätsel', inhalt, '.rf-loesungsblatt{display:block}') }).catch(function(e){
+    speicherOrt.save({ filename:name, data:Labor.blattDatei(tx('Rotfolienrätsel'), inhalt, '.rf-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 

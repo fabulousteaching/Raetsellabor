@@ -4,6 +4,7 @@
    Bedienung (wird bei jedem Öffnen gestartet und beim Verlassen mit stopp() aufgeräumt). */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('rebus');
 
 /* KERN-START */
 /* ===== Kern des Rebus =====
@@ -355,10 +356,10 @@ function starte(bereich){
     var teile = String(text).split(/[\n;]+/).map(function(t){ return t.trim().replace(/\s+/g, ' '); }).filter(Boolean), notiz = [];
     teile.forEach(function(t){
       var w = Kern.woerter(t);
-      if (!w.length){ notiz.push('«' + esc(t) + '» enthält keine Buchstaben'); return; }
-      if (w.join('').length > 60){ notiz.push('«' + esc(t) + '» ist zu lang (höchstens 60 Buchstaben)'); return; }
-      if (st.eintraege.some(function(x){ return schluessel(x) === w.join(' '); })){ notiz.push('«' + esc(t) + '» ist schon in der Liste'); return; }
-      if (st.eintraege.length >= MAX){ notiz.push('Höchstens ' + MAX + ' Rätsel pro Blatt'); return; }
+      if (!w.length){ notiz.push('«' + esc(t) + tx('» enthält keine Buchstaben')); return; }
+      if (w.join('').length > 60){ notiz.push('«' + esc(t) + tx('» ist zu lang (höchstens 60 Buchstaben)')); return; }
+      if (st.eintraege.some(function(x){ return schluessel(x) === w.join(' '); })){ notiz.push('«' + esc(t) + tx('» ist schon in der Liste')); return; }
+      if (st.eintraege.length >= MAX){ notiz.push(tx('Höchstens ') + MAX + tx(' Rätsel pro Blatt')); return; }
       st.eintraege.push(t);
     });
     $('#rbInfo').innerHTML = notiz.join(' · ');
@@ -376,7 +377,7 @@ function starte(bereich){
     st.eintraege.forEach(function(t, i){
       var li = document.createElement('li');
       li.innerHTML = '<span class="rb-liste-nr" aria-hidden="true">' + (i + 1) + '</span><span class="rb-liste-text"></span>' +
-        '<button type="button" class="weg" aria-label="' + esc(t) + ' entfernen" title="Entfernen">×</button>';
+        '<button type="button" class="weg" aria-label="' + esc(t) + tx(' entfernen" title="Entfernen">×</button>');
       li.querySelector('.rb-liste-text').textContent = t;
       li.querySelector('.weg').addEventListener('click', function(){
         st.eintraege.splice(i, 1); $('#rbInfo').textContent = ''; speichern(); zeichneListe(); zeige();
@@ -407,17 +408,17 @@ function starte(bereich){
   function teilHtml(c, ort){
     if (c.buchstabe) return '<div class="rb-teil rb-nur-buchstabe"><div class="rb-karte"><span class="rb-buchstabe">' + esc(c.buchstabe) + '</span></div>' +
       '<span class="rb-ergebnis">' + esc(c.buchstabe) + '</span></div>';
-    var tausch = ort ? ' rb-tauschbar" data-i="' + ort.i + '" data-w="' + ort.w + '" data-k="' + ort.k + '" role="button" tabindex="0" title="Anderes Bild" aria-label="Anderes Bild statt ' + esc(c.bild.wort.toLocaleLowerCase('de-CH')) : '';
+    var tausch = ort ? ' rb-tauschbar" data-i="' + ort.i + '" data-w="' + ort.w + '" data-k="' + ort.k + tx('" role="button" tabindex="0" title="Anderes Bild" aria-label="Anderes Bild statt ') + esc(c.bild.wort.toLocaleLowerCase('de-CH')) : '';
     return '<div class="rb-teil' + tausch + '"><div class="rb-karte"><span class="rb-bild">' + c.bild.emoji + '</span>' +
       '<span class="rb-regeln">' + c.regeln.map(function(r){ return '<span class="rb-regel">' + esc(regelText(r)) + '</span>'; }).join('') + '</span>' +   // auch leer: hält den Platz frei
-      '</div><span class="rb-name' + (st.opt.namen ? ' rb-hilfe' : '') + '">' + esc(c.bild.wort) + '</span>' +
+      '</div><span class="rb-name' + (st.opt.namen ? tx(' rb-hilfe') : '') + '">' + esc(c.bild.wort) + '</span>' +
       '<span class="rb-ergebnis">' + esc(Kern.ergebnis(c)) + '</span></div>';
   }
   function blattHtml(liste, loesung, beispiel){
-    var titel = st.titel.trim() || 'Bilderrätsel';
-    var html = loesung ? '<h2 class="rb-titel">' + esc(st.opt.titelAn ? 'Lösung – ' + titel : 'Lösung') + '</h2>' : st.opt.titelAn || beispiel ? '<h2 class="rb-titel">' + esc(titel) + '</h2>' : '';
-    if (!loesung && (st.opt.anleitungAn || beispiel)) html += '<p class="rb-anleitung">' + (beispiel ? 'So sieht ein Rebus aus: ' : '') +
-      'Welche Wörter verstecken sich in den Bildern? Die Bilder stehen für Wörter in der Einzahl, ohne Artikel. Die Regeln unter einem Bild wendet man der Reihe nach an.</p>';
+    var titel = st.titel.trim() || tx('Bilderrätsel');
+    var html = loesung ? '<h2 class="rb-titel">' + esc(st.opt.titelAn ? tx('Lösung – ') + titel : tx('Lösung')) + '</h2>' : st.opt.titelAn || beispiel ? '<h2 class="rb-titel">' + esc(titel) + '</h2>' : '';
+    if (!loesung && (st.opt.anleitungAn || beispiel)) html += '<p class="rb-anleitung">' + (beispiel ? tx('So sieht ein Rebus aus: ') : '') +
+      tx('Welche Wörter verstecken sich in den Bildern? Die Bilder stehen für Wörter in der Einzahl, ohne Artikel. Die Regeln unter einem Bild wendet man der Reihe nach an.</p>');
     // Alle Kärtchen auf dem Blatt gleich gross: so breit wie die längste Regel, so hoch wie das Bild mit den meisten Regeln
     var zeichen = 4, regeln = 0;
     liste.forEach(function(x){ x.r.forEach(function(w){ w.teile.forEach(function(c){
@@ -428,10 +429,10 @@ function starte(bereich){
     html += '<ol class="rb-raetsel" style="--z:' + zeichen + ';--n:' + regeln + '">';
     liste.forEach(function(x, i){
       html += '<li class="rb-eintrag" data-i="' + i + '"><span class="rb-nr">' + (liste.length > 1 ? (i + 1) + '.' : '') + '</span><div class="rb-inhalt">' +
-        '<div class="rb-zeile">' + x.r.map(function(w, wi){ return '<div class="rb-wort' + (w.teile.length > 1 ? ' rb-mehrteilig' : '') + '">' + w.teile.map(function(c, k){ return teilHtml(c, !loesung && !beispiel ? { i:i, w:wi, k:k } : null); }).join('') + '</div>'; }).join('<span class="rb-wortgrenze" aria-hidden="true"></span>') + '</div>';
+        '<div class="rb-zeile">' + x.r.map(function(w, wi){ return '<div class="rb-wort' + (w.teile.length > 1 ? tx(' rb-mehrteilig') : '') + '">' + w.teile.map(function(c, k){ return teilHtml(c, !loesung && !beispiel ? { i:i, w:wi, k:k } : null); }).join('') + '</div>'; }).join('<span class="rb-wortgrenze" aria-hidden="true"></span>') + '</div>';
       if (loesung) html += '<p class="rb-loesungswort">' + esc(x.r.map(function(w){ return w.wort; }).join(' ')) + '</p>';
-      if (!loesung && !beispiel) html += '<div class="rb-pruefen nur-bildschirm"><span class="rb-pruefen-text">Deine Lösung:</span><input type="text" class="rb-eingabe-loesung" aria-label="Deine Lösung für Rätsel ' + (i + 1) + '" autocomplete="off" spellcheck="false">' +
-        '<span class="rb-status" aria-live="polite"></span><button type="button" class="btn ghost klein rb-anders" title="Nur dieses Rätsel mit anderen Bildern">Anders</button></div>';
+      if (!loesung && !beispiel) html += tx('<div class="rb-pruefen nur-bildschirm"><span class="rb-pruefen-text">Deine Lösung:</span><input type="text" class="rb-eingabe-loesung" aria-label="Deine Lösung für Rätsel ') + (i + 1) + '" autocomplete="off" spellcheck="false">' +
+        tx('<span class="rb-status" aria-live="polite"></span><button type="button" class="btn ghost klein rb-anders" title="Nur dieses Rätsel mit anderen Bildern">Anders</button></div>');
       html += '</div></li>';
     });
     return html + '</ol>';
@@ -443,10 +444,10 @@ function starte(bereich){
     var blatt = $('#rbBlatt'), loes = $('#rbLoesung');
     if (!st.eintraege.length){
       // Leerer Zustand: ein Beispiel zeigt, wie ein Rebus aussieht
-      var bsp = [{ r:Kern.rebus('Ich arbeite gerne', { stufe:'mittel', rnd:festerZufall(11) }) }];
-      blatt.innerHTML = '<p class="rb-beispiel-marke">Beispiel</p>' + blattHtml(bsp, false, true) +
-        '<p class="rb-beispiel-text">Lösung: <b>ICH ARBEITE GERNE</b> – ' + bsp[0].r.map(function(w){ return w.teile.map(erklaere).map(esc).join(' + '); }).join(' · ') +
-        '. Gib links ein Wort oder einen Satz ein, um dein eigenes Rätsel zu erstellen.</p>';
+      var bsp = [{ r:Kern.rebus(tx('Ich arbeite gerne'), { stufe:'mittel', rnd:festerZufall(11) }) }];
+      blatt.innerHTML = tx('<p class="rb-beispiel-marke">Beispiel</p>') + blattHtml(bsp, false, true) +
+        tx('<p class="rb-beispiel-text">Lösung: <b>ICH ARBEITE GERNE</b> – ') + bsp[0].r.map(function(w){ return w.teile.map(erklaere).map(esc).join(' + '); }).join(' · ') +
+        tx('. Gib links ein Wort oder einen Satz ein, um dein eigenes Rätsel zu erstellen.</p>');
       blatt.classList.add('rb-beispiel'); blatt.classList.remove('zeige-loesung');
       loes.innerHTML = ''; $('#rbWerkzeug').hidden = true; meldung('', '');
       $('#rbZeigeLoesung').setAttribute('aria-pressed', 'false');
@@ -463,8 +464,8 @@ function starte(bereich){
     var hinweise = [];
     liste.forEach(function(x){
       var teile = [].concat.apply([], x.r.map(function(w){ return w.teile; })), einzeln = teile.filter(function(c){ return c.buchstabe; }).length;
-      if (x.r.length === 1 && teile.length === 1 && teile[0].bild) hinweise.push('«' + esc(x.t) + '» ist selbst ein Bild – dieses Rätsel ist sehr leicht.');
-      else if (einzeln >= 3 && einzeln / teile.length > 0.4) hinweise.push('Für «' + esc(x.t) + '» gibt es wenige passende Bilder, einige Buchstaben stehen einzeln. «Anders» oder eine höhere Schwierigkeit kann helfen.');
+      if (x.r.length === 1 && teile.length === 1 && teile[0].bild) hinweise.push('«' + esc(x.t) + tx('» ist selbst ein Bild – dieses Rätsel ist sehr leicht.'));
+      else if (einzeln >= 3 && einzeln / teile.length > 0.4) hinweise.push(tx('Für «') + esc(x.t) + tx('» gibt es wenige passende Bilder, einige Buchstaben stehen einzeln. «Anders» oder eine höhere Schwierigkeit kann helfen.'));
     });
     meldung(hinweise.length ? 'warnung' : '', hinweise.length ? '<ul>' + hinweise.map(function(h){ return '<li>' + h + '</li>'; }).join('') + '</ul>' : '');
   }
@@ -482,7 +483,7 @@ function starte(bereich){
       inp.addEventListener('input', function(){
         var v = Kern.woerter(inp.value).join('');
         li.classList.toggle('rb-richtig', v === ziel);
-        stat.textContent = v === ziel ? 'Richtig!' : (v.length >= ziel.length ? 'Noch nicht' : '');
+        stat.textContent = v === ziel ? tx('Richtig!') : (v.length >= ziel.length ? tx('Noch nicht') : '');
       });
       li.querySelector('.rb-anders').addEventListener('click', function(){ wuerfle(x.t); zeige(); });
     });
@@ -505,7 +506,7 @@ function starte(bereich){
     var o = { stufe:st.opt.stufe, verboten:liste, schonBenutzt:benutzt, einzelwort:r.length === 1 };
     var neu = Kern.ersetze(w.wort, w.teile, k, o);
     if (!neu && liste.length > 1){ abgelehnt[ak] = o.verboten = [c.bild.wort]; neu = Kern.ersetze(w.wort, w.teile, k, o); }   // alle durch: wieder von vorn
-    if (!neu){ meldung('info', '<p>Für dieses Bild gibt es keinen anderen Vorschlag. Mit «Anders» bekommt das ganze Rätsel neue Bilder.</p>'); return; }
+    if (!neu){ meldung('info', tx('<p>Für dieses Bild gibt es keinen anderen Vorschlag. Mit «Anders» bekommt das ganze Rätsel neue Bilder.</p>')); return; }
     w.teile = neu;
     zeige();
     if (mitTastatur){ var el = bereich.querySelector('#rbBlatt .rb-tauschbar[data-i="' + i + '"][data-w="' + wi + '"][data-k="' + Math.min(k, neu.length - 1) + '"]'); if (el) el.focus(); }
@@ -541,11 +542,11 @@ function starte(bereich){
   }
   $('#rbHerunterladen').addEventListener('click', function(){
     if (!speicherOrt || !st.eintraege.length) return;
-    var titel = st.titel.trim() || 'Bilderrätsel', inhalt = ohneBildschirmteile($('#rbBlatt')).outerHTML;
+    var titel = st.titel.trim() || tx('Bilderrätsel'), inhalt = ohneBildschirmteile($('#rbBlatt')).outerHTML;
     if (st.opt.mitLoesung){ var l = ohneBildschirmteile($('#rbLoesung')); l.classList.add('neue-seite'); inhalt += l.outerHTML; }
-    speicherOrt.save({ filename:'Rebus-' + (Labor.dateiname(titel) || 'Raetsel') + '.html', data:Labor.blattDatei('Rebus – ' + titel, inhalt, '.rb-loesungsblatt{display:block}') }).catch(function(e){
+    speicherOrt.save({ filename:tx('Rebus-') + (Labor.dateiname(titel) || tx('Raetsel')) + '.html', data:Labor.blattDatei(tx('Rebus – ') + titel, inhalt, '.rb-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 

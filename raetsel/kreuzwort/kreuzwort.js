@@ -6,6 +6,7 @@
    Lösung einblenden, Lösungsblatt, PDF und Bild wie bei den anderen Generatoren. */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('kreuzwort');
 
 /* KERN-START */
 var Kern = (function(){
@@ -176,49 +177,49 @@ var SEITE_B = 703, SEITE_H = 1032;   // A4 ohne 12 mm Rand bei 96 dpi (wie das P
 var TINTE = '#1C1714';
 
 var VORLAGE = '<div class="kw">' +
-  '<header class="kw-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Kreuzworträtsel</h1>' +
-    '<p>Deine Wörter mit Hinweisen werden waagrecht und senkrecht verschränkt. Eigene Bilder setzt der Generator dorthin, wo auf dem Blatt Platz frei ist – danach kannst du sie selbst verschieben, vergrössern, verkleinern und drehen.</p></header>' +
-  '<div class="kw-layout"><section class="kw-eingabe" aria-label="Eingaben">' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Wörter und Hinweise</h2><p>Pro Zeile ein Wort und sein Hinweis.</p></div></div>' +
-      '<div class="kw-zeilen-kopf" aria-hidden="true"><span>Wort</span><span>Hinweis</span></div>' +
-      '<div class="kw-zeilen" id="kwZeilen" role="list" aria-label="Wörter und Hinweise"></div>' +
-      '<p class="hinweis">Sobald du in die unterste Zeile schreibst, kommt eine neue dazu. Mit der Eingabetaste springst du weiter. Eine Liste aus Word oder Excel (Wort und Hinweis nebeneinander) kannst du auch einfach einfügen. Leerzeichen und Bindestriche im Wort fallen weg, ß wird zu SS.</p>' +
+  tx('<header class="kw-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Kreuzworträtsel</h1>') +
+    tx('<p>Deine Wörter mit Hinweisen werden waagrecht und senkrecht verschränkt. Eigene Bilder setzt der Generator dorthin, wo auf dem Blatt Platz frei ist – danach kannst du sie selbst verschieben, vergrössern, verkleinern und drehen.</p></header>') +
+  tx('<div class="kw-layout"><section class="kw-eingabe" aria-label="Eingaben">') +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Wörter und Hinweise</h2><p>Pro Zeile ein Wort und sein Hinweis.</p></div></div>') +
+      tx('<div class="kw-zeilen-kopf" aria-hidden="true"><span>Wort</span><span>Hinweis</span></div>') +
+      tx('<div class="kw-zeilen" id="kwZeilen" role="list" aria-label="Wörter und Hinweise"></div>') +
+      tx('<p class="hinweis">Sobald du in die unterste Zeile schreibst, kommt eine neue dazu. Mit der Eingabetaste springst du weiter. Eine Liste aus Word oder Excel (Wort und Hinweis nebeneinander) kannst du auch einfach einfügen. Leerzeichen und Bindestriche im Wort fallen weg, ß wird zu SS.</p>') +
       '<div class="kw-zaehler" id="kwZaehler" aria-live="polite"></div>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Bilder</h2><p>Freiwillig – zum Verzieren oder als Hilfe.</p></div></div>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Bilder</h2><p>Freiwillig – zum Verzieren oder als Hilfe.</p></div></div>') +
       '<label class="kw-ablage" id="kwAblage"><input type="file" id="kwDatei" accept="image/*" multiple class="vh">' +
-        '<span><b>Bilder auswählen</b><small>oder hierher ziehen (bis 6)</small></span></label>' +
+        tx('<span><b>Bilder auswählen</b><small>oder hierher ziehen (bis 6)</small></span></label>') +
       '<div class="kw-bilder" id="kwBilder"></div>' +
-      '<p class="hinweis">Der Generator setzt die Bilder zuerst auf freie Flächen des Blatts. Danach kannst du jedes Bild auf dem Blatt anklicken: ziehen zum Verschieben, an einer Ecke ziehen für die Grösse, am runden Griff oben drehen. Von Hand gesetzte Bilder bleiben an ihrem Platz.</p>' +
-      '<button type="button" class="btn klein kw-auto" id="kwBilderAuto" hidden>Bilder automatisch verteilen</button>' +
+      tx('<p class="hinweis">Der Generator setzt die Bilder zuerst auf freie Flächen des Blatts. Danach kannst du jedes Bild auf dem Blatt anklicken: ziehen zum Verschieben, an einer Ecke ziehen für die Grösse, am runden Griff oben drehen. Von Hand gesetzte Bilder bleiben an ihrem Platz.</p>') +
+      tx('<button type="button" class="btn klein kw-auto" id="kwBilderAuto" hidden>Bilder automatisch verteilen</button>') +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Blatt</h2></div></div>' +
-      '<label class="opt"><input type="checkbox" id="kwLaenge"><span>Anzahl Buchstaben beim Hinweis angeben</span></label>' +
-      '<div class="opt-raster"><label for="kwTitel">Titel auf dem Blatt</label><input type="text" id="kwTitel" maxlength="60" autocomplete="off"></div>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Blatt</h2></div></div>') +
+      tx('<label class="opt"><input type="checkbox" id="kwLaenge"><span>Anzahl Buchstaben beim Hinweis angeben</span></label>') +
+      tx('<div class="opt-raster"><label for="kwTitel">Titel auf dem Blatt</label><input type="text" id="kwTitel" maxlength="60" autocomplete="off"></div>') +
     '</div>' +
   '</section>' +
-  '<section class="kw-ausgabe" aria-label="Ergebnis">' +
+  tx('<section class="kw-ausgabe" aria-label="Ergebnis">') +
     '<div id="kwMeldung" aria-live="polite"></div>' +
     '<div class="kw-werkzeug">' +
-      '<button type="button" class="btn klein" id="kwNeu" title="Die Wörter anders anordnen">Neu anordnen</button>' +
-      '<button type="button" class="btn klein" id="kwZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
+      tx('<button type="button" class="btn klein" id="kwNeu" title="Die Wörter anders anordnen">Neu anordnen</button>') +
+      tx('<button type="button" class="btn klein" id="kwZeigeLoesung" aria-pressed="false">Lösung zeigen</button>') +
       '<span class="abstand"></span>' +
       Labor.blattSchalterHtml() +
-      '<label><input type="checkbox" id="kwMitLoesung"> mit Lösungsblatt</label>' +
-      '<button type="button" class="btn klein" id="kwBild">Als Bild</button>' +
-      '<button type="button" class="btn klein primary" id="kwPdf">PDF herunterladen</button>' +
-      '<button type="button" class="btn klein primary" id="kwHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
+      tx('<label><input type="checkbox" id="kwMitLoesung"> mit Lösungsblatt</label>') +
+      tx('<button type="button" class="btn klein" id="kwBild">Als Bild</button>') +
+      tx('<button type="button" class="btn klein primary" id="kwPdf">PDF herunterladen</button>') +
+      tx('<button type="button" class="btn klein primary" id="kwHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>') +
     '</div>' +
-    '<div class="kw-bildleiste" id="kwBildLeiste" role="group" aria-label="Bilder bearbeiten" hidden>' +
-      '<span class="kw-bild-tipp" id="kwBildTipp">Klicke auf ein Bild auf dem Blatt: Dann kannst du es verschieben, an einer Ecke grösser oder kleiner ziehen und am runden Griff drehen.</span>' +
+    tx('<div class="kw-bildleiste" id="kwBildLeiste" role="group" aria-label="Bilder bearbeiten" hidden>') +
+      tx('<span class="kw-bild-tipp" id="kwBildTipp">Klicke auf ein Bild auf dem Blatt: Dann kannst du es verschieben, an einer Ecke grösser oder kleiner ziehen und am runden Griff drehen.</span>') +
       '<span class="kw-bild-werkzeug" id="kwBildWerkzeug" hidden>' +
-      '<b id="kwBildName">Bild</b>' +
-      '<label class="kw-regler">Grösse <input type="range" id="kwBildGroesse" min="24" max="700" step="1"></label>' +
-      '<label class="kw-regler">Drehen <input type="range" id="kwBildDreh" min="-180" max="180" step="1"><output id="kwBildDrehWert" for="kwBildDreh">0°</output></label>' +
-      '<button type="button" class="btn klein" id="kwBildGerade">Gerade</button>' +
-      '<button type="button" class="btn klein" id="kwBildWeg">Entfernen</button>' +
+      tx('<b id="kwBildName">Bild</b>') +
+      tx('<label class="kw-regler">Grösse <input type="range" id="kwBildGroesse" min="24" max="700" step="1"></label>') +
+      tx('<label class="kw-regler">Drehen <input type="range" id="kwBildDreh" min="-180" max="180" step="1"><output id="kwBildDrehWert" for="kwBildDreh">0°</output></label>') +
+      tx('<button type="button" class="btn klein" id="kwBildGerade">Gerade</button>') +
+      tx('<button type="button" class="btn klein" id="kwBildWeg">Entfernen</button>') +
       '<span class="abstand"></span>' +
-      '<button type="button" class="btn klein primary" id="kwBildFertig">Fertig</button>' +
+      tx('<button type="button" class="btn klein primary" id="kwBildFertig">Fertig</button>') +
     '</span></div>' +
     '<div class="kw-rahmen" id="kwRahmen"><article class="kw-seite kw-blatt" id="kwBlatt"></article></div>' +
     '<div class="kw-rahmen kw-loesungs-rahmen"><article class="kw-seite kw-blatt kw-loesungsblatt" id="kwLoesung" aria-hidden="true"></article></div>' +
@@ -265,9 +266,9 @@ function starte(bereich){
   var warte = 0, zeilen = $('#kwZeilen');
   function baldErzeugen(){ speichern(); clearTimeout(warte); warte = setTimeout(erzeugen, 300); }
   function zeileHtml(p, i){
-    return '<div class="kw-zeile" role="listitem"><input type="text" class="kw-w" value="' + esc(p.w) + '" maxlength="30" autocomplete="off" spellcheck="false" aria-label="Wort ' + (i + 1) + '">' +
-      '<input type="text" class="kw-h" value="' + esc(p.h) + '" maxlength="120" autocomplete="off" aria-label="Hinweis ' + (i + 1) + '">' +
-      '<button type="button" class="kw-x" aria-label="Zeile ' + (i + 1) + ' löschen" title="Zeile löschen">×</button></div>';
+    return '<div class="kw-zeile" role="listitem"><input type="text" class="kw-w" value="' + esc(p.w) + tx('" maxlength="30" autocomplete="off" spellcheck="false" aria-label="Wort ') + (i + 1) + '">' +
+      '<input type="text" class="kw-h" value="' + esc(p.h) + tx('" maxlength="120" autocomplete="off" aria-label="Hinweis ') + (i + 1) + '">' +
+      tx('<button type="button" class="kw-x" aria-label="Zeile ') + (i + 1) + tx(' löschen" title="Zeile löschen">×</button></div>');
   }
   function zeilenZeigen(fokus){
     while (st.paare.length && !st.paare[st.paare.length - 1].w && !st.paare[st.paare.length - 1].h) st.paare.pop();
@@ -320,9 +321,9 @@ function starte(bereich){
   /* ---------- Bilder ---------- */
   function bilderLaden(dateien){
     var liste = [].slice.call(dateien || []).filter(function(f){ return /^image\//.test(f.type); });
-    if (!liste.length){ if (dateien && dateien.length) meldung('fehler', '<p>Das ist kein Bild. Wähle Bilddateien (z. B. JPG oder PNG).</p>'); return; }
+    if (!liste.length){ if (dateien && dateien.length) meldung('fehler', tx('<p>Das ist kein Bild. Wähle Bilddateien (z. B. JPG oder PNG).</p>')); return; }
     var platz = 6 - bilder.length;
-    if (platz <= 0){ meldung('warnung', '<p>Es sind schon 6 Bilder auf dem Blatt.</p>'); return; }
+    if (platz <= 0){ meldung('warnung', tx('<p>Es sind schon 6 Bilder auf dem Blatt.</p>')); return; }
     Promise.all(liste.slice(0, platz).map(function(f){
       return new Promise(function(ok){
         var url = URL.createObjectURL(f), img = new Image();
@@ -339,28 +340,28 @@ function starte(bereich){
     })).then(function(neu){
       if (aus) return;
       bilder = bilder.concat(neu.filter(Boolean));
-      if (liste.length > platz) meldung('warnung', '<p>Höchstens 6 Bilder – die übrigen wurden nicht übernommen.</p>');
+      if (liste.length > platz) meldung('warnung', tx('<p>Höchstens 6 Bilder – die übrigen wurden nicht übernommen.</p>'));
       bilderZeigen(); seiten();
     });
   }
   function bilderZeigen(){
-    $('#kwBilder').innerHTML = bilder.map(function(b, i){ return '<span class="kw-bild-klein"><img src="' + b.src + '" alt="Bild ' + (i + 1) + '"><span class="kw-nr" aria-hidden="true">' + (i + 1) + '</span><button type="button" class="kw-weg" data-i="' + i + '" aria-label="Bild ' + (i + 1) + ' entfernen">×</button></span>'; }).join('');
+    $('#kwBilder').innerHTML = bilder.map(function(b, i){ return '<span class="kw-bild-klein"><img src="' + b.src + tx('" alt="Bild ') + (i + 1) + '"><span class="kw-nr" aria-hidden="true">' + (i + 1) + '</span><button type="button" class="kw-weg" data-i="' + i + tx('" aria-label="Bild ') + (i + 1) + ' entfernen">×</button></span>'; }).join('');
     [].forEach.call($('#kwBilder').querySelectorAll('.kw-weg'), function(k){ k.addEventListener('click', function(){ entfernen(+k.dataset.i); }); });
     knopfAuto();
   }
   $('#kwDatei').addEventListener('change', function(){ bilderLaden(this.files); this.value = ''; });
   var ablage = $('#kwAblage');
-  ablage.addEventListener('dragover', function(ev){ if (ev.dataTransfer && [].indexOf.call(ev.dataTransfer.types, 'Files') >= 0){ ev.preventDefault(); ablage.classList.add('ziehen'); } });
+  ablage.addEventListener('dragover', function(ev){ if (ev.dataTransfer && [].indexOf.call(ev.dataTransfer.types, tx('Files')) >= 0){ ev.preventDefault(); ablage.classList.add('ziehen'); } });
   ablage.addEventListener('dragleave', function(){ ablage.classList.remove('ziehen'); });
   ablage.addEventListener('drop', function(ev){ ablage.classList.remove('ziehen'); if (!ev.dataTransfer || !ev.dataTransfer.files.length) return; ev.preventDefault(); bilderLaden(ev.dataTransfer.files); });
 
   /* ---------- Rätsel erzeugen ---------- */
   function zaehler(info){
-    var n = info.liste.length, h = '<p class="kw-zaehler-haupt ' + (n >= 2 ? 'ok' : 'fehlt') + '"><b>' + n + '</b> ' + (n === 1 ? 'Wort' : 'Wörter') + (n < 2 ? ' – es braucht mindestens 2.' : '') + '</p>';
-    if (info.ohne) h += '<p class="warnung">' + info.ohne + ' Wort' + (info.ohne > 1 ? 'e' : '') + ' ohne Hinweis – bitte rechts den Hinweis ergänzen.</p>';
-    if (info.doppelt) h += '<p class="warnung">' + info.doppelt + ' Wort' + (info.doppelt > 1 ? 'e' : '') + ' doppelt – nur einmal verwendet.</p>';
-    if (info.kurz) h += '<p class="warnung">Wörter mit nur einem Buchstaben werden weggelassen.</p>';
-    if (n > 30) h += '<p class="warnung">Mehr als 30 Wörter passen kaum auf ein Blatt – es werden die ersten 30 verwendet.</p>';
+    var n = info.liste.length, h = '<p class="kw-zaehler-haupt ' + (n >= 2 ? 'ok' : 'fehlt') + '"><b>' + n + '</b> ' + (n === 1 ? tx('Wort') : tx('Wörter')) + (n < 2 ? tx(' – es braucht mindestens 2.') : '') + '</p>';
+    if (info.ohne) h += '<p class="warnung">' + info.ohne + tx(' Wort') + (info.ohne > 1 ? 'e' : '') + tx(' ohne Hinweis – bitte rechts den Hinweis ergänzen.</p>');
+    if (info.doppelt) h += '<p class="warnung">' + info.doppelt + tx(' Wort') + (info.doppelt > 1 ? 'e' : '') + tx(' doppelt – nur einmal verwendet.</p>');
+    if (info.kurz) h += tx('<p class="warnung">Wörter mit nur einem Buchstaben werden weggelassen.</p>');
+    if (n > 30) h += tx('<p class="warnung">Mehr als 30 Wörter passen kaum auf ein Blatt – es werden die ersten 30 verwendet.</p>');
     $('#kwZaehler').innerHTML = h;
   }
   function erzeugen(){
@@ -369,7 +370,7 @@ function starte(bereich){
     zaehler(info);
     var liste = info.liste.slice(0, 30).filter(function(e){ return e.hinweis; });
     if (liste.length < 2){
-      raetsel = null; leer(liste.length ? '<p>Es braucht mindestens zwei Wörter mit Hinweis.</p>' : '<p>Schreibe links deine Wörter und Hinweise in die Zeilen – links das Wort, rechts den Hinweis.</p>');
+      raetsel = null; leer(liste.length ? tx('<p>Es braucht mindestens zwei Wörter mit Hinweis.</p>') : tx('<p>Schreibe links deine Wörter und Hinweise in die Zeilen – links das Wort, rechts den Hinweis.</p>'));
       return;
     }
     raetsel = Kern.anordnen(liste, st.seed, liste.length > 18 ? 40 : 70);
@@ -386,7 +387,7 @@ function starte(bereich){
      belegten Flächen gemessen und die Bilder in die grössten freien Flächen gesetzt. Passt nicht alles, wird das Gitter
      kleiner (Feldgrösse 40 … 16 Pixel). */
   function gitterSvg(R, f, loesung){
-    var h = '<svg class="kw-gitter" width="' + (R.breite * f + 2) + '" height="' + (R.hoehe * f + 2) + '" viewBox="-1 -1 ' + (R.breite * f + 2) + ' ' + (R.hoehe * f + 2) + '" role="img" aria-label="Kreuzworträtsel-Gitter">';
+    var h = '<svg class="kw-gitter" width="' + (R.breite * f + 2) + '" height="' + (R.hoehe * f + 2) + '" viewBox="-1 -1 ' + (R.breite * f + 2) + ' ' + (R.hoehe * f + 2) + tx('" role="img" aria-label="Kreuzworträtsel-Gitter">');
     R.zellen.forEach(function(z){ h += '<rect x="' + z.c * f + '" y="' + z.r * f + '" width="' + f + '" height="' + f + '" fill="#fff" stroke="' + TINTE + '" stroke-width="1.4"/>'; });
     R.zellen.forEach(function(z){
       if (z.nr) h += '<text x="' + (z.c * f + 2.2) + '" y="' + (z.r * f + f * 0.3 + 1) + '" font-size="' + (f * 0.3).toFixed(1) + '" style="font-family:var(--blatt-schrift)" font-weight="600" fill="' + TINTE + '">' + z.nr + '</text>';
@@ -395,17 +396,17 @@ function starte(bereich){
     return h + '</svg>';
   }
   function seitenHtml(R, f, mitBildern, loesung){
-    var o = st.opt, titel = st.titel.trim() || 'Kreuzworträtsel';
+    var o = st.opt, titel = st.titel.trim() || tx('Kreuzworträtsel');
     function liste(waag){
       return R.woerter.filter(function(w){ return w.waag === waag; }).sort(function(a, b){ return a.nr - b.nr; }).map(function(w){
         return '<li><span><b>' + w.nr + '</b> ' + esc(w.hinweis) + (o.laenge ? ' <small>(' + w.wort.length + ')</small>' : '') + '</span></li>';   // Lösungsblatt gleich aufgebaut: die Bilder liegen dort am gleichen Platz
       }).join('');
     }
     return '<div class="kw-fluss">' +
-      (o.titelAn ? '<h2>' + esc(titel) + (loesung ? ' – Lösung' : '') + '</h2>' : '') +
-      (o.anleitungAn ? '<p class="kw-anleitung">Lies die Hinweise und schreibe die Wörter waagrecht (→) und senkrecht (↓) ins Gitter. Die Zahl zeigt, wo ein Wort beginnt.</p>' : '') +
+      (o.titelAn ? '<h2>' + esc(titel) + (loesung ? tx(' – Lösung') : '') + '</h2>' : '') +
+      (o.anleitungAn ? tx('<p class="kw-anleitung">Lies die Hinweise und schreibe die Wörter waagrecht (→) und senkrecht (↓) ins Gitter. Die Zahl zeigt, wo ein Wort beginnt.</p>') : '') +
       '<div class="kw-gitter-platz">' + gitterSvg(R, f, loesung) + '</div>' +   // Gitter immer in der Mitte
-      '<div class="kw-hinweise"><section><h3>Waagrecht →</h3><ol>' + liste(true) + '</ol></section><section><h3>Senkrecht ↓</h3><ol>' + liste(false) + '</ol></section></div>' +
+      tx('<div class="kw-hinweise"><section><h3>Waagrecht →</h3><ol>') + liste(true) + tx('</ol></section><section><h3>Senkrecht ↓</h3><ol>') + liste(false) + '</ol></section></div>' +
       '</div>';
   }
   function messen(seite, R, f){
@@ -421,16 +422,16 @@ function starte(bereich){
   /* ---------- Bilder auf dem Blatt ---------- */
   function bildStil(b, p){
     var h = p.w * b.h / b.b;
-    return 'left:' + (p.x - p.w / 2).toFixed(1) + 'px;top:' + (p.y - h / 2).toFixed(1) + 'px;width:' + p.w.toFixed(1) + 'px;height:' + h.toFixed(1) + 'px' +
-      (p.d ? ';transform:rotate(' + p.d.toFixed(1) + 'deg)' : '') + (b.z ? ';z-index:' + b.z : '');
+    return tx('left:') + (p.x - p.w / 2).toFixed(1) + tx('px;top:') + (p.y - h / 2).toFixed(1) + tx('px;width:') + p.w.toFixed(1) + tx('px;height:') + h.toFixed(1) + 'px' +
+      (p.d ? ';transform:rotate(' + p.d.toFixed(1) + 'deg)' : '') + (b.z ? tx(';z-index:') + b.z : '');
   }
   // griffe: auf dem Arbeitsblatt am Bildschirm anfassbar (Rahmen mit Ecken zum Vergrössern und Griff zum Drehen)
   function bildHtml(b, i, p, griffe){
-    return '<div class="kw-bild' + (griffe && i === gewaehlt ? ' gewaehlt' : '') + '" data-i="' + i + '" style="' + bildStil(b, p) + '"' +
-      (griffe ? ' tabindex="0" role="button" aria-label="Bild ' + (i + 1) + ' – ziehen oder Pfeiltasten zum Verschieben, Plus und Minus für die Grösse"' : '') + '>' +
+    return '<div class="kw-bild' + (griffe && i === gewaehlt ? tx(' gewaehlt') : '') + '" data-i="' + i + '" style="' + bildStil(b, p) + '"' +
+      (griffe ? tx(' tabindex="0" role="button" aria-label="Bild ') + (i + 1) + tx(' – ziehen oder Pfeiltasten zum Verschieben, Plus und Minus für die Grösse"') : '') + '>' +
       '<img src="' + b.src + '" alt="" draggable="false">' +
-      (griffe ? '<span class="kw-dreh-stiel nur-bildschirm" aria-hidden="true"></span><span class="kw-griff kw-dreh nur-bildschirm" data-griff="dreh" title="Drehen" aria-hidden="true"></span>' +
-        ['lo', 'ro', 'lu', 'ru'].map(function(e){ return '<span class="kw-griff kw-ecke-' + e + ' nur-bildschirm" data-griff="gross" title="Grösse ändern" aria-hidden="true"></span>'; }).join('') : '') +
+      (griffe ? tx('<span class="kw-dreh-stiel nur-bildschirm" aria-hidden="true"></span><span class="kw-griff kw-dreh nur-bildschirm" data-griff="dreh" title="Drehen" aria-hidden="true"></span>') +
+        ['lo', 'ro', 'lu', 'ru'].map(function(e){ return '<span class="kw-griff kw-ecke-' + e + tx(' nur-bildschirm" data-griff="gross" title="Grösse ändern" aria-hidden="true"></span>'); }).join('') : '') +
       '</div>';
   }
   /* Bilder der Reihe nach in die grösste freie Lücke setzen (als Deko: mittig, längere Seite 64–190 Pixel, 30 Pixel vom
@@ -476,20 +477,20 @@ function starte(bereich){
       return schneiden(P, [[r[0], r[1]], [r[0] + r[2], r[1]], [r[0] + r[2], r[1] + r[3]], [r[0], r[1] + r[3]]]);
     });
   }
-  function aufzaehlen(n){ return n.length === 1 ? 'Bild ' + n[0] : 'die Bilder ' + n.slice(0, -1).join(', ') + ' und ' + n[n.length - 1]; }
+  function aufzaehlen(n){ return n.length === 1 ? tx('Bild ') + n[0] : tx('die Bilder ') + n.slice(0, -1).join(', ') + tx(' und ') + n[n.length - 1]; }
   var letzte = null;   // letzter Aufbau: { R, belegt (Gitter und Texte), zuHoch }
   function meldungen(){
     if (!letzte) return;
     var R = letzte.R, m = [];
-    if (R.fehlend.length) m.push('<p>Nicht eingebaut (passt nirgends über Kreuz): <b>' + R.fehlend.map(function(e){ return esc(e.wort); }).join(', ') + '</b>. «Neu anordnen» probiert eine andere Anordnung.</p>');
+    if (R.fehlend.length) m.push(tx('<p>Nicht eingebaut (passt nirgends über Kreuz): <b>') + R.fehlend.map(function(e){ return esc(e.wort); }).join(', ') + tx('</b>. «Neu anordnen» probiert eine andere Anordnung.</p>'));
     var kein = [], ueber = [];
     bilder.forEach(function(b, i){
       if (b.notfall && !b.lage) kein.push(i + 1);
       else if (liegtUeber(b, b.lage || b.auto, letzte.belegt)) ueber.push(i + 1);
     });
-    if (kein.length) m.push('<p>Für ' + aufzaehlen(kein) + ' hat es keinen freien Platz – ' + (kein.length === 1 ? 'es liegt' : 'sie liegen') + ' klein unten rechts. Verschiebe oder verkleinere die Bilder, oder nimm weniger Wörter.</p>');
-    if (ueber.length){ var t = aufzaehlen(ueber); m.push('<p>' + t.charAt(0).toUpperCase() + t.slice(1) + (ueber.length === 1 ? ' liegt' : ' liegen') + ' über dem Rätsel oder den Hinweisen. Verschiebe ' + (ueber.length === 1 ? 'es' : 'sie') + ' oder klicke links «Bilder automatisch verteilen».</p>'); }
-    if (letzte.zuHoch) m.push('<p>Das Rätsel ist für eine A4-Seite sehr gross – im PDF wird das Blatt verkleinert.</p>');
+    if (kein.length) m.push(tx('<p>Für ') + aufzaehlen(kein) + tx(' hat es keinen freien Platz – ') + (kein.length === 1 ? tx('es liegt') : tx('sie liegen')) + tx(' klein unten rechts. Verschiebe oder verkleinere die Bilder, oder nimm weniger Wörter.</p>'));
+    if (ueber.length){ var t = aufzaehlen(ueber); m.push('<p>' + t.charAt(0).toUpperCase() + t.slice(1) + (ueber.length === 1 ? tx(' liegt') : tx(' liegen')) + tx(' über dem Rätsel oder den Hinweisen. Verschiebe ') + (ueber.length === 1 ? 'es' : 'sie') + tx(' oder klicke links «Bilder automatisch verteilen».</p>')); }
+    if (letzte.zuHoch) m.push(tx('<p>Das Rätsel ist für eine A4-Seite sehr gross – im PDF wird das Blatt verkleinert.</p>'));
     meldung(m.length ? 'warnung' : '', m.join(''));
   }
   var meldungZeit = 0;
@@ -531,7 +532,7 @@ function starte(bereich){
     l.classList.toggle('an', !!p); $('#kwBildTipp').hidden = !!p; $('#kwBildWerkzeug').hidden = !p;
     if (!p) return;
     var ar = b.b / b.h, g = $('#kwBildGroesse'), d = Math.round(p.d || 0);
-    $('#kwBildName').textContent = 'Bild ' + (gewaehlt + 1);
+    $('#kwBildName').textContent = tx('Bild ') + (gewaehlt + 1);
     g.max = Math.floor(ar >= 1 ? breiteKlemm(b, 1e4) : breiteKlemm(b, 1e4) / ar);
     g.value = Math.round(ar >= 1 ? p.w : p.w / ar);
     $('#kwBildDreh').value = d; $('#kwBildDrehWert').textContent = d + '°';
@@ -685,9 +686,9 @@ function starte(bereich){
       [].forEach.call(k.querySelectorAll('.kw-bild'), function(x){ x.classList.remove('gewaehlt', 'aktiv'); ['tabindex', 'role', 'aria-label'].forEach(function(a){ x.removeAttribute(a); }); });
       return k.outerHTML;
     }).join('');
-    speicherOrt.save({ filename:Labor.pdfName('Kreuzwortraetsel', st.titel).replace(/\.pdf$/, '.html'), data:Labor.blattDatei('Kreuzworträtsel', inhalt, '.kw-loesungsblatt{display:block}') }).catch(function(e){
+    speicherOrt.save({ filename:Labor.pdfName('Kreuzwortraetsel', st.titel).replace(/\.pdf$/, '.html'), data:Labor.blattDatei(tx('Kreuzworträtsel'), inhalt, '.kw-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 

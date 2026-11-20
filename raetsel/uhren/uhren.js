@@ -9,6 +9,7 @@
    einem Blatt (kleiner, je mehr Ziffern), Lösungsblatt, PDF. */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('uhrenraetsel');
 
 /* KERN-START */
 var Kern = (function(){
@@ -149,45 +150,45 @@ var FARBLISTE = [
   '#00A99D', /* türkis */ '#808000', /* oliv */ '#C9971C', /* ocker */ '#1B5E20', /* dunkelgrün */ '#CFCFCF', /* hellgrau */ '#5B3FBF' /* violett */
 ];
 function mischen(l, rnd){ l = l.slice(); for (var i = l.length - 1; i > 0; i--){ var j = Math.floor(rnd() * (i + 1)), x = l[i]; l[i] = l[j]; l[j] = x; } return l; }
-var ARTEN = [['12', '3:00'], ['24', '15:00'], ['worte', 'in Worten'], ['en', 'Englisch'], ['fr', 'Französisch']];
+var ARTEN = [['12', '3:00'], ['24', '15:00'], ['worte', tx('in Worten')], ['en', tx('Englisch')], ['fr', tx('Französisch')]];
 var LOESUNGSFARBE = '#F28C38';
 function esc(t){ return Labor.esc(t); }
 function f1(x){ return (Math.round(x * 10) / 10).toString(); }
 function hell(hex, anteil){ var n = parseInt(hex.slice(1), 16), r = n >> 16, g = n >> 8 & 255, b = n & 255;
-  function k(c){ return Math.round(c * anteil + 255 * (1 - anteil)); } return 'rgb(' + k(r) + ',' + k(g) + ',' + k(b) + ')'; }
+  function k(c){ return Math.round(c * anteil + 255 * (1 - anteil)); } return tx('rgb(') + k(r) + ',' + k(g) + ',' + k(b) + ')'; }
 
 var VORLAGE = '<div class="ur">' +
-  '<header class="ur-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Uhrenrätsel</h1>' +
-    '<p>Zeiger einzeichnen, dann die Zeiger verbinden, die aufeinander zeigen – und eine Zahl erscheint.</p></header>' +
-  '<div class="ur-layout"><section class="ur-eingabe" aria-label="Eingaben">' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Zahl</h2><p>Ziffern antippen – 1 bis 4. Jede Ziffer besteht aus 6 Uhren.</p></div></div>' +
+  tx('<header class="ur-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Uhrenrätsel</h1>') +
+    tx('<p>Zeiger einzeichnen, dann die Zeiger verbinden, die aufeinander zeigen – und eine Zahl erscheint.</p></header>') +
+  tx('<div class="ur-layout"><section class="ur-eingabe" aria-label="Eingaben">') +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Zahl</h2><p>Ziffern antippen – 1 bis 4. Jede Ziffer besteht aus 6 Uhren.</p></div></div>') +
       '<div class="ur-ziffern" id="urZiffern"></div>' +
-      '<p class="hinweis">Möglich sind 0, 1, 2, 3, 4, 5 und 7 (die 3 mit flachem Kopf und die 4 mit einem schrägen Strich). 6, 8 und 9 gehen nicht: Dort treffen sich drei Striche in einer Uhr – jede Uhr hat aber nur zwei Zeiger.</p>' +
+      tx('<p class="hinweis">Möglich sind 0, 1, 2, 3, 4, 5 und 7 (die 3 mit flachem Kopf und die 4 mit einem schrägen Strich). 6, 8 und 9 gehen nicht: Dort treffen sich drei Striche in einer Uhr – jede Uhr hat aber nur zwei Zeiger.</p>') +
       '<div class="ur-gewaehlt" id="urGewaehlt" aria-live="polite"></div>' +
-      '<div class="ur-zeile"><button type="button" class="btn klein" id="urZurueck">⌫ Letzte weg</button><button type="button" class="btn klein" id="urLeeren">Leeren</button><button type="button" class="btn klein" id="urZufall">Zufällige Zahl</button></div>' +
+      tx('<div class="ur-zeile"><button type="button" class="btn klein" id="urZurueck">⌫ Letzte weg</button><button type="button" class="btn klein" id="urLeeren">Leeren</button><button type="button" class="btn klein" id="urZufall">Zufällige Zahl</button></div>') +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Uhrzeit</h2><p>So steht die Zeit unter der Uhr oder auf dem Wecker.</p></div></div>' +
-      '<div class="ur-chips" role="radiogroup" aria-label="Zeitangabe">' + ARTEN.map(function(a){ return '<label><input type="radio" name="urArt" value="' + a[0] + '"><span>' + a[1] + '</span></label>'; }).join('') + '</div>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Uhrzeit</h2><p>So steht die Zeit unter der Uhr oder auf dem Wecker.</p></div></div>') +
+      tx('<div class="ur-chips" role="radiogroup" aria-label="Zeitangabe">') + ARTEN.map(function(a){ return '<label><input type="radio" name="urArt" value="' + a[0] + '"><span>' + a[1] + '</span></label>'; }).join('') + '</div>' +
       '<p class="hinweis" id="urArtInfo"></p>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Uhren und Blatt</h2></div></div>' +
-      '<label class="opt"><input type="checkbox" id="urFarbig"><span>Farbige Uhren (jede Uhr eine eigene Farbe)</span></label>' +
-      '<label class="opt"><input type="checkbox" id="urDrehen"><span>Uhren gedreht – die 12 ist nicht oben (schwieriger; ein Dreieck zeigt die 12)</span></label>' +
-      '<label class="opt"><input type="checkbox" id="urZahlen"><span>Zahlen 1–12 auf den Uhren</span></label>' +
-      '<label class="opt"><input type="checkbox" id="urAusschneiden"><span>Zeiten zum Ausschneiden: auf farbigen Digitalweckern statt unter den Uhren – ausschneiden und verteilen</span></label>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Uhren und Blatt</h2></div></div>') +
+      tx('<label class="opt"><input type="checkbox" id="urFarbig"><span>Farbige Uhren (jede Uhr eine eigene Farbe)</span></label>') +
+      tx('<label class="opt"><input type="checkbox" id="urDrehen"><span>Uhren gedreht – die 12 ist nicht oben (schwieriger; ein Dreieck zeigt die 12)</span></label>') +
+      tx('<label class="opt"><input type="checkbox" id="urZahlen"><span>Zahlen 1–12 auf den Uhren</span></label>') +
+      tx('<label class="opt"><input type="checkbox" id="urAusschneiden"><span>Zeiten zum Ausschneiden: auf farbigen Digitalweckern statt unter den Uhren – ausschneiden und verteilen</span></label>') +
       '<p class="hinweis" id="urAusschneidenInfo"></p>' +
-      '<label class="opt"><input type="checkbox" id="urLinie"><span>Linie für die Lösung</span></label>' +
+      tx('<label class="opt"><input type="checkbox" id="urLinie"><span>Linie für die Lösung</span></label>') +
     '</div>' +
   '</section>' +
-  '<section class="ur-ausgabe" aria-label="Ergebnis">' +
+  tx('<section class="ur-ausgabe" aria-label="Ergebnis">') +
     '<div id="urMeldung" aria-live="polite"></div>' +
     '<div class="ur-werkzeug">' +
-      '<button type="button" class="btn klein" id="urZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
-      '<button type="button" class="btn klein" id="urNeu" title="Andere Uhrzeiten für dieselbe Zahl">Neue Zeiten</button>' +
+      tx('<button type="button" class="btn klein" id="urZeigeLoesung" aria-pressed="false">Lösung zeigen</button>') +
+      tx('<button type="button" class="btn klein" id="urNeu" title="Andere Uhrzeiten für dieselbe Zahl">Neue Zeiten</button>') +
       '<span class="abstand"></span>' + Labor.blattSchalterHtml() +
-      '<label><input type="checkbox" id="urMitLoesung"> mit Lösungsblatt</label>' +
-      '<button type="button" class="btn klein primary" id="urPdf">PDF herunterladen</button>' +
-      '<button type="button" class="btn klein primary" id="urHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
+      tx('<label><input type="checkbox" id="urMitLoesung"> mit Lösungsblatt</label>') +
+      tx('<button type="button" class="btn klein primary" id="urPdf">PDF herunterladen</button>') +
+      tx('<button type="button" class="btn klein primary" id="urHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>') +
     '</div>' +
     '<div class="ur-blaetter"><div class="ur-seiten" id="urSeiten"></div>' +
     '<div class="ur-rahmen ur-loesung-rahmen"><article class="ur-blatt ur-loesungsblatt" id="urLoesung" aria-hidden="true"></article></div></div>' +
@@ -229,10 +230,10 @@ function starte(bereich){
   /* ---------- Ziffern antippen ---------- */
   $('#urZiffern').innerHTML = '0123456789'.split('').map(function(z){
     var ok = Kern.moeglich(z);
-    return '<button type="button" class="ur-ziffer' + (ok ? '' : ' nie') + '" data-z="' + z + '"' + (ok ? ' title="' + z + ' anhängen"' : ' disabled title="' + z + ' geht nicht – in einer Uhr träfen sich drei Striche"') + '>' + z + '</button>';
+    return '<button type="button" class="ur-ziffer' + (ok ? '' : tx(' nie')) + '" data-z="' + z + '"' + (ok ? ' title="' + z + tx(' anhängen"') : ' disabled title="' + z + tx(' geht nicht – in einer Uhr träfen sich drei Striche"')) + '>' + z + '</button>';
   }).join('');
   function gewaehltZeigen(){
-    $('#urGewaehlt').innerHTML = st.code ? 'Zahl: <b>' + st.code.split('').join(' ') + '</b>' + (st.code.length >= MAX ? ' <span class="ur-voll">(höchstens ' + MAX + ' Ziffern)</span>' : '') : 'Noch keine Ziffer gewählt.';
+    $('#urGewaehlt').innerHTML = st.code ? tx('Zahl: <b>') + st.code.split('').join(' ') + '</b>' + (st.code.length >= MAX ? tx(' <span class="ur-voll">(höchstens ') + MAX + tx(' Ziffern)</span>') : '') : tx('Noch keine Ziffer gewählt.');
     $('#urZurueck').disabled = $('#urLeeren').disabled = !st.code;
     [].forEach.call(bereich.querySelectorAll('.ur-ziffer'), function(b){ if (Kern.moeglich(b.getAttribute('data-z'))) b.disabled = st.code.length >= MAX; });
   }
@@ -351,7 +352,7 @@ function starte(bereich){
     return t;
   }
   function dunkel(hex, anteil){ var n = parseInt(hex.slice(1), 16), r = n >> 16, g = n >> 8 & 255, b = n & 255;
-    function k(c){ return Math.round(c * (1 - anteil)); } return 'rgb(' + k(r) + ',' + k(g) + ',' + k(b) + ')'; }
+    function k(c){ return Math.round(c * (1 - anteil)); } return tx('rgb(') + k(r) + ',' + k(g) + ',' + k(b) + ')'; }
   // Ein Wecker auf einem Kärtchen (x, y, Breite W, Höhe H)
   function wecker(x, y, W, H, U){
     var farbe = st.opt.farbig ? U.farbe : '#E9E4DF', rand = st.opt.farbig ? dunkel(U.farbe, 0.28) : TINTE, t = '';
@@ -373,7 +374,7 @@ function starte(bereich){
       zif.split('').forEach(function(z, k){ var xx = x0 + k * (zw + abst) + (k >= 2 ? zw * 0.5 : 0); g += z === ' ' ? segZiffer(xx, y0, zw, zh, '', dicke, TINTE, '#DCE2D2') : segZiffer(xx, y0, zw, zh, z, dicke, '#1E2A22', '#DCE2D2'); });
       var kx = x0 + 2 * (zw + abst) - abst / 2 + zw * 0.25 - abst * 0.1;
       g += '<circle cx="' + f1(kx) + '" cy="' + f1(y0 + zh * 0.3) + '" r="' + f1(dicke * 0.6) + '" fill="#1E2A22"/><circle cx="' + f1(kx) + '" cy="' + f1(y0 + zh * 0.7) + '" r="' + f1(dicke * 0.6) + '" fill="#1E2A22"/>';
-      t += '<g transform="translate(' + f1(dx + dw / 2) + ' ' + f1(dy + dh / 2) + ') skewX(-7) translate(' + f1(-dx - dw / 2) + ' ' + f1(-dy - dh / 2) + ')">' + g + '</g>';
+      t += '<g transform="translate(' + f1(dx + dw / 2) + ' ' + f1(dy + dh / 2) + tx(') skewX(-7) translate(') + f1(-dx - dw / 2) + ' ' + f1(-dy - dh / 2) + ')">' + g + '</g>';
     } else {
       // in Worten: auf eine oder zwei Zeilen verteilt
       var woerter = txt.split(' '), zeilen = [txt];
@@ -394,24 +395,24 @@ function starte(bereich){
       var teil = l.slice(s * PRO, s * PRO + PRO), zeilen = Math.ceil(teil.length / sp), x0 = (B - sp * W) / 2, t = '';
       teil.forEach(function(U, k){ t += wecker(x0 + (k % sp) * W, 1 + Math.floor(k / sp) * H, W, H, U); });
       html += '<div class="ur-rahmen"><article class="ur-blatt ur-seite ur-weckerblatt">' +
-        '<p class="ur-seitenkopf">✂ Wecker zum Ausschneiden' + (seiten > 1 ? ' – Seite ' + (s + 1) + ' von ' + seiten : '') + ' · ' + (st.opt.farbig ? 'jeder gehört zur Uhr mit der gleichen Farbe' : 'jeder gehört zur Uhr mit der gleichen Nummer') + '</p>' +
+        tx('<p class="ur-seitenkopf">✂ Wecker zum Ausschneiden') + (seiten > 1 ? tx(' – Seite ') + (s + 1) + tx(' von ') + seiten : '') + ' · ' + (st.opt.farbig ? tx('jeder gehört zur Uhr mit der gleichen Farbe') : tx('jeder gehört zur Uhr mit der gleichen Nummer')) + '</p>' +
         '<svg class="ur-wecker" width="' + B + '" height="' + f1(zeilen * H + 2) + '" viewBox="0 0 ' + B + ' ' + f1(zeilen * H + 2) + '">' + t + '</svg></article></div>';
     }
     return html;
   }
   function fehltNoch(){
-    if (!st.code) return 'eine Zahl (Ziffern antippen)';
-    if (!st.opt.art) return 'die Zeitangabe (3:00, 15:00, in Worten, Englisch oder Französisch)';
+    if (!st.code) return tx('eine Zahl (Ziffern antippen)');
+    if (!st.opt.art) return tx('die Zeitangabe (3:00, 15:00, in Worten, Englisch oder Französisch)');
     return '';
   }
   var PLAN = null;
   function zeichnen(){
     if (aus) return;
     var o = st.opt, fehlt = fehltNoch();
-    $('#urArtInfo').textContent = o.art === '24' ? 'Vormittags und nachmittags gemischt (3:00 oder 15:00 – die Zeiger stehen gleich).' : o.art === 'worte' ? 'Zum Beispiel «Viertel nach drei», «halb vier», «zehn vor vier».' :
-      o.art === 'en' ? 'Zum Beispiel «quarter past three», «half past three», «ten to four».' : o.art === 'fr' ? 'Zum Beispiel «trois heures et quart», «trois heures et demie», «quatre heures moins dix».' : '';
+    $('#urArtInfo').textContent = o.art === '24' ? tx('Vormittags und nachmittags gemischt (3:00 oder 15:00 – die Zeiger stehen gleich).') : o.art === 'worte' ? tx('Zum Beispiel «Viertel nach drei», «halb vier», «zehn vor vier».') :
+      o.art === 'en' ? tx('Zum Beispiel «quarter past three», «half past three», «ten to four».') : o.art === 'fr' ? tx('Zum Beispiel «trois heures et quart», «trois heures et demie», «quatre heures moins dix».') : '';
     ['#urPdf', '#urHerunterladen', '#urZeigeLoesung', '#urNeu'].forEach(function(s){ $(s).disabled = !!fehlt; });
-    if (fehlt){ PLAN = null; $('#urSeiten').innerHTML = ''; $('#urLoesung').parentNode.hidden = true; $('#urLoesung').classList.remove('zeigen'); meldung('info', '<p>Wähle links ' + fehlt + '.</p>'); return; }
+    if (fehlt){ PLAN = null; $('#urSeiten').innerHTML = ''; $('#urLoesung').parentNode.hidden = true; $('#urLoesung').classList.remove('zeigen'); meldung('info', tx('<p>Wähle links ') + fehlt + '.</p>'); return; }
     meldung('', ''); $('#urLoesung').parentNode.hidden = false;
     var rnd = Kern.zufall(st.seed);
     PLAN = Kern.planen(st.code, rnd, { drehen:o.drehen });
@@ -423,17 +424,17 @@ function starte(bereich){
     var f1l = mischen(FARBLISTE.slice(0, mitZeit.length), rnd), f2l = mischen(FARBLISTE.slice(mitZeit.length, alle.length), rnd);
     mitZeit.forEach(function(U, i){ U.farbe = f1l[i]; }); ohne.forEach(function(U, i){ U.farbe = f2l[i]; });
     alle.forEach(function(U, i){ U.nr = i + 1; });
-    $('#urAusschneidenInfo').textContent = !o.ausschneiden ? '' : o.farbig ? 'Jeder Wecker hat die Farbe seiner Uhr.' : 'Ohne Farben gehören Uhr und Wecker über die Nummer zusammen.';
-    var anleitung = (o.drehen ? 'Achtung, die Uhren sind gedreht: Das Dreieck zeigt, wo die 12 ist. ' : '') +
-      (o.ausschneiden ? 'Jeder Wecker gehört zur Uhr mit ' + (o.farbig ? 'der gleichen Farbe' : 'der gleichen Nummer') + '. Zeichne dort die Zeiger ein' : 'Zeichne bei jeder Uhr mit einer Zeit die Zeiger ein') +
-      ': den kurzen Stundenzeiger und den langen Minutenzeiger. Verbinde dann mit dem Lineal die Zeiger von zwei Uhren, die genau aufeinander zeigen. ' +
-      (PLAN.length > 1 ? 'Welche Zahl entsteht?' : 'Welche Ziffer entsteht?');
+    $('#urAusschneidenInfo').textContent = !o.ausschneiden ? '' : o.farbig ? tx('Jeder Wecker hat die Farbe seiner Uhr.') : tx('Ohne Farben gehören Uhr und Wecker über die Nummer zusammen.');
+    var anleitung = (o.drehen ? tx('Achtung, die Uhren sind gedreht: Das Dreieck zeigt, wo die 12 ist. ') : '') +
+      (o.ausschneiden ? tx('Jeder Wecker gehört zur Uhr mit ') + (o.farbig ? tx('der gleichen Farbe') : tx('der gleichen Nummer')) + tx('. Zeichne dort die Zeiger ein') : tx('Zeichne bei jeder Uhr mit einer Zeit die Zeiger ein')) +
+      tx(': den kurzen Stundenzeiger und den langen Minutenzeiger. Verbinde dann mit dem Lineal die Zeiger von zwei Uhren, die genau aufeinander zeigen. ') +
+      (PLAN.length > 1 ? tx('Welche Zahl entsteht?') : tx('Welche Ziffer entsteht?'));
     /* Ein Blatt für alle Uhren – je mehr Ziffern, desto kleiner: 1 Ziffer 50 mm (Abstand 65 mm), 2 Ziffern 32 mm
        (44 mm) in einer Reihe, 3 oder 4 Ziffern 25 mm (33 mm) in zwei Reihen */
     var html = '', d = (PLAN.length === 1 ? 50 : PLAN.length === 2 ? 32 : 25) * MM, zeile = (PLAN.length === 1 ? 65 : PLAN.length === 2 ? 44 : 33) * MM, reihen = '';
     for (var s = 0; s < PLAN.length; s += 2) reihen += ziffernSvg(PLAN.slice(s, s + 2), d, zeile, 13 * MM, false);
-    var kopf = (o.titelAn ? '<h2>Uhrenrätsel</h2>' : '') + (o.anleitungAn ? '<p class="ur-anleitung">' + esc(anleitung) + '</p>' : '');
-    var fuss = o.linie ? '<p class="ur-antwort">' + (PLAN.length > 1 ? 'Zahl' : 'Ziffer') + ': ' + PLAN.map(function(){ return '<span class="ur-kaestchen"></span>'; }).join('') + '</p>' : '';
+    var kopf = (o.titelAn ? tx('<h2>Uhrenrätsel</h2>') : '') + (o.anleitungAn ? '<p class="ur-anleitung">' + esc(anleitung) + '</p>' : '');
+    var fuss = o.linie ? '<p class="ur-antwort">' + (PLAN.length > 1 ? tx('Zahl') : tx('Ziffer')) + ': ' + PLAN.map(function(){ return '<span class="ur-kaestchen"></span>'; }).join('') + '</p>' : '';
     html += '<div class="ur-rahmen"><article class="ur-blatt ur-seite">' + kopf + reihen + fuss + '</article></div>';
     if (o.ausschneiden) html += weckerSeiten(alle.filter(function(U){ return U.zeit; }), rnd);
     $('#urSeiten').innerHTML = html;
@@ -443,8 +444,8 @@ function starte(bereich){
       var teile = PLAN.slice(z, z + 2), d2 = (PLAN.length === 1 ? 40 : PLAN.length === 2 ? 30 : 25) * MM;
       lh += ziffernSvg(teile, d2, d2 + 9 * MM, 13 * MM, true);
     }
-    $('#urLoesung').innerHTML = (o.titelAn ? '<h2>Uhrenrätsel – Lösung</h2>' : '<p class="ur-anleitung"><b>Lösung</b></p>') + lh +
-      '<p class="ur-loesung-text">' + (PLAN.length > 1 ? 'Zahl' : 'Ziffer') + ': <b>' + esc(st.code) + '</b></p>';
+    $('#urLoesung').innerHTML = (o.titelAn ? tx('<h2>Uhrenrätsel – Lösung</h2>') : tx('<p class="ur-anleitung"><b>Lösung</b></p>')) + lh +
+      '<p class="ur-loesung-text">' + (PLAN.length > 1 ? tx('Zahl') : tx('Ziffer')) + ': <b>' + esc(st.code) + '</b></p>';
   }
 
   /* ---------- PDF, Herunterladen ---------- */
@@ -462,9 +463,9 @@ function starte(bereich){
     if (!speicherOrt || !PLAN) return;
     var name = Labor.pdfName('Uhrenraetsel', '').replace(/\.pdf$/, '.html');
     var inhalt = blaetter().map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); k.classList.remove('zeigen'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
-    speicherOrt.save({ filename:name, data:Labor.blattDatei('Uhrenrätsel', inhalt, '.ur-loesungsblatt{display:block}') }).catch(function(e){
+    speicherOrt.save({ filename:name, data:Labor.blattDatei(tx('Uhrenrätsel'), inhalt, '.ur-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 

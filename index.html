@@ -11,16 +11,35 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Fredoka:wght@500;600&family=Inter:wght@400;500;600;700&display=swap">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 4 100 160"%3E%3Ccircle cx="34" cy="21" r="6" fill="%23F28C38"/%3E%3Ccircle cx="44" cy="12" r="6.5" fill="%23F28C38"/%3E%3Ccircle cx="57" cy="13" r="6.5" fill="%23F28C38"/%3E%3Ccircle cx="66" cy="25" r="6" fill="%23F28C38"/%3E%3Ccircle cx="60" cy="39" r="5.5" fill="%23F28C38"/%3E%3Ccircle cx="51" cy="51" r="5" fill="%23F28C38"/%3E%3Ccircle cx="50" cy="70" r="5" fill="%23F28C38"/%3E%3Cpath d="M27.4 132 H42 C44 129 40 124 44.5 121 C47 119.3 53 119.3 55.5 121 C60 124 56 129 58 132 H72.6 L84 152 Q88 160 79 160 H21 Q12 160 16 152 Z" fill="%23F28C38"/%3E%3Cpath d="M40 82 V110 L16 152 Q12 160 21 160 H79 Q88 160 84 152 L60 110 V82" fill="none" stroke="%23000" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/%3E%3C/svg%3E">
 <link rel="stylesheet" href="gemeinsam/labor.css">
+<script>
+/* Sprache: ?lang=de|en|fr, sonst die gespeicherte Wahl, sonst die Sprache des Browsers (nur wenn er kein Deutsch kann) */
+(function(){
+  var l = '', q = /[?&](?:lang|sprache)=(de|en|fr)\b/i.exec(location.search), d = document.documentElement;
+  if (q) l = q[1].toLowerCase();
+  else {
+    try { l = localStorage.getItem('labor-sprache') || ''; } catch(e){}
+    if (!/^(de|en|fr)$/.test(l)){
+      l = 'de';
+      var n = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || ''];
+      if (!n.some(function(x){ return /^de/i.test(x); })) for (var i = 0; i < n.length; i++){ var m = /^(en|fr)/i.exec(n[i]); if (m){ l = m[1].toLowerCase(); break; } }
+    }
+  }
+  d.lang = l;
+  if (l !== 'de') d.className += ' sprache-wartet';
+  setTimeout(function(){ d.classList.remove('sprache-wartet'); }, 2500);
+})();
+</script>
 </head>
 <body>
 <header class="labor-kopf">
   <div class="labor-kopf-innen">
     <a class="marke" href="#start" aria-label="Rätsellabor – zur Startseite">
       <svg class="kolben" viewBox="0 4 100 160" aria-hidden="true"><circle cx="34" cy="21" r="6" fill="#F28C38"/><circle cx="44" cy="12" r="6.5" fill="#F28C38"/><circle cx="57" cy="13" r="6.5" fill="#F28C38"/><circle cx="66" cy="25" r="6" fill="#F28C38"/><circle cx="60" cy="39" r="5.5" fill="#F28C38"/><circle cx="51" cy="51" r="5" fill="#F28C38"/><circle cx="50" cy="70" r="5" fill="#F28C38"/><path d="M27.4 132 H42 C44 129 40 124 44.5 121 C47 119.3 53 119.3 55.5 121 C60 124 56 129 58 132 H72.6 L84 152 Q88 160 79 160 H21 Q12 160 16 152 Z" fill="#F28C38"/><path d="M40 82 V110 L16 152 Q12 160 21 160 H79 Q88 160 84 152 L60 110 V82" fill="none" stroke="#000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><path d="M33 82 H67" fill="none" stroke="#000" stroke-width="6" stroke-linecap="round"/></svg>
-      <span class="wortmarke">Rätsel<span class="akzent">labor</span></span>
+      <span class="wortmarke" translate="no">Rätsel<span class="akzent">labor</span></span>
     </a>
     <div class="pfad" id="kopfPfad" hidden><span></span></div>
     <span class="kopf-luecke"></span>
+    <div class="kopf-sprache" id="kopfSprache"></div>
     <button type="button" class="menue-knopf" id="menueKnopf" aria-expanded="false" aria-controls="menue">
       <svg class="auf" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
       <svg class="zu" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
@@ -35,7 +54,7 @@
     <section class="held" aria-labelledby="startTitel">
       <div class="held-text">
         <p class="augenbraue">Rätselgeneratoren für Schule und Freizeit</p>
-        <h1 id="startTitel" class="held-marke"><svg class="kolben" viewBox="0 4 100 160" aria-hidden="true"><circle cx="34" cy="21" r="5.2" fill="#F28C38"/><circle cx="42" cy="13" r="5.6" fill="#F28C38"/><circle cx="54" cy="12" r="5.8" fill="#F28C38"/><circle cx="64" cy="19" r="5.4" fill="#F28C38"/><circle cx="66" cy="31" r="5" fill="#F28C38"/><circle cx="60" cy="41" r="4.6" fill="#F28C38"/><circle cx="53" cy="49" r="4.2" fill="#F28C38"/><circle cx="50" cy="59" r="3.8" fill="#F28C38"/><circle cx="50" cy="72" r="3.5" fill="#F28C38"/><circle cx="51" cy="94" r="2.4" fill="#F28C38"/><circle cx="48.5" cy="103" r="1.8" fill="#F28C38"/><path d="M27.4 132 H42 C44 129 40 124 44.5 121 C47 119.3 53 119.3 55.5 121 C60 124 56 129 58 132 H72.6 L84 152 Q88 160 79 160 H21 Q12 160 16 152 Z" fill="#F28C38"/><path d="M40 82 V110 L16 152 Q12 160 21 160 H79 Q88 160 84 152 L60 110 V82" fill="none" stroke="#000" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M33 82 H67" fill="none" stroke="#000" stroke-width="5" stroke-linecap="round"/></svg><span class="wortmarke">Rätsel<span class="akzent">labor</span></span></h1>
+        <h1 id="startTitel" class="held-marke"><svg class="kolben" viewBox="0 4 100 160" aria-hidden="true"><circle cx="34" cy="21" r="5.2" fill="#F28C38"/><circle cx="42" cy="13" r="5.6" fill="#F28C38"/><circle cx="54" cy="12" r="5.8" fill="#F28C38"/><circle cx="64" cy="19" r="5.4" fill="#F28C38"/><circle cx="66" cy="31" r="5" fill="#F28C38"/><circle cx="60" cy="41" r="4.6" fill="#F28C38"/><circle cx="53" cy="49" r="4.2" fill="#F28C38"/><circle cx="50" cy="59" r="3.8" fill="#F28C38"/><circle cx="50" cy="72" r="3.5" fill="#F28C38"/><circle cx="51" cy="94" r="2.4" fill="#F28C38"/><circle cx="48.5" cy="103" r="1.8" fill="#F28C38"/><path d="M27.4 132 H42 C44 129 40 124 44.5 121 C47 119.3 53 119.3 55.5 121 C60 124 56 129 58 132 H72.6 L84 152 Q88 160 79 160 H21 Q12 160 16 152 Z" fill="#F28C38"/><path d="M40 82 V110 L16 152 Q12 160 21 160 H79 Q88 160 84 152 L60 110 V82" fill="none" stroke="#000" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M33 82 H67" fill="none" stroke="#000" stroke-width="5" stroke-linecap="round"/></svg><span class="wortmarke" translate="no">Rätsel<span class="akzent">labor</span></span></h1>
         <p class="lead">Das Rätsellabor macht aus deinen eigenen Inhalten fertige Rätsel für die Schule. Du gibst Wörter, Sätze oder eine Lösung ein, und das Labor baut daraus ein Arbeitsblatt mit Lösungsblatt. Die Kinder lösen es am Bildschirm oder auf Papier – das Blatt lädst du als PDF herunter.</p>
       </div>
     </section>
@@ -75,7 +94,7 @@
 
 <footer class="labor-fuss">
   <div class="labor-fuss-innen">
-    <span><span class="wortmarke">Rätsel<span class="akzent">labor</span></span> · Rätsel aus eigenen Inhalten</span>
+    <span><span class="wortmarke" translate="no">Rätsel<span class="akzent">labor</span></span> · Rätsel aus eigenen Inhalten</span>
     <span>Alle Rätsel entstehen direkt im Browser.</span>
   </div>
 </footer>

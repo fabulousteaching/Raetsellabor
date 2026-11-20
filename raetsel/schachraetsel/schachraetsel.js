@@ -5,6 +5,7 @@
    Code mit 1–4 Zeichen (je ein Brett), Züge «von – nach» oder «Richtung und Felder». Lösungsblatt, PDF. */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('schachraetsel');
 
 /* KERN-START */
 var Kern = (function(){
@@ -90,34 +91,34 @@ var Kern = (function(){
 })();
 /* KERN-ENDE */
 
-var ARTEN = [['vonnach', 'Von – nach', '♖ Turm von A3 nach A6'], ['richtung', 'Richtung und Felder', '♖ Turm auf A3: 3 Felder nach oben']];
+var ARTEN = [['vonnach', tx('Von – nach'), tx('♖ Turm von A3 nach A6')], ['richtung', tx('Richtung und Felder'), tx('♖ Turm auf A3: 3 Felder nach oben')]];
 function esc(t){ return Labor.esc(t); }
 
 var VORLAGE = '<div class="sr">' +
-  '<header class="sr-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Schachrätsel</h1>' +
-    '<p>Schachfiguren ziehen über das Brett. Wer jeden Zug als Linie einzeichnet, sieht am Schluss eine Ziffer oder einen Buchstaben.</p></header>' +
-  '<div class="sr-layout"><section class="sr-eingabe" aria-label="Eingaben">' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Was soll herauskommen?</h2><p>1 bis 4 Ziffern oder Buchstaben – je ein Schachbrett.</p></div></div>' +
-      '<label class="feld-label" for="srCode">Ziffern oder Buchstaben</label>' +
+  tx('<header class="sr-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Schachrätsel</h1>') +
+    tx('<p>Schachfiguren ziehen über das Brett. Wer jeden Zug als Linie einzeichnet, sieht am Schluss eine Ziffer oder einen Buchstaben.</p></header>') +
+  tx('<div class="sr-layout"><section class="sr-eingabe" aria-label="Eingaben">') +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Was soll herauskommen?</h2><p>1 bis 4 Ziffern oder Buchstaben – je ein Schachbrett.</p></div></div>') +
+      tx('<label class="feld-label" for="srCode">Ziffern oder Buchstaben</label>') +
       '<input type="text" id="srCode" class="sr-code" maxlength="4" autocomplete="off" spellcheck="false" inputmode="text">' +
       '<p class="hinweis" id="srCodeInfo"></p>' +
     '</div>' +
-    '<div class="karte" id="srZugKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Züge</h2></div></div>' +
-      '<p class="feld-label">So stehen die Züge auf dem Blatt</p>' +
-      '<div class="sr-arten" role="radiogroup" aria-label="Darstellung der Züge">' + ARTEN.map(function(a){ return '<label><input type="radio" name="srArt" value="' + a[0] + '"><span><b>' + a[1] + '</b><small>' + a[2] + '</small></span></label>'; }).join('') + '</div>' +
-      '<label class="opt"><input type="checkbox" id="srAlle"><span>Auch Dame, König und Bauer (sonst nur Turm und Läufer)</span></label>' +
-      '<label class="opt"><input type="checkbox" id="srRegeln"><span>Zugregeln der Figuren auf dem Blatt erklären</span></label>' +
+    tx('<div class="karte" id="srZugKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Züge</h2></div></div>') +
+      tx('<p class="feld-label">So stehen die Züge auf dem Blatt</p>') +
+      tx('<div class="sr-arten" role="radiogroup" aria-label="Darstellung der Züge">') + ARTEN.map(function(a){ return '<label><input type="radio" name="srArt" value="' + a[0] + '"><span><b>' + a[1] + '</b><small>' + a[2] + '</small></span></label>'; }).join('') + '</div>' +
+      tx('<label class="opt"><input type="checkbox" id="srAlle"><span>Auch Dame, König und Bauer (sonst nur Turm und Läufer)</span></label>') +
+      tx('<label class="opt"><input type="checkbox" id="srRegeln"><span>Zugregeln der Figuren auf dem Blatt erklären</span></label>') +
     '</div>' +
   '</section>' +
-  '<section class="sr-ausgabe" aria-label="Ergebnis">' +
+  tx('<section class="sr-ausgabe" aria-label="Ergebnis">') +
     '<div id="srMeldung" aria-live="polite"></div>' +
     '<div class="sr-werkzeug">' +
-      '<button type="button" class="btn klein" id="srZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
-      '<button type="button" class="btn klein" id="srNeu" title="Andere Lage auf dem Brett und andere Figuren">Neu mischen</button>' +
+      tx('<button type="button" class="btn klein" id="srZeigeLoesung" aria-pressed="false">Lösung zeigen</button>') +
+      tx('<button type="button" class="btn klein" id="srNeu" title="Andere Lage auf dem Brett und andere Figuren">Neu mischen</button>') +
       '<span class="abstand"></span>' + Labor.blattSchalterHtml() +
-      '<label><input type="checkbox" id="srMitLoesung"> mit Lösungsblatt</label>' +
-      '<button type="button" class="btn klein primary" id="srPdf">PDF herunterladen</button>' +
-      '<button type="button" class="btn klein primary" id="srHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
+      tx('<label><input type="checkbox" id="srMitLoesung"> mit Lösungsblatt</label>') +
+      tx('<button type="button" class="btn klein primary" id="srPdf">PDF herunterladen</button>') +
+      tx('<button type="button" class="btn klein primary" id="srHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>') +
     '</div>' +
     '<div class="sr-blaetter"><div class="sr-seiten" id="srSeiten"></div>' +
     '<div class="sr-rahmen sr-loesung-rahmen"><article class="sr-blatt sr-loesungsblatt" id="srLoesung" aria-hidden="true"></article></div></div>' +
@@ -142,7 +143,7 @@ Labor.registriere({
 var FELD = 32, RAND = 22, LINIENFARBE = '#C2410C';
 function brettSvg(R, loesung){
   var B = 8 * FELD, W = B + RAND + 6, H = B + RAND + 6, s = '';
-  s += '<svg class="sr-brett" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="img" aria-label="Schachbrett' + (loesung ? ' mit Lösung' : '') + '">';
+  s += '<svg class="sr-brett" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + tx('" role="img" aria-label="Schachbrett') + (loesung ? tx(' mit Lösung') : '') + '">';
   for (var y = 0; y < 8; y++) for (var x = 0; x < 8; x++){
     var px = RAND + x * FELD, py = 3 + (7 - y) * FELD;
     s += '<rect x="' + px + '" y="' + py + '" width="' + FELD + '" height="' + FELD + '" fill="' + ((x + y) % 2 ? '#FFFFFF' : '#DCD6CF') + '"/>';
@@ -200,51 +201,51 @@ function starte(bereich){
   var R = null;
   function zugText(z){
     var f = Kern.FIGUR[z.figur];
-    return '<span class="sr-figur" aria-hidden="true">' + f.zeichen + '</span> <b>' + f.name + '</b> ' +
-      (st.opt.art === 'richtung' ? 'auf ' + z.von + ': ' + z.felder + (z.felder === 1 ? ' Feld ' : ' Felder ') + z.richtung : 'von ' + z.von + ' nach ' + z.nach);
+    return '<span class="sr-figur" aria-hidden="true">' + f.zeichen + '</span> <b>' + tx(f.name) + '</b> ' +
+      (st.opt.art === 'richtung' ? tx(z.felder === 1 ? 'auf {f}: 1 Feld {r}' : 'auf {f}: {n} Felder {r}', { f:z.von, n:z.felder, r:tx(z.richtung) }) : tx('von {a} nach {b}', { a:z.von, b:z.nach }));
   }
   function zeichnen(){
     if (aus) return;
     var o = st.opt, roh = st.code.normalize('NFC').toLocaleUpperCase('de-CH'), zeichen = Array.from(roh).filter(function(c){ return !/\s/.test(c); });
     var falsch = zeichen.filter(function(c){ return !Kern.Z[c]; });
     var gut = zeichen.filter(function(c){ return Kern.Z[c]; });
-    $('#srCodeInfo').textContent = falsch.length ? 'Nicht möglich: ' + falsch.join(' ') + ' – es gehen die Ziffern 0–9 und die Buchstaben A–Z (ohne Umlaute).' : gut.length ? gut.length + (gut.length === 1 ? ' Zeichen' : ' Zeichen') + ' – ' + gut.length + (gut.length === 1 ? ' Schachbrett' : ' Schachbretter') : '';
+    $('#srCodeInfo').textContent = falsch.length ? tx('Nicht möglich: {z} – es gehen die Ziffern 0–9 und die Buchstaben A–Z (ohne Umlaute und Akzente).', { z:falsch.join(' ') }) : gut.length ? tx(gut.length === 1 ? '1 Zeichen – 1 Schachbrett' : '{n} Zeichen – {n} Schachbretter', { n:gut.length }) : '';
     $('#srZugKarte').hidden = !gut.length || !!falsch.length;
-    var fehlt = !gut.length ? 'Schreib links, was herauskommen soll: 1 bis 4 Ziffern oder Buchstaben, z. B. 7 oder A3.' : falsch.length ? 'Bitte nur Ziffern 0–9 und Buchstaben A–Z verwenden.' : !o.art ? 'Wähle links, wie die Züge auf dem Blatt stehen sollen.' : '';
+    var fehlt = !gut.length ? tx('Schreib links, was herauskommen soll: 1 bis 4 Ziffern oder Buchstaben, z. B. 7 oder A3.') : falsch.length ? tx('Bitte nur Ziffern 0–9 und Buchstaben A–Z verwenden.') : !o.art ? tx('Wähle links, wie die Züge auf dem Blatt stehen sollen.') : '';
     ['#srPdf', '#srHerunterladen', '#srZeigeLoesung', '#srNeu'].forEach(function(s){ $(s).disabled = !!fehlt; });
     if (fehlt){ R = null; $('#srSeiten').innerHTML = ''; $('#srLoesung').parentNode.hidden = true; meldung('info', '<p>' + fehlt + '</p>'); return; }
     meldung(''); $('#srLoesung').parentNode.hidden = false;
     var rnd = Kern.zufall(st.seed);
     R = gut.map(function(c){ return Kern.raetsel(c, rnd, o.alle); });
     var nZ = R.reduce(function(a, r){ return a + r.zuege.length; }, 0);
-    var anleitung = 'Die Figuren ziehen über das Schachbrett. Zeichne jeden Zug mit Lineal als Linie von Feldmitte zu Feldmitte' +
-      (o.art === 'richtung' ? ' – zähle dazu die Felder ab' : '') + '. Am Schluss ' + (R.length === 1 ? 'siehst du eine Ziffer oder einen Buchstaben.' : 'siehst du auf jedem Brett eine Ziffer oder einen Buchstaben – zusammen ergeben sie den Code.');
-    var regeln = '<ul class="sr-regeln">' + [['T', 'gerade, so weit sie will'], ['L', 'schräg, so weit er will'], ['D', 'gerade oder schräg, so weit sie will'], ['K', 'ein Feld in jede Richtung'], ['B', 'ein Feld nach oben (vom Startfeld in Reihe 2 auch zwei)']]
+    var anleitung = tx('Die Figuren ziehen über das Schachbrett. Zeichne jeden Zug mit Lineal als Linie von Feldmitte zu Feldmitte') +
+      (o.art === 'richtung' ? tx(' – zähle dazu die Felder ab') : '') + tx('. Am Schluss ') + (R.length === 1 ? tx('siehst du eine Ziffer oder einen Buchstaben.') : tx('siehst du auf jedem Brett eine Ziffer oder einen Buchstaben – zusammen ergeben sie den Code.'));
+    var regeln = '<ul class="sr-regeln">' + [['T', tx('gerade, so weit sie will')], ['L', tx('schräg, so weit er will')], ['D', tx('gerade oder schräg, so weit sie will')], ['K', tx('ein Feld in jede Richtung')], ['B', tx('ein Feld nach oben (vom Startfeld in Reihe 2 auch zwei)')]]
       .filter(function(x){ return o.alle || x[0] === 'T' || x[0] === 'L'; })
-      .map(function(x){ var f = Kern.FIGUR[x[0]]; return '<li><span class="sr-figur">' + f.zeichen + '</span> <b>' + f.name + ':</b> ' + x[1] + '</li>'; }).join('') + '</ul>';
+      .map(function(x){ var f = Kern.FIGUR[x[0]]; return '<li><span class="sr-figur">' + f.zeichen + '</span> <b>' + tx(f.name) + ':</b> ' + x[1] + '</li>'; }).join('') + '</ul>';
     function block(r, i, loesung){
       return '<section class="sr-block"><div class="sr-brettplatz">' + brettSvg(r, loesung) + '</div><div class="sr-zuege">' +
-        (R.length > 1 ? '<h3>Brett ' + (i + 1) + '</h3>' : '') +
+        (R.length > 1 ? tx('<h3>Brett ') + (i + 1) + '</h3>' : '') +
         (loesung ? '<p class="sr-loesung-zeichen">' + esc(r.zeichen) + '</p>' : '<ol>' + r.zuege.map(function(z){ return '<li>' + zugText(z) + '</li>'; }).join('') + '</ol>' +
-          '<p class="sr-antwort">' + (R.length > 1 ? 'Zeichen' : 'Das Zeichen') + ': <span class="sr-linie"></span></p>') + '</div></section>';
+          '<p class="sr-antwort">' + (R.length > 1 ? tx('Zeichen') : tx('Das Zeichen')) + ': <span class="sr-linie"></span></p>') + '</div></section>';
     }
     // Seiten: alles zuerst auf ein Blatt, Höhen messen, dann so aufteilen, dass jede Seite auf A4 passt
-    var kopf1 = (o.titelAn ? '<h2>Schachrätsel</h2>' : '') + (o.anleitungAn ? '<p class="sr-anleitung">' + esc(anleitung) + '</p>' + (o.regeln ? regeln : '') : '');
-    var codeZeile = R.length > 1 ? '<p class="sr-antwort sr-code-antwort">Code: <span class="sr-linie sr-lang"></span></p>' : '';
+    var kopf1 = (o.titelAn ? tx('<h2>Schachrätsel</h2>') : '') + (o.anleitungAn ? '<p class="sr-anleitung">' + esc(anleitung) + '</p>' + (o.regeln ? regeln : '') : '');
+    var codeZeile = R.length > 1 ? tx('<p class="sr-antwort sr-code-antwort">Code: <span class="sr-linie sr-lang"></span></p>') : '';
     var bloecke = R.map(function(r, k){ return block(r, k, false); });
     function seitenHtml(seiten){
       return seiten.map(function(liste, si){
-        var kopf = si === 0 ? kopf1 : '<p class="sr-seitenkopf">Schachrätsel – Seite ' + (si + 1) + ' von ' + seiten.length + '</p>';
+        var kopf = si === 0 ? kopf1 : '<p class="sr-seitenkopf">' + tx('Schachrätsel – Seite {i} von {n}', { i:si + 1, n:seiten.length }) + '</p>';
         return '<div class="sr-rahmen"><article class="sr-blatt sr-seite">' + kopf + liste.map(function(k){ return bloecke[k]; }).join('') +
           (si === seiten.length - 1 ? codeZeile : '') + '</article></div>';
       }).join('');
     }
     $('#srSeiten').innerHTML = seitenHtml([R.map(function(r, k){ return k; })]);
     $('#srSeiten').innerHTML = seitenHtml(aufteilen($('#srSeiten .sr-blatt')));
-    $('#srLoesung').innerHTML = (o.titelAn ? '<h2>Schachrätsel – Lösung</h2>' : '<p class="sr-anleitung"><b>Lösung</b></p>') +
+    $('#srLoesung').innerHTML = (o.titelAn ? tx('<h2>Schachrätsel – Lösung</h2>') : tx('<p class="sr-anleitung"><b>Lösung</b></p>')) +
       '<div class="sr-loesung-raster">' + R.map(function(r, k){ return block(r, k, true); }).join('') + '</div>' +
-      (R.length > 1 ? '<p class="sr-loesung-code">Code: <b>' + esc(R.map(function(r){ return r.zeichen; }).join('')) + '</b></p>' : '');
-    meldung('erfolg', '<p><b>Fertig!</b> ' + R.length + (R.length === 1 ? ' Brett' : ' Bretter') + ' mit zusammen ' + nZ + ' Zügen.</p>');
+      (R.length > 1 ? tx('<p class="sr-loesung-code">Code: <b>') + esc(R.map(function(r){ return r.zeichen; }).join('')) + '</b></p>' : '');
+    meldung('erfolg', '<p><b>' + tx('Fertig!') + '</b> ' + tx(R.length === 1 ? '1 Brett mit {z} Zügen.' : '{n} Bretter mit zusammen {z} Zügen.', { n:R.length, z:nZ }) + '</p>');
   }
 
   /* Bretter auf Seiten verteilen: Höhe einer A4-Seite (273 mm = 1032 px) mit Reserve. Ist das Blatt nicht sichtbar
@@ -283,9 +284,9 @@ function starte(bereich){
   $('#srHerunterladen').addEventListener('click', function(){
     if (!speicherOrt || !R) return;
     var inhalt = blaetter().map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); k.removeAttribute('hidden'); k.classList.remove('zeigen'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
-    speicherOrt.save({ filename:dateiname().replace(/\.pdf$/, '.html'), data:Labor.blattDatei('Schachrätsel', inhalt, '.sr-loesungsblatt{display:block}') }).catch(function(e){
+    speicherOrt.save({ filename:dateiname().replace(/\.pdf$/, '.html'), data:Labor.blattDatei(tx('Schachrätsel'), inhalt, '.sr-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 

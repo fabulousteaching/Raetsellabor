@@ -7,6 +7,7 @@
    Herunterladen: Geheimtext (PDF, wahlweise mit Lösungsblatt und Schlüssel; oder als Bild) und der Schlüssel einzeln. */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('geheimschrift');
 
 /* KERN-START */
 var Kern = (function(){
@@ -229,33 +230,33 @@ var Kern = (function(){
 /* KERN-ENDE */
 
 var SCHRIFTEN = [
-  ['caesar', 'Caesar-Verschiebung', 'Jeder Buchstabe rückt im Alphabet weiter.'],
-  ['emojis', 'Emoji-Scheibe', 'Wie Caesar, innen 26 Emojis zu einem Thema'],
-  ['farben', 'Regenbogen-Scheibe', 'Wie Caesar, innen 26 Farben im Regenbogen'],
-  ['atbasch', 'Rückwärts-Alphabet', 'A wird zu Z, B zu Y …'],
-  ['zahlen', 'Zahlen-Code', 'A = 1, B = 2 … Z = 26'],
-  ['handy', 'Handy-Tasten', 'So oft tippen wie auf der Handytaste: B = 22'],
-  ['polybios', 'Koordinaten-Gitter', 'Zeile und Spalte im Gitter: B = 12'],
-  ['freimaurer', 'Freimaurer-Code', 'Stücke von Gittern, manche mit Punkt'],
-  ['voegel', 'Vögel auf dem Draht', 'Jeder Vogel sitzt anders (Birds on a Wire)'],
-  ['kreise', 'Kreis-Code', 'Bögen und Striche im Kreis (Circles)'],
-  ['buecher', 'Bücher-Code', 'Buchstaben aus Büchern gelegt'],
-  ['baerte', 'Bärte-Code', 'Haare und Bart formen den Buchstaben'],
-  ['segmente', 'Segment-Code', 'Leuchtende Striche wie auf einer Anzeige'],
-  ['bausteine', 'Bausteine', 'Farbe und Anzahl Noppen der Bausteine'],
-  ['erpresser', 'Erpresserschrift', 'Wie aus Zeitungen ausgeschnitten und aufgeklebt'],
-  ['noten', 'Notenschrift', 'Wörter aus den Tönen C D E F G A H'],
-  ['altlatein', 'Altlatein', 'Alte Buchstaben aus Italien, oft gespiegelt'],
-  ['runen', 'Runen', 'Schriftzeichen der Germanen'],
-  ['finger', 'Fingeralphabet', 'Handzeichen der Gebärdensprache'],
-  ['morse', 'Morse-Code', 'Punkte und Striche'],
-  ['braille', 'Blindenschrift', 'Punkte zum Ertasten (Braille)'],
-  ['hieroglyphen', 'Hieroglyphen', 'Bildzeichen aus dem alten Ägypten']
+  ['caesar', tx('Caesar-Verschiebung'), tx('Jeder Buchstabe rückt im Alphabet weiter.')],
+  ['emojis', tx('Emoji-Scheibe'), tx('Wie Caesar, innen 26 Emojis zu einem Thema')],
+  ['farben', tx('Regenbogen-Scheibe'), tx('Wie Caesar, innen 26 Farben im Regenbogen')],
+  ['atbasch', tx('Rückwärts-Alphabet'), tx('A wird zu Z, B zu Y …')],
+  ['zahlen', tx('Zahlen-Code'), 'A = 1, B = 2 … Z = 26'],
+  ['handy', tx('Handy-Tasten'), tx('So oft tippen wie auf der Handytaste: B = 22')],
+  ['polybios', tx('Koordinaten-Gitter'), tx('Zeile und Spalte im Gitter: B = 12')],
+  ['freimaurer', tx('Freimaurer-Code'), tx('Stücke von Gittern, manche mit Punkt')],
+  ['voegel', tx('Vögel auf dem Draht'), tx('Jeder Vogel sitzt anders (Birds on a Wire)')],
+  ['kreise', tx('Kreis-Code'), tx('Bögen und Striche im Kreis (Circles)')],
+  ['buecher', tx('Bücher-Code'), tx('Buchstaben aus Büchern gelegt')],
+  ['baerte', tx('Bärte-Code'), tx('Haare und Bart formen den Buchstaben')],
+  ['segmente', tx('Segment-Code'), tx('Leuchtende Striche wie auf einer Anzeige')],
+  ['bausteine', tx('Bausteine'), tx('Farbe und Anzahl Noppen der Bausteine')],
+  ['erpresser', tx('Erpresserschrift'), tx('Wie aus Zeitungen ausgeschnitten und aufgeklebt')],
+  ['noten', tx('Notenschrift'), tx('Wörter aus den Tönen C D E F G A H')],
+  ['altlatein', tx('Altlatein'), tx('Alte Buchstaben aus Italien, oft gespiegelt')],
+  ['runen', tx('Runen'), tx('Schriftzeichen der Germanen')],
+  ['finger', tx('Fingeralphabet'), tx('Handzeichen der Gebärdensprache')],
+  ['morse', tx('Morse-Code'), tx('Punkte und Striche')],
+  ['braille', tx('Blindenschrift'), tx('Punkte zum Ertasten (Braille)')],
+  ['hieroglyphen', tx('Hieroglyphen'), tx('Bildzeichen aus dem alten Ägypten')]
 ];
-var HIERO_SCHRIFT = '"Noto Sans Egyptian Hieroglyphs"';
+var HIERO_SCHRIFT = tx('"Noto Sans Egyptian Hieroglyphs"');
 var HIERO_CSS = 'https://fonts.googleapis.com/css2?family=Noto+Sans+Egyptian+Hieroglyphs&display=swap';
 var TINTE = '#1C1714';
-var GROESSEN = [['klein', 'Klein', 30], ['mittel', 'Mittel', 42], ['gross', 'Gross', 58]];
+var GROESSEN = [['klein', tx('Klein'), 30], ['mittel', tx('Mittel'), 42], ['gross', tx('Gross'), 58]];
 
 /* ---------- Zeichnen der Zeichen ---------- */
 function esc(t){ return Labor.esc(t); }
@@ -486,7 +487,7 @@ function segmentPlan(){
     ['g1', 25, 74, 9], ['g2', 75, 74, 9], ['h', 37, 31, 9], ['i', 56, 31, 9], ['j', 65, 31, 9], ['k', 35, 134, 9], ['l', 56, 134, 9], ['m', 66, 134, 9]].forEach(function(l){
     t += '<text x="' + l[1] + '" y="' + l[2] + '" font-size="' + l[3] + '">' + l[0] + '</text>';
   });
-  return '<svg class="gs-seg-plan" viewBox="-16 -16 132 192" role="img" aria-label="Die 14 Segmente mit ihren Namen">' + segmentInnen(SEG_NAMEN, '#E4572E') +
+  return tx('<svg class="gs-seg-plan" viewBox="-16 -16 132 192" role="img" aria-label="Die 14 Segmente mit ihren Namen">') + segmentInnen(SEG_NAMEN, '#E4572E') +
     '<g style="font-family:var(--blatt-buchstaben)" font-weight="700" fill="' + TINTE + '" text-anchor="middle">' + t + '</g></svg>';
 }
 function segmentHtml(code){
@@ -501,7 +502,7 @@ function segmentHtml(code){
 /* Bausteine: von oben gesehen, 2 Reihen Noppen; Breite je nach Anzahl Noppen (2, 3 oder 4 je Reihe) */
 var STEIN = { rot:['#E3342F', '#A61E1A'], orange:['#F28C28', '#B35F0E'], gelb:['#F7D02C', '#B39207'], hellgruen:['#8BC34A', '#5A8A26'], gruen:['#2E8B57', '#1B5E38'],
   hellblau:['#4FC3F7', '#1F8BBE'], blau:['#1E5AA8', '#123A70'], violett:['#8E44AD', '#5E2A75'], rosa:['#F48FB1', '#C2577D'] };
-var STEIN_NAME = { rot:'rot', orange:'orange', gelb:'gelb', hellgruen:'hellgrün', gruen:'dunkelgrün', hellblau:'hellblau', blau:'blau', violett:'violett', rosa:'rosa' };
+var STEIN_NAME = { rot:'rot', orange:'orange', gelb:'gelb', hellgruen:tx('hellgrün'), gruen:tx('dunkelgrün'), hellblau:'hellblau', blau:'blau', violett:'violett', rosa:'rosa' };
 function steinSvg(stein, klasse){
   var f = STEIN[stein[0]], n = stein[1], w = n * 10 + 2, noppen = '';
   for (var r = 0; r < 2; r++) for (var c = 0; c < n; c++) noppen += '<circle cx="' + (6 + c * 10) + '" cy="' + (6 + r * 10) + '" r="3.3"/>';
@@ -513,12 +514,12 @@ function steinSvg(stein, klasse){
    Das Papier ist ein kleines SVG (nur Formen), der Buchstabe normaler Text darüber: so zeichnet das PDF ihn mit der
    geladenen Webschrift, ohne jede Schrift in jedes SVG einzubetten. Schriften: Google Fonts (SIL Open Font License). */
 var ERP_SCHRIFTEN = [   // [Familie, Ersatz, Gewicht, kursiv, nur 'gross' | nur 'klein', Umriss möglich (Schrift ohne überlappende Konturen)]
-  ['Abril Fatface', 'serif', 400, 0, '', 1], ['Alfa Slab One', 'serif', 400, 0, '', 1], ['Anton', 'sans-serif', 400, 0, '', 1], ['Archivo Black', 'sans-serif', 400, 0, '', 1],
-  ['Bebas Neue', 'sans-serif', 400, 0, 'gross', 1], ['Bungee', 'sans-serif', 400, 0, 'gross', 1], ['Courier Prime', 'monospace', 700], ['Libre Baskerville', 'serif', 700],
-  ['Lobster', 'cursive', 400], ['Oswald', 'sans-serif', 700, 0, '', 1], ['Playfair Display', 'serif', 900, 1], ['Righteous', 'sans-serif', 400, 0, '', 1],
-  ['Rye', 'serif', 400], ['Shrikhand', 'serif', 400], ['Special Elite', 'monospace', 400], ['Ultra', 'serif', 400, 0, '', 1], ['UnifrakturMaguntia', 'serif', 400, 0, 'klein']
+  [tx('Abril Fatface'), 'serif', 400, 0, '', 1], [tx('Alfa Slab One'), 'serif', 400, 0, '', 1], [tx('Anton'), 'sans-serif', 400, 0, '', 1], [tx('Archivo Black'), 'sans-serif', 400, 0, '', 1],
+  [tx('Bebas Neue'), 'sans-serif', 400, 0, 'gross', 1], [tx('Bungee'), 'sans-serif', 400, 0, 'gross', 1], [tx('Courier Prime'), 'monospace', 700], [tx('Libre Baskerville'), 'serif', 700],
+  [tx('Lobster'), 'cursive', 400], [tx('Oswald'), 'sans-serif', 700, 0, '', 1], [tx('Playfair Display'), 'serif', 900, 1], [tx('Righteous'), 'sans-serif', 400, 0, '', 1],
+  [tx('Rye'), 'serif', 400], [tx('Shrikhand'), 'serif', 400], [tx('Special Elite'), 'monospace', 400], [tx('Ultra'), 'serif', 400, 0, '', 1], [tx('UnifrakturMaguntia'), 'serif', 400, 0, 'klein']
 ];
-var FRAKTUR_LESBAR = 'abcdeghilmnopqrtuyäöü';   // Kleinbuchstaben, die in Fraktur gut zu erkennen sind
+var FRAKTUR_LESBAR = tx('abcdeghilmnopqrtuyäöü');   // Kleinbuchstaben, die in Fraktur gut zu erkennen sind
 function erpHell(farbe){ var n = parseInt(farbe.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) / 255; }
 var ERP_CSS = 'https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Alfa+Slab+One&family=Anton&family=Archivo+Black&family=Bebas+Neue&family=Bungee' +
   '&family=Courier+Prime:wght@700&family=Libre+Baskerville:wght@700&family=Lobster&family=Oswald:wght@700&family=Playfair+Display:ital,wght@1,900' +
@@ -570,9 +571,9 @@ function erpHtml(zeichen, stil){
   var svg = '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' +
     (stil.hinten >= 0 ? '<polygon points="' + pkt(-2, 2, 1.1, H) + '" fill="' + ERP_FARBEN[stil.hinten][0] + '"/>' : '') +
     '<polygon points="' + pkt(2, 3) + '" fill="#000" fill-opacity=".16"/><polygon points="' + pkt(0, 0) + '" fill="' + f[0] + '"' + (f[0] === '#FFFFFF' || f[0] === '#F3EEE2' ? ' stroke="#CFC6BC" stroke-width="1.2" vector-effect="non-scaling-stroke"' : '') + '/></svg>';
-  var stilText = 'font-family:\'' + sch[0] + '\',' + sch[1] + ';font-weight:' + sch[2] + (sch[3] ? ';font-style:italic' : '') + ';color:' + f[1] +
+  var stilText = tx('font-family:\'') + sch[0] + '\',' + sch[1] + tx(';font-weight:') + sch[2] + (sch[3] ? ';font-style:italic' : '') + tx(';color:') + f[1] +
     (umriss ? ';-webkit-text-stroke:max(1px,.03em) #1C1714' : '');
-  return '<span class="gs-erp" style="--s:' + stil.groesse.toFixed(2) + ';--r:' + stil.dreh.toFixed(1) + 'deg;--dy:' + stil.dy.toFixed(1) + '%;--pl:' + stil.padL.toFixed(2) + 'em;--pr:' + stil.padR.toFixed(2) + 'em">' +
+  return '<span class="gs-erp" style="--s:' + stil.groesse.toFixed(2) + ';--r:' + stil.dreh.toFixed(1) + tx('deg;--dy:') + stil.dy.toFixed(1) + tx('%;--pl:') + stil.padL.toFixed(2) + tx('em;--pr:') + stil.padR.toFixed(2) + 'em">' +
     svg + '<span class="gs-erp-b" style="' + stilText + '">' + esc(zeichen) + '</span></span>';
 }
 /* Notenschrift: Viertelnoten im Notensystem mit Violinschlüssel. Linien bei y = 40 … 80 (unten E, Mitte H, G-Linie 70);
@@ -609,7 +610,7 @@ function notenSchluesselSvg(bs){
     (bs ? '<path d="M' + (xs[7] + 22) + ' 40V80" stroke="' + TINTE + '" stroke-width="1.2"/>' : '') +   // Taktstrich vor den Noten mit ♭
     '<g style="font-family:var(--blatt-buchstaben)" font-weight="700" font-size="15" fill="#C2410C" text-anchor="middle">' +
     noten.map(function(n, i){ return '<text x="' + xs[i] + '" y="128">' + n[0] + '</text>'; }).join('') + '</g>';
-  return '<svg class="gs-noten-schluessel" viewBox="0 18 ' + b + ' 116" role="img" aria-label="Noten vom tiefen C bis zum hohen C mit ihren Namen">' +
+  return '<svg class="gs-noten-schluessel" viewBox="0 18 ' + b + tx(' 116" role="img" aria-label="Noten vom tiefen C bis zum hohen C mit ihren Namen">') +
     '<path d="' + [40, 50, 60, 70, 80].map(function(y){ return 'M0 ' + y + 'H' + b; }).join('') + '" stroke="' + TINTE + '" stroke-width="1.1"/>' + inhalt + '</svg>';
 }
 function schnipselHtml(code){
@@ -642,10 +643,10 @@ function vorschauHtml(art){
 /* QR-Code als SVG (gemeinsam/extern/qrcode.js) – für die Hörseite der Notenschrift */
 function qrSvg(text){
   qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
-  var q = qrcode(0, 'M'); q.addData(text, 'Byte'); q.make();
+  var q = qrcode(0, 'M'); q.addData(text, tx('Byte')); q.make();
   var n = q.getModuleCount(), d = '', R = 0;   // ohne weissen Rand: die gewählte Grösse ist die des sichtbaren Codes (das Blatt ist rundherum weiss)
   for (var y = 0; y < n; y++) for (var x = 0; x < n; x++) if (q.isDark(y, x)) d += 'M' + (x + R) + ' ' + (y + R) + 'h1v1h-1z';
-  return '<svg class="gs-qr" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + (n + 2 * R) + ' ' + (n + 2 * R) + '" shape-rendering="crispEdges" role="img" aria-label="QR-Code zur Hörseite">' +
+  return '<svg class="gs-qr" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + (n + 2 * R) + ' ' + (n + 2 * R) + tx('" shape-rendering="crispEdges" role="img" aria-label="QR-Code zur Hörseite">') +
     '<rect width="100%" height="100%" fill="#fff"/><path d="' + d + '" fill="#000"/></svg>';
 }
 
@@ -687,211 +688,211 @@ function caesarScheibe(z){
       var tf = textFarbe ? textFarbe(i) : null;
       var stil = tf ? ' fill="' + tf + '"' + (hell(tf) ? ' stroke="' + TINTE + '" stroke-width="0.7" paint-order="stroke"' : '') : '';
       var t = inhalt ? inhalt(i) : Kern.ABC[i];
-      if (t) h += '<text transform="translate(' + cx + ' 110) rotate(' + a.toFixed(2) + ')" y="' + (-rText + gr * 0.35).toFixed(2) + '" font-size="' + gr + '"' + stil + '>' + t + '</text>';
+      if (t) h += '<text transform="translate(' + cx + tx(' 110) rotate(') + a.toFixed(2) + ')" y="' + (-rText + gr * 0.35).toFixed(2) + '" font-size="' + gr + '"' + stil + '>' + t + '</text>';
     }
     if (mitStern) h += stern(cx, 110 - rInnen + 9, 6.5);
     h += '<circle cx="' + cx + '" cy="110" r="2" fill="' + TINTE + '"/><text x="' + cx + '" y="' + (110 + R + 9) + '" font-size="7.5" font-weight="400" fill="#6E655E">' + beschriftung + '</text>';
     return h;
   }
-  return '<svg class="gs-scheibe" viewBox="0 0 400 230" role="img" aria-label="' + (z.name || 'Caesar-Scheibe') + ' zum Ausschneiden">' +
+  return '<svg class="gs-scheibe" viewBox="0 0 400 230" role="img" aria-label="' + (z.name || tx('Caesar-Scheibe')) + ' zum Ausschneiden">' +
     '<g style="font-family:var(--blatt-buchstaben)" font-weight="700" fill="' + TINTE + '" text-anchor="middle">' +
-    scheibe(108, 100, 88, 74, 15, 'grosse Scheibe (aussen: Klartext)', z.aussen, null, z.aussenFarbe) +
-    scheibe(300, 72, 61, 47, z.innenGroesse || 13, 'kleine Scheibe (Geheimtext)', z.innen, z.innenFarbe, null, true) + '</g></svg>';
+    scheibe(108, 100, 88, 74, 15, tx('grosse Scheibe (aussen: Klartext)'), z.aussen, null, z.aussenFarbe) +
+    scheibe(300, 72, 61, 47, z.innenGroesse || 13, tx('kleine Scheibe (Geheimtext)'), z.innen, z.innenFarbe, null, true) + '</g></svg>';
 }
 function schluesselHtml(art, o){
   var A = Kern.ABC.split('');
   switch (art){
     case 'caesar':
-      return '<p class="gs-erklaerung">Verschiebung um <b>' + o.verschiebung + '</b>: Jeder Buchstabe rückt ' + o.verschiebung + ' Stellen weiter – aus A wird ' + Kern.ABC[o.verschiebung % 26] + '. Zum Entschlüsseln den Geheimbuchstaben unten suchen und den Buchstaben darüber lesen.</p>' +
-        zweiReihen(A, A.map(function(c){ return Kern.zeichen('caesar', c, o).text; }), ['Klartext', 'Geheim']) +
-        (o.scheibe ? '<h3 class="gs-unter">Caesar-Scheibe zum Basteln</h3><p class="gs-erklaerung">Beide Scheiben ausschneiden, die kleine auf die grosse legen und in der Mitte mit einer Musterbeutelklammer befestigen. Dann die kleine Scheibe so drehen, dass ihr ' + Kern.ABC[o.verschiebung % 26] + ' unter dem A der grossen steht – oder anders gesagt: der ★ (er markiert das A der kleinen Scheibe) unter dem ' + Kern.ABC[(26 - o.verschiebung % 26) % 26] + '. Aussen steht der Klartext, innen der Geheimtext.</p>' + caesarScheibe() : '');
+      return tx('<p class="gs-erklaerung">Verschiebung um <b>') + o.verschiebung + tx('</b>: Jeder Buchstabe rückt ') + o.verschiebung + tx(' Stellen weiter – aus A wird ') + Kern.ABC[o.verschiebung % 26] + tx('. Zum Entschlüsseln den Geheimbuchstaben unten suchen und den Buchstaben darüber lesen.</p>') +
+        zweiReihen(A, A.map(function(c){ return Kern.zeichen('caesar', c, o).text; }), [tx('Klartext'), tx('Geheim')]) +
+        (o.scheibe ? tx('<h3 class="gs-unter">Caesar-Scheibe zum Basteln</h3><p class="gs-erklaerung">Beide Scheiben ausschneiden, die kleine auf die grosse legen und in der Mitte mit einer Musterbeutelklammer befestigen. Dann die kleine Scheibe so drehen, dass ihr ') + Kern.ABC[o.verschiebung % 26] + tx(' unter dem A der grossen steht – oder anders gesagt: der ★ (er markiert das A der kleinen Scheibe) unter dem ') + Kern.ABC[(26 - o.verschiebung % 26) % 26] + tx('. Aussen steht der Klartext, innen der Geheimtext.</p>') + caesarScheibe() : '');
     case 'emojis':
-      if (!Kern.EMOJI_THEMEN[o.emojiThema]) return '<p class="gs-erklaerung">Wähle zuerst ein Emoji-Thema.</p>';
+      if (!Kern.EMOJI_THEMEN[o.emojiThema]) return tx('<p class="gs-erklaerung">Wähle zuerst ein Emoji-Thema.</p>');
       var E = Kern.EMOJI_THEMEN[o.emojiThema].liste, sv = +o.bildVerschiebung || 0;
-      return '<p class="gs-erklaerung">Jeder Buchstabe ist ein Emoji: A ist ' + E[sv] + ', B ist ' + E[(sv + 1) % 26] + ', C ist ' + E[(sv + 2) % 26] + ' … Zum Entschlüsseln das Emoji unten suchen und den Buchstaben darüber lesen.</p>' +
-        zweiReihen(A, A.map(function(c, i){ return '<span class="gs-emoji-k">' + E[(i + sv) % 26] + '</span>'; }), ['Buchstabe', 'Emoji']) +
-        (o.bildScheibe ? '<h3 class="gs-unter">Emoji-Scheibe zum Basteln</h3><p class="gs-erklaerung">Beide Scheiben ausschneiden, die kleine auf die grosse legen und in der Mitte mit einer Musterbeutelklammer befestigen. ' +
-          'Der ★ auf der kleinen Scheibe zeigt den Anfang. Dreh die kleine Scheibe so, dass der ★ unter dem <b>' + Kern.ABC[(26 - sv) % 26] + '</b> steht' + (sv ? '' : ' (also unter dem A)') + '. Jetzt steht unter jedem Buchstaben sein Emoji – unter dem A ' + E[sv] + '.</p>' +
-          caesarScheibe({ name:'Emoji-Scheibe', innen:function(i){ return E[i]; }, innenGroesse:10.5 }) : '');
+      return tx('<p class="gs-erklaerung">Jeder Buchstabe ist ein Emoji: A ist ') + E[sv] + tx(', B ist ') + E[(sv + 1) % 26] + tx(', C ist ') + E[(sv + 2) % 26] + tx(' … Zum Entschlüsseln das Emoji unten suchen und den Buchstaben darüber lesen.</p>') +
+        zweiReihen(A, A.map(function(c, i){ return '<span class="gs-emoji-k">' + E[(i + sv) % 26] + '</span>'; }), [tx('Buchstabe'), tx('Emoji')]) +
+        (o.bildScheibe ? tx('<h3 class="gs-unter">Emoji-Scheibe zum Basteln</h3><p class="gs-erklaerung">Beide Scheiben ausschneiden, die kleine auf die grosse legen und in der Mitte mit einer Musterbeutelklammer befestigen. ') +
+          tx('Der ★ auf der kleinen Scheibe zeigt den Anfang. Dreh die kleine Scheibe so, dass der ★ unter dem <b>') + Kern.ABC[(26 - sv) % 26] + tx('</b> steht') + (sv ? '' : tx(' (also unter dem A)')) + tx('. Jetzt steht unter jedem Buchstaben sein Emoji – unter dem A ') + E[sv] + '.</p>' +
+          caesarScheibe({ name:tx('Emoji-Scheibe'), innen:function(i){ return E[i]; }, innenGroesse:10.5 }) : '');
     case 'farben':
       var F = Kern.FARB_CODE, sf = +o.bildVerschiebung || 0;
       function punkt(f){ return '<span class="gs-farb-k" style="background:' + f + '"></span>'; }
       function bunt(c, i){ return '<span class="gs-farbbuchstabe" style="color:' + F[i] + '">' + c + '</span>'; }
-      return '<p class="gs-erklaerung">Jeder Buchstabe ist eine Farbe. Die Farben folgen dem Regenbogen – immer abwechselnd dunkel und hell. ' + (sf ? 'Die Farben sind um ' + sf + ' verschoben. ' : '') +
-        'Zum Entschlüsseln die Farbe unten suchen und den Buchstaben darüber lesen. Am besten farbig drucken.</p>' +
-        zweiReihen(A.map(bunt), A.map(function(c, i){ return punkt(F[(i + sf) % 26]); }), ['Buchstabe', 'Farbe']) +
-        (o.bildScheibe ? '<h3 class="gs-unter">Regenbogen-Scheibe zum Basteln</h3><p class="gs-erklaerung">Beide Scheiben ausschneiden, die kleine auf die grosse legen und in der Mitte mit einer Musterbeutelklammer befestigen. ' +
-          'Der ★ auf der kleinen Scheibe zeigt den Anfang. Dreh die kleine Scheibe so, dass der ★ unter dem <b>' + Kern.ABC[(26 - sf) % 26] + '</b> steht' + (sf ? '' : ' (also unter dem A)') + '. Jetzt steht unter jedem Buchstaben seine Farbe – unter dem A ' + punkt(F[sf]) + '.</p>' +
-          caesarScheibe({ name:'Regenbogen-Scheibe', innen:function(){ return ''; }, innenFarbe:function(i){ return F[i]; }, aussenFarbe:function(i){ return F[i]; } }) : '');
+      return tx('<p class="gs-erklaerung">Jeder Buchstabe ist eine Farbe. Die Farben folgen dem Regenbogen – immer abwechselnd dunkel und hell. ') + (sf ? tx('Die Farben sind um ') + sf + tx(' verschoben. ') : '') +
+        tx('Zum Entschlüsseln die Farbe unten suchen und den Buchstaben darüber lesen. Am besten farbig drucken.</p>') +
+        zweiReihen(A.map(bunt), A.map(function(c, i){ return punkt(F[(i + sf) % 26]); }), [tx('Buchstabe'), tx('Farbe')]) +
+        (o.bildScheibe ? tx('<h3 class="gs-unter">Regenbogen-Scheibe zum Basteln</h3><p class="gs-erklaerung">Beide Scheiben ausschneiden, die kleine auf die grosse legen und in der Mitte mit einer Musterbeutelklammer befestigen. ') +
+          tx('Der ★ auf der kleinen Scheibe zeigt den Anfang. Dreh die kleine Scheibe so, dass der ★ unter dem <b>') + Kern.ABC[(26 - sf) % 26] + tx('</b> steht') + (sf ? '' : tx(' (also unter dem A)')) + tx('. Jetzt steht unter jedem Buchstaben seine Farbe – unter dem A ') + punkt(F[sf]) + '.</p>' +
+          caesarScheibe({ name:tx('Regenbogen-Scheibe'), innen:function(){ return ''; }, innenFarbe:function(i){ return F[i]; }, aussenFarbe:function(i){ return F[i]; } }) : '');
     case 'atbasch':
-      return '<p class="gs-erklaerung">Das Alphabet wird umgedreht: A und Z tauschen, B und Y, C und X … Verschlüsseln und Entschlüsseln geht gleich.</p>' +
-        zweiReihen(A, A.map(function(c){ return Kern.zeichen('atbasch', c, o).text; }), ['Klartext', 'Geheim']);
+      return tx('<p class="gs-erklaerung">Das Alphabet wird umgedreht: A und Z tauschen, B und Y, C und X … Verschlüsseln und Entschlüsseln geht gleich.</p>') +
+        zweiReihen(A, A.map(function(c){ return Kern.zeichen('atbasch', c, o).text; }), [tx('Klartext'), tx('Geheim')]);
     case 'zahlen':
-      return '<p class="gs-erklaerung">Jeder Buchstabe wird durch seine Stelle im Alphabet ersetzt.</p>' + zweiReihen(A, A.map(function(c, i){ return String(i + 1); }), ['Buchstabe', 'Zahl']);
+      return tx('<p class="gs-erklaerung">Jeder Buchstabe wird durch seine Stelle im Alphabet ersetzt.</p>') + zweiReihen(A, A.map(function(c, i){ return String(i + 1); }), [tx('Buchstabe'), tx('Zahl')]);
     case 'handy':
-      return '<p class="gs-erklaerung">Wie früher beim SMS-Schreiben: Die Ziffer zeigt die Taste, und so oft, wie sie dasteht, wird getippt. B ist der zweite Buchstabe auf der Taste 2, also <b>22</b>.</p>' +
+      return tx('<p class="gs-erklaerung">Wie früher beim SMS-Schreiben: Die Ziffer zeigt die Taste, und so oft, wie sie dasteht, wird getippt. B ist der zweite Buchstabe auf der Taste 2, also <b>22</b>.</p>') +
         '<div class="gs-handy">' + [['1', ''], ['2', 'ABC'], ['3', 'DEF'], ['4', 'GHI'], ['5', 'JKL'], ['6', 'MNO'], ['7', 'PQRS'], ['8', 'TUV'], ['9', 'WXYZ'], ['*', ''], ['0', ''], ['#', '']]
           .map(function(t){ return '<span class="gs-taste"><b>' + t[0] + '</b><small>' + (t[1] || '&nbsp;') + '</small></span>'; }).join('') + '</div>' +
         tabelle(A.map(function(c){ return [c, '<span class="gs-t">' + Kern.zeichen('handy', c, o).text + '</span>']; }), 'gs-tab-text');
     case 'polybios':
       var g = '<table class="gs-gitter"><tr><th></th>' + [1, 2, 3, 4, 5].map(function(s){ return '<th>' + s + '</th>'; }).join('') + '</tr>';
       for (var r = 0; r < 5; r++){ g += '<tr><th>' + (r + 1) + '</th>'; for (var c = 0; c < 5; c++){ var b = Kern.GITTER[r * 5 + c]; g += '<td>' + (b === 'I' ? 'I/J' : b) + '</td>'; } g += '</tr>'; }
-      return '<p class="gs-erklaerung">Jeder Buchstabe wird zu zwei Ziffern: zuerst die <b>Zeile</b>, dann die <b>Spalte</b>. B steht in Zeile 1, Spalte 2, also <b>12</b>. I und J teilen sich ein Feld.</p>' + g + '</table>';
+      return tx('<p class="gs-erklaerung">Jeder Buchstabe wird zu zwei Ziffern: zuerst die <b>Zeile</b>, dann die <b>Spalte</b>. B steht in Zeile 1, Spalte 2, also <b>12</b>. I und J teilen sich ein Feld.</p>') + g + '</table>';
     case 'freimaurer':
-      return '<p class="gs-erklaerung">Jeder Buchstabe wird als das Stück Gitter geschrieben, das ihn umgibt – mit Punkt, wenn neben ihm ein Punkt steht.</p>' +
-        '<div class="gs-fm-schluessel">' + [[fmGitter, 0, false, 'A bis I'], [fmGitter, 9, true, 'J bis R, mit Punkt'], [fmX, 18, false, 'S bis V'], [fmX, 22, true, 'W bis Z, mit Punkt']]
-          .map(function(k){ return '<svg viewBox="0 0 300 300" role="img" aria-label="Schlüssel ' + k[3] + '">' + k[0](k[1], k[2]) + '</svg>'; }).join('') + '</div>' +
+      return tx('<p class="gs-erklaerung">Jeder Buchstabe wird als das Stück Gitter geschrieben, das ihn umgibt – mit Punkt, wenn neben ihm ein Punkt steht.</p>') +
+        '<div class="gs-fm-schluessel">' + [[fmGitter, 0, false, tx('A bis I')], [fmGitter, 9, true, tx('J bis R, mit Punkt')], [fmX, 18, false, tx('S bis V')], [fmX, 22, true, tx('W bis Z, mit Punkt')]]
+          .map(function(k){ return tx('<svg viewBox="0 0 300 300" role="img" aria-label="Schlüssel ') + k[3] + '">' + k[0](k[1], k[2]) + '</svg>'; }).join('') + '</div>' +
         tabelle(A.map(function(c){ return [c, fmSvg(Kern.freimaurer(c), 'gs-fm-k')]; }), 'gs-tab-fm');
     case 'voegel':
-      return '<p class="gs-erklaerung">Jeder Buchstabe ist ein Vogel auf dem Draht – achte darauf, wohin er schaut, wie sein Schwanz hängt (kurz, lang oder schräg) und was er tut: sitzen (A–F), mit den Flügeln schlagen (G–L), picken (M–R), als Küken sitzen (S–X) oder liegen (Y, Z).</p>' +
+      return tx('<p class="gs-erklaerung">Jeder Buchstabe ist ein Vogel auf dem Draht – achte darauf, wohin er schaut, wie sein Schwanz hängt (kurz, lang oder schräg) und was er tut: sitzen (A–F), mit den Flügeln schlagen (G–L), picken (M–R), als Küken sitzen (S–X) oder liegen (Y, Z).</p>') +
         tabelle(A.map(function(c){ return [c, vogelSvg(Kern.VOEGEL[c], 'gs-vogel-k')]; }), 'gs-tab-voegel');
     case 'buecher':
-      return '<p class="gs-erklaerung">Jeder Buchstabe ist aus Büchern gelegt – liegend, stehend, schräg oder aufgeklappt. Schau genau, welche Form die Bücher zusammen bilden.</p>' +
+      return tx('<p class="gs-erklaerung">Jeder Buchstabe ist aus Büchern gelegt – liegend, stehend, schräg oder aufgeklappt. Schau genau, welche Form die Bücher zusammen bilden.</p>') +
         tabelle(A.map(function(c){ return [c, buchSvg(Kern.BUECHER[c], 'gs-buch-k')]; }), 'gs-tab-buecher') +
-        '<h3 class="gs-unter">Satzzeichen</h3>' + tabelle([['.', 'Punkt'], [',', 'Komma'], ['!', 'Ausrufezeichen'], ['-', 'Bindestrich']].map(function(x){ return [x[0], buchSvg(Kern.BUECHER[x[0]], 'gs-buch-k'), x[1]]; }), 'gs-tab-buecher');
+        tx('<h3 class="gs-unter">Satzzeichen</h3>') + tabelle([['.', tx('Punkt')], [',', tx('Komma')], ['!', tx('Ausrufezeichen')], ['-', tx('Bindestrich')]].map(function(x){ return [x[0], buchSvg(Kern.BUECHER[x[0]], 'gs-buch-k'), x[1]]; }), 'gs-tab-buecher');
     case 'baerte':
-      return '<p class="gs-erklaerung">Jeder Buchstabe ist ein Gesicht: Haare und Bart formen zusammen den Buchstaben. Schau genau auf den Umriss des Bartes und der Haare.</p>' +
+      return tx('<p class="gs-erklaerung">Jeder Buchstabe ist ein Gesicht: Haare und Bart formen zusammen den Buchstaben. Schau genau auf den Umriss des Bartes und der Haare.</p>') +
         tabelle(A.map(function(c){ return [c, bildHtml('baerte', Kern.BILDZEICHEN[c], '-k')]; }), 'gs-tab-baerte');
     case 'segmente':
-      return '<p class="gs-erklaerung">Wie auf einer Leuchtanzeige besteht jedes Zeichen aus bis zu 14 Strichen (Segmenten). Jedes Segment hat einen Namen. Für jeden Buchstaben leuchten bestimmte Segmente' +
-        (o.segArt === 'ausmalen' ? ' – male die genannten Segmente an und lies den Buchstaben ab.' : '.') + '</p>' +
-        '<div class="gs-seg-kopf">' + segmentPlan() + '<p class="gs-erklaerung">Aussen: <b>a</b> oben, <b>b</b> und <b>c</b> rechts, <b>d</b> unten, <b>e</b> und <b>f</b> links.<br>Mitte: <b>g1</b> und <b>g2</b> waagrecht.<br>Innen oben: <b>h</b>, <b>i</b>, <b>j</b>; innen unten: <b>k</b>, <b>l</b>, <b>m</b>.</p></div>' +
+      return tx('<p class="gs-erklaerung">Wie auf einer Leuchtanzeige besteht jedes Zeichen aus bis zu 14 Strichen (Segmenten). Jedes Segment hat einen Namen. Für jeden Buchstaben leuchten bestimmte Segmente') +
+        (o.segArt === 'ausmalen' ? tx(' – male die genannten Segmente an und lies den Buchstaben ab.') : '.') + '</p>' +
+        '<div class="gs-seg-kopf">' + segmentPlan() + tx('<p class="gs-erklaerung">Aussen: <b>a</b> oben, <b>b</b> und <b>c</b> rechts, <b>d</b> unten, <b>e</b> und <b>f</b> links.<br>Mitte: <b>g1</b> und <b>g2</b> waagrecht.<br>Innen oben: <b>h</b>, <b>i</b>, <b>j</b>; innen unten: <b>k</b>, <b>l</b>, <b>m</b>.</p></div>') +
         tabelle(A.map(function(c){ return [c, segmentSvg(Kern.SEGMENTE[c], 'gs-seg-k'), Kern.SEGMENTE[c].join(' ')]; }), 'gs-tab-seg') +
-        '<h3 class="gs-unter">Ziffern</h3>' + tabelle('0123456789'.split('').map(function(c){ return [c, segmentSvg(Kern.SEGMENTE[c], 'gs-seg-k'), Kern.SEGMENTE[c].join(' ')]; }), 'gs-tab-seg');
+        tx('<h3 class="gs-unter">Ziffern</h3>') + tabelle('0123456789'.split('').map(function(c){ return [c, segmentSvg(Kern.SEGMENTE[c], 'gs-seg-k'), Kern.SEGMENTE[c].join(' ')]; }), 'gs-tab-seg');
     case 'bausteine':
-      return '<p class="gs-erklaerung">Jeder Buchstabe ist ein Baustein, von oben gesehen. Zähle die Noppen und schau die Farbe an: A bis I haben 4 Noppen (2 × 2), J bis R 6 Noppen (2 × 3) und S bis Z 8 Noppen (2 × 4). ' +
-        'In jeder Gruppe kommen die Farben in derselben Reihenfolge: rot, orange, gelb, hellgrün, dunkelgrün, hellblau, blau, violett, rosa.</p>' +
+      return tx('<p class="gs-erklaerung">Jeder Buchstabe ist ein Baustein, von oben gesehen. Zähle die Noppen und schau die Farbe an: A bis I haben 4 Noppen (2 × 2), J bis R 6 Noppen (2 × 3) und S bis Z 8 Noppen (2 × 4). ') +
+        tx('In jeder Gruppe kommen die Farben in derselben Reihenfolge: rot, orange, gelb, hellgrün, dunkelgrün, hellblau, blau, violett, rosa.</p>') +
         tabelle(A.map(function(c){ return [c, steinSvg(Kern.BAUSTEINE[c], 'gs-stein-k'), STEIN_NAME[Kern.BAUSTEINE[c][0]]]; }), 'gs-tab-steine');
     case 'noten':
-      return '<p class="gs-erklaerung">Jeder Ton in der Musik hat einen Namen: C, D, E, F, G, A und H – nach dem H kommt wieder ein C. Im Notensystem mit dem Violinschlüssel steht jede Note auf einer Linie oder in einem Zwischenraum. ' +
-        'Der Name der Note ist der Buchstabe. Das C gibt es zweimal: tief unten auf einer kleinen Hilfslinie und hoch im dritten Zwischenraum.' + (o.notenBS ? '' : ' Darum lassen sich nur Wörter mit diesen sieben Buchstaben schreiben.') + '</p>' +
+      return tx('<p class="gs-erklaerung">Jeder Ton in der Musik hat einen Namen: C, D, E, F, G, A und H – nach dem H kommt wieder ein C. Im Notensystem mit dem Violinschlüssel steht jede Note auf einer Linie oder in einem Zwischenraum. ') +
+        tx('Der Name der Note ist der Buchstabe. Das C gibt es zweimal: tief unten auf einer kleinen Hilfslinie und hoch im dritten Zwischenraum.') + (o.notenBS ? '' : tx(' Darum lassen sich nur Wörter mit diesen sieben Buchstaben schreiben.')) + '</p>' +
         notenSchluesselSvg(o.notenBS) +
-        (o.notenBS ? '<p class="gs-erklaerung">Das ♭ (Be) macht einen Ton ein wenig tiefer. Das H mit ♭ heisst <b>B</b>, das E mit ♭ heisst <b>Es</b> – das ist hier das <b>S</b>. ' +
-          'So hat der Komponist Johann Sebastian Bach seinen Namen in Musik geschrieben: B – A – C – H.</p>' : '') +
-        '<p class="gs-erklaerung gs-noten-merk">Merkhilfe: Die Note auf der untersten Linie ist das E, die auf der Mittellinie das H. Um die zweitunterste Linie (G) dreht sich der Violinschlüssel.</p>';
+        (o.notenBS ? tx('<p class="gs-erklaerung">Das ♭ (Be) macht einen Ton ein wenig tiefer. Das H mit ♭ heisst <b>B</b>, das E mit ♭ heisst <b>Es</b> – das ist hier das <b>S</b>. ') +
+          tx('So hat der Komponist Johann Sebastian Bach seinen Namen in Musik geschrieben: B – A – C – H.</p>') : '') +
+        tx('<p class="gs-erklaerung gs-noten-merk">Merkhilfe: Die Note auf der untersten Linie ist das E, die auf der Mittellinie das H. Um die zweitunterste Linie (G) dreht sich der Violinschlüssel.</p>');
     case 'finger':
-      return '<p class="gs-erklaerung">Mit dem Fingeralphabet buchstabieren gehörlose Menschen Namen und Wörter, für die es keine eigene Gebärde gibt. Jeder Buchstabe ist eine Handform. ' +
-        'Im Fingeralphabet der Deutschschweiz haben auch Ä, Ö, Ü, CH und SCH eigene Zeichen. Bei J und Z bewegt sich die Hand (Pfeil).</p>' +
+      return tx('<p class="gs-erklaerung">Mit dem Fingeralphabet buchstabieren gehörlose Menschen Namen und Wörter, für die es keine eigene Gebärde gibt. Jeder Buchstabe ist eine Handform. ') +
+        tx('Im Fingeralphabet der Deutschschweiz haben auch Ä, Ö, Ü, CH und SCH eigene Zeichen. Bei J und Z bewegt sich die Hand (Pfeil).</p>') +
         tabelle(A.map(function(c){ return [c, bildHtml('finger', Kern.FINGER[c], '-k')]; }).concat(['Ä', 'Ö', 'Ü', 'CH', 'SCH'].map(function(c){ return [c, bildHtml('finger', Kern.FINGER[c], '-k')]; })), 'gs-tab-finger') +
-        '<p class="gs-quelle">Fingeralphabet: © SGB-FSS Schweizerischer Gehörlosenbund, www.sgb-fss.ch</p>';
+        tx('<p class="gs-quelle">Fingeralphabet: © SGB-FSS Schweizerischer Gehörlosenbund, www.sgb-fss.ch</p>');
     case 'altlatein':
-      return '<p class="gs-erklaerung">So schrieb man in Italien vor über 2500 Jahren. Damals schrieb man oft von rechts nach links – darum sehen manche Buchstaben gespiegelt aus. Achtung: C und G haben dasselbe Zeichen, ebenso I, J und Y sowie U, V und W.</p>' +
+      return tx('<p class="gs-erklaerung">So schrieb man in Italien vor über 2500 Jahren. Damals schrieb man oft von rechts nach links – darum sehen manche Buchstaben gespiegelt aus. Achtung: C und G haben dasselbe Zeichen, ebenso I, J und Y sowie U, V und W.</p>') +
         tabelle(A.map(function(c){ return [c, bildHtml('altlatein', Kern.BILDZEICHEN[c], '-k')]; }), 'gs-tab-alt');
     case 'runen':
-      return '<p class="gs-erklaerung">Runen sind die alten Schriftzeichen der Germanen. Sie wurden oft in Holz, Knochen oder Stein geritzt. Achtung: I und J haben dieselbe Rune, ebenso U, V und W.</p>' +
+      return tx('<p class="gs-erklaerung">Runen sind die alten Schriftzeichen der Germanen. Sie wurden oft in Holz, Knochen oder Stein geritzt. Achtung: I und J haben dieselbe Rune, ebenso U, V und W.</p>') +
         tabelle(A.map(function(c){ return [c, bildHtml('runen', Kern.BILDZEICHEN[c], '-k')]; }), 'gs-tab-runen');
     case 'kreise':
-      return '<p class="gs-erklaerung">Jeder Buchstabe besteht aus Bögen eines Kreises und geraden Strichen. Achte darauf, wo der Kreis offen ist und wo die Striche liegen. Achtung: 5 und S sehen gleich aus.</p>' +
+      return tx('<p class="gs-erklaerung">Jeder Buchstabe besteht aus Bögen eines Kreises und geraden Strichen. Achte darauf, wo der Kreis offen ist und wo die Striche liegen. Achtung: 5 und S sehen gleich aus.</p>') +
         tabelle(A.map(function(c){ return [c, kreisSvg(Kern.KREISE[c], 'gs-kreis-k')]; }), 'gs-tab-kreise') +
-        '<h3 class="gs-unter">Ziffern</h3>' + tabelle('0123456789'.split('').map(function(c){ return [c, kreisSvg(Kern.KREISE[c], 'gs-kreis-k')]; }), 'gs-tab-kreise');
+        tx('<h3 class="gs-unter">Ziffern</h3>') + tabelle('0123456789'.split('').map(function(c){ return [c, kreisSvg(Kern.KREISE[c], 'gs-kreis-k')]; }), 'gs-tab-kreise');
     case 'morse':
-      return '<p class="gs-erklaerung">Jeder Buchstabe besteht aus kurzen (Punkt) und langen (Strich) Zeichen.</p>' +
+      return tx('<p class="gs-erklaerung">Jeder Buchstabe besteht aus kurzen (Punkt) und langen (Strich) Zeichen.</p>') +
         tabelle(A.concat(['Ä', 'Ö', 'Ü', 'ß']).map(function(c){ return [c, morseSvg(Kern.MORSE[c], 'gs-morse-k')]; }), 'gs-tab-morse') +
-        '<h3 class="gs-unter">Ziffern und Satzzeichen</h3>' + tabelle('0123456789.,?!'.split('').map(function(c){ return [c, morseSvg(Kern.MORSE[c], 'gs-morse-k')]; }), 'gs-tab-morse');
+        tx('<h3 class="gs-unter">Ziffern und Satzzeichen</h3>') + tabelle('0123456789.,?!'.split('').map(function(c){ return [c, morseSvg(Kern.MORSE[c], 'gs-morse-k')]; }), 'gs-tab-morse');
     case 'braille':
-      return '<p class="gs-erklaerung">Jedes Zeichen hat sechs Plätze für Punkte, zwei Spalten mit je drei. Blinde Menschen ertasten die erhabenen Punkte mit dem Finger. Die kleinen grauen Punkte zeigen nur die freien Plätze.</p>' +
+      return tx('<p class="gs-erklaerung">Jedes Zeichen hat sechs Plätze für Punkte, zwei Spalten mit je drei. Blinde Menschen ertasten die erhabenen Punkte mit dem Finger. Die kleinen grauen Punkte zeigen nur die freien Plätze.</p>') +
         tabelle(A.concat(['Ä', 'Ö', 'Ü', 'ß']).map(function(c){ return [c, brailleSvg([Kern.BRAILLE[c]], 'gs-braille-k')]; }), 'gs-tab-braille') +
-        '<h3 class="gs-unter">Zahlen und Satzzeichen</h3><p class="gs-erklaerung">Vor einer Zahl steht das Zahlzeichen, danach die Buchstaben a bis j für 1 bis 0.</p>' +
-        tabelle([['Zahlzeichen', brailleSvg([Kern.ZAHLZEICHEN], 'gs-braille-k')], ['1', brailleSvg([Kern.ZAHLZEICHEN, Kern.BRAILLE.A], 'gs-braille-k')], ['2', brailleSvg([Kern.ZAHLZEICHEN, Kern.BRAILLE.B], 'gs-braille-k')], ['0', brailleSvg([Kern.ZAHLZEICHEN, Kern.BRAILLE.J], 'gs-braille-k')]]
+        tx('<h3 class="gs-unter">Zahlen und Satzzeichen</h3><p class="gs-erklaerung">Vor einer Zahl steht das Zahlzeichen, danach die Buchstaben a bis j für 1 bis 0.</p>') +
+        tabelle([[tx('Zahlzeichen'), brailleSvg([Kern.ZAHLZEICHEN], 'gs-braille-k')], ['1', brailleSvg([Kern.ZAHLZEICHEN, Kern.BRAILLE.A], 'gs-braille-k')], ['2', brailleSvg([Kern.ZAHLZEICHEN, Kern.BRAILLE.B], 'gs-braille-k')], ['0', brailleSvg([Kern.ZAHLZEICHEN, Kern.BRAILLE.J], 'gs-braille-k')]]
           .concat('.,?!'.split('').map(function(c){ return [c, brailleSvg([Kern.BRAILLE[c]], 'gs-braille-k')]; })), 'gs-tab-braille');
     case 'hieroglyphen':
-      return '<p class="gs-erklaerung">Die alten Ägypter schrieben mit Bildzeichen. Für unser Alphabet nimmt man Zeichen, die für einen Laut stehen. Manche stehen für zwei Buchstaben: C und K, E und I, F und V, U und W.</p>' +
+      return tx('<p class="gs-erklaerung">Die alten Ägypter schrieben mit Bildzeichen. Für unser Alphabet nimmt man Zeichen, die für einen Laut stehen. Manche stehen für zwei Buchstaben: C und K, E und I, F und V, U und W.</p>') +
         tabelle(A.map(function(c){ return [c, glyphe(Kern.HIERO[c], 'gs-h-k'), Kern.HIERO_NAME[c]]; }), 'gs-tab-hiero');
   }
   return '';
 }
 /* In der Auswahl stehen Caesar, Emoji- und Regenbogen-Scheibe unter einem Eintrag «Geheimscheibe»; darin wählt
    man zuerst die Scheibe. Intern bleiben es drei Schriften (st.opt.art), der Listeneintrag ist st.opt.wahl. */
-var SCHEIBEN = [['caesar', 'Buchstaben', 'Caesar: A wird zu D …'], ['emojis', 'Emojis', '26 Emojis zu einem Thema'], ['farben', 'Regenbogen-Farben', '26 Farben im Regenbogen']];
-var LISTE = [['scheibe', 'Geheimscheibe', 'Buchstaben, Emojis oder Farben – mit Scheibe zum Drehen']].concat(SCHRIFTEN.filter(function(x){ return !SCHEIBEN.some(function(y){ return y[0] === x[0]; }); }));
+var SCHEIBEN = [['caesar', tx('Buchstaben'), tx('Caesar: A wird zu D …')], ['emojis', tx('Emojis'), tx('26 Emojis zu einem Thema')], ['farben', tx('Regenbogen-Farben'), tx('26 Farben im Regenbogen')]];
+var LISTE = [['scheibe', tx('Geheimscheibe'), tx('Buchstaben, Emojis oder Farben – mit Scheibe zum Drehen')]].concat(SCHRIFTEN.filter(function(x){ return !SCHEIBEN.some(function(y){ return y[0] === x[0]; }); }));
 function istScheibe(art){ return SCHEIBEN.some(function(y){ return y[0] === art; }); }
 function schriftName(art, o){ var s = SCHRIFTEN.filter(function(x){ return x[0] === art; })[0]; return s[1] + (art === 'caesar' ? ' um ' + o.verschiebung : ''); }
 
 var VORLAGE = '<div class="gs">' +
-  '<header class="gs-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Geheimschriften</h1>' +
-    '<p>Dein Text in einer Geheimschrift – von der Caesar-Verschiebung über den Freimaurer-Code und das Morsen bis zu Hieroglyphen. Zu jeder Schrift gibt es den Schlüssel zum Entschlüsseln.</p></header>' +
-  '<div class="gs-layout"><section class="gs-eingabe" aria-label="Eingaben">' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Geheimschrift</h2><p id="gsSchriftFrage">Wähle zuerst, in welcher Schrift der Text stehen soll.</p></div></div>' +
-      '<div class="gs-schriften" role="radiogroup" aria-label="Geheimschrift">' +
+  tx('<header class="gs-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Geheimschriften</h1>') +
+    tx('<p>Dein Text in einer Geheimschrift – von der Caesar-Verschiebung über den Freimaurer-Code und das Morsen bis zu Hieroglyphen. Zu jeder Schrift gibt es den Schlüssel zum Entschlüsseln.</p></header>') +
+  tx('<div class="gs-layout"><section class="gs-eingabe" aria-label="Eingaben">') +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Geheimschrift</h2><p id="gsSchriftFrage">Wähle zuerst, in welcher Schrift der Text stehen soll.</p></div></div>') +
+      tx('<div class="gs-schriften" role="radiogroup" aria-label="Geheimschrift">') +
         LISTE.map(function(s){ return '<label><input type="radio" name="gsSchrift" value="' + s[0] + '"><span><i class="gs-vorschau-platz" data-art="' + s[0] + '"></i><b>' + s[1] + '</b><small>' + s[2] + '</small></span></label>'; }).join('') +
       '</div>' +
-      '<button type="button" class="btn klein gs-andere" id="gsAndere" hidden>Andere Geheimschrift wählen</button>' +
-      '<div class="gs-caesar" id="gsScheibenWahl" hidden><p class="feld-label">Welche Scheibe?</p><div class="gs-themen gs-scheiben" role="radiogroup" aria-label="Welche Scheibe">' +
+      tx('<button type="button" class="btn klein gs-andere" id="gsAndere" hidden>Andere Geheimschrift wählen</button>') +
+      tx('<div class="gs-caesar" id="gsScheibenWahl" hidden><p class="feld-label">Welche Scheibe?</p><div class="gs-themen gs-scheiben" role="radiogroup" aria-label="Welche Scheibe">') +
         SCHEIBEN.map(function(x){ return '<label><input type="radio" name="gsScheibenArt" value="' + x[0] + '"><span><b>' + x[1] + '</b><i class="gs-scheiben-vorschau" data-art="' + x[0] + '"></i><small>' + x[2] + '</small></span></label>'; }).join('') + '</div></div>' +
       '<div class="gs-caesar" id="gsCaesar">' +
-        '<div class="opt-raster"><label for="gsVerschiebung">Verschiebung</label><select id="gsVerschiebung">' +
+        tx('<div class="opt-raster"><label for="gsVerschiebung">Verschiebung</label><select id="gsVerschiebung">') +
           Array.from({ length:25 }, function(_, i){ return '<option value="' + (i + 1) + '">' + (i + 1) + ' (A → ' + Kern.ABC[i + 1] + ')</option>'; }).join('') + '</select></div>' +
-        '<label class="opt"><input type="checkbox" id="gsScheibe"><span>Caesar-Scheibe zum Basteln im Schlüssel</span></label>' +
+        tx('<label class="opt"><input type="checkbox" id="gsScheibe"><span>Caesar-Scheibe zum Basteln im Schlüssel</span></label>') +
       '</div>' +
       '<div class="gs-caesar" id="gsBild">' +
-        '<div id="gsEmojiThemen"><p class="feld-label">Emoji-Thema</p><div class="gs-themen" role="radiogroup" aria-label="Emoji-Thema">' +
+        tx('<div id="gsEmojiThemen"><p class="feld-label">Emoji-Thema</p><div class="gs-themen" role="radiogroup" aria-label="Emoji-Thema">') +
           Object.keys(Kern.EMOJI_THEMEN).map(function(k){ var t = Kern.EMOJI_THEMEN[k]; return '<label><input type="radio" name="gsEmojiThema" value="' + k + '"><span><b>' + t.name + '</b><i>' + t.liste.slice(0, 6).join('') + '</i></span></label>'; }).join('') + '</div></div>' +
-        '<div id="gsBildMehr"><div class="opt-raster"><label for="gsBildVerschiebung">Verschiebung</label><select id="gsBildVerschiebung">' +
-          Array.from({ length:26 }, function(_, i){ return '<option value="' + i + '">' + (i ? i : '0 (keine)') + '</option>'; }).join('') + '</select></div>' +
-        '<label class="opt"><input type="checkbox" id="gsBildScheibe"><span>Scheibe zum Basteln im Schlüssel</span></label></div>' +
+        tx('<div id="gsBildMehr"><div class="opt-raster"><label for="gsBildVerschiebung">Verschiebung</label><select id="gsBildVerschiebung">') +
+          Array.from({ length:26 }, function(_, i){ return '<option value="' + i + '">' + (i ? i : tx('0 (keine)')) + '</option>'; }).join('') + '</select></div>' +
+        tx('<label class="opt"><input type="checkbox" id="gsBildScheibe"><span>Scheibe zum Basteln im Schlüssel</span></label></div>') +
       '</div>' +
       '<div class="gs-caesar" id="gsSegment">' +
-        '<p class="feld-label">Aufgabe</p><div class="gs-chips" role="radiogroup" aria-label="Aufgabe beim Segment-Code">' +
-          [['ausmalen', 'Segmente ausmalen'], ['anzeige', 'Anzeige lesen']].map(function(a){ return '<label><input type="radio" name="gsSegArt" value="' + a[0] + '"><span>' + a[1] + '</span></label>'; }).join('') + '</div>' +
-        '<p class="hinweis">Beim Ausmalen stehen über jeder leeren Anzeige die Namen der Segmente (z. B. «a b c d g2 i l»); wer sie anmalt, sieht den Buchstaben.</p>' +
+        tx('<p class="feld-label">Aufgabe</p><div class="gs-chips" role="radiogroup" aria-label="Aufgabe beim Segment-Code">') +
+          [['ausmalen', tx('Segmente ausmalen')], ['anzeige', tx('Anzeige lesen')]].map(function(a){ return '<label><input type="radio" name="gsSegArt" value="' + a[0] + '"><span>' + a[1] + '</span></label>'; }).join('') + '</div>' +
+        tx('<p class="hinweis">Beim Ausmalen stehen über jeder leeren Anzeige die Namen der Segmente (z. B. «a b c d g2 i l»); wer sie anmalt, sieht den Buchstaben.</p>') +
       '</div>' +
       '<div class="gs-caesar" id="gsNoten">' +
-        '<label class="opt"><input type="checkbox" id="gsNotenBS"><span>Mit B und S – wie bei Bach: B ist das H mit ♭, S das Es (E mit ♭)</span></label>' +
+        tx('<label class="opt"><input type="checkbox" id="gsNotenBS"><span>Mit B und S – wie bei Bach: B ist das H mit ♭, S das Es (E mit ♭)</span></label>') +
       '</div>' +
       '<div class="gs-caesar" id="gsErpresser">' +
-        '<button type="button" class="btn klein" id="gsErpNeu" title="Alle Buchstaben neu ausschneiden und aufkleben">Neu ausschneiden</button>' +
-        '<label class="opt"><input type="checkbox" id="gsErpMisch"><span>Gross- und Kleinbuchstaben gemischt</span></label>' +
-        '<p class="hinweis">Jeder Buchstabe sieht anders aus: Schrift, Farbe, Grösse, Papier und Drehung sind zufällig. «Neu ausschneiden» klebt alles neu.</p>' +
+        tx('<button type="button" class="btn klein" id="gsErpNeu" title="Alle Buchstaben neu ausschneiden und aufkleben">Neu ausschneiden</button>') +
+        tx('<label class="opt"><input type="checkbox" id="gsErpMisch"><span>Gross- und Kleinbuchstaben gemischt</span></label>') +
+        tx('<p class="hinweis">Jeder Buchstabe sieht anders aus: Schrift, Farbe, Grösse, Papier und Drehung sind zufällig. «Neu ausschneiden» klebt alles neu.</p>') +
       '</div>' +
     '</div>' +
-    '<div class="karte" id="gsTextKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Geheimer Text</h2><p>Wörter oder Sätze, auch mehrere Zeilen.</p></div></div>' +
-      '<label class="vh" for="gsText">Geheimer Text</label><textarea id="gsText" rows="5" maxlength="400" autocomplete="off" spellcheck="false"></textarea>' +
+    tx('<div class="karte" id="gsTextKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Geheimer Text</h2><p>Wörter oder Sätze, auch mehrere Zeilen.</p></div></div>') +
+      tx('<label class="vh" for="gsText">Geheimer Text</label><textarea id="gsText" rows="5" maxlength="400" autocomplete="off" spellcheck="false"></textarea>') +
       '<p class="hinweis" id="gsTextHinweis"></p>' +
       '<div id="gsNotenText" hidden>' +
-        '<p class="feld-label">Wörter, die mit Noten gehen</p><div class="gs-notenwoerter">' +
+        tx('<p class="feld-label">Wörter, die mit Noten gehen</p><div class="gs-notenwoerter">') +
           Kern.NOTEN_WOERTER.map(function(w){ return '<button type="button" class="gs-wortchip" data-wort="' + w + '">' + w + '</button>'; }).join('') +
           Kern.NOTEN_WOERTER_BS.map(function(w){ return '<button type="button" class="gs-wortchip gs-bs" data-wort="' + w + '">' + w + '</button>'; }).join('') + '</div>' +
         '<p class="hinweis" id="gsNotenHinweis"></p>' +
-        '<div class="gs-noten-ton"><button type="button" class="btn klein" id="gsNotenSpielen">▶ Anhören</button><button type="button" class="btn klein" id="gsNotenStopp">■ Stopp</button></div>' +
+        tx('<div class="gs-noten-ton"><button type="button" class="btn klein" id="gsNotenSpielen">▶ Anhören</button><button type="button" class="btn klein" id="gsNotenStopp">■ Stopp</button></div>') +
       '</div>' +
     '</div>' +
-    '<div class="karte" id="gsBlattKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Blatt</h2></div></div>' +
-      '<p class="feld-label">Grösse der Zeichen</p>' +
-      '<div class="gs-chips" role="radiogroup" aria-label="Grösse der Zeichen">' +
+    tx('<div class="karte" id="gsBlattKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Blatt</h2></div></div>') +
+      tx('<p class="feld-label">Grösse der Zeichen</p>') +
+      tx('<div class="gs-chips" role="radiogroup" aria-label="Grösse der Zeichen">') +
         GROESSEN.map(function(g){ return '<label><input type="radio" name="gsGroesse" value="' + g[0] + '"><span>' + g[1] + '</span></label>'; }).join('') + '</div>' +
-      '<div class="opt-raster"><label for="gsTitel">Titel auf dem Blatt</label><input type="text" id="gsTitel" maxlength="60" autocomplete="off"></div>' +
+      tx('<div class="opt-raster"><label for="gsTitel">Titel auf dem Blatt</label><input type="text" id="gsTitel" maxlength="60" autocomplete="off"></div>') +
       '<div id="gsNotenBlatt" hidden>' +
-        '<label class="opt"><input type="checkbox" id="gsNotenAudio"><span>Mit Audio: Auf dem Blatt steht nur ein QR-Code zur Hörseite (alle Töne der Botschaft und das Tonalphabet zum Vergleichen); die Lösung kommt auf ein eigenes Blatt</span></label>' +
-        '<div class="gs-einzug gs-qr-groesse" id="gsQrGroesseFeld" hidden><label class="feld-label" for="gsQrGroesse">Grösse des QR-Codes: <b id="gsQrGroesseWert"></b></label><input type="range" id="gsQrGroesse" min="3" max="16" step="0.5"></div>' +
-        '<p class="hinweis gs-einzug" id="gsNotenSeiteZeile" hidden><a id="gsNotenSeite" href="#" target="_blank" rel="noopener">Hörseite öffnen</a> (so sehen es die Kinder nach dem Scannen)</p>' +
+        tx('<label class="opt"><input type="checkbox" id="gsNotenAudio"><span>Mit Audio: Auf dem Blatt steht nur ein QR-Code zur Hörseite (alle Töne der Botschaft und das Tonalphabet zum Vergleichen); die Lösung kommt auf ein eigenes Blatt</span></label>') +
+        tx('<div class="gs-einzug gs-qr-groesse" id="gsQrGroesseFeld" hidden><label class="feld-label" for="gsQrGroesse">Grösse des QR-Codes: <b id="gsQrGroesseWert"></b></label><input type="range" id="gsQrGroesse" min="3" max="16" step="0.5"></div>') +
+        tx('<p class="hinweis gs-einzug" id="gsNotenSeiteZeile" hidden><a id="gsNotenSeite" href="#" target="_blank" rel="noopener">Hörseite öffnen</a> (so sehen es die Kinder nach dem Scannen)</p>') +
       '</div>' +
     '</div>' +
   '</section>' +
-  '<section class="gs-ausgabe" aria-label="Ergebnis">' +
+  tx('<section class="gs-ausgabe" aria-label="Ergebnis">') +
     '<div id="gsMeldung" aria-live="polite"></div>' +
     '<div class="gs-teil" id="gsTeilText">' +
-      '<h2 class="gs-teil-titel">Geheimtext</h2>' +
+      tx('<h2 class="gs-teil-titel">Geheimtext</h2>') +
       '<div class="gs-werkzeug">' +
-        '<button type="button" class="btn klein gs-nur-geheim" id="gsZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
+        tx('<button type="button" class="btn klein gs-nur-geheim" id="gsZeigeLoesung" aria-pressed="false">Lösung zeigen</button>') +
         '<span class="abstand"></span>' +
         Labor.blattSchalterHtml() +
-        '<label class="gs-nur-geheim" title="Linien unter den Zeichen zum Hinschreiben der Buchstaben"><input type="checkbox" id="gsLinien"> Schreiblinien</label>' +
-        '<label class="gs-nur-geheim"><input type="checkbox" id="gsMitLoesung"> mit Lösungsblatt</label>' +
-        '<label class="gs-nur-geheim gs-mit-schluessel"><input type="checkbox" id="gsMitSchluessel"> mit Schlüssel</label>' +
-        '<button type="button" class="btn klein" id="gsCodeBild">Als Bild</button>' +
-        '<button type="button" class="btn klein primary" id="gsPdf">PDF herunterladen</button>' +
-        '<button type="button" class="btn klein primary" id="gsHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
+        tx('<label class="gs-nur-geheim" title="Linien unter den Zeichen zum Hinschreiben der Buchstaben"><input type="checkbox" id="gsLinien"> Schreiblinien</label>') +
+        tx('<label class="gs-nur-geheim"><input type="checkbox" id="gsMitLoesung"> mit Lösungsblatt</label>') +
+        tx('<label class="gs-nur-geheim gs-mit-schluessel"><input type="checkbox" id="gsMitSchluessel"> mit Schlüssel</label>') +
+        tx('<button type="button" class="btn klein" id="gsCodeBild">Als Bild</button>') +
+        tx('<button type="button" class="btn klein primary" id="gsPdf">PDF herunterladen</button>') +
+        tx('<button type="button" class="btn klein primary" id="gsHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>') +
       '</div>' +
       '<article class="gs-blatt" id="gsBlatt"></article>' +
-      '<p class="gs-tipp" id="gsTipp">Tipp: Auf den Geheimtext klicken – er wird als Bild kopiert und lässt sich in Word mit Ctrl+V (Mac: Cmd+V) einfügen.</p>' +
+      tx('<p class="gs-tipp" id="gsTipp">Tipp: Auf den Geheimtext klicken – er wird als Bild kopiert und lässt sich in Word mit Ctrl+V (Mac: Cmd+V) einfügen.</p>') +
       '<article class="gs-blatt gs-loesungsblatt" id="gsLoesung" aria-hidden="true"></article>' +
     '</div>' +
     '<div class="gs-teil gs-teil-schluessel">' +
-      '<h2 class="gs-teil-titel">Schlüssel</h2>' +
-      '<div class="gs-werkzeug"><span class="gs-werkzeug-text">Zum Entschlüsseln – auch einzeln.</span><span class="abstand"></span>' +
-        '<button type="button" class="btn klein" id="gsSchluesselBild">Als Bild</button>' +
-        '<button type="button" class="btn klein primary" id="gsSchluesselPdf">PDF herunterladen</button>' +
-        '<button type="button" class="btn klein primary" id="gsSchluesselHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Schlüssel herunterladen</button>' +
+      tx('<h2 class="gs-teil-titel">Schlüssel</h2>') +
+      tx('<div class="gs-werkzeug"><span class="gs-werkzeug-text">Zum Entschlüsseln – auch einzeln.</span><span class="abstand"></span>') +
+        tx('<button type="button" class="btn klein" id="gsSchluesselBild">Als Bild</button>') +
+        tx('<button type="button" class="btn klein primary" id="gsSchluesselPdf">PDF herunterladen</button>') +
+        tx('<button type="button" class="btn klein primary" id="gsSchluesselHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Schlüssel herunterladen</button>') +
       '</div>' +
       '<article class="gs-blatt gs-schluessel" id="gsSchluessel"></article>' +
     '</div>' +
@@ -942,7 +943,7 @@ function starte(bereich){
     try { localStorage.setItem(OPT, JSON.stringify(st.opt)); } catch(x){} }
   function speichern(){ clearTimeout(timer); timer = setTimeout(speichernJetzt, 200); }
   function meldung(art, html){ $('#gsMeldung').innerHTML = html ? '<div class="meldung ' + art + '">' + html + '</div>' : ''; }
-  function titel(){ return st.titel.trim() || 'Geheimbotschaft'; }
+  function titel(){ return st.titel.trim() || tx('Geheimbotschaft'); }
   function zellen(){ return Kern.zerlege(st.text, st.opt.art, st.opt); }
   function hatZeichen(){ return zellen().some(function(z){ return z.some(function(w){ return w.some(function(c){ return c.code; }); }); }); }
 
@@ -1054,7 +1055,7 @@ function starte(bereich){
     // Notenschrift: jedes Wort ein eigenes Notensystem mit Violinschlüssel vorne und Schlussstrich hinten
     function rand(svg){ return '<span class="gs-z gs-andere gs-noten-rand"><span class="gs-s">' + svg + '</span><span class="gs-linie gs-leer"></span></span>'; }
     var luecke = '<span class="gs-z gs-andere"><span class="gs-s">' + drahtSvg('') + '</span><span class="gs-linie gs-leer"></span></span>';
-    return '<div class="gs-code gs-art-' + st.opt.art + (st.opt.art === 'segmente' && st.opt.segArt === 'ausmalen' ? ' gs-seg-ausmalen' : '') + (st.opt.linien ? '' : ' ohne-linien') + '" style="--fm:' + px() + 'px">' + zellen().map(function(zeile){
+    return '<div class="gs-code gs-art-' + st.opt.art + (st.opt.art === 'segmente' && st.opt.segArt === 'ausmalen' ? tx(' gs-seg-ausmalen') : '') + (st.opt.linien ? '' : tx(' ohne-linien')) + '" style="--fm:' + px() + 'px">' + zellen().map(function(zeile){
       return '<div class="gs-zeile">' + zeile.map(function(wort, k){
         return (voegel && k ? luecke : '') + '<span class="gs-wort">' + (noten ? rand(violinSvg()) : '') + wort.map(function(c){
           if (c.code) return '<span class="gs-z"><span class="gs-s">' + symbolHtml(c.code) + '</span>' + (ohneLinie ? '' : '<span class="gs-linie"><b class="gs-loes">' + esc(c.b) + '</b></span>') + '</span>';
@@ -1086,22 +1087,22 @@ function starte(bereich){
     bereich.querySelector('.gs').classList.toggle('gs-nur-qr', o.art === 'noten' && !!o.notenAudio);
     // Notenschrift: Wörter mit anderen Buchstaben gehen nicht – sagen, welche und warum
     var nichtNoten = o.art === 'noten' ? Kern.notenFalsch(st.text, o.notenBS) : [];
-    var tonnamen = o.notenBS ? 'C, D, E, F, G, A, H, B und S' : 'C, D, E, F, G, A und H';
+    var tonnamen = o.notenBS ? tx('C, D, E, F, G, A, H, B und S') : tx('C, D, E, F, G, A und H');
     [].forEach.call(bereich.querySelectorAll('.gs-wortchip.gs-bs'), function(k){ k.hidden = !o.notenBS; });
-    $('#gsNotenHinweis').textContent = 'Antippen fügt das Wort in den Text ein. Eigene Wörter gehen auch – wenn sie nur aus ' + tonnamen + ' bestehen.';
-    var notenWarnung = nichtNoten.length ? '<p><b>' + (nichtNoten.length === 1 ? 'Dieses Wort kann' : 'Diese Wörter können') + ' nicht mit Noten geschrieben werden</b> und ' + (nichtNoten.length === 1 ? 'fehlt' : 'fehlen') + ' auf dem Blatt: ' +
-      nichtNoten.map(function(x){ return '«' + esc(x.wort) + '» (' + esc(x.falsch) + ')'; }).join(', ') + '. Es gibt nur die Töne ' + tonnamen + '.</p>' : '';
+    $('#gsNotenHinweis').textContent = tx('Antippen fügt das Wort in den Text ein. Eigene Wörter gehen auch – wenn sie nur aus ') + tonnamen + tx(' bestehen.');
+    var notenWarnung = nichtNoten.length ? '<p><b>' + (nichtNoten.length === 1 ? tx('Dieses Wort kann') : tx('Diese Wörter können')) + tx(' nicht mit Noten geschrieben werden</b> und ') + (nichtNoten.length === 1 ? 'fehlt' : 'fehlen') + tx(' auf dem Blatt: ') +
+      nichtNoten.map(function(x){ return '«' + esc(x.wort) + '» (' + esc(x.falsch) + ')'; }).join(', ') + tx('. Es gibt nur die Töne ') + tonnamen + '.</p>' : '';
     var erp = o.art === 'erpresser';   // keine Geheimschrift: ohne Linien, Lösung und Schlüssel – nur die Nachricht zum Drucken oder Kopieren
     bereich.querySelector('.gs').classList.toggle('gs-erpresser', erp);
-    $('.gs-teil-titel').textContent = erp ? 'Nachricht' : 'Geheimtext';
-    $('#gsTextHinweis').textContent = o.art === 'noten' ? 'Nur Wörter aus den Buchstaben ' + tonnamen + ' – den Namen der Töne. Andere Wörter werden weggelassen; Satzzeichen bleiben stehen.' : o.art === 'erpresser' ? 'Buchstaben (auch Ä, Ö, Ü und ß), Ziffern, ! und ? werden ausgeschnitten; andere Satzzeichen bleiben stehen.' : o.art === 'finger' ? 'Ä, Ö, Ü, CH und SCH haben eigene Handzeichen; ß wird als SS geschrieben. Ziffern und Satzzeichen bleiben stehen.' : o.art === 'segmente' ? 'Umlaute werden als AE, OE, UE geschrieben, ß als SS. Ziffern haben eigene Zeichen; Satzzeichen bleiben stehen.' : Kern.UMLAUTE[o.art] ? 'Ä, Ö, Ü und ß haben in dieser Schrift eigene Zeichen' + (o.art === 'morse' ? '; Ziffern und einige Satzzeichen auch.' : '; Ziffern bekommen das Zahlzeichen.') :
-      'Umlaute werden als AE, OE, UE geschrieben, ß als SS.' + (o.art === 'polybios' ? ' J wird wie I geschrieben.' : '') + ' Ziffern und Satzzeichen bleiben stehen.';
+    $('.gs-teil-titel').textContent = erp ? tx('Nachricht') : tx('Geheimtext');
+    $('#gsTextHinweis').textContent = o.art === 'noten' ? tx('Nur Wörter aus den Buchstaben ') + tonnamen + tx(' – den Namen der Töne. Andere Wörter werden weggelassen; Satzzeichen bleiben stehen.') : o.art === 'erpresser' ? tx('Buchstaben (auch Ä, Ö, Ü und ß), Ziffern, ! und ? werden ausgeschnitten; andere Satzzeichen bleiben stehen.') : o.art === 'finger' ? tx('Ä, Ö, Ü, CH und SCH haben eigene Handzeichen; ß wird als SS geschrieben. Ziffern und Satzzeichen bleiben stehen.') : o.art === 'segmente' ? tx('Umlaute werden als AE, OE, UE geschrieben, ß als SS. Ziffern haben eigene Zeichen; Satzzeichen bleiben stehen.') : Kern.UMLAUTE[o.art] ? tx('Ä, Ö, Ü und ß haben in dieser Schrift eigene Zeichen') + (o.art === 'morse' ? tx('; Ziffern und einige Satzzeichen auch.') : tx('; Ziffern bekommen das Zahlzeichen.')) :
+      tx('Umlaute werden als AE, OE, UE geschrieben, ß als SS.') + (o.art === 'polybios' ? tx(' J wird wie I geschrieben.') : '') + tx(' Ziffern und Satzzeichen bleiben stehen.');
     if (!o.art || themaFehlt){
       $('#gsBlatt').innerHTML = $('#gsLoesung').innerHTML = '';
       $('#gsTeilText').hidden = true;
-      meldung('info', themaFehlt ? '<p>Wähle links ein Emoji-Thema. Danach schreibst du den Text.</p>'
-        : o.wahl === 'scheibe' ? '<p>Wähle links, welche Scheibe: Buchstaben, Emojis oder Regenbogen-Farben. Danach schreibst du den Text.</p>'
-        : '<p>Wähle links zuerst eine Geheimschrift. Danach schreibst du den Text.</p>');
+      meldung('info', themaFehlt ? tx('<p>Wähle links ein Emoji-Thema. Danach schreibst du den Text.</p>')
+        : o.wahl === 'scheibe' ? tx('<p>Wähle links, welche Scheibe: Buchstaben, Emojis oder Regenbogen-Farben. Danach schreibst du den Text.</p>')
+        : tx('<p>Wähle links zuerst eine Geheimschrift. Danach schreibst du den Text.</p>'));
       return;
     }
     $('#gsBlatt').hidden = $('#gsLoesung').hidden = leer;
@@ -1109,8 +1110,8 @@ function starte(bereich){
     $('#gsTipp').hidden = leer;
     if (leer){
       $('#gsBlatt').innerHTML = $('#gsLoesung').innerHTML = '';
-      if (notenWarnung){ meldung('warnung', notenWarnung + '<p>Tipp: Unter «Notenschrift» stehen Wörter, die gehen.</p>'); return; }
-      meldung('info', o.art === 'erpresser' ? '<p>Schreibe links einen Text – er erscheint hier in der Erpresserschrift.</p>' : '<p>Schreibe links einen Text – er erscheint hier in der Geheimschrift. Den Schlüssel unten kannst du schon jetzt herunterladen.</p>');
+      if (notenWarnung){ meldung('warnung', notenWarnung + tx('<p>Tipp: Unter «Notenschrift» stehen Wörter, die gehen.</p>')); return; }
+      meldung('info', o.art === 'erpresser' ? tx('<p>Schreibe links einen Text – er erscheint hier in der Erpresserschrift.</p>') : tx('<p>Schreibe links einen Text – er erscheint hier in der Geheimschrift. Den Schlüssel unten kannst du schon jetzt herunterladen.</p>'));
       return;
     }
     meldung(notenWarnung ? 'warnung' : '', notenWarnung);
@@ -1119,34 +1120,34 @@ function starte(bereich){
       $('#gsLoesung').innerHTML = '';
       $('#gsBlatt').classList.remove('zeige-loesung');
       var c0 = $('#gsBlatt .gs-code');
-      c0.setAttribute('role', 'button'); c0.setAttribute('tabindex', '0'); c0.title = 'Klicken: als Bild kopieren (zum Einfügen in Word)';
-      c0.setAttribute('aria-label', 'Nachricht in Erpresserschrift – klicken, um sie als Bild zu kopieren');
+      c0.setAttribute('role', 'button'); c0.setAttribute('tabindex', '0'); c0.title = tx('Klicken: als Bild kopieren (zum Einfügen in Word)');
+      c0.setAttribute('aria-label', tx('Nachricht in Erpresserschrift – klicken, um sie als Bild zu kopieren'));
       return;
     }
     var name = schriftName(o.art, o);
-    var anleitung = o.art === 'segmente' && o.segArt === 'ausmalen' ? 'Male in jeder Anzeige die genannten Segmente an und lies den Buchstaben ab' + (o.linien ? '. Schreibe ihn auf die Linie' : '') + '. Der Schlüssel zeigt, wo welches Segment liegt.'
-      : 'Entschlüssle die Geheimschrift (' + esc(name) + ') mit dem Schlüssel' + (o.linien ? ' und schreibe die Buchstaben auf die Linien' : '') + '.';
+    var anleitung = o.art === 'segmente' && o.segArt === 'ausmalen' ? tx('Male in jeder Anzeige die genannten Segmente an und lies den Buchstaben ab') + (o.linien ? tx('. Schreibe ihn auf die Linie') : '') + tx('. Der Schlüssel zeigt, wo welches Segment liegt.')
+      : tx('Entschlüssle die Geheimschrift (') + esc(name) + tx(') mit dem Schlüssel') + (o.linien ? tx(' und schreibe die Buchstaben auf die Linien') : '') + '.';
     // Notenschrift mit Audio: auf dem Blatt nur der QR-Code (Grösse in cm) und Schreiblinien je Wort; die Noten stehen im Lösungsblatt
     var mitTon = o.art === 'noten' && o.notenAudio;
     if (mitTon){
-      anleitung = 'Scanne den QR-Code mit dem Tablet oder Handy. Dort hörst du die Töne der Geheimbotschaft. Vergleiche jeden Ton mit dem Tonalphabet – klingen zwei Töne gleich, hast du den Buchstaben.' +
-        (o.linien ? ' Schreibe die Buchstaben auf die Linien.' : '');
+      anleitung = tx('Scanne den QR-Code mit dem Tablet oder Handy. Dort hörst du die Töne der Geheimbotschaft. Vergleiche jeden Ton mit dem Tonalphabet – klingen zwei Töne gleich, hast du den Buchstaben.') +
+        (o.linien ? tx(' Schreibe die Buchstaben auf die Linien.') : '');
       var woerter = []; zellen().forEach(function(z){ z.forEach(function(w){ var b = w.filter(function(c){ return c.code && c.code.note; }).map(function(c){ return c.b; }); if (b.length) woerter.push(b); }); });
       var qrPx = o.qrCm * 10 * 703 / 186;   // echte Grösse: 703 px = 186 mm
       $('#gsBlatt').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + '</h2>' : '') + (o.anleitungAn ? '<p class="gs-anleitung">' + anleitung + '</p>' : '') +
         '<div class="gs-code gs-qr-code"><div class="gs-qr-gross" style="width:' + qrPx.toFixed(1) + 'px">' + qrSvg(hoerUrl()) + '</div></div>' +
-        (o.linien ? '<div class="gs-hoer-linien">' + woerter.map(function(w, i){ return '<span class="gs-hoer-wort"><small>Wort ' + (i + 1) + '</small><span>' +
+        (o.linien ? '<div class="gs-hoer-linien">' + woerter.map(function(w, i){ return tx('<span class="gs-hoer-wort"><small>Wort ') + (i + 1) + '</small><span>' +
           w.map(function(b){ return '<span class="gs-linie"><b class="gs-loes">' + esc(b) + '</b></span>'; }).join('') + '</span></span>'; }).join('') + '</div>' : '');
     } else
     $('#gsBlatt').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + '</h2>' : '') +
       (o.anleitungAn ? '<p class="gs-anleitung">' + anleitung + '</p>' : '') + codeHtml();
-    $('#gsLoesung').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + ' – Lösung</h2>' : '<p class="gs-anleitung"><b>Lösung</b></p>') + codeHtml();
+    $('#gsLoesung').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + tx(' – Lösung</h2>') : tx('<p class="gs-anleitung"><b>Lösung</b></p>')) + codeHtml();
     $('#gsBlatt').classList.toggle('zeige-loesung', $('#gsZeigeLoesung').getAttribute('aria-pressed') === 'true');
     var code = $('#gsBlatt .gs-code');
-    code.setAttribute('role', 'button'); code.setAttribute('tabindex', '0'); code.title = 'Klicken: als Bild kopieren (zum Einfügen in Word)';
-    code.setAttribute('aria-label', (mitTon ? 'QR-Code' : 'Geheimtext') + ' – klicken, um ihn als Bild zu kopieren');
+    code.setAttribute('role', 'button'); code.setAttribute('tabindex', '0'); code.title = tx('Klicken: als Bild kopieren (zum Einfügen in Word)');
+    code.setAttribute('aria-label', (mitTon ? tx('QR-Code') : tx('Geheimtext')) + tx(' – klicken, um ihn als Bild zu kopieren'));
     var b = $('#gsBlatt');
-    if (b.offsetWidth && b.scrollHeight / b.offsetWidth > 1.5) meldung('warnung', '<p>Der Text ist lang für eine A4-Seite – im PDF wird das Blatt verkleinert. Wähle kleinere Zeichen oder kürze den Text.</p>');
+    if (b.offsetWidth && b.scrollHeight / b.offsetWidth > 1.5) meldung('warnung', tx('<p>Der Text ist lang für eine A4-Seite – im PDF wird das Blatt verkleinert. Wähle kleinere Zeichen oder kürze den Text.</p>'));
   }
   $('#gsZeigeLoesung').addEventListener('click', function(){
     var an = this.getAttribute('aria-pressed') !== 'true'; this.setAttribute('aria-pressed', an ? 'true' : 'false'); $('#gsBlatt').classList.toggle('zeige-loesung', an);
@@ -1156,7 +1157,7 @@ function starte(bereich){
   function schluesselZeichnen(){
     var o = st.opt;
     if (!o.art){ $('#gsSchluessel').innerHTML = ''; return; }
-    $('#gsSchluessel').innerHTML = (o.titelAn ? '<h2>' + 'Schlüssel: ' + esc(schriftName(o.art, o)) + '</h2>' : '') + '<div class="gs-art-' + o.art + '">' + schluesselHtml(o.art, o) + '</div>';
+    $('#gsSchluessel').innerHTML = (o.titelAn ? '<h2>' + tx('Schlüssel: ') + esc(schriftName(o.art, o)) + '</h2>' : '') + '<div class="gs-art-' + o.art + '">' + schluesselHtml(o.art, o) + '</div>';
   }
   function alles(){ zeichnen(); schluesselZeichnen(); }
 
@@ -1168,10 +1169,10 @@ function starte(bereich){
   function druckVorbereiten(){ document.body.classList.toggle('mit-loesung', !!st.opt.mitLoesung && st.opt.art !== 'erpresser'); }
   window.addEventListener('beforeprint', druckVorbereiten);
   function fehler(t){ meldung('fehler', '<p>' + esc(t) + '</p>'); }
-  Labor.pdfKnopf($('#gsPdf'), function(){ return hatZeichen() && { blaetter:codeBlaetter(), name:dateiName('Geheimschrift', 'pdf') }; }, fehler);
-  Labor.pdfKnopf($('#gsSchluesselPdf'), function(){ return { blaetter:[$('#gsSchluessel')], name:'Schluessel-' + (Labor.dateiname(schriftName(st.opt.art, st.opt)) || 'Geheimschrift') + '.pdf' }; }, fehler);
-  Labor.bildKnopf($('#gsCodeBild'), function(){ return hatZeichen() && { blatt:$('#gsBlatt'), name:dateiName('Geheimschrift', 'png') }; }, fehler);
-  Labor.bildKnopf($('#gsSchluesselBild'), function(){ return { blatt:$('#gsSchluessel'), name:'Schluessel-' + (Labor.dateiname(schriftName(st.opt.art, st.opt)) || 'Geheimschrift') + '.png' }; }, fehler);
+  Labor.pdfKnopf($('#gsPdf'), function(){ return hatZeichen() && { blaetter:codeBlaetter(), name:dateiName(tx('Geheimschrift'), 'pdf') }; }, fehler);
+  Labor.pdfKnopf($('#gsSchluesselPdf'), function(){ return { blaetter:[$('#gsSchluessel')], name:tx('Schluessel-') + (Labor.dateiname(schriftName(st.opt.art, st.opt)) || tx('Geheimschrift')) + '.pdf' }; }, fehler);
+  Labor.bildKnopf($('#gsCodeBild'), function(){ return hatZeichen() && { blatt:$('#gsBlatt'), name:dateiName(tx('Geheimschrift'), 'png') }; }, fehler);
+  Labor.bildKnopf($('#gsSchluesselBild'), function(){ return { blatt:$('#gsSchluessel'), name:tx('Schluessel-') + (Labor.dateiname(schriftName(st.opt.art, st.opt)) || tx('Geheimschrift')) + '.png' }; }, fehler);
   /* ---------- Als Bild kopieren (zum Einfügen in Word) ---------- */
   var kopiertZeit = 0;
   function bestaetigen(text){
@@ -1181,16 +1182,16 @@ function starte(bereich){
   function kopieren(el, was, knopf, eng){
     if (!el) return;
     var text = knopf && knopf.textContent;
-    if (knopf){ knopf.disabled = true; knopf.textContent = 'Wird kopiert …'; }
+    if (knopf){ knopf.disabled = true; knopf.textContent = tx('Wird kopiert …'); }
     el.classList.add('gs-wird-kopiert');
     Labor.bildKopieren(el, eng ? { eng:'.gs-z' } : {}).then(function(){
-      bestaetigen('✓ ' + was + ' als Bild kopiert – in Word mit Ctrl+V (Mac: Cmd+V) einfügen.');
+      bestaetigen('✓ ' + was + tx(' als Bild kopiert – in Word mit Ctrl+V (Mac: Cmd+V) einfügen.'));
     }, function(e){
-      meldung('warnung', '<p>Das Kopieren hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '. Lade das Bild mit «Als Bild» herunter und füge es in Word ein.</p>');
+      meldung('warnung', tx('<p>Das Kopieren hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + tx('. Lade das Bild mit «Als Bild» herunter und füge es in Word ein.</p>'));
     }).then(function(){ el.classList.remove('gs-wird-kopiert'); if (knopf){ knopf.disabled = false; knopf.textContent = text; } });
   }
-  $('#gsBlatt').addEventListener('click', function(ev){ var c = ev.target.closest('.gs-code'); if (c) kopieren(c, 'Geheimtext', null, true); });
-  $('#gsBlatt').addEventListener('keydown', function(ev){ var c = ev.target.closest('.gs-code'); if (c && (ev.key === 'Enter' || ev.key === ' ')){ ev.preventDefault(); kopieren(c, 'Geheimtext', null, true); } });
+  $('#gsBlatt').addEventListener('click', function(ev){ var c = ev.target.closest('.gs-code'); if (c) kopieren(c, tx('Geheimtext'), null, true); });
+  $('#gsBlatt').addEventListener('keydown', function(ev){ var c = ev.target.closest('.gs-code'); if (c && (ev.key === 'Enter' || ev.key === ' ')){ ev.preventDefault(); kopieren(c, tx('Geheimtext'), null, true); } });
 
   var speicherOrt = null;
   if (Labor.imArtefakt()){
@@ -1203,11 +1204,11 @@ function starte(bereich){
     if (st.opt.art === 'erpresser') inhalt = '<link rel="stylesheet" href="' + ERP_CSS + '">' + inhalt;   // Schriften der Schnipsel
     speicherOrt.save({ filename:name, data:Labor.blattDatei(name.replace(/\.html$/, '').replace(/-/g, ' '), inhalt, '.gs-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   }
-  $('#gsHerunterladen').addEventListener('click', function(){ if (hatZeichen()) htmlSpeichern(codeBlaetter(), dateiName('Geheimschrift', 'html')); });
-  $('#gsSchluesselHerunterladen').addEventListener('click', function(){ htmlSpeichern([$('#gsSchluessel')], 'Schluessel-' + (Labor.dateiname(schriftName(st.opt.art, st.opt)) || 'Geheimschrift') + '.html'); });
+  $('#gsHerunterladen').addEventListener('click', function(){ if (hatZeichen()) htmlSpeichern(codeBlaetter(), dateiName(tx('Geheimschrift'), 'html')); });
+  $('#gsSchluesselHerunterladen').addEventListener('click', function(){ htmlSpeichern([$('#gsSchluessel')], tx('Schluessel-') + (Labor.dateiname(schriftName(st.opt.art, st.opt)) || tx('Geheimschrift')) + '.html'); });
 
   if (!document.getElementById('gsErpSchriften')){ var l = document.createElement('link'); l.id = 'gsErpSchriften'; l.rel = 'stylesheet'; l.href = ERP_CSS; document.head.appendChild(l); }
   vorschauen(); alles(); listeZu(true);

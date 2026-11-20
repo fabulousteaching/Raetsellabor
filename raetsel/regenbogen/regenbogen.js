@@ -8,6 +8,7 @@
    auf ihren Linien. Arbeitsblatt, Lösungsblatt, PDF. */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('regenbogen');
 
 /* KERN-START */
 var Kern = (function(){
@@ -218,7 +219,7 @@ function f1(x){ return (Math.round(x * 10) / 10).toString(); }
 /* ---------- Zeichnen ---------- */
 // Form um (x, y) mit «Radius» r
 function formSvg(form, x, y, r, farbe, rand){
-  var a = ' fill="' + farbe + '" stroke="' + (rand || 'rgba(0,0,0,.18)') + '" stroke-width="' + (rand ? 1.4 : 1) + '"', p = [], i;
+  var a = ' fill="' + farbe + '" stroke="' + (rand || tx('rgba(0,0,0,.18)')) + '" stroke-width="' + (rand ? 1.4 : 1) + '"', p = [], i;
   function eck(k, rr, dreh){ var l = []; for (var j = 0; j < k; j++){ var w = (dreh + j * 360 / k) * Math.PI / 180; l.push(f1(x + rr * Math.sin(w)) + ',' + f1(y - rr * Math.cos(w))); } return l.join(' '); }
   switch (form){
     case 'kreis': return '<circle cx="' + f1(x) + '" cy="' + f1(y) + '" r="' + f1(r * 0.86) + '"' + a + '/>';
@@ -256,7 +257,7 @@ function regenbogenSvg(farben, breite){
       '<rect x="' + f1(x - 38.6 * s) + '" y="' + f1(y + 5.4 * s) + '" width="' + f1(81.2 * s) + '" height="' + f1(14.2 * s) + '" rx="' + f1(7 * s) + '"/></g>';
   }
   var s = Math.max(0.8, Math.min(1.3, n * band / 70));
-  return '<svg class="rb-bogen" width="' + breite + '" height="' + f1(h) + '" viewBox="0 0 ' + breite + ' ' + f1(h) + '" role="img" aria-label="Regenbogen mit ' + n + ' Farben">' + t +
+  return '<svg class="rb-bogen" width="' + breite + '" height="' + f1(h) + '" viewBox="0 0 ' + breite + ' ' + f1(h) + tx('" role="img" aria-label="Regenbogen mit ') + n + ' Farben">' + t +
     wolke(cx - R + n * band / 2, cy, s) + wolke(cx + R - n * band / 2, cy, s) + '</svg>';
 }
 /* Gruppen: jedes Zeichen in einem Feld; oben klein die Formen, die dazugehören (weiss mit Rand), darunter Punkte und
@@ -294,36 +295,36 @@ function gruppenSvg(P, breite, loesung, maxHoehe){
     t += (loesung ? '<g opacity=".28">' : '<g>') + gr.ablenker.map(function(q){ var p = xy(q.x, q.y); return formSvg(q.form, p[0], p[1], r, Kern.FARBE[q.farbe]); }).join('') + '</g>';
     gr.striche.forEach(function(st){ st.punkte.forEach(function(q){ var p = xy(q[0], q[1]); t += formSvg(st.form, p[0], p[1], r, Kern.FARBE[q[2]]); }); });
   });
-  return '<svg class="rb-gruppen" width="' + breite + '" height="' + f1(hoehe) + '" viewBox="0 0 ' + breite + ' ' + f1(hoehe) + '" role="img" aria-label="Formen zum Verbinden">' + t + '</svg>';
+  return '<svg class="rb-gruppen" width="' + breite + '" height="' + f1(hoehe) + '" viewBox="0 0 ' + breite + ' ' + f1(hoehe) + tx('" role="img" aria-label="Formen zum Verbinden">') + t + '</svg>';
 }
 
 var VORLAGE = '<div class="rb">' +
-  '<header class="rb-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Regenbogenrätsel</h1>' +
-    '<p>Verbinde in jeder Gruppe die Formen in der Reihenfolge der Regenbogenfarben – dann erscheinen Zahlen oder Buchstaben.</p></header>' +
-  '<div class="rb-layout"><section class="rb-eingabe" aria-label="Eingaben">' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Zeichen</h2><p>Welche Zahl oder welches Wort soll erscheinen?</p></div></div>' +
-      '<label class="feld-label" for="rbZiffern">Zahl oder Wort</label>' +
+  tx('<header class="rb-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Regenbogenrätsel</h1>') +
+    tx('<p>Verbinde in jeder Gruppe die Formen in der Reihenfolge der Regenbogenfarben – dann erscheinen Zahlen oder Buchstaben.</p></header>') +
+  tx('<div class="rb-layout"><section class="rb-eingabe" aria-label="Eingaben">') +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Zeichen</h2><p>Welche Zahl oder welches Wort soll erscheinen?</p></div></div>') +
+      tx('<label class="feld-label" for="rbZiffern">Zahl oder Wort</label>') +
       '<div class="rb-zeile"><input type="text" id="rbZiffern" maxlength="12" autocomplete="off" spellcheck="false">' +
-        '<button type="button" class="btn klein" id="rbZufall" title="Eine andere Zahl oder ein anderes Wort">Andere</button></div>' +
-      '<p class="hinweis">1 bis 6 Zeichen: Ziffern, Gross- und Kleinbuchstaben, z. B. «243», «MAUS» oder «Hut». Buchstaben mit mehreren Strichen (T, H, i …) bekommen pro Strich eine eigene Form.</p>' +
+        tx('<button type="button" class="btn klein" id="rbZufall" title="Eine andere Zahl oder ein anderes Wort">Andere</button></div>') +
+      tx('<p class="hinweis">1 bis 6 Zeichen: Ziffern, Gross- und Kleinbuchstaben, z. B. «243», «MAUS» oder «Hut». Buchstaben mit mehreren Strichen (T, H, i …) bekommen pro Strich eine eigene Form.</p>') +
       '<div class="rb-zaehler" id="rbZaehler" aria-live="polite"></div>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Regenbogen</h2></div></div>' +
-      '<p class="feld-label">Anzahl Farben</p><div class="rb-chips" id="rbFarben" role="radiogroup" aria-label="Anzahl Farben im Regenbogen"></div>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Regenbogen</h2></div></div>') +
+      tx('<p class="feld-label">Anzahl Farben</p><div class="rb-chips" id="rbFarben" role="radiogroup" aria-label="Anzahl Farben im Regenbogen"></div>') +
       '<p class="hinweis" id="rbFarbenInfo"></p>' +
       '<div class="rb-farbfolge" id="rbFolge"></div>' +
-      '<label class="opt rb-ablenker"><input type="checkbox" id="rbAblenker"><span>Ablenkformen – andere Formen dazwischen, damit man die Zeichen nicht schon ohne Linien erkennt</span></label>' +
+      tx('<label class="opt rb-ablenker"><input type="checkbox" id="rbAblenker"><span>Ablenkformen – andere Formen dazwischen, damit man die Zeichen nicht schon ohne Linien erkennt</span></label>') +
     '</div>' +
   '</section>' +
-  '<section class="rb-ausgabe" aria-label="Ergebnis">' +
+  tx('<section class="rb-ausgabe" aria-label="Ergebnis">') +
     '<div id="rbMeldung" aria-live="polite"></div>' +
     '<div class="rb-werkzeug">' +
-      '<button type="button" class="btn klein" id="rbZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
-      '<button type="button" class="btn klein" id="rbNeu" title="Formen und Lage neu mischen">Neu mischen</button>' +
+      tx('<button type="button" class="btn klein" id="rbZeigeLoesung" aria-pressed="false">Lösung zeigen</button>') +
+      tx('<button type="button" class="btn klein" id="rbNeu" title="Formen und Lage neu mischen">Neu mischen</button>') +
       '<span class="abstand"></span>' + Labor.blattSchalterHtml() +
-      '<label><input type="checkbox" id="rbMitLoesung"> mit Lösungsblatt</label>' +
-      '<button type="button" class="btn klein primary" id="rbPdf">PDF herunterladen</button>' +
-      '<button type="button" class="btn klein primary" id="rbHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
+      tx('<label><input type="checkbox" id="rbMitLoesung"> mit Lösungsblatt</label>') +
+      tx('<button type="button" class="btn klein primary" id="rbPdf">PDF herunterladen</button>') +
+      tx('<button type="button" class="btn klein primary" id="rbHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>') +
     '</div>' +
     '<div class="rb-rahmen"><article class="rb-blatt" id="rbBlatt"></article></div>' +
     '<div class="rb-rahmen"><article class="rb-blatt rb-loesungsblatt" id="rbLoesung" aria-hidden="true"></article></div>' +
@@ -367,7 +368,7 @@ function starte(bereich){
   $('#rbZiffern').value = st.ziffern;
   $('#rbZiffern').addEventListener('input', function(){ st.ziffern = this.value; speichern(); baldZeichnen(); });
   // «Andere»: abwechselnd eine Zahl (2–4 Ziffern) oder ein kurzes Wort (gross oder klein geschrieben)
-  var WOERTER = ['Hut', 'Sonne', 'MAUS', 'Igel', 'ZOO', 'Ball', 'Kiwi', 'Haus', 'Fisch', 'LAMA', 'Pony', 'Eis', 'Baum', 'Hase', 'Wolke', 'OTTER', 'Buch', 'Stern', 'Regen'];
+  var WOERTER = [tx('Hut'), tx('Sonne'), 'MAUS', tx('Igel'), 'ZOO', tx('Ball'), tx('Kiwi'), tx('Haus'), tx('Fisch'), 'LAMA', tx('Pony'), tx('Eis'), tx('Baum'), tx('Hase'), tx('Wolke'), 'OTTER', tx('Buch'), tx('Stern'), tx('Regen')];
   var zahlDran = /[A-Za-z]/.test(st.ziffern);
   $('#rbZufall').addEventListener('click', function(){
     var r = Kern.zufall(Date.now()), z = '';
@@ -383,9 +384,9 @@ function starte(bereich){
     for (var n = 3; n <= Kern.MAX_FARBEN; n++) l.push(n);
     var gewaehlt = Math.max(min, st.opt.farben || min);
     $('#rbFarben').innerHTML = l.map(function(n){
-      return '<label' + (n < min ? ' class="gesperrt" title="Diese Zeichen brauchen mindestens ' + min + ' Farben"' : '') + '><input type="radio" name="rbFarben" value="' + n + '"' + (n === gewaehlt ? ' checked' : '') + (n < min ? ' disabled' : '') + '><span>' + n + '</span></label>';
+      return '<label' + (n < min ? tx(' class="gesperrt" title="Diese Zeichen brauchen mindestens ') + min + tx(' Farben"') : '') + '><input type="radio" name="rbFarben" value="' + n + '"' + (n === gewaehlt ? tx(' checked') : '') + (n < min ? tx(' disabled') : '') + '><span>' + n + '</span></label>';
     }).join('');
-    $('#rbFarbenInfo').textContent = 'Diese Zeichen brauchen mindestens ' + min + ' Farben. Mit mehr Farben bekommen die Striche zusätzliche Punkte auf ihren Linien – das wird schwieriger. Kurze Striche brauchen nur die ersten Farben.';
+    $('#rbFarbenInfo').textContent = tx('Diese Zeichen brauchen mindestens ') + min + tx(' Farben. Mit mehr Farben bekommen die Striche zusätzliche Punkte auf ihren Linien – das wird schwieriger. Kurze Striche brauchen nur die ersten Farben.');
     return gewaehlt;
   }
   $('#rbAblenker').checked = st.opt.ablenker !== false;
@@ -398,29 +399,29 @@ function starte(bereich){
 
   /* ---------- Rätsel ---------- */
   var P = null, B = 639;   // Zeichenfläche: 703 Pixel Blatt minus Rand
-  function titel(){ return 'Regenbogenrätsel'; }
+  function titel(){ return tx('Regenbogenrätsel'); }
   function anleitung(z){
     var zahl = z.every(function(c){ return /[0-9]/.test(c); }), mehrere = P.gruppen.some(function(g){ return g.striche.length > 1; }), punkt = P.gruppen.some(function(g){ return g.striche.some(function(st){ return st.punkte.length === 1; }); });
-    return 'Über jeder Gruppe siehst du, welche Formen zu ihr gehören. Verbinde ' + (mehrere ? 'jede dieser Formen für sich' : 'sie') + ' der Reihe nach in den Farben des Regenbogens: zuerst ' +
-      Kern.FARBNAME[P.farben[0]] + ' (ganz aussen), dann ' + Kern.FARBNAME[P.farben[1]] + ' und so weiter.' + (st.opt.ablenker !== false ? ' Die anderen Formen gehören nicht dazu.' : '') +
-      (punkt ? ' Eine einzelne Form bleibt ein Punkt.' : '') + ' ' + (zahl ? 'Welche Zahl' : 'Welches Wort') + ' entsteht?' + (z.length > 1 ? ' Lies von links nach rechts.' : '');
+    return tx('Über jeder Gruppe siehst du, welche Formen zu ihr gehören. Verbinde ') + (mehrere ? tx('jede dieser Formen für sich') : 'sie') + tx(' der Reihe nach in den Farben des Regenbogens: zuerst ') +
+      Kern.FARBNAME[P.farben[0]] + tx(' (ganz aussen), dann ') + Kern.FARBNAME[P.farben[1]] + tx(' und so weiter.') + (st.opt.ablenker !== false ? tx(' Die anderen Formen gehören nicht dazu.') : '') +
+      (punkt ? tx(' Eine einzelne Form bleibt ein Punkt.') : '') + ' ' + (zahl ? tx('Welche Zahl') : tx('Welches Wort')) + ' entsteht?' + (z.length > 1 ? tx(' Lies von links nach rechts.') : '');
   }
   function blattHtml(z, loesung, kopf){
     var o = st.opt;
-    return (o.titelAn ? '<h2>' + esc(titel()) + (kopf ? ' – Lösung' : '') + '</h2>' : (kopf ? '<p class="rb-anleitung"><b>Lösung</b></p>' : '')) +
+    return (o.titelAn ? '<h2>' + esc(titel()) + (kopf ? tx(' – Lösung') : '') + '</h2>' : (kopf ? tx('<p class="rb-anleitung"><b>Lösung</b></p>') : '')) +
       (o.anleitungAn && !kopf ? '<p class="rb-anleitung">' + esc(anleitung(z)) + '</p>' : '') +
       '<div class="rb-bild">' + regenbogenSvg(P.farben, Math.min(B, 470)) + gruppenSvg(P, B, loesung, 560) + '</div>' +
-      (kopf ? '<p class="rb-antwort">Lösung: <b>' + esc(z.join('')) + '</b></p>' : '');
+      (kopf ? tx('<p class="rb-antwort">Lösung: <b>') + esc(z.join('')) + '</b></p>' : '');
   }
   function zeichnen(){
     if (aus) return;
     var roh = String(st.ziffern || ''), z = Kern.zeichen(roh), h = '', weg = Kern.unbekannt(roh);
-    if (weg.length) h += '<p class="warnung">' + esc(weg.join(' ')) + ' gibt es nicht – nur Ziffern und Buchstaben A–Z, a–z (statt Ä, Ö, Ü: AE, OE, UE).</p>';
-    if (Array.from(roh).filter(function(c){ return Kern.ZEICHEN[c]; }).length > 6) h += '<p class="warnung">Höchstens 6 Zeichen – es werden die ersten 6 verwendet.</p>';
-    $('#rbZaehler').innerHTML = z.length ? '<p class="rb-zaehler-haupt ok">Lösung: <b>' + esc(z.join('')) + '</b></p>' + h : h;
+    if (weg.length) h += '<p class="warnung">' + esc(weg.join(' ')) + tx(' gibt es nicht – nur Ziffern und Buchstaben A–Z, a–z (statt Ä, Ö, Ü: AE, OE, UE).</p>');
+    if (Array.from(roh).filter(function(c){ return Kern.ZEICHEN[c]; }).length > 6) h += tx('<p class="warnung">Höchstens 6 Zeichen – es werden die ersten 6 verwendet.</p>');
+    $('#rbZaehler').innerHTML = z.length ? tx('<p class="rb-zaehler-haupt ok">Lösung: <b>') + esc(z.join('')) + '</b></p>' + h : h;
     var leer = !z.length;
     ['#rbZeigeLoesung', '#rbNeu', '#rbPdf', '#rbHerunterladen'].forEach(function(s){ $(s).disabled = leer; });
-    if (leer){ P = null; $('#rbBlatt').parentNode.hidden = true; meldung('info', '<p>Gib links die Zahl oder das Wort ein, das erscheinen soll.</p>'); return; }
+    if (leer){ P = null; $('#rbBlatt').parentNode.hidden = true; meldung('info', tx('<p>Gib links die Zahl oder das Wort ein, das erscheinen soll.</p>')); return; }
     meldung('', ''); $('#rbBlatt').parentNode.hidden = false;
     var min = Kern.mindestens(z), n = farbenZeigen(min);
     P = Kern.planen({ zeichen:z, farben:n, ablenker:st.opt.ablenker !== false, seed:st.seed });
@@ -446,9 +447,9 @@ function starte(bereich){
     ohneLoesung();
     var name = Labor.pdfName('Regenbogenraetsel', '').replace(/\.pdf$/, '.html');
     var inhalt = [$('#rbBlatt'), st.opt.mitLoesung && $('#rbLoesung')].filter(Boolean).map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
-    speicherOrt.save({ filename:name, data:Labor.blattDatei('Regenbogenrätsel', inhalt, '.rb-loesungsblatt{display:block}') }).catch(function(e){
+    speicherOrt.save({ filename:name, data:Labor.blattDatei(tx('Regenbogenrätsel'), inhalt, '.rb-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 

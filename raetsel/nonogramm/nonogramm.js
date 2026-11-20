@@ -7,6 +7,7 @@
    angemalt oder mit × als leer markiert) – so ist das Rätsel immer eindeutig und ohne Raten lösbar. Blatt, Lösung, PDF. */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('nonogramm');
 
 /* KERN-START */
 var Kern = (function(){
@@ -155,28 +156,28 @@ function esc(t){ return Labor.esc(t); }
 function f1(x){ return (Math.round(x * 10) / 10).toString(); }
 
 var VORLAGE = '<div class="ng">' +
-  '<header class="ng-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Nonogramm</h1>' +
-    '<p>Malen nach Zahlen: Die Zahlen an Zeilen und Spalten sagen, welche Felder angemalt werden – am Schluss erscheinen Ziffern oder Buchstaben.</p></header>' +
-  '<div class="ng-layout"><section class="ng-eingabe" aria-label="Eingaben">' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Lösung</h2><p>Ziffern und Buchstaben, die beim Ausmalen erscheinen – bis 12 Zeichen (ab 7 Zeichen zwei Zeilen).</p></div></div>' +
-      '<label class="feld-label" for="ngText">Ziffern oder Buchstaben</label>' +
-      '<div class="ng-zeile"><input type="text" id="ngText" maxlength="24" autocomplete="off" spellcheck="false"><button type="button" class="btn klein" id="ngLeeren">Leeren</button></div>' +
+  tx('<header class="ng-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Nonogramm</h1>') +
+    tx('<p>Malen nach Zahlen: Die Zahlen an Zeilen und Spalten sagen, welche Felder angemalt werden – am Schluss erscheinen Ziffern oder Buchstaben.</p></header>') +
+  tx('<div class="ng-layout"><section class="ng-eingabe" aria-label="Eingaben">') +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Lösung</h2><p>Ziffern und Buchstaben, die beim Ausmalen erscheinen – bis 12 Zeichen (ab 7 Zeichen zwei Zeilen).</p></div></div>') +
+      tx('<label class="feld-label" for="ngText">Ziffern oder Buchstaben</label>') +
+      tx('<div class="ng-zeile"><input type="text" id="ngText" maxlength="24" autocomplete="off" spellcheck="false"><button type="button" class="btn klein" id="ngLeeren">Leeren</button></div>') +
       '<div class="ng-zaehler" id="ngZaehler" aria-live="polite"></div>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Raster</h2></div></div>' +
-      '<label class="opt"><input type="checkbox" id="ngFuenfer"><span>Dicke Linie alle 5 Felder (hilft beim Zählen)</span></label>' +
-      '<label class="opt"><input type="checkbox" id="ngLinie"><span>Linie für die Lösung</span></label>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Raster</h2></div></div>') +
+      tx('<label class="opt"><input type="checkbox" id="ngFuenfer"><span>Dicke Linie alle 5 Felder (hilft beim Zählen)</span></label>') +
+      tx('<label class="opt"><input type="checkbox" id="ngLinie"><span>Linie für die Lösung</span></label>') +
       '<p class="hinweis" id="ngHilfenInfo"></p>' +
     '</div>' +
   '</section>' +
-  '<section class="ng-ausgabe" aria-label="Ergebnis">' +
+  tx('<section class="ng-ausgabe" aria-label="Ergebnis">') +
     '<div id="ngMeldung" aria-live="polite"></div>' +
     '<div class="ng-werkzeug">' +
-      '<button type="button" class="btn klein" id="ngZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
+      tx('<button type="button" class="btn klein" id="ngZeigeLoesung" aria-pressed="false">Lösung zeigen</button>') +
       '<span class="abstand"></span>' + Labor.blattSchalterHtml() +
-      '<label><input type="checkbox" id="ngMitLoesung"> mit Lösungsblatt</label>' +
-      '<button type="button" class="btn klein primary" id="ngPdf">PDF herunterladen</button>' +
-      '<button type="button" class="btn klein primary" id="ngHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
+      tx('<label><input type="checkbox" id="ngMitLoesung"> mit Lösungsblatt</label>') +
+      tx('<button type="button" class="btn klein primary" id="ngPdf">PDF herunterladen</button>') +
+      tx('<button type="button" class="btn klein primary" id="ngHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>') +
     '</div>' +
     '<div class="ng-blaetter"><div class="ng-rahmen"><article class="ng-blatt" id="ngBlatt"></article></div>' +
     '<div class="ng-rahmen ng-loesung-rahmen"><article class="ng-blatt ng-loesungsblatt" id="ngLoesung" aria-hidden="true"></article></div></div>' +
@@ -282,29 +283,29 @@ function starte(bereich){
   function zeichnen(){
     if (aus) return;
     var L = lesen(st.text), h = '';
-    if (L.weg.length) h += '<p class="warnung">' + esc(L.weg.join(' ')) + ' gibt es in der Blockschrift nicht – nur Buchstaben A–Z und Ziffern.</p>';
-    if (L.zuViele) h += '<p class="warnung">Höchstens ' + MAX + ' Zeichen – der Rest fällt weg.</p>';
+    if (L.weg.length) h += '<p class="warnung">' + esc(L.weg.join(' ')) + tx(' gibt es in der Blockschrift nicht – nur Buchstaben A–Z und Ziffern.</p>');
+    if (L.zuViele) h += tx('<p class="warnung">Höchstens ') + MAX + tx(' Zeichen – der Rest fällt weg.</p>');
     var ohne = L.zeichen.filter(function(c){ return c !== ' '; });
-    if (ohne.length) h += '<p class="ng-info">' + ohne.length + ' Zeichen' + (ohne.length > Kern.MAX_ZEILE ? ', zwei Zeilen' : '') + '.</p>';
+    if (ohne.length) h += '<p class="ng-info">' + ohne.length + tx(' Zeichen') + (ohne.length > Kern.MAX_ZEILE ? tx(', zwei Zeilen') : '') + '.</p>';
     var gleich = PS.AEHNLICH.filter(function(p){ return ohne.indexOf(p[0]) >= 0 && ohne.indexOf(p[1]) >= 0; });
-    if (gleich.length) h += '<p class="ng-info">' + gleich.map(function(p){ return p[0] + ' und ' + p[1]; }).join(', ') + ' sehen sich in der Blockschrift ähnlich.</p>';
+    if (gleich.length) h += '<p class="ng-info">' + gleich.map(function(p){ return p[0] + tx(' und ') + p[1]; }).join(', ') + tx(' sehen sich in der Blockschrift ähnlich.</p>');
     $('#ngZaehler').innerHTML = h;
     var leer = !ohne.length;
     ['#ngPdf', '#ngHerunterladen', '#ngZeigeLoesung'].forEach(function(s){ $(s).disabled = leer; });
-    if (leer){ R = null; $('#ngBlatt').parentNode.hidden = true; $('#ngLoesung').parentNode.hidden = true; $('#ngHilfenInfo').textContent = ''; meldung('info', '<p>Gib links Ziffern oder Buchstaben ein.</p>'); return; }
+    if (leer){ R = null; $('#ngBlatt').parentNode.hidden = true; $('#ngLoesung').parentNode.hidden = true; $('#ngHilfenInfo').textContent = ''; meldung('info', tx('<p>Gib links Ziffern oder Buchstaben ein.</p>')); return; }
     meldung('', ''); $('#ngBlatt').parentNode.hidden = false; $('#ngLoesung').parentNode.hidden = false;
     var zeilen = Kern.zeilenAus(L.zeichen), g = Kern.raster(zeilen, PS.ZEICHEN, PS.BREITE, PS.HOEHE), hw = Kern.hinweise(g);
     R = { g:g, hw:hw, zeilen:zeilen, hilfen:Kern.hilfen(g, hw) };
     var nh = R.hilfen.length, nv = R.hilfen.filter(function(x){ return x.wert === 1; }).length;
-    $('#ngHilfenInfo').textContent = !nh ? 'Lösbar ohne Hilfsfelder – Zeile um Zeile und Spalte um Spalte, ohne Raten.' :
-      nh + (nh === 1 ? ' Hilfsfeld' : ' Hilfsfelder') + ' nötig, damit es ohne Raten aufgeht' + (nv && nv < nh ? ' (grau angemalt oder mit × als leer markiert).' : nv ? ' (grau angemalt).' : ' (mit × als leer markiert).');
+    $('#ngHilfenInfo').textContent = !nh ? tx('Lösbar ohne Hilfsfelder – Zeile um Zeile und Spalte um Spalte, ohne Raten.') :
+      nh + (nh === 1 ? tx(' Hilfsfeld') : tx(' Hilfsfelder')) + tx(' nötig, damit es ohne Raten aufgeht') + (nv && nv < nh ? tx(' (grau angemalt oder mit × als leer markiert).') : nv ? tx(' (grau angemalt).') : tx(' (mit × als leer markiert).'));
     var o = st.opt, wort = zeilen.map(function(z){ return z.join(''); }).join(' ');
-    var anleitung = 'Male in jeder Zeile und jeder Spalte Felder an: Die Zahlen sagen, wie viele Felder nebeneinander angemalt sind – in dieser Reihenfolge. Zwischen zwei Gruppen bleibt mindestens ein Feld leer. 0 heisst: alles leer.' +
-      (nh ? ' Graue Felder sind schon angemalt' + (nv < nh ? ', Felder mit × bleiben leer' : '') + '.' : '') + ' Wenn alles stimmt, erscheint die Lösung.';
-    $('#ngBlatt').innerHTML = (o.titelAn ? '<h2>Nonogramm</h2>' : '') + (o.anleitungAn ? '<p class="ng-anleitung">' + esc(anleitung) + '</p>' : '') +
-      '<div class="ng-mitte">' + rasterSvg(false) + '</div>' + (o.linie ? '<p class="ng-antwort">Lösung: <span class="ng-linie"></span></p>' : '');
-    $('#ngLoesung').innerHTML = (o.titelAn ? '<h2>Nonogramm – Lösung</h2>' : '<p class="ng-anleitung"><b>Lösung</b></p>') + '<div class="ng-mitte">' + rasterSvg(true) + '</div>' +
-      '<p class="ng-loesung-text">Lösung: <b>' + esc(wort) + '</b></p>';
+    var anleitung = tx('Male in jeder Zeile und jeder Spalte Felder an: Die Zahlen sagen, wie viele Felder nebeneinander angemalt sind – in dieser Reihenfolge. Zwischen zwei Gruppen bleibt mindestens ein Feld leer. 0 heisst: alles leer.') +
+      (nh ? tx(' Graue Felder sind schon angemalt') + (nv < nh ? tx(', Felder mit × bleiben leer') : '') + '.' : '') + tx(' Wenn alles stimmt, erscheint die Lösung.');
+    $('#ngBlatt').innerHTML = (o.titelAn ? tx('<h2>Nonogramm</h2>') : '') + (o.anleitungAn ? '<p class="ng-anleitung">' + esc(anleitung) + '</p>' : '') +
+      '<div class="ng-mitte">' + rasterSvg(false) + '</div>' + (o.linie ? tx('<p class="ng-antwort">Lösung: <span class="ng-linie"></span></p>') : '');
+    $('#ngLoesung').innerHTML = (o.titelAn ? tx('<h2>Nonogramm – Lösung</h2>') : tx('<p class="ng-anleitung"><b>Lösung</b></p>')) + '<div class="ng-mitte">' + rasterSvg(true) + '</div>' +
+      tx('<p class="ng-loesung-text">Lösung: <b>') + esc(wort) + '</b></p>';
   }
 
   /* ---------- PDF, Herunterladen ---------- */
@@ -322,9 +323,9 @@ function starte(bereich){
     if (!speicherOrt || !R) return;
     var name = Labor.pdfName('Nonogramm', '').replace(/\.pdf$/, '.html');
     var inhalt = blaetter().map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); k.classList.remove('zeigen'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
-    speicherOrt.save({ filename:name, data:Labor.blattDatei('Nonogramm', inhalt, '.ng-loesungsblatt{display:block}') }).catch(function(e){
+    speicherOrt.save({ filename:name, data:Labor.blattDatei(tx('Nonogramm'), inhalt, '.ng-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 

@@ -4,6 +4,7 @@
    geordnet. In welche Zeile ein Buchstabe gehört, muss man selbst herausfinden. Raster als SVG, Lösungsblatt, PDF. */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('fallbuchstaben');
 
 /* KERN-START */
 var Kern = (function(){
@@ -73,56 +74,56 @@ var Kern = (function(){
 /* KERN-ENDE */
 
 var TINTE = '#1C1714', AKZENT = '#D2601A', BMIN = 6, BMAX = 30;
-var SCHREIB = [['gross', 'GROSSBUCHSTABEN'], ['wie', 'wie geschrieben']];
+var SCHREIB = [['gross', 'GROSSBUCHSTABEN'], ['wie', tx('wie geschrieben')]];
 // Farben für die Trennfelder (bisher immer schwarz); dazu eine eigene Farbe
-var FELDFARBEN = [['#1C1714', 'Schwarz'], ['#6B6460', 'Dunkelgrau'], ['#BDB7B2', 'Hellgrau'], ['#2F5D9E', 'Blau'], ['#A9CDEB', 'Hellblau'], ['#2E7D4F', 'Grün'],
-  ['#B5DDA9', 'Hellgrün'], ['#F3D36B', 'Gelb'], ['#EE9A3A', 'Orange'], ['#D64545', 'Rot'], ['#F4B6C2', 'Rosa'], ['#8E6BBF', 'Violett']];
-function farbName(f){ var x = FELDFARBEN.filter(function(a){ return a[0].toLowerCase() === String(f).toLowerCase(); })[0]; return x ? x[1] : 'eigene Farbe'; }
-var MENGE = [['viertel', 'ein Viertel', 0.25], ['haelfte', 'die Hälfte', 0.5], ['dreiviertel', 'drei Viertel', 0.75], ['alle', 'alle', 1], ['zahl', 'Anzahl wählen', 0]];
-var SAETZE = ['Ich habe heute keine Hausaufgaben.', 'Der Hund schläft unter dem Tisch.', 'Im Sommer schwimmen wir im See.', 'Meine Katze trinkt gerne warme Milch.',
-  'Wir bauen im Wald eine Hütte.', 'Am Morgen scheint die Sonne ins Zimmer.', 'Der Zug fährt pünktlich um acht Uhr ab.', 'Lesen macht klug und Spass.',
-  'Im Winter fahren wir Schlitten.', 'Die Kinder spielen auf dem Pausenplatz.', 'Ein Igel sucht im Laub nach Futter.', 'Morgen gehen wir zusammen ins Museum.',
-  'Der Schatz liegt hinter dem Schulhaus.', 'Heute dürfen alle früher in die Pause.', 'Der Mond leuchtet hell in der Nacht.', 'Das Eichhörnchen sammelt Nüsse für den Winter.',
-  'Auf dem Berg liegt noch Schnee.', 'Der Bäcker backt frisches Brot.', 'Mit Geduld schaffst du alles.', 'Unsere Klasse macht einen Ausflug an den Rhein.',
-  'Im Garten wachsen Tomaten und Bohnen.', 'Der Elefant hat einen langen Rüssel.', 'Nach dem Regen kommt ein Regenbogen.', 'Wer zuerst kommt, mahlt zuerst.'];
+var FELDFARBEN = [['#1C1714', tx('Schwarz')], ['#6B6460', tx('Dunkelgrau')], ['#BDB7B2', tx('Hellgrau')], ['#2F5D9E', tx('Blau')], ['#A9CDEB', tx('Hellblau')], ['#2E7D4F', tx('Grün')],
+  ['#B5DDA9', tx('Hellgrün')], ['#F3D36B', tx('Gelb')], ['#EE9A3A', tx('Orange')], ['#D64545', tx('Rot')], ['#F4B6C2', tx('Rosa')], ['#8E6BBF', tx('Violett')]];
+function farbName(f){ var x = FELDFARBEN.filter(function(a){ return a[0].toLowerCase() === String(f).toLowerCase(); })[0]; return x ? x[1] : tx('eigene Farbe'); }
+var MENGE = [['viertel', tx('ein Viertel'), 0.25], ['haelfte', tx('die Hälfte'), 0.5], ['dreiviertel', tx('drei Viertel'), 0.75], ['alle', 'alle', 1], ['zahl', tx('Anzahl wählen'), 0]];
+var SAETZE = [tx('Ich habe heute keine Hausaufgaben.'), tx('Der Hund schläft unter dem Tisch.'), tx('Im Sommer schwimmen wir im See.'), tx('Meine Katze trinkt gerne warme Milch.'),
+  tx('Wir bauen im Wald eine Hütte.'), tx('Am Morgen scheint die Sonne ins Zimmer.'), tx('Der Zug fährt pünktlich um acht Uhr ab.'), tx('Lesen macht klug und Spass.'),
+  tx('Im Winter fahren wir Schlitten.'), tx('Die Kinder spielen auf dem Pausenplatz.'), tx('Ein Igel sucht im Laub nach Futter.'), tx('Morgen gehen wir zusammen ins Museum.'),
+  tx('Der Schatz liegt hinter dem Schulhaus.'), tx('Heute dürfen alle früher in die Pause.'), tx('Der Mond leuchtet hell in der Nacht.'), tx('Das Eichhörnchen sammelt Nüsse für den Winter.'),
+  tx('Auf dem Berg liegt noch Schnee.'), tx('Der Bäcker backt frisches Brot.'), tx('Mit Geduld schaffst du alles.'), tx('Unsere Klasse macht einen Ausflug an den Rhein.'),
+  tx('Im Garten wachsen Tomaten und Bohnen.'), tx('Der Elefant hat einen langen Rüssel.'), tx('Nach dem Regen kommt ein Regenbogen.'), tx('Wer zuerst kommt, mahlt zuerst.')];
 function esc(t){ return Labor.esc(t); }
 function chips(name, liste, label){ return '<div class="fb-chips" role="radiogroup" aria-label="' + label + '">' + liste.map(function(a){ return '<label><input type="radio" name="' + name + '" value="' + a[0] + '"><span>' + a[1] + '</span></label>'; }).join('') + '</div>'; }
 
 var VORLAGE = '<div class="fb">' +
-  '<header class="fb-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Fallende Buchstaben</h1>' +
-    '<p>Aus einem Satz sind Buchstaben nach unten gefallen. Sie stehen unter ihrer Spalte – aber in welche Zeile gehören sie?</p></header>' +
-  '<div class="fb-layout"><section class="fb-eingabe" aria-label="Eingaben">' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Satz</h2><p>Ein Satz oder mehrere – bis 240 Zeichen.</p></div></div>' +
-      '<label class="feld-label" for="fbSatz">Satz</label>' +
+  tx('<header class="fb-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Fallende Buchstaben</h1>') +
+    tx('<p>Aus einem Satz sind Buchstaben nach unten gefallen. Sie stehen unter ihrer Spalte – aber in welche Zeile gehören sie?</p></header>') +
+  tx('<div class="fb-layout"><section class="fb-eingabe" aria-label="Eingaben">') +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Satz</h2><p>Ein Satz oder mehrere – bis 240 Zeichen.</p></div></div>') +
+      tx('<label class="feld-label" for="fbSatz">Satz</label>') +
       '<textarea id="fbSatz" class="fb-text" rows="3" maxlength="240" spellcheck="true"></textarea>' +
-      '<div class="fb-zeile"><button type="button" class="btn klein" id="fbVorschlag">Satz vorschlagen</button><span class="fb-info" id="fbInfo" aria-live="polite"></span></div>' +
+      tx('<div class="fb-zeile"><button type="button" class="btn klein" id="fbVorschlag">Satz vorschlagen</button><span class="fb-info" id="fbInfo" aria-live="polite"></span></div>') +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Raster</h2></div></div>' +
-      '<p class="feld-label">Buchstaben im Raster</p>' + chips('fbSchreib', SCHREIB, 'Schreibweise') +
-      '<label class="feld-label" for="fbBreite">Felder pro Zeile: <b id="fbBreiteWert"></b></label>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Raster</h2></div></div>') +
+      tx('<p class="feld-label">Buchstaben im Raster</p>') + chips('fbSchreib', SCHREIB, tx('Schreibweise')) +
+      tx('<label class="feld-label" for="fbBreite">Felder pro Zeile: <b id="fbBreiteWert"></b></label>') +
       '<div class="fb-zeile"><input type="range" id="fbBreite" min="' + BMIN + '" max="' + BMAX + '" step="1"><button type="button" class="btn klein" id="fbAuto" hidden>automatisch</button></div>' +
-      '<p class="feld-label">Farbe der Felder zwischen den Wörtern</p><div class="fb-farbwahl" role="radiogroup" aria-label="Farbe der Felder zwischen den Wörtern">' +
+      tx('<p class="feld-label">Farbe der Felder zwischen den Wörtern</p><div class="fb-farbwahl" role="radiogroup" aria-label="Farbe der Felder zwischen den Wörtern">') +
         FELDFARBEN.map(function(f){ return '<label title="' + f[1] + '"><input type="radio" name="fbFarbe" value="' + f[0] + '"><span style="background:' + f[0] + '"></span><b class="vh">' + f[1] + '</b></label>'; }).join('') +
-        '<label class="fb-eigene" title="Eigene Farbe"><input type="color" id="fbFarbeEigen" value="#5B8DB8"><span>eigene</span></label></div>' +
+        tx('<label class="fb-eigene" title="Eigene Farbe"><input type="color" id="fbFarbeEigen" value="#5B8DB8"><span>eigene</span></label></div>') +
       '<p class="hinweis" id="fbFarbeInfo"></p>' +
-      '<label class="opt"><input type="checkbox" id="fbSatzzeichen"><span>Satzzeichen im Raster (stehen schon da)</span></label>' +
-      '<label class="opt"><input type="checkbox" id="fbTrennen"><span>Wörter laufen über das Zeilenende weiter (schwieriger)</span></label>' +
+      tx('<label class="opt"><input type="checkbox" id="fbSatzzeichen"><span>Satzzeichen im Raster (stehen schon da)</span></label>') +
+      tx('<label class="opt"><input type="checkbox" id="fbTrennen"><span>Wörter laufen über das Zeilenende weiter (schwieriger)</span></label>') +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Herunterfallen</h2></div></div>' +
-      '<p class="feld-label">Wie viele Buchstaben fallen herunter?</p>' + chips('fbMenge', MENGE, 'Anzahl der fallenden Buchstaben') +
-      '<div class="fb-zahl" id="fbZahlFeld" hidden><label class="feld-label" for="fbZahl">Anzahl Buchstaben</label><input type="number" id="fbZahl" min="1" step="1" inputmode="numeric"></div>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Herunterfallen</h2></div></div>') +
+      tx('<p class="feld-label">Wie viele Buchstaben fallen herunter?</p>') + chips('fbMenge', MENGE, tx('Anzahl der fallenden Buchstaben')) +
+      tx('<div class="fb-zahl" id="fbZahlFeld" hidden><label class="feld-label" for="fbZahl">Anzahl Buchstaben</label><input type="number" id="fbZahl" min="1" step="1" inputmode="numeric"></div>') +
       '<p class="hinweis" id="fbMengeInfo"></p>' +
     '</div>' +
   '</section>' +
-  '<section class="fb-ausgabe" aria-label="Ergebnis">' +
+  tx('<section class="fb-ausgabe" aria-label="Ergebnis">') +
     '<div id="fbMeldung" aria-live="polite"></div>' +
     '<div class="fb-werkzeug">' +
-      '<button type="button" class="btn klein" id="fbZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
-      '<button type="button" class="btn klein" id="fbNeu" title="Andere Buchstaben fallen herunter">Neu mischen</button>' +
+      tx('<button type="button" class="btn klein" id="fbZeigeLoesung" aria-pressed="false">Lösung zeigen</button>') +
+      tx('<button type="button" class="btn klein" id="fbNeu" title="Andere Buchstaben fallen herunter">Neu mischen</button>') +
       '<span class="abstand"></span>' + Labor.blattSchalterHtml() +
-      '<label><input type="checkbox" id="fbMitLoesung"> mit Lösungsblatt</label>' +
-      '<button type="button" class="btn klein primary" id="fbPdf">PDF herunterladen</button>' +
-      '<button type="button" class="btn klein primary" id="fbHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
+      tx('<label><input type="checkbox" id="fbMitLoesung"> mit Lösungsblatt</label>') +
+      tx('<button type="button" class="btn klein primary" id="fbPdf">PDF herunterladen</button>') +
+      tx('<button type="button" class="btn klein primary" id="fbHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>') +
     '</div>' +
     '<div class="fb-blaetter"><div class="fb-rahmen"><article class="fb-blatt" id="fbBlatt" hidden></article></div>' +
     '<div class="fb-rahmen fb-loesung-rahmen"><article class="fb-blatt fb-loesungsblatt" id="fbLoesung" aria-hidden="true"></article></div></div>' +
@@ -149,7 +150,7 @@ Labor.registriere({
 function rasterSvg(F, c, loesung, farbe){
   var Z = F.raster.length, B = F.raster[0].length, m = loesung ? 0 : F.hoch, lz = c * 0.8, abst = c * 0.5;
   var W = B * c, H = Z * c + (m ? abst + m * lz : 0), fs = +(c * 0.56).toFixed(1), r = function(v){ return +v.toFixed(1); };
-  var s = '<svg class="fb-svg" xmlns="http://www.w3.org/2000/svg" width="' + r(W + 4) + '" height="' + r(H + 4) + '" viewBox="-2 -2 ' + r(W + 4) + ' ' + r(H + 4) + '" role="img" aria-label="' + (loesung ? 'Lösung' : 'Raster mit Lücken und gefallenen Buchstaben') + '">';
+  var s = '<svg class="fb-svg" xmlns="http://www.w3.org/2000/svg" width="' + r(W + 4) + '" height="' + r(H + 4) + '" viewBox="-2 -2 ' + r(W + 4) + ' ' + r(H + 4) + '" role="img" aria-label="' + (loesung ? tx('Lösung') : tx('Raster mit Lücken und gefallenen Buchstaben')) + '">';
   var schwarz = '', linien = '', text = '';
   F.raster.forEach(function(z, zr){ z.forEach(function(zelle, sp){
     var x = sp * c, y = zr * c;
@@ -210,7 +211,7 @@ function starte(bereich){
     if (eigen) $('#fbFarbeEigen').value = st.opt.farbe;
     // dunkle Farbe (wie Schwarz)? Dann der Tipp, dass helle Farben Tinte sparen
     var hell = (0.299 * parseInt(f.slice(1, 3), 16) + 0.587 * parseInt(f.slice(3, 5), 16) + 0.114 * parseInt(f.slice(5, 7), 16)) / 255;
-    $('#fbFarbeInfo').textContent = 'Felder zwischen den Wörtern: ' + farbName(f) + '.' + (hell < 0.45 ? ' Tipp: Helle Farben sparen Druckertinte.' : '');
+    $('#fbFarbeInfo').textContent = tx('Felder zwischen den Wörtern: ') + farbName(f) + '.' + (hell < 0.45 ? tx(' Tipp: Helle Farben sparen Druckertinte.') : '');
   }
   [].forEach.call(bereich.querySelectorAll('input[name="fbFarbe"]'), function(r){
     r.addEventListener('change', function(){ if (r.checked){ st.opt.farbe = r.value; speichern(); farbeZeigen(); zeichnen(); } });
@@ -239,10 +240,10 @@ function starte(bereich){
     var o = st.opt, satz = st.satz.replace(/\s+/g, ' ').trim();
     var W = Kern.woerter(satz, { gross:o.schreib === 'gross', satzzeichen:o.satzzeichen });
     var n = W.reduce(function(a, w){ return a + w.filter(function(c){ return c.b; }).length; }, 0);
-    $('#fbInfo').textContent = n ? n + (n === 1 ? ' Buchstabe' : ' Buchstaben') + ' in ' + W.length + (W.length === 1 ? ' Wort' : ' Wörtern') : '';
+    $('#fbInfo').textContent = n ? n + (n === 1 ? tx(' Buchstabe') : tx(' Buchstaben')) + ' in ' + W.length + (W.length === 1 ? tx(' Wort') : tx(' Wörtern')) : '';
     // Zeilenbreite: automatisch, bis man den Schieber bewegt
     var auto = Kern.autoBreite(W, o.trennen), breite = st.breite ? Math.max(BMIN, Math.min(BMAX, st.breite)) : auto;
-    $('#fbBreite').value = breite; $('#fbBreiteWert').textContent = breite + (st.breite ? '' : ' (automatisch)'); $('#fbAuto').hidden = !st.breite;
+    $('#fbBreite').value = breite; $('#fbBreiteWert').textContent = breite + (st.breite ? '' : tx(' (automatisch)')); $('#fbAuto').hidden = !st.breite;
     // Anzahl fallender Buchstaben
     var m = MENGE.filter(function(a){ return a[0] === o.menge; })[0];
     $('#fbZahlFeld').hidden = o.menge !== 'zahl';
@@ -252,8 +253,8 @@ function starte(bereich){
       if (document.activeElement !== $('#fbZahl')) $('#fbZahl').value = n ? Math.min(st.zahl, n) : st.zahl;
     }
     var anzahl = !m || !n ? 0 : o.menge === 'zahl' ? Math.max(1, Math.min(st.zahl, n)) : Math.max(1, Math.round(n * m[2]));
-    $('#fbMengeInfo').textContent = m && n ? anzahl + ' von ' + n + ' Buchstaben fallen herunter.' + (o.menge === 'zahl' && st.zahl > n ? ' (Mehr hat der Satz nicht.)' : '') : '';
-    var fehlt = !n ? 'Schreib links einen Satz oder lass dir einen vorschlagen.' : !o.schreib ? 'Wähle links, ob die Buchstaben im Raster GROSS oder wie geschrieben stehen.' : !m ? 'Wähle links, wie viele Buchstaben herunterfallen.' : '';
+    $('#fbMengeInfo').textContent = m && n ? anzahl + tx(' von ') + n + tx(' Buchstaben fallen herunter.') + (o.menge === 'zahl' && st.zahl > n ? tx(' (Mehr hat der Satz nicht.)') : '') : '';
+    var fehlt = !n ? tx('Schreib links einen Satz oder lass dir einen vorschlagen.') : !o.schreib ? tx('Wähle links, ob die Buchstaben im Raster GROSS oder wie geschrieben stehen.') : !m ? tx('Wähle links, wie viele Buchstaben herunterfallen.') : '';
     ['#fbPdf', '#fbHerunterladen', '#fbZeigeLoesung', '#fbNeu'].forEach(function(s){ $(s).disabled = !!fehlt; });
     if (fehlt){ F = null; $('#fbBlatt').hidden = true; $('#fbBlatt').innerHTML = ''; $('#fbLoesung').parentNode.hidden = true; meldung('info', '<p>' + fehlt + '</p>'); return; }
     meldung(''); $('#fbBlatt').hidden = false; $('#fbLoesung').parentNode.hidden = false;
@@ -262,11 +263,11 @@ function starte(bereich){
     // Feldgrösse: so gross, wie es aufs Blatt passt (Breite 639 px, Höhe je nach Kopf), höchstens 46 px
     var hMax = 980 - 56 - (o.titelAn ? 50 : 0) - (o.anleitungAn ? 86 : 0) - 10;
     var c = Math.min(46, 639 / breite, hMax / (R.length + (F.hoch ? 0.5 + 0.8 * F.hoch : 0)));
-    var anleitung = 'Die Buchstaben unter dem Raster sind aus ihrer Spalte heruntergefallen. Setze jeden zurück in ein leeres Feld derselben Spalte – in welche Zeile, musst du selbst herausfinden. ' +
-      (o.farbe.toLowerCase() === '#1c1714' ? 'Schwarze' : 'Farbige') + ' Felder trennen die Wörter' + (o.trennen ? '; ein Wort kann am Zeilenende in der nächsten Zeile weitergehen.' : '.');
-    var kopf = (o.titelAn ? '<h2>Fallende Buchstaben</h2>' : '') + (o.anleitungAn ? '<p class="fb-anleitung">' + esc(anleitung) + '</p>' : '');
+    var anleitung = tx('Die Buchstaben unter dem Raster sind aus ihrer Spalte heruntergefallen. Setze jeden zurück in ein leeres Feld derselben Spalte – in welche Zeile, musst du selbst herausfinden. ') +
+      (o.farbe.toLowerCase() === '#1c1714' ? tx('Schwarze') : tx('Farbige')) + tx(' Felder trennen die Wörter') + (o.trennen ? tx('; ein Wort kann am Zeilenende in der nächsten Zeile weitergehen.') : '.');
+    var kopf = (o.titelAn ? tx('<h2>Fallende Buchstaben</h2>') : '') + (o.anleitungAn ? '<p class="fb-anleitung">' + esc(anleitung) + '</p>' : '');
     $('#fbBlatt').innerHTML = kopf + '<div class="fb-bild">' + rasterSvg(F, c, false, o.farbe) + '</div>';
-    $('#fbLoesung').innerHTML = (o.titelAn ? '<h2>Fallende Buchstaben – Lösung</h2>' : '<p class="fb-anleitung"><b>Lösung</b></p>') +
+    $('#fbLoesung').innerHTML = (o.titelAn ? tx('<h2>Fallende Buchstaben – Lösung</h2>') : tx('<p class="fb-anleitung"><b>Lösung</b></p>')) +
       '<div class="fb-bild">' + rasterSvg(F, Math.min(c, 46), true, o.farbe) + '</div><p class="fb-loesung-text">' + esc(o.schreib === 'gross' ? satz.toLocaleUpperCase('de-CH') : satz) + '</p>';
   }
 
@@ -286,9 +287,9 @@ function starte(bereich){
     if (!speicherOrt || !F) return;
     var name = dateiname().replace(/\.pdf$/, '.html');
     var inhalt = blaetter().map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); k.removeAttribute('hidden'); k.classList.remove('zeigen'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
-    speicherOrt.save({ filename:name, data:Labor.blattDatei('Fallende Buchstaben', inhalt, '.fb-loesungsblatt{display:block}') }).catch(function(e){
+    speicherOrt.save({ filename:name, data:Labor.blattDatei(tx('Fallende Buchstaben'), inhalt, '.fb-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 

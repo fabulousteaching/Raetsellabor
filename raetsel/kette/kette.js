@@ -6,6 +6,7 @@
    Fächer: Mathe (Rechnungen, erzeugt), Deutsch, Englisch, Französisch (eigene Paare; Übersetzung automatisch). */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('kettenraetsel');
 
 /* KERN-START */
 var Kern = (function(){
@@ -275,12 +276,12 @@ var Kern = (function(){
 // Für andere Generatoren (z. B. Legekärtchen): Mathe-Aufgaben und Deutsch-Vorschläge
 window.KettenKern = Kern;
 
-var FAECHER = [['mathe', 'Mathe'], ['deutsch', 'Deutsch'], ['englisch', 'Englisch'], ['franzoesisch', 'Französisch']];
-var MATHE = [['plusminus', 'Plus & Minus'], ['einmaleins', 'Einmaleins'], ['dezimal', 'Dezimalzahlen'], ['brueche', 'Brüche']];
-var DEUTSCH = [['reime', 'Reimwörter'], ['mehrzahl', 'Einzahl – Mehrzahl'], ['gegenteile', 'Gegenteile'], ['eigene', 'Eigene Paare']];
+var FAECHER = [['mathe', tx('Mathe')], ['deutsch', tx('Deutsch')], ['englisch', tx('Englisch')], ['franzoesisch', tx('Französisch')]];
+var MATHE = [['plusminus', tx('Plus & Minus')], ['einmaleins', tx('Einmaleins')], ['dezimal', tx('Dezimalzahlen')], ['brueche', tx('Brüche')]];
+var DEUTSCH = [['reime', tx('Reimwörter')], ['mehrzahl', tx('Einzahl – Mehrzahl')], ['gegenteile', tx('Gegenteile')], ['eigene', tx('Eigene Paare')]];
 // Überschriften der Paarliste [links, rechts, Beispiel]; Schlüssel = Liste (Deutsch je Art eine eigene Liste)
-var KOEPFE = { 'd-reime':['Wort', 'Reimwort', 'Haus = Maus'], 'd-mehrzahl':['Einzahl', 'Mehrzahl', 'Hund = Hunde'], 'd-gegenteile':['Wort', 'Gegenteil', 'gross = klein'],
-  'd-eigene':['Wort', 'Partner', 'Haus = Maus'], englisch:['Deutsch', 'Englisch', 'Hund = dog'], franzoesisch:['Deutsch', 'Französisch', 'Hund = le chien'] };
+var KOEPFE = { 'd-reime':[tx('Wort'), tx('Reimwort'), tx('Haus = Maus')], 'd-mehrzahl':[tx('Einzahl'), tx('Mehrzahl'), tx('Hund = Hunde')], 'd-gegenteile':[tx('Wort'), tx('Gegenteil'), tx('gross = klein')],
+  'd-eigene':[tx('Wort'), tx('Partner'), tx('Haus = Maus')], englisch:[tx('Deutsch'), tx('Englisch'), tx('Hund = dog')], franzoesisch:[tx('Deutsch'), tx('Französisch'), tx('Hund = le chien')] };
 var ABLENKER = [[0, 'keine'], [4, 'wenige'], [8, 'einige'], [12, 'viele']];
 var BUCHSTABEN = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''), ZIFFERN = '0123456789'.split('');
 var TINTE = '#1C1714', LINIE = '#E46F12';
@@ -291,7 +292,7 @@ function chips(name, liste){ return liste.map(function(x){ return '<label><input
 
 /* ---------- Zeichnen ---------- */
 var messer = document.createElement('canvas').getContext('2d');
-function breite(t, gr, label){ messer.font = (label ? 'italic 600 ' : '600 ') + gr + 'px ' + Labor.blattSchrift('text'); return messer.measureText(t).width; }
+function breite(t, gr, label){ messer.font = (label ? tx('italic 600 ') : '600 ') + gr + 'px ' + Labor.blattSchrift('text'); return messer.measureText(t).width; }
 // Bruch übereinander: Zähler, Bruchstrich, Nenner (Mitte bei y)
 var BRUCH = /^(\d+)\/(\d+)$/;
 function bruchSvg(x, y, gr, t){
@@ -392,7 +393,7 @@ function raetselSvg(r, lage, loesung){
     var a = ansatz[k[0] + '|' + nr], b = ansatz[k[1] + '|' + nr];
     linien += '<path d="M' + a[0].toFixed(1) + ' ' + a[1].toFixed(1) + 'L' + b[0].toFixed(1) + ' ' + b[1].toFixed(1) + '" stroke="' + LINIE + '" stroke-width="5" stroke-linecap="round"/>';
   });
-  return '<svg class="kt-svg" viewBox="0 0 ' + BLATT_B + ' ' + BLATT_H + '" width="' + BLATT_B + '" height="' + BLATT_H + '" role="img" aria-label="Kreise zum Verbinden">' +
+  return '<svg class="kt-svg" viewBox="0 0 ' + BLATT_B + ' ' + BLATT_H + '" width="' + BLATT_B + '" height="' + BLATT_H + tx('" role="img" aria-label="Kreise zum Verbinden">') +
     '<g style="font-family:var(--blatt-schrift)" font-weight="600" fill="' + TINTE + '" text-anchor="middle" dominant-baseline="central">' + linien + kreise + '</g></svg>';
 }
 // Lage: Form mittig, Kreisradius aus dem Massstab; Ablenker dazwischen und drumherum
@@ -412,66 +413,66 @@ function lageBerechnen(r, rnd){
 }
 
 var VORLAGE = '<div class="kt">' +
-  '<header class="kt-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Kettenrätsel</h1>' +
-    '<p>Kreise mit Wörtern oder Rechnungen: Wer bei START beginnt und jedes Wort mit seinem Partner verbindet, zeichnet einen Buchstaben oder eine Zahl. Ablenker-Kreise haben keinen Partner.</p></header>' +
-  '<div class="kt-layout"><section class="kt-eingabe" aria-label="Eingaben">' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Was soll erscheinen?</h2></div></div>' +
-      '<div class="kt-chips" role="radiogroup" aria-label="Buchstabe oder Zahl">' + chips('ktModus', [['buchstabe', 'Buchstabe'], ['zahl', 'Zahl']]) + '</div>' +
-      '<div class="kt-zeichen" id="ktZeichen" role="radiogroup" aria-label="Zeichen"></div>' +
+  tx('<header class="kt-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Kettenrätsel</h1>') +
+    tx('<p>Kreise mit Wörtern oder Rechnungen: Wer bei START beginnt und jedes Wort mit seinem Partner verbindet, zeichnet einen Buchstaben oder eine Zahl. Ablenker-Kreise haben keinen Partner.</p></header>') +
+  tx('<div class="kt-layout"><section class="kt-eingabe" aria-label="Eingaben">') +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Was soll erscheinen?</h2></div></div>') +
+      tx('<div class="kt-chips" role="radiogroup" aria-label="Buchstabe oder Zahl">') + chips('ktModus', [['buchstabe', tx('Buchstabe')], ['zahl', tx('Zahl')]]) + '</div>' +
+      tx('<div class="kt-zeichen" id="ktZeichen" role="radiogroup" aria-label="Zeichen"></div>') +
       '<p class="hinweis" id="ktFormInfo"></p>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Inhalt</h2><p>Jede Linie ist ein Paar.</p></div></div>' +
-      '<p class="feld-label">Fach</p><div class="kt-chips" role="radiogroup" aria-label="Fach">' + chips('ktFach', FAECHER) + '</div>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Inhalt</h2><p>Jede Linie ist ein Paar.</p></div></div>') +
+      tx('<p class="feld-label">Fach</p><div class="kt-chips" role="radiogroup" aria-label="Fach">') + chips('ktFach', FAECHER) + '</div>' +
       '<div class="kt-teil" data-fach="mathe">' +
-        '<p class="feld-label">Thema</p><div class="kt-chips" role="radiogroup" aria-label="Mathe-Thema">' + chips('ktMathe', MATHE) + '</div>' +
+        tx('<p class="feld-label">Thema</p><div class="kt-chips" role="radiogroup" aria-label="Mathe-Thema">') + chips('ktMathe', MATHE) + '</div>' +
         '<div class="kt-unter" data-mathe="plusminus">' +
-          '<p class="feld-label">Rechenarten</p><div class="kt-chips">' + kaestchen('ktOp', [['plus', 'Plus +'], ['minus', 'Minus −']]) + '</div>' +
-          '<p class="feld-label">Zahlenraum</p><div class="kt-chips">' + chips('ktZr', [['20', 'bis 20'], ['100', 'bis 100'], ['1000', 'bis 1000']]) + '</div>' +
+          tx('<p class="feld-label">Rechenarten</p><div class="kt-chips">') + kaestchen('ktOp', [['plus', tx('Plus +')], ['minus', tx('Minus −')]]) + '</div>' +
+          tx('<p class="feld-label">Zahlenraum</p><div class="kt-chips">') + chips('ktZr', [['20', tx('bis 20')], ['100', tx('bis 100')], ['1000', tx('bis 1000')]]) + '</div>' +
         '</div>' +
         '<div class="kt-unter" data-mathe="einmaleins">' +
-          '<p class="feld-label">Einmaleins</p><div class="kt-chips">' + chips('ktEinmal', [['klein', 'Kleines 1 × 1'], ['gross', 'Grosses 1 × 1']]) + '</div>' +
-          '<p class="feld-label">Rechnungen</p><div class="kt-chips">' + kaestchen('ktEOp', [['mal', 'Mal ·'], ['geteilt', 'Geteilt :']]) + '</div>' +
-          '<p class="feld-label">Reihen</p>' +
+          tx('<p class="feld-label">Einmaleins</p><div class="kt-chips">') + chips('ktEinmal', [['klein', tx('Kleines 1 × 1')], ['gross', tx('Grosses 1 × 1')]]) + '</div>' +
+          tx('<p class="feld-label">Rechnungen</p><div class="kt-chips">') + kaestchen('ktEOp', [['mal', tx('Mal ·')], ['geteilt', tx('Geteilt :')]]) + '</div>' +
+          tx('<p class="feld-label">Reihen</p>') +
           '<div class="kt-chips kt-reihen" data-einmal="klein">' + kaestchen('ktReihe', [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(function(n){ return [n, n + 'er']; })) + '</div>' +
           '<div class="kt-chips kt-reihen" data-einmal="gross">' + kaestchen('ktReiheG', [11, 12, 13, 14, 15, 16, 17, 18, 19, 20].map(function(n){ return [n, n + 'er']; })) + '</div>' +
         '</div>' +
         '<div class="kt-unter" data-mathe="dezimal">' +
-          '<p class="feld-label">Brüche</p><div class="kt-chips">' + chips('ktDez', [['1', 'Zehntel'], ['2', 'bis Hundertstel'], ['3', 'bis Tausendstel']]) + '</div>' +
-          '<p class="feld-label">Art</p><div class="kt-chips">' + chips('ktDezArt', [['echt', 'kleiner als 1'], ['unecht', 'grösser als 1'], ['beides', 'beides']]) + '</div>' +
-          '<p class="hinweis">z. B. 7/100 und 0.07</p>' +
+          tx('<p class="feld-label">Brüche</p><div class="kt-chips">') + chips('ktDez', [['1', tx('Zehntel')], ['2', tx('bis Hundertstel')], ['3', tx('bis Tausendstel')]]) + '</div>' +
+          tx('<p class="feld-label">Art</p><div class="kt-chips">') + chips('ktDezArt', [['echt', tx('kleiner als 1')], ['unecht', tx('grösser als 1')], ['beides', 'beides']]) + '</div>' +
+          tx('<p class="hinweis">z. B. 7/100 und 0.07</p>') +
         '</div>' +
         '<div class="kt-unter" data-mathe="brueche">' +
-          '<p class="feld-label">Brüche</p><div class="kt-chips">' + chips('ktBruchArt', [['echt', 'echte'], ['unecht', 'unechte'], ['beides', 'beides']]) + '</div>' +
-          '<p class="feld-label">Nenner</p><div class="kt-chips">' + chips('ktNenner', [['6', 'bis Sechstel'], ['10', 'bis Zehntel'], ['12', 'bis Zwölftel']]) + '</div>' +
-          '<p class="hinweis">z. B. «drei Fünftel» und 3/5 (echt) oder «sieben Fünftel» und 7/5 (unecht)</p>' +
+          tx('<p class="feld-label">Brüche</p><div class="kt-chips">') + chips('ktBruchArt', [['echt', 'echte'], ['unecht', 'unechte'], ['beides', 'beides']]) + '</div>' +
+          tx('<p class="feld-label">Nenner</p><div class="kt-chips">') + chips('ktNenner', [['6', tx('bis Sechstel')], ['10', tx('bis Zehntel')], ['12', tx('bis Zwölftel')]]) + '</div>' +
+          tx('<p class="hinweis">z. B. «drei Fünftel» und 3/5 (echt) oder «sieben Fünftel» und 7/5 (unecht)</p>') +
         '</div>' +
-        '<p class="hinweis">Alle Ergebnisse sind verschieden – so passt jede Aufgabe nur zu einem einzigen Kreis.</p>' +
+        tx('<p class="hinweis">Alle Ergebnisse sind verschieden – so passt jede Aufgabe nur zu einem einzigen Kreis.</p>') +
       '</div>' +
       '<div class="kt-teil" data-fach="deutsch">' +
-        '<p class="feld-label">Art</p><div class="kt-chips" role="radiogroup" aria-label="Art der Paare">' + chips('ktDeutsch', DEUTSCH) + '</div>' +
+        tx('<p class="feld-label">Art</p><div class="kt-chips" role="radiogroup" aria-label="Art der Paare">') + chips('ktDeutsch', DEUTSCH) + '</div>' +
       '</div>' +
       '<div class="kt-teil kt-paare" data-fach="deutsch englisch franzoesisch">' +
-        '<button type="button" class="btn klein kt-vorschlag" id="ktVorschlaege">Andere Vorschläge</button>' +
+        tx('<button type="button" class="btn klein kt-vorschlag" id="ktVorschlaege">Andere Vorschläge</button>') +
         '<div class="kt-paarliste" id="ktPaarliste">' + Paarliste.html() + '</div>' +
         '<div class="kt-zaehler" id="ktZaehler" aria-live="polite"></div></div>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Blatt</h2></div></div>' +
-      '<p class="feld-label">Ablenker-Kreise</p><div class="kt-chips" role="radiogroup" aria-label="Ablenker-Kreise">' + chips('ktAblenker', ABLENKER) + '</div>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Blatt</h2></div></div>') +
+      tx('<p class="feld-label">Ablenker-Kreise</p><div class="kt-chips" role="radiogroup" aria-label="Ablenker-Kreise">') + chips('ktAblenker', ABLENKER) + '</div>' +
       '<p class="hinweis" id="ktAblenkerInfo"></p>' +
-      '<label class="opt"><input type="checkbox" id="ktDrei"><span>Kreise mit drei Feldern (bei Verzweigungen und Ringen)</span></label>' +
+      tx('<label class="opt"><input type="checkbox" id="ktDrei"><span>Kreise mit drei Feldern (bei Verzweigungen und Ringen)</span></label>') +
       '<p class="hinweis" id="ktDreiInfo"></p>' +
-      '<div class="opt-raster"><label for="ktTitel">Titel auf dem Blatt</label><input type="text" id="ktTitel" maxlength="60" autocomplete="off"></div>' +
+      tx('<div class="opt-raster"><label for="ktTitel">Titel auf dem Blatt</label><input type="text" id="ktTitel" maxlength="60" autocomplete="off"></div>') +
     '</div>' +
   '</section>' +
-  '<section class="kt-ausgabe" aria-label="Ergebnis">' +
+  tx('<section class="kt-ausgabe" aria-label="Ergebnis">') +
     '<div id="ktMeldung" aria-live="polite"></div>' +
     '<div class="kt-werkzeug">' +
-      '<button type="button" class="btn klein" id="ktZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
-      '<button type="button" class="btn klein" id="ktNeu">Neu anordnen</button>' +
+      tx('<button type="button" class="btn klein" id="ktZeigeLoesung" aria-pressed="false">Lösung zeigen</button>') +
+      tx('<button type="button" class="btn klein" id="ktNeu">Neu anordnen</button>') +
       '<span class="abstand"></span>' + Labor.blattSchalterHtml() +
-      '<label><input type="checkbox" id="ktMitLoesung"> mit Lösungsblatt</label>' +
-      '<button type="button" class="btn klein primary" id="ktPdf">PDF herunterladen</button>' +
-      '<button type="button" class="btn klein primary" id="ktHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
+      tx('<label><input type="checkbox" id="ktMitLoesung"> mit Lösungsblatt</label>') +
+      tx('<button type="button" class="btn klein primary" id="ktPdf">PDF herunterladen</button>') +
+      tx('<button type="button" class="btn klein primary" id="ktHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>') +
     '</div>' +
     '<div class="kt-rahmen"><article class="kt-blatt" id="ktBlatt"></article></div>' +
     '<div class="kt-rahmen"><article class="kt-blatt kt-loesungsblatt" id="ktLoesung" aria-hidden="true"></article></div>' +
@@ -526,7 +527,7 @@ function starte(bereich){
     try { localStorage.setItem(OPT, JSON.stringify(st.opt)); } catch(x){} }
   function speichern(){ clearTimeout(timer); timer = setTimeout(speichernJetzt, 200); }
   function meldung(art, html){ $('#ktMeldung').innerHTML = html ? '<div class="meldung ' + art + '">' + html + '</div>' : ''; }
-  function titel(){ return st.titel.trim() || 'Kettenrätsel'; }
+  function titel(){ return st.titel.trim() || tx('Kettenrätsel'); }
   var warte = 0;
   function baldZeichnen(){ clearTimeout(warte); warte = setTimeout(zeichnen, 250); }
 
@@ -540,7 +541,7 @@ function starte(bereich){
   function zeichenZeigen(){
     var liste = st.opt.modus === 'zahl' ? ZIFFERN : BUCHSTABEN;
     if (liste.indexOf(String(st.opt.zeichen)) < 0) st.opt.zeichen = liste === ZIFFERN ? '7' : 'M';
-    $('#ktZeichen').innerHTML = liste.map(function(z){ return '<label><input type="radio" name="ktZeichenWahl" value="' + z + '"' + (String(st.opt.zeichen) === z ? ' checked' : '') + '><span>' + z + '</span></label>'; }).join('');
+    $('#ktZeichen').innerHTML = liste.map(function(z){ return '<label><input type="radio" name="ktZeichenWahl" value="' + z + '"' + (String(st.opt.zeichen) === z ? tx(' checked') : '') + '><span>' + z + '</span></label>'; }).join('');
   }
   $('#ktZeichen').addEventListener('change', function(ev){ if (ev.target.name === 'ktZeichenWahl'){ st.opt.zeichen = ev.target.value; speichern(); zeichnen(); } });
   radios('ktModus', 'modus', zeichenZeigen);
@@ -580,7 +581,7 @@ function starte(bereich){
     art:listeName,
     sprache:function(art){ return art === 'englisch' || art === 'franzoesisch' ? art : null; },
     kopf:function(){ return KOEPFE[listeName()] || ['', '', '']; },
-    hilfe:function(){ return vorschlagbar() ? 'Vorschläge – ändern und ergänzen geht jederzeit.' : 'Links ein Wort, rechts sein Partner.'; },
+    hilfe:function(){ return vorschlagbar() ? tx('Vorschläge – ändern und ergänzen geht jederzeit.') : tx('Links ein Wort, rechts sein Partner.'); },
     einfuegen:false,
     geaendert:function(){ st.vorschlag[listeName()] = false; speichern(); baldZeichnen(); },
     aus:function(){ return aus; }
@@ -620,39 +621,39 @@ function starte(bereich){
     return Kern.paareListe((st.zeilen[listeName()] || []).map(function(z){ return [z.a, z.b]; })).paare;
   }
   function anleitung(){
-    var was = st.opt.modus === 'zahl' ? 'Zahl' : 'Buchstabe';
-    return 'Beginne beim Kreis mit START. Suche für jedes Wort im Kreis seinen Partner in einem anderen Kreis und verbinde die beiden Kreise mit einer geraden Linie. ' +
-      'Mach bei jedem neuen Kreis weiter, bis alle Wörter in den verbundenen Kreisen einen Partner haben. Nicht alle Kreise gehören dazu. Welche' + (was === 'Zahl' ? ' Zahl' : 'r Buchstabe') + ' entsteht?';
+    var was = st.opt.modus === 'zahl' ? tx('Zahl') : tx('Buchstabe');
+    return tx('Beginne beim Kreis mit START. Suche für jedes Wort im Kreis seinen Partner in einem anderen Kreis und verbinde die beiden Kreise mit einer geraden Linie. ') +
+      tx('Mach bei jedem neuen Kreis weiter, bis alle Wörter in den verbundenen Kreisen einen Partner haben. Nicht alle Kreise gehören dazu. Welche') + (was === 'Zahl' ? tx(' Zahl') : tx('r Buchstabe')) + ' entsteht?';
   }
   function zeichnen(){
     if (aus) return;
     var o = st.opt, z = String(o.zeichen), einfach = o.drei === false, f = Kern.form(z, einfach), e = f.kanten.length, rnd = Kern.zufall(st.seed);
     var drei = f.ecken.filter(function(_, i){ return f.grad[i] + (f.start.indexOf(i) >= 0 || f.ende.indexOf(i) >= 0 ? 1 : 0) >= 3; }).length;
-    $('#ktDreiInfo').textContent = einfach ? (Kern.ZEICHEN_EINFACH[z] ? 'Darum stösst bei «' + z + '» ein Strich nicht an oder ein Ring hat eine kleine Lücke.' : '')
-      : drei ? '«' + z + '» hat ' + drei + ' Kreis' + (drei > 1 ? 'e' : '') + ' mit drei Feldern.' : '';
+    $('#ktDreiInfo').textContent = einfach ? (Kern.ZEICHEN_EINFACH[z] ? tx('Darum stösst bei «') + z + tx('» ein Strich nicht an oder ein Ring hat eine kleine Lücke.') : '')
+      : drei ? '«' + z + tx('» hat ') + drei + tx(' Kreis') + (drei > 1 ? 'e' : '') + tx(' mit drei Feldern.') : '';
     if (sprache() && vorschlagen(false)) paarliste.zeigen();   // vorgeschlagene Liste reicht nicht (andere Form, mehr Ablenker): ergänzen
     var liste = paare(rnd, e + 2 * o.ablenker + 4);
-    $('#ktFormInfo').innerHTML = '«' + esc(z) + '» hat <b>' + f.ecken.length + ' Kreise</b> und <b>' + e + ' Linien</b> – also braucht es ' + e + ' Paare' +
-      (f.start.length > 1 ? '. Die Form hat ' + f.start.length + ' Teile, darum gibt es ' + f.start.length + '-mal START' : '') + '.';
+    $('#ktFormInfo').innerHTML = '«' + esc(z) + tx('» hat <b>') + f.ecken.length + tx(' Kreise</b> und <b>') + e + tx(' Linien</b> – also braucht es ') + e + tx(' Paare') +
+      (f.start.length > 1 ? tx('. Die Form hat ') + f.start.length + tx(' Teile, darum gibt es ') + f.start.length + tx('-mal START') : '') + '.';
     // Zähler bei den Sprachen
     if (sprache()){
       var p = Kern.paareListe((st.zeilen[listeName()] || []).map(function(x){ return [x.a, x.b]; })), n = p.paare.length, fehlt = e - n, ab = Math.max(0, Math.floor((n - e) / 2));
       var wartend = (st.zeilen[listeName()] || []).filter(function(x){ return x.laedt; }).length;
-      $('#ktZaehler').innerHTML = '<p class="kt-zaehler-haupt ' + (fehlt > 0 ? 'fehlt' : 'ok') + '"><b>' + n + '</b> ' + (n === 1 ? 'Paar' : 'Paare') + ' · «' + esc(z) + '» braucht <b>' + e + '</b> für die Linien' +
-        (fehlt > 0 ? ' – es fehlen noch <b>' + fehlt + '</b>.' : ' ✓') + '</p>' +
-        (fehlt <= 0 ? '<p>Weitere Paare werden zu Ablenkern: Von jedem kommt nur ein Wort aufs Blatt, je zwei Wörter ergeben einen Kreis. Jetzt möglich: <b>' + ab + '</b> Ablenker-Kreise.</p>' : '') +
-        (p.ohne > wartend ? '<p class="warnung">' + (p.ohne - wartend) + ' Zeile' + (p.ohne - wartend > 1 ? 'n haben' : ' hat') + ' erst ein Wort – sie zählt, sobald beide Felder ausgefüllt sind.</p>' : '') +
-        (p.doppelt ? '<p class="warnung">' + p.doppelt + ' Paar' + (p.doppelt > 1 ? 'e' : '') + ' mit einem doppelten Wort nicht verwendet (sonst gäbe es zwei Partner).</p>' : '');
+      $('#ktZaehler').innerHTML = '<p class="kt-zaehler-haupt ' + (fehlt > 0 ? 'fehlt' : 'ok') + '"><b>' + n + '</b> ' + (n === 1 ? tx('Paar') : tx('Paare')) + ' · «' + esc(z) + tx('» braucht <b>') + e + tx('</b> für die Linien') +
+        (fehlt > 0 ? tx(' – es fehlen noch <b>') + fehlt + '</b>.' : ' ✓') + '</p>' +
+        (fehlt <= 0 ? tx('<p>Weitere Paare werden zu Ablenkern: Von jedem kommt nur ein Wort aufs Blatt, je zwei Wörter ergeben einen Kreis. Jetzt möglich: <b>') + ab + tx('</b> Ablenker-Kreise.</p>') : '') +
+        (p.ohne > wartend ? '<p class="warnung">' + (p.ohne - wartend) + tx(' Zeile') + (p.ohne - wartend > 1 ? tx('n haben') : tx(' hat')) + tx(' erst ein Wort – sie zählt, sobald beide Felder ausgefüllt sind.</p>') : '') +
+        (p.doppelt ? '<p class="warnung">' + p.doppelt + tx(' Paar') + (p.doppelt > 1 ? 'e' : '') + tx(' mit einem doppelten Wort nicht verwendet (sonst gäbe es zwei Partner).</p>') : '');
     }
     raetsel = Kern.belegen(z, liste, o.ablenker, rnd, einfach);
     var leer = raetsel.fehlen > 0;
     ['#ktZeigeLoesung', '#ktNeu', '#ktPdf', '#ktHerunterladen'].forEach(function(s){ $(s).disabled = leer; });
-    $('#ktAblenkerInfo').textContent = !leer && raetsel.ablenker.length < o.ablenker ? 'Für ' + o.ablenker + ' Ablenker-Kreise braucht es ' + (o.fach === 'mathe' ? 'mehr verschiedene Aufgaben (z. B. mehr Reihen)' : 'mehr Paare') + ' – jetzt sind es ' + raetsel.ablenker.length + '.' : '';
+    $('#ktAblenkerInfo').textContent = !leer && raetsel.ablenker.length < o.ablenker ? tx('Für ') + o.ablenker + tx(' Ablenker-Kreise braucht es ') + (o.fach === 'mathe' ? tx('mehr verschiedene Aufgaben (z. B. mehr Reihen)') : tx('mehr Paare')) + tx(' – jetzt sind es ') + raetsel.ablenker.length + '.' : '';
     if (leer){
       $('#ktBlatt').parentNode.hidden = true;
       meldung(sprache() && !liste.length ? 'info' : 'warnung', sprache()
-        ? '<p>Für «' + esc(z) + '» braucht es <b>' + e + ' Paare</b>' + (liste.length ? ' – es fehlen noch ' + raetsel.fehlen + '.' : '. Gib links deine Wortpaare ein.') + '</p>'
-        : '<p>Mit diesen Einstellungen gibt es nicht genug verschiedene Ergebnisse. Wähle mehr Reihen, einen grösseren Zahlenraum oder mehr Rechenarten.</p>');
+        ? tx('<p>Für «') + esc(z) + tx('» braucht es <b>') + e + tx(' Paare</b>') + (liste.length ? tx(' – es fehlen noch ') + raetsel.fehlen + '.' : tx('. Gib links deine Wortpaare ein.')) + '</p>'
+        : tx('<p>Mit diesen Einstellungen gibt es nicht genug verschiedene Ergebnisse. Wähle mehr Reihen, einen grösseren Zahlenraum oder mehr Rechenarten.</p>'));
       return;
     }
     meldung('', '');
@@ -661,9 +662,9 @@ function starte(bereich){
     if (lage.ablenker.length < raetsel.ablenker.length) raetsel.ablenker.length = lage.ablenker.length;   // kein Platz mehr
     var zeige = $('#ktZeigeLoesung').getAttribute('aria-pressed') === 'true';
     $('#ktBlatt').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + '</h2>' : '') + (o.anleitungAn ? '<p class="kt-anleitung">' + anleitung() + '</p>' : '') +
-      raetselSvg(raetsel, lage, zeige) + '<p class="kt-antwort">' + (st.opt.modus === 'zahl' ? 'Zahl' : 'Buchstabe') + ': <span class="kt-linie">' + (zeige ? esc(z) : '') + '</span></p>';
-    $('#ktLoesung').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + ' – Lösung</h2>' : '<p class="kt-anleitung"><b>Lösung</b></p>') +
-      raetselSvg(raetsel, lage, true) + '<p class="kt-antwort">' + (st.opt.modus === 'zahl' ? 'Zahl' : 'Buchstabe') + ': <span class="kt-linie">' + esc(z) + '</span></p>';
+      raetselSvg(raetsel, lage, zeige) + '<p class="kt-antwort">' + (st.opt.modus === 'zahl' ? tx('Zahl') : tx('Buchstabe')) + ': <span class="kt-linie">' + (zeige ? esc(z) : '') + '</span></p>';
+    $('#ktLoesung').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + tx(' – Lösung</h2>') : tx('<p class="kt-anleitung"><b>Lösung</b></p>')) +
+      raetselSvg(raetsel, lage, true) + '<p class="kt-antwort">' + (st.opt.modus === 'zahl' ? tx('Zahl') : tx('Buchstabe')) + ': <span class="kt-linie">' + esc(z) + '</span></p>';
   }
 
   /* ---------- PDF, Herunterladen ---------- */
@@ -685,7 +686,7 @@ function starte(bereich){
     var inhalt = [$('#ktBlatt'), st.opt.mitLoesung && $('#ktLoesung')].filter(Boolean).map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
     speicherOrt.save({ filename:name, data:Labor.blattDatei(name.replace(/\.html$/, '').replace(/-/g, ' '), inhalt, '.kt-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 

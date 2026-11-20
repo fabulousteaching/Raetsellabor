@@ -7,6 +7,7 @@
    Herunterladen geladen). */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('morsecode');
 
 /* KERN-START */
 var Kern = (function(){
@@ -73,48 +74,48 @@ var Kern = (function(){
 /* KERN-ENDE */
 
 var TINTE = '#1C1714', RATE = 22050, MAX = 300;
-var TEMPI = [[5, 'sehr langsam'], [8, 'langsam'], [12, 'mittel'], [16, 'zügig'], [20, 'schnell']];
+var TEMPI = [[5, tx('sehr langsam')], [8, 'langsam'], [12, 'mittel'], [16, tx('zügig')], [20, 'schnell']];
 function esc(t){ return Labor.esc(t); }
 function zeigeCode(c){ return c.replace(/\./g, '·').replace(/-/g, '−'); }
 
 var VORLAGE = '<div class="mc">' +
-  '<header class="mc-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Morsecode</h1>' +
-    '<p>Ein Text als kurze und lange Töne – anhören, mitschreiben, als MP3 herunterladen.</p></header>' +
-  '<div class="mc-layout"><section class="mc-eingabe" aria-label="Eingaben">' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Text</h2><p>Buchstaben, Ziffern und Satzzeichen – bis 300 Zeichen.</p></div></div>' +
-      '<label class="feld-label" for="mcText">Text</label>' +
+  tx('<header class="mc-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Morsecode</h1>') +
+    tx('<p>Ein Text als kurze und lange Töne – anhören, mitschreiben, als MP3 herunterladen.</p></header>') +
+  tx('<div class="mc-layout"><section class="mc-eingabe" aria-label="Eingaben">') +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Text</h2><p>Buchstaben, Ziffern und Satzzeichen – bis 300 Zeichen.</p></div></div>') +
+      tx('<label class="feld-label" for="mcText">Text</label>') +
       '<textarea id="mcText" class="mc-text" rows="3" maxlength="300" spellcheck="true"></textarea>' +
-      '<label class="opt"><input type="checkbox" id="mcCH"><span>CH als eigenes Zeichen (− − − −)</span></label>' +
+      tx('<label class="opt"><input type="checkbox" id="mcCH"><span>CH als eigenes Zeichen (− − − −)</span></label>') +
       '<div class="mc-zaehler" id="mcZaehler" aria-live="polite"></div>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Ton</h2></div></div>' +
-      '<label class="feld-label" for="mcTempo">Tempo: <b id="mcTempoWert"></b></label>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Ton</h2></div></div>') +
+      tx('<label class="feld-label" for="mcTempo">Tempo: <b id="mcTempoWert"></b></label>') +
       '<input type="range" id="mcTempo" min="4" max="25" step="1">' +
-      '<label class="opt"><input type="checkbox" id="mcPausen"><span>Längere Pausen zwischen Zeichen und Wörtern (zum Mitschreiben)</span></label>' +
-      '<label class="feld-label" for="mcHoehe">Tonhöhe: <b id="mcHoeheWert"></b></label>' +
+      tx('<label class="opt"><input type="checkbox" id="mcPausen"><span>Längere Pausen zwischen Zeichen und Wörtern (zum Mitschreiben)</span></label>') +
+      tx('<label class="feld-label" for="mcHoehe">Tonhöhe: <b id="mcHoeheWert"></b></label>') +
       '<input type="range" id="mcHoehe" min="400" max="1000" step="10">' +
-      '<label class="feld-label" for="mcWdh">Ganze Nachricht abspielen</label>' +
-      '<select id="mcWdh" class="mc-wahl"><option value="1">1 ×</option><option value="2">2 × (mit Pause dazwischen)</option><option value="3">3 × (mit Pause dazwischen)</option></select>' +
+      tx('<label class="feld-label" for="mcWdh">Ganze Nachricht abspielen</label>') +
+      tx('<select id="mcWdh" class="mc-wahl"><option value="1">1 ×</option><option value="2">2 × (mit Pause dazwischen)</option><option value="3">3 × (mit Pause dazwischen)</option></select>') +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Arbeitsblatt</h2></div></div>' +
-      '<label class="opt"><input type="checkbox" id="mcCodeZeigen"><span>Morsecode auf dem Blatt (zum Lesen statt Hören)</span></label>' +
-      '<label class="opt"><input type="checkbox" id="mcTabelle"><span>Morsealphabet als Tabelle</span></label>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Arbeitsblatt</h2></div></div>') +
+      tx('<label class="opt"><input type="checkbox" id="mcCodeZeigen"><span>Morsecode auf dem Blatt (zum Lesen statt Hören)</span></label>') +
+      tx('<label class="opt"><input type="checkbox" id="mcTabelle"><span>Morsealphabet als Tabelle</span></label>') +
     '</div>' +
   '</section>' +
-  '<section class="mc-ausgabe" aria-label="Ergebnis">' +
+  tx('<section class="mc-ausgabe" aria-label="Ergebnis">') +
     '<div id="mcMeldung" aria-live="polite"></div>' +
     '<div class="karte mc-spieler nur-bildschirm" id="mcSpieler">' +
-      '<div class="mc-knoepfe"><button type="button" class="btn primary" id="mcSpielen">▶ Abspielen</button><button type="button" class="btn" id="mcStopp" disabled>■ Stopp</button>' +
-      '<button type="button" class="btn" id="mcMp3">MP3 herunterladen</button><span class="mc-dauer" id="mcDauer"></span></div>' +
+      tx('<div class="mc-knoepfe"><button type="button" class="btn primary" id="mcSpielen">▶ Abspielen</button><button type="button" class="btn" id="mcStopp" disabled>■ Stopp</button>') +
+      tx('<button type="button" class="btn" id="mcMp3">MP3 herunterladen</button><span class="mc-dauer" id="mcDauer"></span></div>') +
       '<div class="mc-band" id="mcBand" aria-live="off"></div>' +
-      '<p class="mc-notiz">MP3 mit <a href="https://lame.sourceforge.net" target="_blank" rel="noopener">LAME</a> (lamejs, LGPL-3.0).</p>' +
+      tx('<p class="mc-notiz">MP3 mit <a href="https://lame.sourceforge.net" target="_blank" rel="noopener">LAME</a> (lamejs, LGPL-3.0).</p>') +
     '</div>' +
     '<div class="mc-werkzeug">' +
-      '<button type="button" class="btn klein" id="mcZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
+      tx('<button type="button" class="btn klein" id="mcZeigeLoesung" aria-pressed="false">Lösung zeigen</button>') +
       '<span class="abstand"></span>' + Labor.blattSchalterHtml() +
-      '<label><input type="checkbox" id="mcMitLoesung"> mit Lösungsblatt</label>' +
-      '<button type="button" class="btn klein primary" id="mcPdf">PDF herunterladen</button>' +
-      '<button type="button" class="btn klein primary" id="mcHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
+      tx('<label><input type="checkbox" id="mcMitLoesung"> mit Lösungsblatt</label>') +
+      tx('<button type="button" class="btn klein primary" id="mcPdf">PDF herunterladen</button>') +
+      tx('<button type="button" class="btn klein primary" id="mcHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>') +
     '</div>' +
     '<div class="mc-blaetter"><div class="mc-rahmen"><article class="mc-blatt" id="mcBlatt"></article></div>' +
     '<div class="mc-rahmen mc-loesung-rahmen"><article class="mc-blatt mc-loesungsblatt" id="mcLoesung" aria-hidden="true"></article></div></div>' +
@@ -153,7 +154,7 @@ function starte(bereich){
   $('#mcText').value = st.text;
   var warte = 0;
   $('#mcText').addEventListener('input', function(){ st.text = this.value; speichern(); stopp(); clearTimeout(warte); warte = setTimeout(zeichnen, 250); });
-  function tempoText(){ var n = st.opt.tempo, w = TEMPI.filter(function(t){ return n >= t[0]; }).pop(); return n + ' Wörter pro Minute (' + (w ? w[1] : 'sehr langsam') + ')'; }
+  function tempoText(){ var n = st.opt.tempo, w = TEMPI.filter(function(t){ return n >= t[0]; }).pop(); return n + tx(' Wörter pro Minute (') + (w ? w[1] : tx('sehr langsam')) + ')'; }
   $('#mcTempo').value = st.opt.tempo; $('#mcHoehe').value = st.opt.hoehe; $('#mcWdh').value = String(st.opt.wdh);
   $('#mcTempo').addEventListener('input', function(){ st.opt.tempo = +this.value; speichern(); stopp(); zeichnen(); });
   $('#mcHoehe').addEventListener('input', function(){ st.opt.hoehe = +this.value; speichern(); stopp(); zeichnen(); });
@@ -193,28 +194,28 @@ function starte(bereich){
     if (aus) return;
     $('#mcTempoWert').textContent = tempoText(); $('#mcHoeheWert').textContent = st.opt.hoehe + ' Hz';
     var r = berechnen(), h = '';
-    if (r.L.weg.length) h += '<p class="warnung">' + esc(r.L.weg.join(' ')) + ' gibt es im Morsealphabet nicht – fällt weg.</p>';
+    if (r.L.weg.length) h += '<p class="warnung">' + esc(r.L.weg.join(' ')) + tx(' gibt es im Morsealphabet nicht – fällt weg.</p>');
     var n = r.L.woerter.reduce(function(a, w){ return a + w.length; }, 0);
-    if (n) h += '<p class="mc-info">' + n + ' Zeichen in ' + r.L.woerter.length + (r.L.woerter.length === 1 ? ' Wort.' : ' Wörtern.') + '</p>';
+    if (n) h += '<p class="mc-info">' + n + tx(' Zeichen in ') + r.L.woerter.length + (r.L.woerter.length === 1 ? tx(' Wort.') : tx(' Wörtern.')) + '</p>';
     $('#mcZaehler').innerHTML = h;
     var leer = !n;
     ['#mcPdf', '#mcHerunterladen', '#mcZeigeLoesung', '#mcSpielen', '#mcMp3'].forEach(function(s){ $(s).disabled = leer; });
-    if (leer){ R = null; $('#mcSpieler').hidden = true; $('#mcBlatt').parentNode.hidden = true; $('#mcLoesung').parentNode.hidden = true; meldung('info', '<p>Schreibe links einen Text.</p>'); return; }
+    if (leer){ R = null; $('#mcSpieler').hidden = true; $('#mcBlatt').parentNode.hidden = true; $('#mcLoesung').parentNode.hidden = true; meldung('info', tx('<p>Schreibe links einen Text.</p>')); return; }
     R = r; meldung(''); $('#mcSpieler').hidden = false; $('#mcBlatt').parentNode.hidden = false; $('#mcLoesung').parentNode.hidden = false;
-    var s = Math.round(r.ton.dauer); $('#mcDauer').textContent = 'Dauer: ' + (s >= 60 ? Math.floor(s / 60) + ' min ' + (s % 60) + ' s' : s + ' s');
+    var s = Math.round(r.ton.dauer); $('#mcDauer').textContent = tx('Dauer: ') + (s >= 60 ? Math.floor(s / 60) + tx(' min ') + (s % 60) + ' s' : s + ' s');
     band();
     var o = st.opt;
-    var anleitung = o.codeZeigen ? 'Übersetze den Morsecode: · ist kurz, − ist lang. Schreibe jedes Zeichen in ein Kästchen.' :
-      'Hör dir die Aufnahme an: kurze und lange Töne. Schreibe jedes Zeichen in ein Kästchen.' + (o.wdh > 1 ? ' Die Nachricht kommt ' + o.wdh + '-mal.' : '');
+    var anleitung = o.codeZeigen ? tx('Übersetze den Morsecode: · ist kurz, − ist lang. Schreibe jedes Zeichen in ein Kästchen.') :
+      tx('Hör dir die Aufnahme an: kurze und lange Töne. Schreibe jedes Zeichen in ein Kästchen.') + (o.wdh > 1 ? tx(' Die Nachricht kommt ') + o.wdh + tx('-mal.') : '');
     var woerter = r.L.woerter.map(function(w){
       return '<span class="mc-blattwort">' + w.map(function(c){ return '<span class="mc-feld">' + (o.codeZeigen ? '<i>' + zeigeCode(Kern.CODE[c]) + '</i>' : '') + '<span class="mc-kaestchen"></span></span>'; }).join('') + '</span>';
     }).join('');
-    $('#mcBlatt').innerHTML = (o.titelAn ? '<h2>Morsecode</h2>' : '') + (o.anleitungAn ? '<p class="mc-anleitung">' + esc(anleitung) + '</p>' : '') +
-      '<div class="mc-woerter">' + woerter + '</div>' + (o.tabelle ? '<h3 class="mc-tabtitel">Morsealphabet</h3>' + tabelleHtml() : '');
+    $('#mcBlatt').innerHTML = (o.titelAn ? tx('<h2>Morsecode</h2>') : '') + (o.anleitungAn ? '<p class="mc-anleitung">' + esc(anleitung) + '</p>' : '') +
+      '<div class="mc-woerter">' + woerter + '</div>' + (o.tabelle ? tx('<h3 class="mc-tabtitel">Morsealphabet</h3>') + tabelleHtml() : '');
     var loes = r.L.woerter.map(function(w){
       return '<span class="mc-blattwort">' + w.map(function(c){ return '<span class="mc-feld"><i>' + zeigeCode(Kern.CODE[c]) + '</i><span class="mc-kaestchen">' + esc(c) + '</span></span>'; }).join('') + '</span>';
     }).join('');
-    $('#mcLoesung').innerHTML = (o.titelAn ? '<h2>Morsecode – Lösung</h2>' : '<p class="mc-anleitung"><b>Lösung</b></p>') + '<div class="mc-woerter">' + loes + '</div>' +
+    $('#mcLoesung').innerHTML = (o.titelAn ? tx('<h2>Morsecode – Lösung</h2>') : tx('<p class="mc-anleitung"><b>Lösung</b></p>')) + '<div class="mc-woerter">' + loes + '</div>' +
       '<p class="mc-loesung-text">' + esc(r.L.woerter.map(function(w){ return w.join(''); }).join(' ')) + '</p>';
   }
 
@@ -236,7 +237,7 @@ function starte(bereich){
     if (!R) return;
     stopp();
     var AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC){ meldung('warnung', '<p>Dieser Browser kann keine Töne abspielen.</p>'); return; }
+    if (!AC){ meldung('warnung', tx('<p>Dieser Browser kann keine Töne abspielen.</p>')); return; }
     if (!ctx) ctx = new AC();
     if (ctx.resume) ctx.resume();
     var puffer = ctx.createBuffer(1, R.ton.werte.length, RATE);
@@ -266,18 +267,18 @@ function starte(bereich){
     var f = enc.flush(); if (f.length) teile.push(new Uint8Array(f));
     return new Blob(teile, { type:'audio/mpeg' });
   }
-  function dateiName(){ var w = R.L.woerter.map(function(x){ return x.join(''); }).join('-').replace(/[^A-Z0-9ÄÖÜ-]/gi, '').slice(0, 30); return 'Morsecode-' + (w || 'Nachricht') + '.mp3'; }
+  function dateiName(){ var w = R.L.woerter.map(function(x){ return x.join(''); }).join('-').replace(/[^A-Z0-9ÄÖÜ-]/gi, '').slice(0, 30); return tx('Morsecode-') + (w || tx('Nachricht')) + '.mp3'; }
   var speicherOrt = null;
   $('#mcMp3').addEventListener('click', function(){
     if (!R) return;
-    var knopf = this; knopf.disabled = true; knopf.textContent = 'MP3 wird erstellt …';
+    var knopf = this; knopf.disabled = true; knopf.textContent = tx('MP3 wird erstellt …');
     ladeLame().then(function(){
       var blob = mp3(), name = dateiName();
       if (speicherOrt) return speicherOrt.save({ filename:name, data:blob });
       var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
       setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 4000);
-    }).catch(function(e){ if (!(e && e.code === 'declined')) meldung('fehler', '<p>' + esc(e && e.message || 'Die MP3-Datei konnte nicht erstellt werden.') + '</p>'); })
-      .then(function(){ knopf.disabled = !R; knopf.textContent = 'MP3 herunterladen'; });
+    }).catch(function(e){ if (!(e && e.code === 'declined')) meldung('fehler', '<p>' + esc(e && e.message || tx('Die MP3-Datei konnte nicht erstellt werden.')) + '</p>'); })
+      .then(function(){ knopf.disabled = !R; knopf.textContent = tx('MP3 herunterladen'); });
   });
 
   /* ---------- PDF, Herunterladen ---------- */
@@ -294,9 +295,9 @@ function starte(bereich){
     if (!speicherOrt || !R) return;
     var name = Labor.pdfName('Morsecode', '').replace(/\.pdf$/, '.html');
     var inhalt = blaetter().map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); k.classList.remove('zeigen'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
-    speicherOrt.save({ filename:name, data:Labor.blattDatei('Morsecode', inhalt, '.mc-loesungsblatt{display:block}') }).catch(function(e){
+    speicherOrt.save({ filename:name, data:Labor.blattDatei(tx('Morsecode'), inhalt, '.mc-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 

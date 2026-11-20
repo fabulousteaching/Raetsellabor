@@ -18,6 +18,7 @@
                                          → { zeigen() }   zeigen(): Zeilen, Überschriften und Hilfe neu zeichnen */
 var Paarliste = (function(){
   'use strict';
+var tx = Labor.uebersetzer('labor');
   function esc(t){ return Labor.esc(t); }
   function teilen(z){
     z = String(z || '').trim();
@@ -26,9 +27,9 @@ var Paarliste = (function(){
   }
   function html(){
     return '<div class="pl-kopf" aria-hidden="true"><span data-pl="a"></span><span data-pl="b"></span></div>' +
-      '<div class="pl-zeilen" role="list" aria-label="Paare"></div>' +
-      '<div class="pl-datei"><label class="btn klein pl-dateiknopf"><input type="file" data-pl="datei" accept=".xlsx,.docx,.csv,.tsv,.txt,text/plain,text/csv">Liste aus Datei</label>' +
-        '<span class="pl-dateihinweis">Excel, Word oder Text – oder die Datei auf die Liste ziehen</span></div>' +
+      tx('<div class="pl-zeilen" role="list" aria-label="Paare"></div>') +
+      tx('<div class="pl-datei"><label class="btn klein pl-dateiknopf"><input type="file" data-pl="datei" accept=".xlsx,.docx,.csv,.tsv,.txt,text/plain,text/csv">Liste aus Datei</label>') +
+        tx('<span class="pl-dateihinweis">Excel, Word oder Text – oder die Datei auf die Liste ziehen</span></div>') +
       '<p class="hinweis pl-hilfe" data-pl="hilfe"></p>' +
       '<p class="pl-meldung" data-pl="meldung" aria-live="polite" hidden></p>';
   }
@@ -158,16 +159,16 @@ var Paarliste = (function(){
     }, function(){ clearTimeout(uhr); throw ueFehler('netz'); });
   }
   function ueClaude(ki, sprache, richtung, woerter){
-    var fremd = sprache === 'englisch' ? 'Englisch (britisches Englisch)' : 'Französisch', von = richtung === 'hin' ? 'Deutsch' : fremd, nach = richtung === 'hin' ? fremd : 'Deutsch';
-    var regeln = ['Nimm die gebräuchlichste Übersetzung, wie sie in einem Schulwörterbuch für Kinder steht; bei mehreren Bedeutungen die häufigste.',
-      'Gleiche Form wie das Original: Nomen bleiben Nomen (Einzahl oder Mehrzahl wie im Original), Verben und Adjektive in der Grundform; Ausdrücke als Ganzes übersetzen.',
-      'Hat das Original einen Artikel, übersetze mit Artikel; sonst ohne.'];
-    if (nach === 'Französisch') regeln.push("Französische Nomen immer mit bestimmtem Artikel (le, la, l', les).");
-    if (nach === 'Deutsch') regeln.push('Deutsche Nomen mit grossem Anfangsbuchstaben; Schweizer Rechtschreibung: ss statt ß.');
-    if (sprache === 'englisch' && richtung === 'hin') regeln.push('Englische Verben ohne «to».');
-    var auftrag = 'Du bist ein zuverlässiges Wörterbuch für den Sprachunterricht an Schweizer Schulen (Kinder von 8 bis 14 Jahren).\n' +
-      'Übersetze jedes dieser Wörter von ' + von + ' nach ' + nach + '.\nRegeln:\n- ' + regeln.join('\n- ') + '\nWörter (JSON-Liste): ' + JSON.stringify(woerter) + '\n' +
-      'Antworte nur mit JSON in dieser Form: {"uebersetzungen": [{"von": "…", "nach": "…"}]} – für jedes Wort genau einen Eintrag, «von» genau wie in der Liste.';
+    var fremd = sprache === 'englisch' ? tx('Englisch (britisches Englisch)') : tx('Französisch'), von = richtung === 'hin' ? tx('Deutsch') : fremd, nach = richtung === 'hin' ? fremd : tx('Deutsch');
+    var regeln = [tx('Nimm die gebräuchlichste Übersetzung, wie sie in einem Schulwörterbuch für Kinder steht; bei mehreren Bedeutungen die häufigste.'),
+      tx('Gleiche Form wie das Original: Nomen bleiben Nomen (Einzahl oder Mehrzahl wie im Original), Verben und Adjektive in der Grundform; Ausdrücke als Ganzes übersetzen.'),
+      tx('Hat das Original einen Artikel, übersetze mit Artikel; sonst ohne.')];
+    if (nach === 'Französisch') regeln.push(tx("Französische Nomen immer mit bestimmtem Artikel (le, la, l', les)."));
+    if (nach === 'Deutsch') regeln.push(tx('Deutsche Nomen mit grossem Anfangsbuchstaben; Schweizer Rechtschreibung: ss statt ß.'));
+    if (sprache === 'englisch' && richtung === 'hin') regeln.push(tx('Englische Verben ohne «to».'));
+    var auftrag = tx('Du bist ein zuverlässiges Wörterbuch für den Sprachunterricht an Schweizer Schulen (Kinder von 8 bis 14 Jahren).\n') +
+      tx('Übersetze jedes dieser Wörter von ') + von + tx(' nach ') + nach + tx('.\nRegeln:\n- ') + regeln.join('\n- ') + tx('\nWörter (JSON-Liste): ') + JSON.stringify(woerter) + '\n' +
+      tx('Antworte nur mit JSON in dieser Form: {"uebersetzungen": [{"von": "…", "nach": "…"}]} – für jedes Wort genau einen Eintrag, «von» genau wie in der Liste.');
     return ki.json(auftrag, { modelTier:'quick' }).then(function(d){
       var ergebnis = {}, liste = d && (d.uebersetzungen || d);
       (Array.isArray(liste) ? liste : []).forEach(function(x){
@@ -188,11 +189,11 @@ var Paarliste = (function(){
       var k = o.kopf();
       function feld(seite, wert, name){
         var auto = z.auto === seite, laedt = z.laedt === seite;
-        return '<input type="text" class="pl-' + seite + (auto ? ' pl-auto' : '') + (laedt ? ' pl-laedt' : '') + '" value="' + esc(wert) + '" maxlength="60" autocomplete="off" spellcheck="false"' +
-          ' aria-label="' + esc(name) + ' ' + (i + 1) + '"' + (auto ? ' title="Automatisch übersetzt – bitte prüfen"' : '') + (laedt ? ' aria-busy="true"' : '') + '>';
+        return '<input type="text" class="pl-' + seite + (auto ? tx(' pl-auto') : '') + (laedt ? tx(' pl-laedt') : '') + '" value="' + esc(wert) + '" maxlength="60" autocomplete="off" spellcheck="false"' +
+          ' aria-label="' + esc(name) + ' ' + (i + 1) + '"' + (auto ? tx(' title="Automatisch übersetzt – bitte prüfen"') : '') + (laedt ? ' aria-busy="true"' : '') + '>';
       }
       return '<div class="pl-zeile" role="listitem">' + feld('a', z.a, k[0]) + feld('b', z.b, k[1]) +
-        '<button type="button" class="pl-x" aria-label="Zeile ' + (i + 1) + ' löschen" title="Zeile löschen">×</button></div>';
+        tx('<button type="button" class="pl-x" aria-label="Zeile ') + (i + 1) + tx(' löschen" title="Zeile löschen">×</button></div>');
     }
     function zeilenZeigen(fokus){
       var l = liste();
@@ -208,7 +209,7 @@ var Paarliste = (function(){
         var f = el.querySelector('.pl-' + seite);
         if (f.value !== z[seite]) f.value = z[seite];
         f.classList.toggle('pl-auto', z.auto === seite); f.classList.toggle('pl-laedt', z.laedt === seite);
-        if (z.auto === seite) f.title = 'Automatisch übersetzt – bitte prüfen'; else f.removeAttribute('title');
+        if (z.auto === seite) f.title = tx('Automatisch übersetzt – bitte prüfen'); else f.removeAttribute('title');
         if (z.laedt === seite) f.setAttribute('aria-busy', 'true'); else f.removeAttribute('aria-busy');
       });
     }
@@ -247,25 +248,25 @@ var Paarliste = (function(){
       var sprache = o.sprache(o.art()), getauscht = false;
       if (sprache && fremdLinks(paare, sprache)){ paare = paare.map(function(p){ return [p[1], p[0]]; }); getauscht = true; }
       var neu = paare.map(function(p){ return { a:p[0], b:p[1], auto:'' }; });
-      if (!neu.length){ melden('In ' + woher + ' wurden keine Wortpaare gefunden.'); return; }
+      if (!neu.length){ melden('In ' + woher + tx(' wurden keine Wortpaare gefunden.')); return; }
       var l = liste();
       while (l.length && !l[l.length - 1].a && !l[l.length - 1].b) l.pop();
       var i = l.length;
       l.push.apply(l, neu);
       zeilenZeigen(); o.geaendert();
       neu.forEach(function(z, k){ if (!z.b) uebersetzen(i + k, 'a'); else if (!z.a) uebersetzen(i + k, 'b'); });
-      melden(neu.length + (neu.length === 1 ? ' Paar' : ' Paare') + ' aus ' + woher + ' übernommen.' + (getauscht ? ' Die Spalten wurden getauscht, damit Deutsch links steht.' : ''), true);
+      melden(neu.length + (neu.length === 1 ? tx(' Paar') : tx(' Paare')) + tx(' aus ') + woher + tx(' übernommen.') + (getauscht ? tx(' Die Spalten wurden getauscht, damit Deutsch links steht.') : ''), true);
     }
-    var FEHLER = { format:'Diese Datei kann ich nicht lesen. Bitte als Excel (.xlsx), Word (.docx) oder Text (.txt, .csv) speichern – oder die Liste kopieren und einfügen.',
-      zip:'Die Datei ist beschädigt oder kein Excel-/Word-Dokument.', entpacken:'Dieser Browser kann die Datei nicht entpacken – bitte die Liste kopieren und einfügen.',
-      blatt:'In der Excel-Datei wurde kein Blatt gefunden.', dokument:'Im Word-Dokument wurde kein Text gefunden.' };
+    var FEHLER = { format:tx('Diese Datei kann ich nicht lesen. Bitte als Excel (.xlsx), Word (.docx) oder Text (.txt, .csv) speichern – oder die Liste kopieren und einfügen.'),
+      zip:tx('Die Datei ist beschädigt oder kein Excel-/Word-Dokument.'), entpacken:tx('Dieser Browser kann die Datei nicht entpacken – bitte die Liste kopieren und einfügen.'),
+      blatt:tx('In der Excel-Datei wurde kein Blatt gefunden.'), dokument:tx('Im Word-Dokument wurde kein Text gefunden.') };
     function dateiNehmen(datei){
-      melden('Liste wird gelesen …', true);
+      melden(tx('Liste wird gelesen …'), true);
       dateiLesen(datei).then(function(r){ anhaengen(r.paare, '«' + datei.name + '»'); }, function(e){ melden(FEHLER[e && e.message] || FEHLER.format); });
     }
     // Ziehen: Datei oder markierten Text auf die Liste
     var tiefe = 0;
-    function ziehbar(ev){ var t = ev.dataTransfer && ev.dataTransfer.types; return !!t && ([].indexOf.call(t, 'Files') >= 0 || [].indexOf.call(t, 'text/plain') >= 0); }
+    function ziehbar(ev){ var t = ev.dataTransfer && ev.dataTransfer.types; return !!t && ([].indexOf.call(t, tx('Files')) >= 0 || [].indexOf.call(t, 'text/plain') >= 0); }
     wurzel.addEventListener('dragenter', function(ev){ if (!ziehbar(ev)) return; ev.preventDefault(); tiefe++; wurzel.classList.add('pl-ziehen'); });
     wurzel.addEventListener('dragover', function(ev){ if (!ziehbar(ev)) return; ev.preventDefault(); ev.dataTransfer.dropEffect = 'copy'; });
     wurzel.addEventListener('dragleave', function(){ if (--tiefe <= 0){ tiefe = 0; wurzel.classList.remove('pl-ziehen'); } });
@@ -275,7 +276,7 @@ var Paarliste = (function(){
       var f = ev.dataTransfer.files && ev.dataTransfer.files[0];
       if (f){ dateiNehmen(f); return; }
       var t = ev.dataTransfer.getData('text/plain') || '';
-      anhaengen(t.split(/\r?\n/).filter(function(z){ return z.trim(); }).map(teilen), 'dem gezogenen Text');
+      anhaengen(t.split(/\r?\n/).filter(function(z){ return z.trim(); }).map(teilen), tx('dem gezogenen Text'));
     });
     q('datei').addEventListener('change', function(){ var f = this.files && this.files[0]; if (f) dateiNehmen(f); this.value = ''; });
     zeilenEl.addEventListener('paste', function(ev){
@@ -292,14 +293,14 @@ var Paarliste = (function(){
 
     function hilfeZeigen(){
       var k = o.kopf(), h = q('hilfe'), art = o.art(), sprache = o.sprache(art);
-      var listeText = o.einfuegen === false ? '' : ' Eine Liste mit zwei Spalten (aus Excel oder Word, oder Zeilen wie «' + esc(k[2]) + '») lässt sich auf einmal einfügen – oder als Datei hierher ziehen.';
+      var listeText = o.einfuegen === false ? '' : tx(' Eine Liste mit zwei Spalten (aus Excel oder Word, oder Zeilen wie «') + esc(k[2]) + tx('») lässt sich auf einmal einfügen – oder als Datei hierher ziehen.');
       if (!sprache){ h.innerHTML = o.hilfe() + listeText; h.hidden = !h.innerHTML; return; }
       h.hidden = false;
-      h.innerHTML = 'Schreib ein Wort auf Deutsch oder ' + esc(k[1]) + ' – die Übersetzung erscheint im anderen Feld.' + listeText;
+      h.innerHTML = tx('Schreib ein Wort auf Deutsch oder ') + esc(k[1]) + tx(' – die Übersetzung erscheint im anderen Feld.') + listeText;
       ueBereit().then(function(w){
         if (o.aus() || o.art() !== art) return;
-        h.innerHTML = w ? 'Schreib ein Wort auf Deutsch oder ' + esc(k[1]) + ' – die Übersetzung erscheint automatisch im anderen Feld (<span class="pl-auto-muster">orange hinterlegt</span>: bitte prüfen; einfach überschreiben, wenn sie nicht passt).' + listeText
-          : 'Beide Felder selbst ausfüllen. (Die automatische Übersetzung gibt es auf raetsellabor.fabulousteaching.ch.)' + listeText;
+        h.innerHTML = w ? tx('Schreib ein Wort auf Deutsch oder ') + esc(k[1]) + tx(' – die Übersetzung erscheint automatisch im anderen Feld (<span class="pl-auto-muster">orange hinterlegt</span>: bitte prüfen; einfach überschreiben, wenn sie nicht passt).') + listeText
+          : tx('Beide Felder selbst ausfüllen. (Die automatische Übersetzung gibt es auf raetsellabor.fabulousteaching.ch.)') + listeText;
       });
     }
     function melden(t, gut){ var m = q('meldung'); m.textContent = t; m.hidden = !t; m.classList.toggle('pl-gut', !!gut); }
@@ -326,8 +327,8 @@ var Paarliste = (function(){
           melden(''); eintragen(art, von, ziel, woerter, ergebnis);
         }, function(e){
           var c = e && e.code;
-          melden(c === 'zuViele' || c === 'rate_limited' ? 'Gerade zu viele Übersetzungen – bitte in einer Minute nochmals versuchen (Feld anklicken und wieder verlassen).'
-            : c === 'cancelled' ? '' : 'Die Übersetzung hat gerade nicht geklappt. Bitte das andere Feld selbst ausfüllen oder es später nochmals versuchen.');
+          melden(c === 'zuViele' || c === 'rate_limited' ? tx('Gerade zu viele Übersetzungen – bitte in einer Minute nochmals versuchen (Feld anklicken und wieder verlassen).')
+            : c === 'cancelled' ? '' : tx('Die Übersetzung hat gerade nicht geklappt. Bitte das andere Feld selbst ausfüllen oder es später nochmals versuchen.'));
           if (c === 'zuViele' || c === 'rate_limited') ueSperre = Date.now() + 60000;
           eintragen(art, von, ziel, woerter, {});
         });

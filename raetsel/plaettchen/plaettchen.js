@@ -7,6 +7,7 @@
    Paarliste). Raster, Plättchen, Lösungsblatt, PDF. */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('plaettchen');
 
 /* KERN-START */
 var Kern = (function(){
@@ -123,10 +124,10 @@ var Kern = (function(){
 /* KERN-ENDE */
 
 var TINTE = '#1C1714', B = 639, MM = 703 / 186, MAX = 4;
-var FAECHER = [['deutsch', 'Deutsch'], ['mathe', 'Mathe'], ['englisch', 'Englisch'], ['franzoesisch', 'Französisch'], ['eigene', 'Eigene Paare']];
-var DEUTSCH = [['reime', 'Reimwörter'], ['mehrzahl', 'Einzahl – Mehrzahl'], ['gegenteile', 'Gegenteile']];
-var MATHE = [['plusminus', 'Plus & Minus'], ['einmaleins', 'Einmaleins'], ['dezimal', 'Dezimalzahlen'], ['brueche', 'Brüche']];
-var KOEPFE = { englisch:['Deutsch', 'Englisch', 'Körper = body'], franzoesisch:['Deutsch', 'Französisch', 'Pferd = le cheval'], eigene:['Aufgabe (Plättchen)', 'Antwort (Raster)', 'Hauptstadt der Schweiz = Bern'] };
+var FAECHER = [['deutsch', tx('Deutsch')], ['mathe', tx('Mathe')], ['englisch', tx('Englisch')], ['franzoesisch', tx('Französisch')], ['eigene', tx('Eigene Paare')]];
+var DEUTSCH = [['reime', tx('Reimwörter')], ['mehrzahl', tx('Einzahl – Mehrzahl')], ['gegenteile', tx('Gegenteile')]];
+var MATHE = [['plusminus', tx('Plus & Minus')], ['einmaleins', tx('Einmaleins')], ['dezimal', tx('Dezimalzahlen')], ['brueche', tx('Brüche')]];
+var KOEPFE = { englisch:[tx('Deutsch'), tx('Englisch'), tx('Körper = body')], franzoesisch:[tx('Deutsch'), tx('Französisch'), tx('Pferd = le cheval')], eigene:[tx('Aufgabe (Plättchen)'), tx('Antwort (Raster)'), tx('Hauptstadt der Schweiz = Bern')] };
 var PLATTFARBE = '#FFE3C2';
 function esc(t){ return Labor.esc(t); }
 function f1(x){ return (Math.round(x * 10) / 10).toString(); }
@@ -134,49 +135,49 @@ function chips(name, l){ return l.map(function(x){ return '<label><input type="r
 function kaestchen(name, l){ return l.map(function(x){ return '<label><input type="checkbox" name="' + name + '" value="' + x[0] + '"><span>' + x[1] + '</span></label>'; }).join(''); }
 
 var VORLAGE = '<div class="pt">' +
-  '<header class="pt-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Plättchenrätsel</h1>' +
-    '<p>Aufgaben auf Plättchen, Antworten im Raster: Wer jedes Plättchen auf seine Antwort legt, sieht Ziffern oder Buchstaben.</p></header>' +
-  '<div class="pt-layout"><section class="pt-eingabe" aria-label="Eingaben">' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Lösung</h2><p>Ziffern oder Buchstaben, die entstehen – 1 bis 4 Zeichen (Blockschrift 3 × 5).</p></div></div>' +
-      '<label class="feld-label" for="ptCode">Ziffern oder Buchstaben</label>' +
-      '<div class="pt-zeile"><input type="text" id="ptCode" maxlength="8" autocomplete="off" spellcheck="false"><button type="button" class="btn klein" id="ptLeeren">Leeren</button></div>' +
+  tx('<header class="pt-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Plättchenrätsel</h1>') +
+    tx('<p>Aufgaben auf Plättchen, Antworten im Raster: Wer jedes Plättchen auf seine Antwort legt, sieht Ziffern oder Buchstaben.</p></header>') +
+  tx('<div class="pt-layout"><section class="pt-eingabe" aria-label="Eingaben">') +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Lösung</h2><p>Ziffern oder Buchstaben, die entstehen – 1 bis 4 Zeichen (Blockschrift 3 × 5).</p></div></div>') +
+      tx('<label class="feld-label" for="ptCode">Ziffern oder Buchstaben</label>') +
+      tx('<div class="pt-zeile"><input type="text" id="ptCode" maxlength="8" autocomplete="off" spellcheck="false"><button type="button" class="btn klein" id="ptLeeren">Leeren</button></div>') +
       '<div class="pt-zaehler" id="ptZaehler" aria-live="polite"></div>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Aufgaben</h2><p>Auf den Plättchen die Aufgabe, im Raster die Antwort.</p></div></div>' +
-      '<div class="pt-chips" role="radiogroup" aria-label="Fach">' + chips('ptFach', FAECHER) + '</div>' +
-      '<div class="pt-stufe pt-teil" data-fach="deutsch"><p class="feld-label">Deutsch: Art der Paare</p>' +
-        '<div class="pt-chips" role="radiogroup" aria-label="Deutsch">' + chips('ptDeutsch', DEUTSCH) + '</div></div>' +
-      '<div class="pt-stufe pt-teil" data-fach="mathe"><p class="feld-label">Mathe: Thema</p>' +
-        '<div class="pt-chips" role="radiogroup" aria-label="Mathe">' + chips('ptMathe', MATHE) + '</div>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Aufgaben</h2><p>Auf den Plättchen die Aufgabe, im Raster die Antwort.</p></div></div>') +
+      tx('<div class="pt-chips" role="radiogroup" aria-label="Fach">') + chips('ptFach', FAECHER) + '</div>' +
+      tx('<div class="pt-stufe pt-teil" data-fach="deutsch"><p class="feld-label">Deutsch: Art der Paare</p>') +
+        tx('<div class="pt-chips" role="radiogroup" aria-label="Deutsch">') + chips('ptDeutsch', DEUTSCH) + '</div></div>' +
+      tx('<div class="pt-stufe pt-teil" data-fach="mathe"><p class="feld-label">Mathe: Thema</p>') +
+        tx('<div class="pt-chips" role="radiogroup" aria-label="Mathe">') + chips('ptMathe', MATHE) + '</div>' +
         '<div class="pt-stufe pt-unter" data-mathe="plusminus">' +
-          '<p class="feld-label">Zahlenraum</p><div class="pt-chips" role="radiogroup" aria-label="Zahlenraum">' + chips('ptZr', [['10', 'bis 10'], ['20', 'bis 20'], ['100', 'bis 100'], ['1000', 'bis 1000']]) + '</div>' +
-          '<p class="feld-label">Rechenarten</p><div class="pt-chips">' + kaestchen('ptOps', [['plus', 'Plus'], ['minus', 'Minus']]) + '</div></div>' +
+          tx('<p class="feld-label">Zahlenraum</p><div class="pt-chips" role="radiogroup" aria-label="Zahlenraum">') + chips('ptZr', [['10', tx('bis 10')], ['20', tx('bis 20')], ['100', tx('bis 100')], ['1000', tx('bis 1000')]]) + '</div>' +
+          tx('<p class="feld-label">Rechenarten</p><div class="pt-chips">') + kaestchen('ptOps', [['plus', tx('Plus')], ['minus', tx('Minus')]]) + '</div></div>' +
         '<div class="pt-stufe pt-unter" data-mathe="einmaleins">' +
-          '<p class="feld-label">Reihen</p><div class="pt-chips pt-reihen">' + kaestchen('ptReihen', [2, 3, 4, 5, 6, 7, 8, 9, 10].map(function(r){ return [r, r]; })) + '</div>' +
-          '<p class="feld-label">Rechenarten</p><div class="pt-chips">' + kaestchen('ptEOps', [['mal', 'Mal'], ['geteilt', 'Geteilt']]) + '</div></div>' +
+          tx('<p class="feld-label">Reihen</p><div class="pt-chips pt-reihen">') + kaestchen('ptReihen', [2, 3, 4, 5, 6, 7, 8, 9, 10].map(function(r){ return [r, r]; })) + '</div>' +
+          tx('<p class="feld-label">Rechenarten</p><div class="pt-chips">') + kaestchen('ptEOps', [['mal', tx('Mal')], ['geteilt', tx('Geteilt')]]) + '</div></div>' +
         '<div class="pt-stufe pt-unter" data-mathe="dezimal">' +
-          '<p class="feld-label">Brüche mit Nenner</p><div class="pt-chips" role="radiogroup" aria-label="Nenner">' + chips('ptDez', [['1', '10'], ['2', '10 und 100'], ['3', '10, 100 und 1000']]) + '</div></div>' +
+          tx('<p class="feld-label">Brüche mit Nenner</p><div class="pt-chips" role="radiogroup" aria-label="Nenner">') + chips('ptDez', [['1', '10'], ['2', tx('10 und 100')], ['3', tx('10, 100 und 1000')]]) + '</div></div>' +
         '<div class="pt-stufe pt-unter" data-mathe="brueche">' +
-          '<p class="feld-label">Nenner bis</p><div class="pt-chips" role="radiogroup" aria-label="Nenner bis">' + chips('ptNenner', [['4', '4'], ['6', '6'], ['10', '10'], ['12', '12']]) + '</div></div>' +
+          tx('<p class="feld-label">Nenner bis</p><div class="pt-chips" role="radiogroup" aria-label="Nenner bis">') + chips('ptNenner', [['4', '4'], ['6', '6'], ['10', '10'], ['12', '12']]) + '</div></div>' +
       '</div>' +
       '<div class="pt-stufe pt-teil pt-paarliste" data-fach="englisch franzoesisch eigene" id="ptPaarliste">' + Paarliste.html() + '</div>' +
       '<div class="pt-zaehler" id="ptPaarInfo" aria-live="polite"></div>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Blatt</h2></div></div>' +
-      '<label class="opt"><input type="checkbox" id="ptRand"><span>Rand aus Ablenk-Feldern rund um die Zeichen (schwieriger)</span></label>' +
-      '<label class="opt"><input type="checkbox" id="ptFarbig"><span>Plättchen farbig hinterlegen (gelegt sieht man die Zeichen besser)</span></label>' +
-      '<label class="opt"><input type="checkbox" id="ptLinie"><span>Linie für die Lösung</span></label>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Blatt</h2></div></div>') +
+      tx('<label class="opt"><input type="checkbox" id="ptRand"><span>Rand aus Ablenk-Feldern rund um die Zeichen (schwieriger)</span></label>') +
+      tx('<label class="opt"><input type="checkbox" id="ptFarbig"><span>Plättchen farbig hinterlegen (gelegt sieht man die Zeichen besser)</span></label>') +
+      tx('<label class="opt"><input type="checkbox" id="ptLinie"><span>Linie für die Lösung</span></label>') +
     '</div>' +
   '</section>' +
-  '<section class="pt-ausgabe" aria-label="Ergebnis">' +
+  tx('<section class="pt-ausgabe" aria-label="Ergebnis">') +
     '<div id="ptMeldung" aria-live="polite"></div>' +
     '<div class="pt-werkzeug">' +
-      '<button type="button" class="btn klein" id="ptZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
-      '<button type="button" class="btn klein" id="ptNeu" title="Andere Aufgaben und andere Verteilung">Neu mischen</button>' +
+      tx('<button type="button" class="btn klein" id="ptZeigeLoesung" aria-pressed="false">Lösung zeigen</button>') +
+      tx('<button type="button" class="btn klein" id="ptNeu" title="Andere Aufgaben und andere Verteilung">Neu mischen</button>') +
       '<span class="abstand"></span>' + Labor.blattSchalterHtml() +
-      '<label><input type="checkbox" id="ptMitLoesung"> mit Lösungsblatt</label>' +
-      '<button type="button" class="btn klein primary" id="ptPdf">PDF herunterladen</button>' +
-      '<button type="button" class="btn klein primary" id="ptHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
+      tx('<label><input type="checkbox" id="ptMitLoesung"> mit Lösungsblatt</label>') +
+      tx('<button type="button" class="btn klein primary" id="ptPdf">PDF herunterladen</button>') +
+      tx('<button type="button" class="btn klein primary" id="ptHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>') +
     '</div>' +
     '<div class="pt-blaetter"><div class="pt-seiten" id="ptSeiten"></div>' +
     '<div class="pt-rahmen pt-loesung-rahmen"><article class="pt-blatt pt-loesungsblatt" id="ptLoesung" aria-hidden="true"></article></div></div>' +
@@ -254,7 +255,7 @@ function starte(bereich){
     art:function(){ return st.opt.fach; },
     sprache:function(art){ return art === 'englisch' || art === 'franzoesisch' ? art : null; },
     kopf:function(){ return KOEPFE[st.opt.fach] || ['', '', '']; },
-    hilfe:function(){ return st.opt.fach === 'eigene' ? 'Links die Aufgabe (kommt aufs Plättchen), rechts die Antwort (kommt ins Raster). Ein paar Paare mehr als Plättchen geben Ablenk-Antworten.' : 'Links das deutsche Wort (Plättchen), rechts die Übersetzung (Raster). Ein paar Paare mehr als Plättchen geben Ablenk-Antworten.'; },
+    hilfe:function(){ return st.opt.fach === 'eigene' ? tx('Links die Aufgabe (kommt aufs Plättchen), rechts die Antwort (kommt ins Raster). Ein paar Paare mehr als Plättchen geben Ablenk-Antworten.') : tx('Links das deutsche Wort (Plättchen), rechts die Übersetzung (Raster). Ein paar Paare mehr als Plättchen geben Ablenk-Antworten.'); },
     einfuegen:true,
     geaendert:function(){ speichern(); baldZeichnen(); },
     aus:function(){ return aus; }
@@ -269,16 +270,16 @@ function starte(bereich){
   /* ---------- Inhalte ---------- */
   function fehltNoch(){
     var o = st.opt;
-    if (!o.fach) return 'ein Fach';
-    if (o.fach === 'deutsch' && !o.deutschArt) return 'bei Deutsch die Art der Paare';
+    if (!o.fach) return tx('ein Fach');
+    if (o.fach === 'deutsch' && !o.deutschArt) return tx('bei Deutsch die Art der Paare');
     if (o.fach === 'mathe'){
-      if (!o.matheArt) return 'bei Mathe ein Thema';
-      if (o.matheArt === 'plusminus' && !o.zr) return 'den Zahlenraum';
-      if (o.matheArt === 'plusminus' && !o.ops.length) return 'mindestens eine Rechenart';
-      if (o.matheArt === 'einmaleins' && !o.reihen.length) return 'mindestens eine Reihe';
-      if (o.matheArt === 'einmaleins' && !o.eOps.length) return 'mindestens eine Rechenart';
-      if (o.matheArt === 'dezimal' && !o.dez) return 'die Nenner';
-      if (o.matheArt === 'brueche' && !o.nenner) return 'den grössten Nenner';
+      if (!o.matheArt) return tx('bei Mathe ein Thema');
+      if (o.matheArt === 'plusminus' && !o.zr) return tx('den Zahlenraum');
+      if (o.matheArt === 'plusminus' && !o.ops.length) return tx('mindestens eine Rechenart');
+      if (o.matheArt === 'einmaleins' && !o.reihen.length) return tx('mindestens eine Reihe');
+      if (o.matheArt === 'einmaleins' && !o.eOps.length) return tx('mindestens eine Rechenart');
+      if (o.matheArt === 'dezimal' && !o.dez) return tx('die Nenner');
+      if (o.matheArt === 'brueche' && !o.nenner) return tx('den grössten Nenner');
     }
     return '';
   }
@@ -366,25 +367,25 @@ function starte(bereich){
   function zeichnen(){
     if (aus) return;
     var L = PS.lesen(st.code, MAX), h = '', o = st.opt;
-    if (L.weg.length) h += '<p class="warnung">' + esc(L.weg.join(' ')) + ' gibt es in der Blockschrift nicht – nur Buchstaben A–Z und Ziffern.</p>';
-    if (L.zuViele) h += '<p class="warnung">Höchstens ' + MAX + ' Zeichen.</p>';
+    if (L.weg.length) h += '<p class="warnung">' + esc(L.weg.join(' ')) + tx(' gibt es in der Blockschrift nicht – nur Buchstaben A–Z und Ziffern.</p>');
+    if (L.zuViele) h += tx('<p class="warnung">Höchstens ') + MAX + tx(' Zeichen.</p>');
     var z = L.zeichen, g = z.length ? Kern.raster(z, PS.ZEICHEN, PS.BREITE, PS.HOEHE, MAX, o.rand) : null;
     var n = g ? g.reduce(function(a, r){ return a + r.filter(Boolean).length; }, 0) : 0, m = g ? g.length * g[0].length - n : 0;
-    if (g) h += '<p class="pt-info">' + n + ' Plättchen, Raster ' + g[0].length + ' × ' + g.length + ' (' + m + ' Ablenk-Felder).</p>';
+    if (g) h += '<p class="pt-info">' + n + tx(' Plättchen, Raster ') + g[0].length + ' × ' + g.length + ' (' + m + tx(' Ablenk-Felder).</p>');
     $('#ptZaehler').innerHTML = h;
-    var fehlt = !z.length ? 'Ziffern oder Buchstaben' : fehltNoch();
+    var fehlt = !z.length ? tx('Ziffern oder Buchstaben') : fehltNoch();
     $('#ptPaarInfo').innerHTML = '';
     var aus2 = function(text){ R = null; $('#ptSeiten').innerHTML = ''; $('#ptLoesung').parentNode.hidden = true; ['#ptPdf', '#ptHerunterladen', '#ptZeigeLoesung', '#ptNeu'].forEach(function(s){ $(s).disabled = true; }); meldung('info', text); };
-    if (fehlt) return aus2('<p>Wähle links ' + fehlt + '.</p>');
+    if (fehlt) return aus2(tx('<p>Wähle links ') + fehlt + '.</p>');
     var rnd = Kern.zufall(st.seed), vert = Kern.verteilen(pool(rnd), n, m, rnd);
     if (vert.fehler){
-      $('#ptPaarInfo').innerHTML = '<p class="warnung">Zu wenige Paare: ' + esc(vert.fehler) + '. ' + (KOEPFE[o.fach] ? 'Ergänze die Liste – es braucht ' + (n + 3) + ' oder mehr Paare.' : 'Wähle mehr aus (z. B. einen grösseren Zahlenraum oder mehr Reihen).') + '</p>';
-      return aus2('<p>Es hat noch zu wenige Aufgaben.</p>');
+      $('#ptPaarInfo').innerHTML = tx('<p class="warnung">Zu wenige Paare: ') + esc(vert.fehler) + '. ' + (KOEPFE[o.fach] ? tx('Ergänze die Liste – es braucht ') + (n + 3) + tx(' oder mehr Paare.') : tx('Wähle mehr aus (z. B. einen grösseren Zahlenraum oder mehr Reihen).')) + '</p>';
+      return aus2(tx('<p>Es hat noch zu wenige Aufgaben.</p>'));
     }
-    if (vert.vielfalt < Math.min(m, 4)) $('#ptPaarInfo').innerHTML = '<p class="warnung">Nur ' + vert.vielfalt + ' verschiedene Ablenk-Antworten – sie kommen mehrmals vor. Mehr Paare oder ein grösserer Zahlenraum geben mehr Abwechslung.</p>';
-    else if (vert.wiederholt) $('#ptPaarInfo').innerHTML = '<p class="pt-info">' + vert.wiederholt + ' Plättchen wiederholen eine Aufgabe (es gibt zu wenige verschiedene) – das geht: Gleiche Plättchen kommen auf gleiche Antworten.</p>';
+    if (vert.vielfalt < Math.min(m, 4)) $('#ptPaarInfo').innerHTML = tx('<p class="warnung">Nur ') + vert.vielfalt + tx(' verschiedene Ablenk-Antworten – sie kommen mehrmals vor. Mehr Paare oder ein grösserer Zahlenraum geben mehr Abwechslung.</p>');
+    else if (vert.wiederholt) $('#ptPaarInfo').innerHTML = '<p class="pt-info">' + vert.wiederholt + tx(' Plättchen wiederholen eine Aufgabe (es gibt zu wenige verschiedene) – das geht: Gleiche Plättchen kommen auf gleiche Antworten.</p>');
     var feld = Kern.belegen(g, vert, rnd);
-    if (!Kern.pruefen(feld, vert.plaettchen)) return aus2('<p>Interner Fehler beim Verteilen – bitte «Neu mischen».</p>');
+    if (!Kern.pruefen(feld, vert.plaettchen)) return aus2(tx('<p>Interner Fehler beim Verteilen – bitte «Neu mischen».</p>'));
     R = { g:g, feld:feld, plaettchen:vert.plaettchen, code:z.join('') };
     meldung(''); ['#ptPdf', '#ptHerunterladen', '#ptZeigeLoesung', '#ptNeu'].forEach(function(s){ $(s).disabled = false; }); $('#ptLoesung').parentNode.hidden = false;
     // Feldgrösse: Raster und Plättchen gleich gross (höchstens 26 mm), Raster passt aufs Blatt
@@ -393,19 +394,19 @@ function starte(bereich){
     var W = g[0].length, H = g.length, BQ = 968;
     var sHoch = Math.min(26 * MM, (B - 2) / W, (o.anleitungAn ? 770 : 850) / H), sQuer = Math.min(26 * MM, (BQ - 2) / W, (o.anleitungAn ? 470 : 540) / H);
     var quer = sHoch < 20 * MM && sQuer > sHoch, s = quer ? sQuer : sHoch, BB = quer ? BQ : B, sp = Math.floor((B - 2) / s), proSeite = sp * Math.floor(940 / s);
-    var anleitung = 'Schneide die Plättchen aus. Löse die Aufgabe auf jedem Plättchen und lege es auf das Feld mit der richtigen Antwort. ' +
-      'Nicht jede Antwort im Raster gehört zu einem Plättchen. Welche ' + (z.length > 1 ? 'Zeichen entstehen?' : 'Ziffer oder welcher Buchstabe entsteht?');
-    var html = '<div class="pt-rahmen"><article class="pt-blatt pt-seite' + (quer ? ' blatt-quer' : '') + '">' + (o.titelAn ? '<h2>Plättchenrätsel</h2>' : '') + (o.anleitungAn ? '<p class="pt-anleitung">' + esc(anleitung) + '</p>' : '') +
-      rasterSvg(R, s, false, BB) + (o.linie ? '<p class="pt-antwort">Lösung: <span class="pt-linie"></span></p>' : '') + '</article></div>';
+    var anleitung = tx('Schneide die Plättchen aus. Löse die Aufgabe auf jedem Plättchen und lege es auf das Feld mit der richtigen Antwort. ') +
+      tx('Nicht jede Antwort im Raster gehört zu einem Plättchen. Welche ') + (z.length > 1 ? tx('Zeichen entstehen?') : tx('Ziffer oder welcher Buchstabe entsteht?'));
+    var html = '<div class="pt-rahmen"><article class="pt-blatt pt-seite' + (quer ? tx(' blatt-quer') : '') + '">' + (o.titelAn ? tx('<h2>Plättchenrätsel</h2>') : '') + (o.anleitungAn ? '<p class="pt-anleitung">' + esc(anleitung) + '</p>' : '') +
+      rasterSvg(R, s, false, BB) + (o.linie ? tx('<p class="pt-antwort">Lösung: <span class="pt-linie"></span></p>') : '') + '</article></div>';
     var gPl = einheit(R.plaettchen.map(function(x){ return x.a; }), s);
     for (var i = 0; i < R.plaettchen.length; i += proSeite){
       var teil = R.plaettchen.slice(i, i + proSeite), seiten = Math.ceil(R.plaettchen.length / proSeite);
-      html += '<div class="pt-rahmen"><article class="pt-blatt pt-seite"><p class="pt-seitenkopf">✂ Plättchen zum Ausschneiden' + (seiten > 1 ? ' – Seite ' + (i / proSeite + 1) + ' von ' + seiten : '') + ' · ' + R.plaettchen.length + ' Stück</p>' +
+      html += tx('<div class="pt-rahmen"><article class="pt-blatt pt-seite"><p class="pt-seitenkopf">✂ Plättchen zum Ausschneiden') + (seiten > 1 ? tx(' – Seite ') + (i / proSeite + 1) + tx(' von ') + seiten : '') + ' · ' + R.plaettchen.length + tx(' Stück</p>') +
         plaettchenSvg(teil, s, sp, gPl) + '</article></div>';
     }
     $('#ptSeiten').innerHTML = html;
     $('#ptLoesung').classList.toggle('blatt-quer', quer);
-    $('#ptLoesung').innerHTML = (o.titelAn ? '<h2>Plättchenrätsel – Lösung</h2>' : '<p class="pt-anleitung"><b>Lösung</b></p>') + rasterSvg(R, s, true, BB) + '<p class="pt-loesung-text">Lösung: <b>' + esc(R.code) + '</b></p>';
+    $('#ptLoesung').innerHTML = (o.titelAn ? tx('<h2>Plättchenrätsel – Lösung</h2>') : tx('<p class="pt-anleitung"><b>Lösung</b></p>')) + rasterSvg(R, s, true, BB) + tx('<p class="pt-loesung-text">Lösung: <b>') + esc(R.code) + '</b></p>';
   }
 
   /* ---------- PDF, Herunterladen ---------- */
@@ -423,9 +424,9 @@ function starte(bereich){
     if (!speicherOrt || !R) return;
     var name = Labor.pdfName('Plaettchenraetsel', '').replace(/\.pdf$/, '.html');
     var inhalt = blaetter().map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); k.classList.remove('zeigen'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
-    speicherOrt.save({ filename:name, data:Labor.blattDatei('Plättchenrätsel', inhalt, '.pt-loesungsblatt{display:block}') }).catch(function(e){
+    speicherOrt.save({ filename:name, data:Labor.blattDatei(tx('Plättchenrätsel'), inhalt, '.pt-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 

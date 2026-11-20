@@ -5,6 +5,7 @@
    einzeln in Kärtchen. Schüttelwörter klein oder GROSS. Blatt (bei vielen Wörtern mehrere), Lösungsblatt, PDF. */
 (function(){
 'use strict';
+var tx = Labor.uebersetzer('schuettelwoerter');
 
 /* KERN-START */
 var Kern = (function(){
@@ -36,28 +37,28 @@ var SCHREIB = [['klein', 'kleinbuchstaben'], ['gross', 'GROSSBUCHSTABEN']];
 function esc(t){ return Labor.esc(t); }
 
 var VORLAGE = '<div class="sw">' +
-  '<header class="sw-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Schüttelwörter</h1>' +
-    '<p>Die Buchstaben der Wörter sind durcheinandergeschüttelt – welches Wort steckt dahinter?</p></header>' +
-  '<div class="sw-layout"><section class="sw-eingabe" aria-label="Eingaben">' +
+  tx('<header class="sw-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Schüttelwörter</h1>') +
+    tx('<p>Die Buchstaben der Wörter sind durcheinandergeschüttelt – welches Wort steckt dahinter?</p></header>') +
+  tx('<div class="sw-layout"><section class="sw-eingabe" aria-label="Eingaben">') +
     Wortwahl.html(1) +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Schütteln</h2></div></div>' +
-      '<p class="feld-label">Schüttelwörter in</p>' +
-      '<div class="sw-chips" role="radiogroup" aria-label="Schreibweise">' + SCHREIB.map(function(a){ return '<label><input type="radio" name="swSchreib" value="' + a[0] + '"><span>' + a[1] + '</span></label>'; }).join('') + '</div>' +
+    tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Schütteln</h2></div></div>') +
+      tx('<p class="feld-label">Schüttelwörter in</p>') +
+      tx('<div class="sw-chips" role="radiogroup" aria-label="Schreibweise">') + SCHREIB.map(function(a){ return '<label><input type="radio" name="swSchreib" value="' + a[0] + '"><span>' + a[1] + '</span></label>'; }).join('') + '</div>' +
       '<p class="hinweis" id="swSchreibInfo"></p>' +
-      '<label class="opt"><input type="checkbox" id="swKaestchen"><span>Kästchen zum Hineinschreiben (je Buchstabe eines)</span></label>' +
-      '<label class="opt"><input type="checkbox" id="swErster"><span>Erster Buchstabe bleibt vorne (leichter)</span></label>' +
-      '<label class="opt"><input type="checkbox" id="swKarten"><span>Buchstaben einzeln in Kärtchen</span></label>' +
+      tx('<label class="opt"><input type="checkbox" id="swKaestchen"><span>Kästchen zum Hineinschreiben (je Buchstabe eines)</span></label>') +
+      tx('<label class="opt"><input type="checkbox" id="swErster"><span>Erster Buchstabe bleibt vorne (leichter)</span></label>') +
+      tx('<label class="opt"><input type="checkbox" id="swKarten"><span>Buchstaben einzeln in Kärtchen</span></label>') +
     '</div>' +
   '</section>' +
-  '<section class="sw-ausgabe" aria-label="Ergebnis">' +
+  tx('<section class="sw-ausgabe" aria-label="Ergebnis">') +
     '<div id="swMeldung" aria-live="polite"></div>' +
     '<div class="sw-werkzeug">' +
-      '<button type="button" class="btn klein" id="swZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
-      '<button type="button" class="btn klein" id="swNeu" title="Die Buchstaben neu schütteln">Neu schütteln</button>' +
+      tx('<button type="button" class="btn klein" id="swZeigeLoesung" aria-pressed="false">Lösung zeigen</button>') +
+      tx('<button type="button" class="btn klein" id="swNeu" title="Die Buchstaben neu schütteln">Neu schütteln</button>') +
       '<span class="abstand"></span>' + Labor.blattSchalterHtml() +
-      '<label><input type="checkbox" id="swMitLoesung"> mit Lösungsblatt</label>' +
-      '<button type="button" class="btn klein primary" id="swPdf">PDF herunterladen</button>' +
-      '<button type="button" class="btn klein primary" id="swHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>' +
+      tx('<label><input type="checkbox" id="swMitLoesung"> mit Lösungsblatt</label>') +
+      tx('<button type="button" class="btn klein primary" id="swPdf">PDF herunterladen</button>') +
+      tx('<button type="button" class="btn klein primary" id="swHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>') +
     '</div>' +
     '<div class="sw-blaetter"><div class="sw-seiten" id="swSeiten"></div>' +
     '<div class="sw-rahmen sw-loesung-rahmen"><article class="sw-blatt sw-loesungsblatt" id="swLoesung" aria-hidden="true"></article></div></div>' +
@@ -135,12 +136,12 @@ function starte(bereich){
   function zeichnen(notiz){
     if (aus) return;
     var o = st.opt, W = woerter(), z = [];
-    $('#swSchreibInfo').textContent = o.schreib ? (o.schreib === 'gross' ? 'Die Lösung schreibt man dann auch gross (ß wird SS).' : 'Die Lösung schreibt man richtig – Nomen gross.') : '';
+    $('#swSchreibInfo').textContent = o.schreib ? (o.schreib === 'gross' ? tx('Die Lösung schreibt man dann auch gross (ß wird SS).') : tx('Die Lösung schreibt man richtig – Nomen gross.')) : '';
     if (notiz) z.push(notiz);
-    if (W.weg.length) z.push('Zu kurz oder doppelt, wird weggelassen: ' + W.weg.map(esc).join(', '));
+    if (W.weg.length) z.push(tx('Zu kurz oder doppelt, wird weggelassen: ') + W.weg.map(esc).join(', '));
     $('#wortInfo').innerHTML = z.join(' · ');
     $('#wortZaehler').textContent = W.gut.length ? String(W.gut.length) : '';
-    var fehlt = !W.gut.length ? 'Gib links einige Wörter ein oder lass sie zum Thema vorschlagen.' : !o.schreib ? 'Wähle links, ob die Schüttelwörter klein oder GROSS geschrieben sind.' : '';
+    var fehlt = !W.gut.length ? tx('Gib links einige Wörter ein oder lass sie zum Thema vorschlagen.') : !o.schreib ? tx('Wähle links, ob die Schüttelwörter klein oder GROSS geschrieben sind.') : '';
     ['#swPdf', '#swHerunterladen', '#swZeigeLoesung', '#swNeu'].forEach(function(s){ $(s).disabled = !!fehlt; });
     if (fehlt){ R = null; $('#swSeiten').innerHTML = ''; $('#swLoesung').parentNode.hidden = true; meldung('info', '<p>' + fehlt + '</p>'); return; }
     meldung(''); $('#swLoesung').parentNode.hidden = false;
@@ -155,7 +156,7 @@ function starte(bereich){
       });
       return { loesung:loes, teile:teile };
     });
-    if (nicht.length) z.push('Lässt sich nicht schütteln (alle Buchstaben gleich oder zu kurz): ' + nicht.map(esc).join(', '));
+    if (nicht.length) z.push(tx('Lässt sich nicht schütteln (alle Buchstaben gleich oder zu kurz): ') + nicht.map(esc).join(', '));
     $('#wortInfo').innerHTML = z.join(' · ');
     // Breiten grob schätzen (px): Kärtchen 25, Buchstaben 17, Kästchen 33, Lücke 14; Platz auf dem Blatt 636 px
     var proB = o.karten ? 25 : 17;
@@ -176,19 +177,19 @@ function starte(bereich){
       if (h + hh > MAXH){ seiten.push([]); h = 40; }
       seiten[seiten.length - 1].push(i); h += hh;
     });
-    var anleitung = 'Die Buchstaben sind durcheinandergeschüttelt. Welches Wort steckt dahinter?' + (o.kaestchen ? ' Schreibe es in die Kästchen.' : ' Schreibe es auf.') + (o.erster ? ' Der erste Buchstabe stimmt schon.' : '');
+    var anleitung = tx('Die Buchstaben sind durcheinandergeschüttelt. Welches Wort steckt dahinter?') + (o.kaestchen ? tx(' Schreibe es in die Kästchen.') : tx(' Schreibe es auf.')) + (o.erster ? tx(' Der erste Buchstabe stimmt schon.') : '');
     var titel = st.titel.trim(), html = '';
     seiten.forEach(function(nr, si){
-      var kopf = si === 0 ? (o.titelAn ? '<h2>' + esc(titel ? 'Schüttelwörter: ' + titel : 'Schüttelwörter') + '</h2>' : '') + (o.anleitungAn ? '<p class="sw-anleitung">' + esc(anleitung) + '</p>' : '')
-        : '<p class="sw-seitenkopf">Schüttelwörter – Seite ' + (si + 1) + ' von ' + seiten.length + '</p>';
+      var kopf = si === 0 ? (o.titelAn ? '<h2>' + esc(titel ? tx('Schüttelwörter: ') + titel : tx('Schüttelwörter')) + '</h2>' : '') + (o.anleitungAn ? '<p class="sw-anleitung">' + esc(anleitung) + '</p>' : '')
+        : tx('<p class="sw-seitenkopf">Schüttelwörter – Seite ') + (si + 1) + tx(' von ') + seiten.length + '</p>';
       html += '<div class="sw-rahmen"><article class="sw-blatt sw-seite"><div>' + kopf + '</div><ol class="sw-liste sw-' + art + '" style="--sw-sp:' + (maxC + 8) + 'px">' +
         nr.map(function(i){ return zeile(R[i], false, i + 1); }).join('') + '</ol></article></div>';
     });
     $('#swSeiten').innerHTML = html;
     // Lösung: zwei Spalten, wenn die Zeilen schmal genug sind (Lösungskärtchen 21 px, Lösungswort etwa 12 px je Buchstabe)
     var maxL = Math.max.apply(null, R.map(function(e){ return 34 + breite(e, o.karten ? 21 : 15) + 26 + e.loesung.length * 12; }));
-    $('#swLoesung').innerHTML = (o.titelAn ? '<h2>' + esc(titel ? 'Schüttelwörter: ' + titel + ' – Lösung' : 'Schüttelwörter – Lösung') + '</h2>' : '<p class="sw-anleitung"><b>Lösung</b></p>') +
-      '<ol class="sw-liste sw-loesungen' + (maxL <= 300 ? ' sw-zwei' : '') + '">' + R.map(function(e, i){ return zeile(e, true, i + 1); }).join('') + '</ol>';
+    $('#swLoesung').innerHTML = (o.titelAn ? '<h2>' + esc(titel ? tx('Schüttelwörter: ') + titel + tx(' – Lösung') : tx('Schüttelwörter – Lösung')) + '</h2>' : tx('<p class="sw-anleitung"><b>Lösung</b></p>')) +
+      '<ol class="sw-liste sw-loesungen' + (maxL <= 300 ? tx(' sw-zwei') : '') + '">' + R.map(function(e, i){ return zeile(e, true, i + 1); }).join('') + '</ol>';
   }
   // Eine Zeile: Schüttelwort (Kärtchen oder Buchstaben mit Abstand), dann Kästchen, Schreiblinie oder Lösung
   function zeile(e, loesung, nr){
@@ -220,9 +221,9 @@ function starte(bereich){
     if (!speicherOrt || !R) return;
     var name = Labor.pdfName('Schuettelwoerter', st.titel).replace(/\.pdf$/, '.html');
     var inhalt = blaetter().map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); k.classList.remove('zeigen'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
-    speicherOrt.save({ filename:name, data:Labor.blattDatei('Schüttelwörter', inhalt, '.sw-loesungsblatt{display:block}') }).catch(function(e){
+    speicherOrt.save({ filename:name, data:Labor.blattDatei(tx('Schüttelwörter'), inhalt, '.sw-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 
