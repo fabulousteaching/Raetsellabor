@@ -228,3 +228,14 @@
 .gs-wortchip{padding:4px 11px;border:1px solid var(--line-2);border-radius:999px;background:#fff;font:inherit;font-size:.86rem;font-weight:600;color:var(--muted);cursor:pointer;transition:border-color .15s,background .15s,color .15s}
 .gs-wortchip:hover{border-color:var(--accent-line);color:var(--ink)}
 .gs-wortchip:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+.gs-wortchip[hidden]{display:none}
+.gs-wortchip.gs-bs{border-style:dashed}
+.gs-noten-ton{display:flex;gap:8px;margin:6px 0 4px}
+.gs-einzug{margin:2px 0 0 26px}
+.gs-einzug[hidden]{display:none}
+.gs-z.gs-spielt .gs-note{background:#FFE7CF;border-radius:4px}
+/* Hörseite: QR-Code unter der Botschaft */
+.gs-hoeren{display:flex;align-items:center;gap:18px;margin-top:26px;padding:14px 16px;border:1.5px dashed #C9BFB6;border-radius:12px;break-inside:avoid}
+.gs-hoeren-qr .gs-qr{display:block;width:118px;height:118px}
+.gs-hoeren p{margin:0;color:#3A322C;line-height:1.45;font-size:.95rem}
+.gs-hoeren p.gs-hoeren-titel{font-weight:700;font-size:1.1rem;color:#1C1714;margin-bottom:4px}

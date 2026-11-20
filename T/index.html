@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hör genau hin! – Rätsellabor</title>
+<meta name="robots" content="noindex">
+<!-- Rätsellabor – Hörseite zur Notenschrift (Geheimschriften). Der QR-Code auf dem Arbeitsblatt führt hierher.
+     Adresse: T/?t=<Töne>&bs=1 – Töne als zweistellige MIDI-Nummern (60 = tiefes C … 72 = hohes C), Wörter durch «-» getrennt.
+     So steht die Lösung nicht lesbar in der Adresse. bs=1: im Tonalphabet auch S (Es) und B. -->
+<style>
+  :root{--ink:#1C1714;--muted:#6E655E;--line:#E8DED4;--bg:#FBF7F2;--card:#fff;--accent:#F28C38;--accent-2:#C2410C}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;-webkit-text-size-adjust:100%}
+  main{max-width:860px;margin:0 auto;padding:max(18px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 40px max(16px,env(safe-area-inset-left))}
+  h1{font-size:clamp(1.6rem,5vw,2.2rem);margin:6px 0 4px;letter-spacing:-.01em}
+  .einleitung{margin:0 0 18px;color:var(--muted);line-height:1.5;font-size:1.02rem;max-width:62ch}
+  .karte{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 16px 18px;margin:0 0 16px;box-shadow:0 1px 2px rgba(45,28,12,.05)}
+  h2{font-size:1.15rem;margin:0 0 10px}
+  .leiste{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+  button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  .knopf{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 16px;font-weight:650;font-size:.98rem;color:var(--ink)}
+  .knopf.haupt{background:var(--accent);border-color:var(--accent);color:#fff}
+  .knopf:active{transform:translateY(1px)}
+  .woerter{display:grid;gap:12px}
+  .wort{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;border:1px dashed var(--line);border-radius:12px}
+  .wort-name{font-weight:700;color:var(--muted);min-width:4.4em}
+  .ton{width:56px;height:56px;border-radius:14px;border:2px solid #CFC4B9;background:#FFF8F0;font-size:1.25rem;font-weight:800;color:var(--ink);transition:transform .08s,background .15s,border-color .15s}
+  .wort-ganz{width:auto;padding:0 14px;font-size:.95rem;border-style:dashed;background:#fff}
+  .ton.spielt{background:var(--accent);border-color:var(--accent-2);color:#fff;transform:scale(1.08)}
+  .abc{display:flex;flex-wrap:wrap;gap:10px}
+  .abc .ton{width:66px;height:74px;display:grid;place-items:center;align-content:center;gap:2px;color:#fff;border:none;font-size:1.6rem;text-shadow:0 1px 1px rgba(0,0,0,.25)}
+  .abc .ton small{font-size:.7rem;font-weight:700;opacity:.95}
+  .abc .ton.spielt{outline:4px solid var(--ink);outline-offset:2px}
+  .tipp{margin:12px 0 0;color:var(--muted);font-size:.92rem;line-height:1.45}
+  .fehler{background:#FFF1EC;border-color:#F6C4B0}
+  footer{margin-top:22px;color:var(--muted);font-size:.85rem}
+  footer a{color:var(--accent-2)}
+  @media (prefers-reduced-motion:reduce){.ton{transition:none}.ton.spielt{transform:none}}
+</style>
+</head>
+<body>
+<main>
+  <h1>🎵 Hör genau hin!</h1>
+  <p class="einleitung">Die Geheimbotschaft besteht aus Tönen. Tippe auf einen Ton der Botschaft und dann auf die Töne im Tonalphabet unten.
+    Klingen zwei Töne gleich, hast du den Buchstaben gefunden.</p>
+  <section class="karte" id="botschaft" aria-labelledby="titelBotschaft">
+    <h2 id="titelBotschaft">Die Töne der Botschaft</h2>
+    <div class="leiste"><button type="button" class="knopf haupt" id="alles">▶ Ganze Botschaft</button><button type="button" class="knopf" id="stopp">■ Stopp</button></div>
+    <div class="woerter" id="woerter"></div>
+  </section>
+  <section class="karte" aria-labelledby="titelAbc">
+    <h2 id="titelAbc">Tonalphabet</h2>
+    <div class="abc" id="abc"></div>
+    <p class="tipp">Tipp: Hör dir zuerst einen Ton der Botschaft an, dann probierst du die Töne im Tonalphabet aus. Das C gibt es zweimal: tief und hoch.</p>
+  </section>
+  <footer>Rätsellabor · <a href="../">raetsellabor.fabulousteaching.ch</a></footer>
+</main>
+<script src="../gemeinsam/toene.js"></script>
+<script>
+(function(){
+  'use strict';
+  // Tonalphabet: [MIDI, Buchstabe, Zusatz, Farbe]; S (Es) und B nur mit bs=1
+  var ABC = [[60, 'C', 'tief', '#E5484D'], [62, 'D', '', '#F2843B'], [63, 'S', 'Es', '#C9822B'], [64, 'E', '', '#E2B203'], [65, 'F', '', '#4CAF50'],
+    [67, 'G', '', '#1E9E8B'], [69, 'A', '', '#3B82F6'], [70, 'B', '', '#5B5BD6'], [71, 'H', '', '#8B5CF6'], [72, 'C', 'hoch', '#D6409F']];
+  var q = new URLSearchParams(location.search), bs = q.get('bs') === '1';
+  var erlaubt = {}; ABC.forEach(function(a){ erlaubt[a[0]] = true; });
+  // Töne lesen: Wörter durch «-», je Ton zwei Ziffern
+  var woerter = String(q.get('t') || '').split('-').map(function(w){ return (w.match(/\d\d/g) || []).map(Number); })
+    .filter(function(w){ return w.length && w.every(function(m){ return erlaubt[m]; }); });
+  var $w = document.getElementById('woerter'), knoepfe = [];
+  function el(tag, klasse, text){ var e = document.createElement(tag); if (klasse) e.className = klasse; if (text != null) e.textContent = text; return e; }
+  function aufleuchten(b){ b.classList.add('spielt'); setTimeout(function(){ b.classList.remove('spielt'); }, 420); }
+  if (!woerter.length){
+    document.getElementById('botschaft').classList.add('fehler');
+    $w.appendChild(el('p', '', 'Dieser Link enthält keine Töne. Scanne den QR-Code auf dem Arbeitsblatt nochmals.'));
+    document.getElementById('alles').hidden = document.getElementById('stopp').hidden = true;
+  }
+  var nr = 0;
+  woerter.forEach(function(w, wi){
+    var zeile = el('div', 'wort'); zeile.appendChild(el('span', 'wort-name', 'Wort ' + (wi + 1)));
+    var erste = nr;
+    w.forEach(function(m){
+      var b = el('button', 'ton', String(++nr)); b.type = 'button'; b.setAttribute('aria-label', 'Ton ' + nr + ' anhören');
+      b.addEventListener('click', function(){ Toene.spiele(m); aufleuchten(b); });
+      zeile.appendChild(b); knoepfe.push(b);
+    });
+    var ganz = el('button', 'ton wort-ganz', '▶ Wort'); ganz.type = 'button'; ganz.setAttribute('aria-label', 'Wort ' + (wi + 1) + ' ganz anhören');
+    ganz.addEventListener('click', function(){ Toene.folge([w], { beiTon:function(i){ aufleuchten(knoepfe[erste + i]); } }); });
+    zeile.appendChild(ganz);
+    $w.appendChild(zeile);
+  });
+  document.getElementById('alles').addEventListener('click', function(){ Toene.folge(woerter, { beiTon:function(i){ aufleuchten(knoepfe[i]); } }); });
+  document.getElementById('stopp').addEventListener('click', function(){ Toene.stopp(); });
+  var $abc = document.getElementById('abc');
+  ABC.forEach(function(a){
+    if (!bs && (a[1] === 'S' || a[1] === 'B')) return;
+    var b = el('button', 'ton'); b.type = 'button'; b.style.background = a[3];
+    b.appendChild(el('span', '', a[1])); if (a[2]) b.appendChild(el('small', '', a[2]));
+    b.setAttribute('aria-label', 'Ton ' + a[1] + (a[2] ? ' ' + a[2] : '') + ' anhören');
+    b.addEventListener('click', function(){ Toene.spiele(a[0]); aufleuchten(b); });
+    $abc.appendChild(b);
+  });
+  if (!Toene.geht()) document.querySelector('.einleitung').textContent = 'Dieser Browser kann leider keine Töne abspielen. Versuche es mit einem anderen Browser.';
+})();
+</script>
+</body>
+</html>

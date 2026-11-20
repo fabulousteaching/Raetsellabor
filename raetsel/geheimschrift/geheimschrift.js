@@ -136,7 +136,7 @@ var Kern = (function(){
       // Erpresserschrift: Buchstaben (mit Umlauten und ß), Ziffern, ! und ? als ausgeschnittene Schnipsel; das Aussehen
       // (Schrift, Farben, Papier, Drehung) kommt beim Zeichnen aus seed und der Nummer des Schnipsels (nr, siehe zerlege)
       case 'erpresser': return /^[A-ZÄÖÜß0-9!?]$/.test(c) ? { schnipsel:c, seed:o.erpSeed || 1, misch:o.erpMisch !== false } : null;
-      case 'noten': return NOTEN.indexOf(c) >= 0 ? { note:c } : null;
+      case 'noten': return notenBuchstaben(o.notenBS).indexOf(c) >= 0 ? { note:c } : null;
       case 'morse': return MORSE[c] ? { morse:MORSE[c] } : null;
       case 'braille':
         if (/[0-9]/.test(c)){ var m = BRAILLE[ZIFFER_BRAILLE[+c]]; return { braille:/[0-9]/.test(vorher || '') ? [m] : [ZAHLZEICHEN, m] }; }
@@ -162,13 +162,23 @@ var Kern = (function(){
   var UMLAUTE = { morse:true, braille:true, finger:true, erpresser:true, noten:true };
   /* Notenschrift: nur die Tonnamen C D E F G A H. Wörter mit anderen Buchstaben (auch Umlauten) oder Ziffern gehen nicht. */
   var NOTEN = 'CDEFGAH';
+  // Mit B und S (wie bei Bach): B = H mit ♭, S = Es = E mit ♭
+  function notenBuchstaben(bs){ return bs ? 'CDEFGAHBS' : NOTEN; }
+  // Höhe im Notensystem (0 = tiefes C … 6 = H); B steht wie H, S wie E – nur mit ♭ davor
+  var NOTEN_STUFE = { C:0, D:1, E:2, S:2, F:3, G:4, A:5, H:6, B:6 };
+  // Tonhöhe als MIDI-Nummer (für die Hörseite): tiefes C = 60
+  var NOTEN_MIDI = { C:60, D:62, S:63, E:64, F:65, G:67, A:69, B:70, H:71 };
+  function notenMidi(code){ return code.note === 'C' && code.hoch ? 72 : NOTEN_MIDI[code.note]; }
   var NOTEN_WOERTER = ['da', 'ach', 'aha', 'ade', 'Ehe', 'Fee', 'Gag', 'Hag', 'fad', 'geh', 'haha', 'Dach', 'Fach', 'Chef', 'Cafe', 'Affe', 'Egge', 'Gage', 'gaga', 'Dada',
     'fade', 'Hege', 'gehe', 'fege', 'Haff', 'Fehde', 'gaffe', 'Cache', 'Gehege'];
+  // Zusätzlich mit B und S
+  var NOTEN_WOERTER_BS = ['das', 'des', 'dass', 'sah', 'Ass', 'Bad', 'Gas', 'Bach', 'Base', 'Bass', 'bade', 'Ebbe', 'Gabe', 'Hase', 'Fass', 'Asse', 'Esse', 'gebe', 'hebe',
+    'Bache', 'Dachs', 'Gasse', 'Sache', 'Asche', 'Esche', 'Abgas', 'Schaf', 'schade', 'fasse', 'Schach', 'Abgabe', 'Seebad', 'Bagage', 'schaffe'];
   // Wörter eines Textes, die sich nicht mit Noten schreiben lassen → [{ wort, falsch:'U, S' }]
-  function notenFalsch(text){
-    var aus = [], gesehen = {};
+  function notenFalsch(text, bs){
+    var aus = [], gesehen = {}, erlaubt = notenBuchstaben(bs);
     String(text || '').split(/\s+/).forEach(function(w){
-      var b = Array.from(normal(w, true)).filter(function(c){ return /[\p{L}\p{N}]/u.test(c) && NOTEN.indexOf(c) < 0; });
+      var b = Array.from(normal(w, true)).filter(function(c){ return /[\p{L}\p{N}]/u.test(c) && erlaubt.indexOf(c) < 0; });
       var rein = w.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '');
       if (b.length && !gesehen[rein]){ gesehen[rein] = true; aus.push({ wort:rein, falsch:b.filter(function(c, i){ return b.indexOf(c) === i; }).join(', ') }); }
     });
@@ -188,7 +198,7 @@ var Kern = (function(){
           // Das C gibt es tief (Hilfslinie) und hoch: das, welches näher bei den Nachbarnoten liegt
           zellen.forEach(function(z, i){
             if (!z.code || z.code.note !== 'C') return;
-            var n = [zellen[i - 1], zellen[i + 1]].filter(function(x){ return x && x.code && x.code.note !== 'C'; }).map(function(x){ return NOTEN.indexOf(x.code.note); });
+            var n = [zellen[i - 1], zellen[i + 1]].filter(function(x){ return x && x.code && x.code.note !== 'C'; }).map(function(x){ return NOTEN_STUFE[x.code.note]; });
             z.code.hoch = n.length ? n.reduce(function(a, b){ return a + b; }, 0) / n.length >= 4 : false;   // G, A, H in der Nähe → hohes C
           });
         }
@@ -199,7 +209,7 @@ var Kern = (function(){
   return { ABC:ABC, GITTER:GITTER, MORSE:MORSE, BRAILLE:BRAILLE, ZAHLZEICHEN:ZAHLZEICHEN, HANDY:HANDY, HIERO:HIERO, HIERO_NAME:HIERO_NAME,
     normal:normal, zeichen:zeichen, zerlege:zerlege, freimaurer:freimaurer, VOEGEL:VOEGEL, KREISE:KREISE, BUECHER:BUECHER, BILDZEICHEN:BILDZEICHEN,
     SEGMENTE:SEGMENTE, FINGER:FINGER, UMLAUTE:UMLAUTE, BAUSTEINE:BAUSTEINE, STEIN_FARBEN:STEIN_FARBEN,
-    NOTEN:NOTEN, NOTEN_WOERTER:NOTEN_WOERTER, notenFalsch:notenFalsch };
+    NOTEN:NOTEN, NOTEN_WOERTER:NOTEN_WOERTER, NOTEN_WOERTER_BS:NOTEN_WOERTER_BS, notenFalsch:notenFalsch, notenBuchstaben:notenBuchstaben, notenMidi:notenMidi };
 })();
 /* KERN-ENDE */
 
@@ -550,7 +560,7 @@ function erpHtml(zeichen, stil){
 }
 /* Notenschrift: Viertelnoten im Notensystem mit Violinschlüssel. Linien bei y = 40 … 80 (unten E, Mitte H, G-Linie 70);
    jedes Stück ist ein eigenes SVG mit allen fünf Linien – nebeneinander ergeben sie ein durchgehendes Notensystem. */
-var NOTE_Y = { C:90, D:85, E:80, F:75, G:70, A:65, H:60 };
+var NOTE_Y = { C:90, D:85, E:80, F:75, G:70, A:65, H:60, B:60, S:80 };   // B wie H, S wie E – jeweils mit ♭
 var VIOLIN = 'M16.5 74.5C11.5 76 9 71 12.5 67.5C16 64.5 22 66.5 22 72C22 78.5 14 81.5 9 78C3.5 74 4.5 64.5 10.5 58.5C15 54 20.5 49.5 21 41C21.5 32 17 25.5 14.5 29C12 32.5 12.8 40 13.6 50L16.5 94C17 100.5 10.5 101.5 8.5 97.5';
 function notenSvg(inhalt, breite, klasse){
   return '<svg class="' + (klasse || 'gs-note') + '" viewBox="0 18 ' + breite + ' 86" style="aspect-ratio:' + breite + '/86" aria-hidden="true">' +
@@ -564,16 +574,24 @@ function noteKopf(x, y){
     '<g stroke="' + TINTE + '" stroke-width="1.5">' + hals + '</g>';
 }
 function noteY(n, hoch){ return n === 'C' && hoch ? 55 : NOTE_Y[n]; }
-function noteSvg(n, hoch, klasse){ return notenSvg(noteKopf(13, noteY(n, hoch)), 26, klasse); }
+// Be-Zeichen ♭ (macht den Ton einen halben Ton tiefer): Strich mit Bauch, links vor dem Notenkopf
+function be(x, y){ return '<path d="M' + x + ' ' + (y - 17) + 'V' + (y + 4.5) + 'C' + (x + 7.5) + ' ' + (y + 0.5) + ' ' + (x + 8) + ' ' + (y - 6.5) + ' ' + x + ' ' + (y - 3)
+  + '" fill="none" stroke="' + TINTE + '" stroke-width="1.6" stroke-linejoin="round"/>'; }
+function noteSvg(n, hoch, klasse){
+  var y = noteY(n, hoch);
+  return n === 'B' || n === 'S' ? notenSvg(be(5, y) + noteKopf(22, y), 34, klasse) : notenSvg(noteKopf(13, y), 26, klasse);
+}
 function violinPfad(dx){ return '<g transform="translate(' + (dx || 0) + ' 0)"><path d="' + VIOLIN + '" fill="none" stroke="' + TINTE + '" stroke-width="2.3" stroke-linecap="round"/><circle cx="10.3" cy="96" r="2.6" fill="' + TINTE + '"/></g>'; }
 function violinSvg(){ return notenSvg(violinPfad(0), 28); }
 function taktendeSvg(){ return notenSvg('<path d="M2.5 40V80" stroke="' + TINTE + '" stroke-width="1.2"/><path d="M6.2 40V80" stroke="' + TINTE + '" stroke-width="2.8"/>', 8); }
 // Schlüssel: alle Noten vom tiefen bis zum hohen C, darunter ihr Name
-function notenSchluesselSvg(){
-  var noten = [['C', false], ['D'], ['E'], ['F'], ['G'], ['A'], ['H'], ['C', true]], b = 44 + noten.length * 40;
-  var inhalt = violinPfad(4) + noten.map(function(n, i){ return noteKopf(56 + i * 40, noteY(n[0], n[1])); }).join('') +
+function notenSchluesselSvg(bs){
+  var noten = [['C', false], ['D'], ['E'], ['F'], ['G'], ['A'], ['H'], ['C', true]].concat(bs ? [['S'], ['B']] : []);
+  var xs = noten.map(function(n, i){ return 56 + i * 40 + (i >= 8 ? 30 : 0); }), b = xs[xs.length - 1] + 30;
+  var inhalt = violinPfad(4) + noten.map(function(n, i){ var y = noteY(n[0], n[1]); return (n[0] === 'B' || n[0] === 'S' ? be(xs[i] - 17, y) : '') + noteKopf(xs[i], y); }).join('') +
+    (bs ? '<path d="M' + (xs[7] + 22) + ' 40V80" stroke="' + TINTE + '" stroke-width="1.2"/>' : '') +   // Taktstrich vor den Noten mit ♭
     '<g style="font-family:var(--blatt-buchstaben)" font-weight="700" font-size="15" fill="#C2410C" text-anchor="middle">' +
-    noten.map(function(n, i){ return '<text x="' + (56 + i * 40) + '" y="128">' + n[0] + '</text>'; }).join('') + '</g>';
+    noten.map(function(n, i){ return '<text x="' + xs[i] + '" y="128">' + n[0] + '</text>'; }).join('') + '</g>';
   return '<svg class="gs-noten-schluessel" viewBox="0 18 ' + b + ' 116" role="img" aria-label="Noten vom tiefen C bis zum hohen C mit ihren Namen">' +
     '<path d="' + [40, 50, 60, 70, 80].map(function(y){ return 'M0 ' + y + 'H' + b; }).join('') + '" stroke="' + TINTE + '" stroke-width="1.1"/>' + inhalt + '</svg>';
 }
@@ -599,6 +617,16 @@ function vorschauHtml(art){
   var o = { verschiebung:3 }, w = art === 'hieroglyphen' ? 'ABC' : art === 'braille' || art === 'morse' ? 'ABC' : 'ABC';
   if (art === 'noten') w = 'CEG';
   return '<span class="gs-vorschau gs-v-' + art + '">' + Array.from(w).map(function(c, i){ var z = Kern.zeichen(art, c, o); if (z && z.schnipsel){ z.seed = erpVorschau; z.nr = i; z.misch = false; } return '<span class="gs-vz">' + symbolHtml(z) + '</span>'; }).join('') + '</span>';
+}
+
+/* QR-Code als SVG (gemeinsam/extern/qrcode.js) – für die Hörseite der Notenschrift */
+function qrSvg(text){
+  qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
+  var q = qrcode(0, 'M'); q.addData(text, 'Byte'); q.make();
+  var n = q.getModuleCount(), d = '', R = 2;
+  for (var y = 0; y < n; y++) for (var x = 0; x < n; x++) if (q.isDark(y, x)) d += 'M' + (x + R) + ' ' + (y + R) + 'h1v1h-1z';
+  return '<svg class="gs-qr" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + (n + 2 * R) + ' ' + (n + 2 * R) + '" shape-rendering="crispEdges" role="img" aria-label="QR-Code zur Hörseite">' +
+    '<rect width="100%" height="100%" fill="#fff"/><path d="' + d + '" fill="#000"/></svg>';
 }
 
 /* ---------- Schlüssel ---------- */
@@ -677,8 +705,10 @@ function schluesselHtml(art, o){
         tabelle(A.map(function(c){ return [c, steinSvg(Kern.BAUSTEINE[c], 'gs-stein-k'), STEIN_NAME[Kern.BAUSTEINE[c][0]]]; }), 'gs-tab-steine');
     case 'noten':
       return '<p class="gs-erklaerung">Jeder Ton in der Musik hat einen Namen: C, D, E, F, G, A und H – nach dem H kommt wieder ein C. Im Notensystem mit dem Violinschlüssel steht jede Note auf einer Linie oder in einem Zwischenraum. ' +
-        'Der Name der Note ist der Buchstabe. Das C gibt es zweimal: tief unten auf einer kleinen Hilfslinie und hoch im dritten Zwischenraum. Darum lassen sich nur Wörter mit diesen sieben Buchstaben schreiben.</p>' +
-        notenSchluesselSvg() +
+        'Der Name der Note ist der Buchstabe. Das C gibt es zweimal: tief unten auf einer kleinen Hilfslinie und hoch im dritten Zwischenraum.' + (o.notenBS ? '' : ' Darum lassen sich nur Wörter mit diesen sieben Buchstaben schreiben.') + '</p>' +
+        notenSchluesselSvg(o.notenBS) +
+        (o.notenBS ? '<p class="gs-erklaerung">Das ♭ (Be) macht einen Ton ein wenig tiefer. Das H mit ♭ heisst <b>B</b>, das E mit ♭ heisst <b>Es</b> – das ist hier das <b>S</b>. ' +
+          'So hat der Komponist Johann Sebastian Bach seinen Namen in Musik geschrieben: B – A – C – H.</p>' : '') +
         '<p class="gs-erklaerung gs-noten-merk">Merkhilfe: Die Note auf der untersten Linie ist das E, die auf der Mittellinie das H. Um die zweitunterste Linie (G) dreht sich der Violinschlüssel.</p>';
     case 'finger':
       return '<p class="gs-erklaerung">Mit dem Fingeralphabet buchstabieren gehörlose Menschen Namen und Wörter, für die es keine eigene Gebärde gibt. Jeder Buchstabe ist eine Handform. ' +
@@ -736,9 +766,14 @@ var VORLAGE = '<div class="gs">' +
         '<p class="hinweis">Beim Ausmalen stehen über jeder leeren Anzeige die Namen der Segmente (z. B. «a b c d g2 i l»); wer sie anmalt, sieht den Buchstaben.</p>' +
       '</div>' +
       '<div class="gs-caesar" id="gsNoten">' +
+        '<label class="opt"><input type="checkbox" id="gsNotenBS"><span>Mit B und S – wie bei Bach: B ist das H mit ♭, S das Es (E mit ♭)</span></label>' +
         '<p class="feld-label">Wörter, die mit Noten gehen</p><div class="gs-notenwoerter">' +
-          Kern.NOTEN_WOERTER.map(function(w){ return '<button type="button" class="gs-wortchip" data-wort="' + w + '">' + w + '</button>'; }).join('') + '</div>' +
-        '<p class="hinweis">Antippen fügt das Wort in den Text ein. Eigene Wörter gehen auch – wenn sie nur aus C, D, E, F, G, A und H bestehen.</p>' +
+          Kern.NOTEN_WOERTER.map(function(w){ return '<button type="button" class="gs-wortchip" data-wort="' + w + '">' + w + '</button>'; }).join('') +
+          Kern.NOTEN_WOERTER_BS.map(function(w){ return '<button type="button" class="gs-wortchip gs-bs" data-wort="' + w + '">' + w + '</button>'; }).join('') + '</div>' +
+        '<p class="hinweis" id="gsNotenHinweis"></p>' +
+        '<div class="gs-noten-ton"><button type="button" class="btn klein" id="gsNotenSpielen">▶ Anhören</button><button type="button" class="btn klein" id="gsNotenStopp">■ Stopp</button></div>' +
+        '<label class="opt"><input type="checkbox" id="gsNotenAudio"><span>Mit Audio: QR-Code auf dem Blatt – er führt zu einer Hörseite mit allen Tönen der Botschaft und dem Tonalphabet zum Vergleichen</span></label>' +
+        '<p class="hinweis gs-einzug" id="gsNotenSeiteZeile" hidden><a id="gsNotenSeite" href="#" target="_blank" rel="noopener">Hörseite öffnen</a> (so sehen es die Kinder nach dem Scannen)</p>' +
       '</div>' +
       '<div class="gs-caesar" id="gsErpresser">' +
         '<button type="button" class="btn klein" id="gsErpNeu" title="Alle Buchstaben neu ausschneiden und aufkleben">Neu ausschneiden</button>' +
@@ -810,7 +845,7 @@ window.addEventListener('hashchange', alterLink);
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false;
   var TAB = 'geheimschrift-eingaben', OPT = 'geheimschrift-einstellungen';
-  var STANDARD = { art:'caesar', verschiebung:3, scheibe:true, segArt:'ausmalen', erpSeed:1, erpMisch:true, groesse:'mittel', linien:true, mitLoesung:true, mitSchluessel:true, titelAn:true, anleitungAn:true };
+  var STANDARD = { art:'caesar', verschiebung:3, scheibe:true, segArt:'ausmalen', erpSeed:1, erpMisch:true, notenBS:false, notenAudio:false, groesse:'mittel', linien:true, mitLoesung:true, mitSchluessel:true, titelAn:true, anleitungAn:true };
   var st = { text:'', titel:'', opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
   try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.text = String(e.text || ''); st.titel = String(e.titel || ''); } } catch(x){}
@@ -867,10 +902,30 @@ function starte(bereich){
       $('#gsText').value = (t ? t + ' ' : '') + k.dataset.wort; st.text = $('#gsText').value; speichern(); zeichnen();
     });
   });
+  // Notenschrift: Melodie der Botschaft (MIDI-Nummern je Wort)
+  function notenMelodie(){
+    var w = [];
+    if (st.opt.art === 'noten') zellen().forEach(function(z){ z.forEach(function(wort){ var m = wort.filter(function(c){ return c.code && c.code.note; }).map(function(c){ return Kern.notenMidi(c.code); }); if (m.length) w.push(m); }); });
+    return w;
+  }
+  // Adresse der Hörseite: auf der Website die eigene, im Artefakt die öffentliche
+  function hoerUrl(){
+    var basis = Labor.imArtefakt() || !/^https?:$/.test(location.protocol) ? 'https://raetsellabor.fabulousteaching.ch/' : location.origin + location.pathname.replace(/[^\/]*$/, '');
+    return basis + 'T/?t=' + notenMelodie().map(function(w){ return w.join(''); }).join('-') + (st.opt.notenBS ? '&bs=1' : '');
+  }
+  $('#gsNotenSpielen').addEventListener('click', function(){
+    var m = notenMelodie(), knopf = this;
+    if (!m.length || !window.Toene) return;
+    var noten = [].slice.call(bereich.querySelectorAll('#gsBlatt .gs-z:not(.gs-andere)'));
+    knopf.disabled = true;
+    Toene.folge(m, { beiTon:function(i){ noten.forEach(function(n, k){ n.classList.toggle('gs-spielt', k === i); }); },
+      fertig:function(){ knopf.disabled = false; noten.forEach(function(n){ n.classList.remove('gs-spielt'); }); } });
+  });
+  $('#gsNotenStopp').addEventListener('click', function(){ if (window.Toene) Toene.stopp(); $('#gsNotenSpielen').disabled = false; [].forEach.call(bereich.querySelectorAll('.gs-spielt'), function(n){ n.classList.remove('gs-spielt'); }); });
   $('#gsErpNeu').addEventListener('click', function(){ st.opt.erpSeed = erpNeuerZufall(); speichern(); alles(); });
   $('#gsVerschiebung').value = String(st.opt.verschiebung);
   $('#gsVerschiebung').addEventListener('change', function(){ st.opt.verschiebung = +this.value; speichern(); alles(); });
-  [['#gsLinien', 'linien', zeichnen], ['#gsScheibe', 'scheibe', schluesselZeichnen], ['#gsErpMisch', 'erpMisch', zeichnen], ['#gsMitLoesung', 'mitLoesung'], ['#gsMitSchluessel', 'mitSchluessel']].forEach(function(c){
+  [['#gsLinien', 'linien', zeichnen], ['#gsScheibe', 'scheibe', schluesselZeichnen], ['#gsErpMisch', 'erpMisch', zeichnen], ['#gsNotenBS', 'notenBS', alles], ['#gsNotenAudio', 'notenAudio', zeichnen], ['#gsMitLoesung', 'mitLoesung'], ['#gsMitSchluessel', 'mitSchluessel']].forEach(function(c){
     $(c[0]).checked = !!st.opt[c[1]];
     $(c[0]).addEventListener('change', function(){ st.opt[c[1]] = this.checked; speichern(); if (c[2]) c[2](); });
   });
@@ -901,14 +956,20 @@ function starte(bereich){
     $('#gsSegment').hidden = o.art !== 'segmente';
     $('#gsErpresser').hidden = o.art !== 'erpresser';
     $('#gsNoten').hidden = o.art !== 'noten';
+    var melodie = o.art === 'noten' ? notenMelodie() : [];
+    $('#gsNotenSeiteZeile').hidden = !melodie.length; $('#gsNotenSeite').href = melodie.length ? hoerUrl() : '#';
+    $('#gsNotenSpielen').disabled = !melodie.length;
     // Notenschrift: Wörter mit anderen Buchstaben gehen nicht – sagen, welche und warum
-    var nichtNoten = o.art === 'noten' ? Kern.notenFalsch(st.text) : [];
+    var nichtNoten = o.art === 'noten' ? Kern.notenFalsch(st.text, o.notenBS) : [];
+    var tonnamen = o.notenBS ? 'C, D, E, F, G, A, H, B und S' : 'C, D, E, F, G, A und H';
+    [].forEach.call(bereich.querySelectorAll('.gs-wortchip.gs-bs'), function(k){ k.hidden = !o.notenBS; });
+    $('#gsNotenHinweis').textContent = 'Antippen fügt das Wort in den Text ein. Eigene Wörter gehen auch – wenn sie nur aus ' + tonnamen + ' bestehen.';
     var notenWarnung = nichtNoten.length ? '<p><b>' + (nichtNoten.length === 1 ? 'Dieses Wort kann' : 'Diese Wörter können') + ' nicht mit Noten geschrieben werden</b> und ' + (nichtNoten.length === 1 ? 'fehlt' : 'fehlen') + ' auf dem Blatt: ' +
-      nichtNoten.map(function(x){ return '«' + esc(x.wort) + '» (' + esc(x.falsch) + ')'; }).join(', ') + '. Es gibt nur die Töne C, D, E, F, G, A und H.</p>' : '';
+      nichtNoten.map(function(x){ return '«' + esc(x.wort) + '» (' + esc(x.falsch) + ')'; }).join(', ') + '. Es gibt nur die Töne ' + tonnamen + '.</p>' : '';
     var erp = o.art === 'erpresser';   // keine Geheimschrift: ohne Linien, Lösung und Schlüssel – nur die Nachricht zum Drucken oder Kopieren
     bereich.querySelector('.gs').classList.toggle('gs-erpresser', erp);
     $('.gs-teil-titel').textContent = erp ? 'Nachricht' : 'Geheimtext';
-    $('#gsTextHinweis').textContent = o.art === 'noten' ? 'Nur Wörter aus den Buchstaben C, D, E, F, G, A und H – den Namen der Töne. Andere Wörter werden weggelassen; Satzzeichen bleiben stehen.' : o.art === 'erpresser' ? 'Buchstaben (auch Ä, Ö, Ü und ß), Ziffern, ! und ? werden ausgeschnitten; andere Satzzeichen bleiben stehen.' : o.art === 'finger' ? 'Ä, Ö, Ü, CH und SCH haben eigene Handzeichen; ß wird als SS geschrieben. Ziffern und Satzzeichen bleiben stehen.' : o.art === 'segmente' ? 'Umlaute werden als AE, OE, UE geschrieben, ß als SS. Ziffern haben eigene Zeichen; Satzzeichen bleiben stehen.' : Kern.UMLAUTE[o.art] ? 'Ä, Ö, Ü und ß haben in dieser Schrift eigene Zeichen' + (o.art === 'morse' ? '; Ziffern und einige Satzzeichen auch.' : '; Ziffern bekommen das Zahlzeichen.') :
+    $('#gsTextHinweis').textContent = o.art === 'noten' ? 'Nur Wörter aus den Buchstaben ' + tonnamen + ' – den Namen der Töne. Andere Wörter werden weggelassen; Satzzeichen bleiben stehen.' : o.art === 'erpresser' ? 'Buchstaben (auch Ä, Ö, Ü und ß), Ziffern, ! und ? werden ausgeschnitten; andere Satzzeichen bleiben stehen.' : o.art === 'finger' ? 'Ä, Ö, Ü, CH und SCH haben eigene Handzeichen; ß wird als SS geschrieben. Ziffern und Satzzeichen bleiben stehen.' : o.art === 'segmente' ? 'Umlaute werden als AE, OE, UE geschrieben, ß als SS. Ziffern haben eigene Zeichen; Satzzeichen bleiben stehen.' : Kern.UMLAUTE[o.art] ? 'Ä, Ö, Ü und ß haben in dieser Schrift eigene Zeichen' + (o.art === 'morse' ? '; Ziffern und einige Satzzeichen auch.' : '; Ziffern bekommen das Zahlzeichen.') :
       'Umlaute werden als AE, OE, UE geschrieben, ß als SS.' + (o.art === 'polybios' ? ' J wird wie I geschrieben.' : '') + ' Ziffern und Satzzeichen bleiben stehen.';
     $('#gsBlatt').hidden = $('#gsLoesung').hidden = leer;
     ['#gsZeigeLoesung', '#gsCodeBild', '#gsPdf', '#gsHerunterladen'].forEach(function(s){ $(s).disabled = leer; });
@@ -932,8 +993,11 @@ function starte(bereich){
     var name = schriftName(o.art, o);
     var anleitung = o.art === 'segmente' && o.segArt === 'ausmalen' ? 'Male in jeder Anzeige die genannten Segmente an und lies den Buchstaben ab' + (o.linien ? '. Schreibe ihn auf die Linie' : '') + '. Der Schlüssel zeigt, wo welches Segment liegt.'
       : 'Entschlüssle die Geheimschrift (' + esc(name) + ') mit dem Schlüssel' + (o.linien ? ' und schreibe die Buchstaben auf die Linien' : '') + '.';
+    var mitTon = o.art === 'noten' && o.notenAudio;
     $('#gsBlatt').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + '</h2>' : '') +
-      (o.anleitungAn ? '<p class="gs-anleitung">' + anleitung + '</p>' : '') + codeHtml();
+      (o.anleitungAn ? '<p class="gs-anleitung">' + anleitung + '</p>' : '') + codeHtml() +
+      (mitTon ? '<div class="gs-hoeren"><div class="gs-hoeren-qr">' + qrSvg(hoerUrl()) + '</div><div><p class="gs-hoeren-titel">Hör genau hin!</p>' +
+        '<p>Scanne den QR-Code mit dem Tablet oder Handy. Dort kannst du jeden Ton der Botschaft anhören und mit dem Tonalphabet vergleichen. Klingen zwei Töne gleich, hast du den Buchstaben.</p></div></div>' : '');
     $('#gsLoesung').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + ' – Lösung</h2>' : '<p class="gs-anleitung"><b>Lösung</b></p>') + codeHtml();
     $('#gsBlatt').classList.toggle('zeige-loesung', $('#gsZeigeLoesung').getAttribute('aria-pressed') === 'true');
     var code = $('#gsBlatt .gs-code');
