@@ -335,6 +335,16 @@ Ein eigener Text wird zu Morsecode – kurze und lange Töne. Am Bildschirm absp
 - **MP3 herunterladen:** 22'050 Hz, mono, 64 kbit/s, erstellt im Browser mit lamejs (eine JavaScript-Fassung von [LAME](https://lame.sourceforge.net), Lizenz LGPL-3.0) – unverändert als eigene Datei `gemeinsam/extern/lame.min.js`, erst beim ersten MP3 geladen; Lizenztexte daneben (`LIZENZ-lamejs.txt`, `LIZENZ-lamejs-LGPL-3.0.txt`). Geprüft: die MP3-Datei wieder in Töne zerlegt und zurückübersetzt ergibt genau den Text.
 - **Arbeitsblatt:** je Zeichen ein Kästchen (nach Wörtern gruppiert); auf Wunsch der Code über den Kästchen (zum Lesen statt Hören) und das Morsealphabet als Tabelle (mit den Satzzeichen, die im Text vorkommen). Lösungsblatt: Kästchen ausgefüllt mit Code, darunter der Text. PDF.
 
+### Plättchenrätsel
+
+Ein Raster voller Antworten und Plättchen mit Aufgaben zum Ausschneiden. Wer jedes Plättchen auf seine Antwort legt, sieht Ziffern oder Buchstaben.
+
+- **Lösung:** 1 bis 4 Zeichen in der Blockschrift 3 × 5 (`window.Pixelschrift`), höchstens zwei je Zeile, dazwischen eine leere Spalte (Zeile). Es gibt genau so viele Plättchen, wie die Zeichen Felder haben; die übrigen Felder tragen Ablenk-Antworten. Auf Wunsch ein Rand aus Ablenk-Feldern rund um die Zeichen.
+- **Aufgaben** (keine Vorauswahl, Stufen wie bei den Legekärtchen): Deutsch (Reimwörter, Einzahl – Mehrzahl, Gegenteile), Mathe (Plus & Minus bis 10/20/100/1000, Einmaleins mit Reihen und Mal/Geteilt, Dezimalzahlen, Brüche), Englisch, Französisch (mit automatischer Übersetzung) oder eigene Paare (`Paarliste`). Links die Aufgabe (Plättchen), rechts die Antwort (Raster).
+- **Immer eindeutig:** Die Antworten werden in zwei Gruppen geteilt – eine für die Plättchen, die andere (etwa ein Drittel) für die Ablenk-Felder. Eine Ablenk-Antwort ist darum nie die Antwort eines Plättchens. Haben mehrere Plättchen dieselbe Antwort (z. B. 3 · 4 und 2 · 6), steht sie genau so oft im Raster – die Form stimmt so oder so. Jedes Raster wird vor dem Zeichnen geprüft; dazu getestet an 168 Kombinationen (alle Fächer, 1–4 Zeichen, mit und ohne Rand). Gibt es zu wenige verschiedene Aufgaben, wiederholen sich Plättchen (mit Hinweis); gibt es zu wenige Ablenk-Antworten, kommen sie mehrmals vor (mit Hinweis).
+- **Felder:** Raster und Plättchen gleich gross (höchstens 26 mm; so gross, wie das Raster aufs Blatt passt). Text so gross wie möglich, auf zwei Zeilen, wenn das grösser wird; lange Wörter mit einfacher Silbentrennung (Doppel-Mitlaute getrennt, sonst nur der letzte Mitlaut auf die nächste Zeile, sch/ch/ck zusammen). Brüche übereinander.
+- **Blätter:** Raster mit Anleitung und Linie für die Lösung; Plättchen-Blatt(er) mit gestrichelten Schnittlinien, auf Wunsch farbig hinterlegt (gelegt sieht man die Zeichen besser). Lösungsblatt: das Raster mit den Plättchen-Feldern hinterlegt, darunter die Zeichen. «Neu mischen» gibt andere Aufgaben und eine andere Verteilung. PDF.
+
 ## Aufbau
 
 ```
@@ -379,6 +389,7 @@ raetsel/uhren/                  der Generator «Uhrenrätsel» (Kern: Ziffern al
 raetsel/nonogramm/              der Generator «Nonogramm» (Kern: Text in Blockschrift aufs Raster, Zahlen, Linie lösen, Rätsel lösen, Hilfsfelder; Raster als SVG)
 raetsel/textformen/             der Generator «Textformen» (Kern: Formen als Radien, Spirale mit gemessenem Abstand, Schrift einpassen, Zeilen umbrechen; textPath in SVG)
 raetsel/morsecode/              der Generator «Morsecode» (Kern: Alphabet, Text lesen, Ablauf in Einheiten, Ton als Abtastwerte; Abspielen mit Web Audio, MP3 mit lamejs)
+raetsel/plaettchen/             der Generator «Plättchenrätsel» (Kern: Zeichen aufs Raster, Rechenaufgaben, Antworten aufteilen, Raster belegen und prüfen, Silbentrennung)
 raetsel/triomino/               der Generator «Triomino» (Kern: Formen, Kanten, Aufgaben, Belegung; Zeichnen mit Schriftanpassung)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)
