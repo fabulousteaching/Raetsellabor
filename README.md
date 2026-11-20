@@ -392,13 +392,14 @@ Eine Nachricht auf einem Papierband: um einen runden Gegenstand gewickelt (Windu
 
 ### Richtungs-Suchsel
 
-Ein Satz steht immer wieder im Buchstabenfeld – Satz an Satz wie eine Schlange. Die Richtung jedes Satzes (rechts, unten, links, oben) ergibt der Reihe nach den Code für ein Richtungsschloss.
+Ein Satz steht immer wieder im Buchstabenfeld und bildet eine Schlange. Die geraden Stücke der Schlange zeigen der Reihe nach die Richtungen (rechts, unten, links, oben) – das ist der Code für ein Richtungsschloss.
 
 - **Eingaben (nacheinander):** zuerst der Satz (bis 40 Zeichen; Grossbuchstaben ohne Abstände, Umlaute bleiben); dann klappt der Richtungscode auf: vier Pfeilknöpfe wie ein Steuerkreuz (auch mit den Pfeiltasten), bis 12 Richtungen, «Letzte löschen» und «Alle löschen».
-- **Schlange:** Jede Richtung ist ein ganzer Satz, gerade in diese Richtung; der nächste beginnt direkt neben dem letzten Buchstaben (in seiner Richtung weiter oder seitlich daneben). So gehen auch gleiche Richtungen hintereinander (→ →) und Umkehrungen (→ ←). Gesucht wird die Lage mit dem kleinsten Feld (höchstens 30 × 38, Rand 1–3 Felder, mindestens 10 × 10); «Neu mischen» gibt eine andere Lage.
-- **Füllbuchstaben:** zufällig wie im Deutschen oder nur aus dem Satz (schwieriger); zufällige zweite Vorkommen des Satzes werden aufgelöst. Sätze, die vorwärts und rückwärts gleich sind, gehen nicht (die Richtung wäre nicht eindeutig). Wird das Feld zu gross, steht, wie lang der Satz mit diesem Code höchstens sein darf.
-- **Getestet** an 552 Fällen (6 Sätze, 46 Codes mit gleichen Richtungen und Umkehrungen, beide Füllarten): Jeder Satz läuft in seiner Code-Richtung und beginnt direkt neben dem vorigen, nichts überlappt, der Satz steht sonst nirgends im Feld.
-- **Blatt:** Anleitung mit dem Satz (abschaltbar), Anfang mit einem Kreis (abschaltbar), Kästchen für den Code. Am Bildschirm lassen sich die Sätze markieren (wie beim Suchsel). Lösungsblatt: die Schlange farbig, jeder Satz mit Nummer und Pfeil, der Code als Pfeile und Wörter. PDF.
+- **Schlange mit Ecken (Standard):** Der Satz läuft durchgehend weiter, auch um die Ecken; jedes gerade Stück ist mindestens 3 Buchstaben lang. Die Schlange endet genau am Ende eines Satzes (sie enthält ihn 1-, 2-, 3-mal …) und berührt sich nirgends selbst. Weil sie bei jeder neuen Richtung abbiegt, kommt nach → oder ← immer ↑ oder ↓ (die anderen Pfeilknöpfe sind dann gesperrt, mit Hinweis). Aus vielen Versuchen gewinnt das kleinste Feld – im Mittel etwa dreimal kleiner als mit ganzen Sätzen je Stück.
+- **Jedes Stück ein ganzer Satz (Häkchen):** für Codes mit gleicher Richtung hintereinander (→ →) oder Umkehr (→ ←). Jede Richtung ist dann ein ganzer, gerader Satz; der nächste beginnt direkt neben dem letzten Buchstaben. Das Feld wird grösser; Sätze, die vorwärts und rückwärts gleich sind, gehen hier nicht.
+- **Eindeutig:** Neben der Schlange steht nie ein Füllbuchstabe, der der nächste oder vorige Buchstabe des Satzes ist – vom Kreis aus gibt es immer genau einen Weg. Füllbuchstaben zufällig wie im Deutschen oder nur aus dem Satz (schwieriger); zufällige gerade Vorkommen des Satzes ausserhalb der Schlange werden aufgelöst. Feld höchstens 30 × 38, mindestens 10 × 10; ist es zu gross, steht, wie lang der Satz höchstens sein darf.
+- **Getestet:** Schlange mit Ecken an 720 Fällen (8 Sätze, 45 Codes, beide Füllarten): Die Schlange ist zusammenhängend, die Stücke laufen in Code-Richtung, sie berührt sich nicht, und ein Kind, das vom Kreis aus dem Satz folgt, hat bei jedem Buchstaben genau eine Möglichkeit. Ganze Sätze je Stück an 552 Fällen (auch → → und → ←).
+- **Blatt:** Anleitung mit dem Satz (abschaltbar), Anfang mit einem Kreis (abschaltbar), Kästchen für den Code. Am Bildschirm lassen sich die geraden Stücke markieren. Lösungsblatt: die Schlange farbig, jedes Stück mit Nummer und Pfeil, der Code als Pfeile und Wörter. PDF.
 
 ## Aufbau
 

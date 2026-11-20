@@ -1,9 +1,10 @@
 /* Rätsellabor – Generator «Richtungs-Suchsel»
-   Ein Satz steht immer wieder im Buchstabenfeld – Satz an Satz wie eine Schlange. Jeder Satz läuft gerade in eine
-   Richtung (→ ← ↑ ↓); der nächste beginnt direkt neben dem letzten Buchstaben. Die Richtungen der Sätze der Reihe nach
-   ergeben den Code für ein Richtungsschloss. Weil jede Richtung ein ganzer Satz ist, gehen auch gleiche Richtungen
-   hintereinander (→ →) und Umkehrungen (→ ←). Übrige Felder: Füllbuchstaben, ohne dass der Satz zufällig noch einmal
-   entsteht. Feld mit gemeinsam/gitter.js (Zeichnen, Markieren am Bildschirm). */
+   Ein Satz steht immer wieder im Buchstabenfeld und bildet eine Schlange. Standard: Der Satz läuft durchgehend weiter
+   und biegt um Ecken; jedes gerade Stück der Schlange zeigt eine Richtung (→ ← ↑ ↓), der Reihe nach ergeben sie den Code
+   für ein Richtungsschloss. Weil die Schlange bei jeder neuen Richtung abbiegt, folgt auf → oder ← immer ↑ oder ↓.
+   Für Codes mit gleichen Richtungen hintereinander (→ →) oder Umkehr (→ ←): jedes Stück ein ganzer, gerader Satz, der
+   nächste beginnt direkt daneben (grösseres Feld). Füllbuchstaben ohne falsche Fortsetzung neben der Schlange.
+   Feld mit gemeinsam/gitter.js (Zeichnen, Markieren am Bildschirm). */
 (function(){
 'use strict';
 
@@ -63,17 +64,82 @@ var Kern = (function(){
     }
     return aus;
   }
+  /* Schlange mit Ecken (Standard): Der Satz läuft durchgehend weiter, auch um die Ecken. Code-Schritt i ist ein gerades
+     Stück von m_i Schritten (mindestens 2) in Richtung code[i]; an jeder neuen Richtung biegt die Schlange ab (darum
+     nie zweimal dieselbe Richtung und keine Umkehr). Die Schlange endet genau am Ende eines Satzes (R ganze Sätze) und
+     berührt sich nirgends selbst (nur aufeinanderfolgende Felder sind Nachbarn) – so ist der Weg immer eindeutig.
+     Aus vielen zufälligen Versuchen gewinnt das kleinste umgebende Rechteck (höchstens maxB × maxH).
+     → { zellen:[[r,c], …], teile:[{ von, bis, code }], minR, minC, breite, hoehe, R } oder null */
+  function abbiegend(code){ for (var i = 1; i < code.length; i++){ var a = RICHTUNG[code[i - 1]], b = RICHTUNG[code[i]]; if (a[0] * b[0] + a[1] * b[1] !== 0) return i; } return 0; }
+  function eckSchlange(n, code, rnd, maxB, maxH){
+    var k = code.length, MIN = 2, MAX = Math.max(7, Math.min(Math.max(maxB, maxH) - 1, Math.ceil((n - 1) / k) + 3)), best = null;
+    if (abbiegend(code)) return null;
+    for (var R = 1; R <= 40 && !best; R++){
+      var gesamt = R * n - 1;   // Schritte; Felder = R · n
+      if (gesamt < k * MIN) continue;
+      if (gesamt > k * MAX) break;
+      for (var versuch = 0; versuch < 120; versuch++){
+        var zellen = [[0, 0]], besetzt = { '0,0':0 }, teile = [], knoten = 0, box = [0, 0, 0, 0];   // minR, maxR, minC, maxC
+        var geht = function(q, p){
+          if (besetzt[q[0] + ',' + q[1]] !== undefined) return false;
+          // keine Berührung: ausser dem Vorgänger kein Nachbar auf der Schlange
+          for (var key in RICHTUNG){ var d = RICHTUNG[key], nb = (q[0] + d[0]) + ',' + (q[1] + d[1]); if (besetzt[nb] !== undefined && nb !== p[0] + ',' + p[1]) return false; }
+          return true;
+        };
+        var lege = function(i, rest){
+          if (++knoten > 3000) return false;
+          if (i === k) return rest === 0;
+          var d = RICHTUNG[code[i]], lo = Math.max(MIN, rest - (k - 1 - i) * MAX), hi = Math.min(MAX, rest - (k - 1 - i) * MIN), wahl = [];
+          for (var m = lo; m <= hi; m++) wahl.push(m);
+          for (var x = wahl.length - 1; x > 0; x--){ var y = Math.floor(rnd() * (x + 1)), h = wahl[x]; wahl[x] = wahl[y]; wahl[y] = h; }
+          for (var w = 0; w < wahl.length; w++){
+            var m2 = wahl[w], start = zellen.length - 1, ok = true, alt = box.slice(), neu = [];
+            for (var s2 = 1; s2 <= m2 && ok; s2++){
+              var p = zellen[zellen.length - 1], q = [p[0] + d[0], p[1] + d[1]];
+              if (!geht(q, p)){ ok = false; break; }
+              box = [Math.min(box[0], q[0]), Math.max(box[1], q[0]), Math.min(box[2], q[1]), Math.max(box[3], q[1])];
+              if (box[1] - box[0] + 1 > maxH || box[3] - box[2] + 1 > maxB){ ok = false; break; }
+              besetzt[q[0] + ',' + q[1]] = zellen.length; zellen.push(q); neu.push(q);
+            }
+            if (ok){ teile.push({ von:start, bis:zellen.length - 1, code:code[i] }); if (lege(i + 1, rest - m2)) return true; teile.pop(); }
+            neu.forEach(function(q2){ delete besetzt[q2[0] + ',' + q2[1]]; zellen.pop(); });
+            box = alt;
+          }
+          return false;
+        };
+        if (!lege(0, gesamt)) continue;
+        var flaeche = (box[1] - box[0] + 1) * (box[3] - box[2] + 1);
+        if (!best || flaeche < best.flaeche) best = { flaeche:flaeche, zellen:zellen.map(function(z){ return z.slice(); }), teile:teile.slice(), minR:box[0], minC:box[2], breite:box[3] - box[2] + 1, hoehe:box[1] - box[0] + 1, R:R };
+      }
+    }
+    return best;
+  }
   /* Ganzes Feld: Schlange mit Rand (1–3 Felder, mindestens 10 × 10), Füllbuchstaben (zufällig wie im Deutschen oder aus
-     dem Satz); zufällige zweite Vorkommen des Satzes werden aufgelöst.
-     → { zeilen, spalten, gitter, woerter:[{ text, b, zellen, code }], start } oder { fehler } */
+     dem Satz). Ein Füllbuchstabe neben der Schlange ist nie der nächste oder vorige Buchstabe des Satzes (sonst gäbe es
+     eine falsche Fortsetzung); zufällige gerade Vorkommen des Satzes werden aufgelöst.
+     o.gerade: jedes Stück ein ganzer, gerader Satz (für gleiche Richtungen hintereinander und Umkehr), sonst mit Ecken.
+     → { zeilen, spalten, gitter, woerter:[{ text, b, zellen, code }] (die geraden Stücke), start, pfad, R } oder { fehler } */
   function erstelle(text, code, o){
     var satz = buchstaben(text), n = satz.length, rnd = o.rnd || Math.random;
     if (n < 3) return { fehler:'kurz' };
-    if (satz.join('') === satz.slice().reverse().join('')) return { fehler:'palindrom' };
     if (!code.length) return { fehler:'code' };
-    var maxB = (o.maxB || 30) - 2, maxH = (o.maxH || 38) - 2;
-    var S = schlange(n, code, rnd, maxB, maxH);
-    if (!S) return { fehler:'gross', n:n };
+    if (o.gerade && satz.join('') === satz.slice().reverse().join('')) return { fehler:'palindrom' };
+    if (!o.gerade && abbiegend(code)) return { fehler:'abbiegen', stelle:abbiegend(code) };
+    var maxB = (o.maxB || 30) - 2, maxH = (o.maxH || 38) - 2, S, pfadZellen = [], teile = [];
+    if (o.gerade){
+      S = schlange(n, code, rnd, maxB, maxH);
+      if (!S) return { fehler:'gross', n:n };
+      S.laeufe.forEach(function(l){
+        var von = pfadZellen.length;
+        for (var i = 0; i < n; i++) pfadZellen.push([l.start[0] + l.d[0] * i, l.start[1] + l.d[1] * i]);
+        teile.push({ von:von, bis:pfadZellen.length - 1, code:l.code });
+      });
+      S.R = code.length;
+    } else {
+      S = eckSchlange(n, code, rnd, maxB, maxH);
+      if (!S) return { fehler:'gross', n:n };
+      pfadZellen = S.zellen; teile = S.teile;
+    }
     // Rand: je Seite 1–3 Felder, aber nie über die Höchstgrösse; mindestens 10 × 10
     function rand(innen, max){
       var a = 1 + Math.floor(rnd() * 3), b = 1 + Math.floor(rnd() * 3);
@@ -84,34 +150,48 @@ var Kern = (function(){
     var rs = rand(S.breite, o.maxB || 30), rz = rand(S.hoehe, o.maxH || 38), links = rs[0], spalten = rs[1], oben = rz[0], zeilen = rz[1];
     var g = [], pfad = {}, r, c;
     for (r = 0; r < zeilen; r++) g.push(new Array(spalten).fill(''));
-    var woerter = S.laeufe.map(function(l){
-      var zellen = [];
-      for (var i = 0; i < n; i++){ var rr = l.start[0] - S.minR + oben + l.d[0] * i, cc = l.start[1] - S.minC + links + l.d[1] * i; g[rr][cc] = satz[i]; pfad[rr + ',' + cc] = 1; zellen.push([rr, cc]); }
-      return { text:satz.join(''), b:satz, zellen:zellen, code:l.code };
+    var zellen = pfadZellen.map(function(z, j){
+      var rr = z[0] - S.minR + oben, cc = z[1] - S.minC + links;
+      g[rr][cc] = satz[j % n]; pfad[rr + ',' + cc] = j;
+      return [rr, cc];
     });
-    // Füllbuchstaben
-    var pool = [], gew = [];
+    var woerter = teile.map(function(t){
+      var zz = zellen.slice(t.von, t.bis + 1);
+      return { text:zz.map(function(z){ return g[z[0]][z[1]]; }).join(''), b:zz.map(function(z){ return g[z[0]][z[1]]; }), zellen:zz, code:t.code };
+    });
+    // Füllbuchstaben; neben der Schlange nie der nächste oder vorige Buchstabe des Satzes
+    var alle = Object.keys(HAEUFIG), pool = [], gew = [];
     if (o.ausSatz){ satz.forEach(function(ch){ pool.push(ch); gew.push(1); }); }
-    else Object.keys(HAEUFIG).forEach(function(ch){ pool.push(ch); gew.push(HAEUFIG[ch]); });
-    var summe = gew.reduce(function(a, b){ return a + b; }, 0);
-    function fueller(){ var x = rnd() * summe; for (var i = 0; i < pool.length; i++){ x -= gew[i]; if (x <= 0) return pool[i]; } return pool[0]; }
-    for (r = 0; r < zeilen; r++) for (c = 0; c < spalten; c++) if (!g[r][c]) g[r][c] = fueller();
-    // Zweite Vorkommen des Satzes auflösen (nur Füllfelder ändern)
-    var eigen = {}; woerter.forEach(function(w){ eigen[w.zellen.map(String).join(';')] = 1; eigen[w.zellen.slice().reverse().map(String).join(';')] = 1; });
+    else alle.forEach(function(ch){ pool.push(ch); gew.push(HAEUFIG[ch]); });
+    function verboten(rr, cc){
+      var v = {};
+      for (var key in RICHTUNG){ var d = RICHTUNG[key], j = pfad[(rr + d[0]) + ',' + (cc + d[1])]; if (j !== undefined){ v[satz[(j + 1) % n]] = 1; v[satz[(j - 1 + n) % n]] = 1; } }
+      return v;
+    }
+    function fueller(rr, cc){
+      var v = verboten(rr, cc), ps = [], ws = [], summe = 0;
+      pool.forEach(function(ch, i){ if (!v[ch]){ ps.push(ch); ws.push(gew[i]); summe += gew[i]; } });
+      if (!ps.length){ alle.forEach(function(ch){ if (!v[ch]){ ps.push(ch); ws.push(1); summe += 1; } }); }
+      if (!ps.length) return alle[Math.floor(rnd() * alle.length)];
+      var x = rnd() * summe; for (var i = 0; i < ps.length; i++){ x -= ws[i]; if (x <= 0) return ps[i]; } return ps[0];
+    }
+    // wenn es mit den Füllbuchstaben nicht aufgeht: irgendein erlaubter Buchstabe
+    function irgendeiner(rr, cc){ var v = verboten(rr, cc), ps = alle.filter(function(ch){ return !v[ch]; }); return ps.length ? ps[Math.floor(rnd() * ps.length)] : alle[0]; }
+    for (r = 0; r < zeilen; r++) for (c = 0; c < spalten; c++) if (!g[r][c]) g[r][c] = fueller(r, c);
+    // Gerade Vorkommen des Satzes, die nicht ganz auf der Schlange liegen, auflösen (nur Füllfelder ändern)
+    function fremde(){ return vorkommen(g, satz).filter(function(z){ return z.some(function(rc){ return pfad[rc[0] + ',' + rc[1]] === undefined; }); }); }
     for (var runde = 0; runde < 400; runde++){
-      var fremd = vorkommen(g, satz).filter(function(z){ return !eigen[z.map(String).join(';')]; });
+      var fremd = fremde();
       if (!fremd.length) break;
       fremd.forEach(function(z){
-        var frei = z.filter(function(rc){ return !pfad[rc[0] + ',' + rc[1]]; });
-        if (!frei.length) return;
+        var frei = z.filter(function(rc){ return pfad[rc[0] + ',' + rc[1]] === undefined; });
         var rc = frei[Math.floor(rnd() * frei.length)], alt = g[rc[0]][rc[1]];
-        for (var t = 0; t < 12 && g[rc[0]][rc[1]] === alt; t++) g[rc[0]][rc[1]] = o.ausSatz && t > 6 ? Object.keys(HAEUFIG)[Math.floor(rnd() * 26)] : fueller();
+        for (var t = 0; t < 16 && g[rc[0]][rc[1]] === alt; t++) g[rc[0]][rc[1]] = t < 6 ? fueller(rc[0], rc[1]) : irgendeiner(rc[0], rc[1]);
       });
     }
-    var rest = vorkommen(g, satz).filter(function(z){ return !eigen[z.map(String).join(';')]; }).length;
-    return { zeilen:zeilen, spalten:spalten, gitter:g, woerter:woerter, start:woerter[0].zellen[0], doppelt:rest, code:code.slice() };
+    return { zeilen:zeilen, spalten:spalten, gitter:g, woerter:woerter, start:zellen[0], pfad:zellen, R:S.R, doppelt:fremde().length, code:code.slice(), gerade:!!o.gerade };
   }
-  return { zufall:zufall, RICHTUNG:RICHTUNG, PFEIL:PFEIL, NAME:NAME, buchstaben:buchstaben, schlange:schlange, vorkommen:vorkommen, erstelle:erstelle };
+  return { zufall:zufall, RICHTUNG:RICHTUNG, PFEIL:PFEIL, NAME:NAME, buchstaben:buchstaben, schlange:schlange, eckSchlange:eckSchlange, abbiegend:abbiegend, vorkommen:vorkommen, erstelle:erstelle };
 })();
 /* KERN-ENDE */
 
@@ -132,6 +212,8 @@ var VORLAGE = '<div class="rs">' +
         [['U', 'oben'], ['L', 'links'], ['R', 'rechts'], ['D', 'unten']].map(function(x){ return '<button type="button" class="rs-pfeil rs-' + x[0] + '" data-r="' + x[0] + '" aria-label="' + x[1] + '">' + { U:'↑', L:'←', R:'→', D:'↓' }[x[0]] + '</button>'; }).join('') +
       '</div><div class="rs-codefeld"><div class="rs-codeliste" id="rsCode" aria-live="polite"></div>' +
         '<div class="rs-codeknoepfe"><button type="button" class="btn klein" id="rsZurueck">⌫ Letzte löschen</button><button type="button" class="btn klein" id="rsLeeren">Alle löschen</button></div></div></div>' +
+      '<p class="hinweis" id="rsCodeHinweis"></p>' +
+      '<label class="opt"><input type="checkbox" id="rsGerade"><span>Gleiche Richtung zweimal hintereinander oder Umkehr erlauben (z. B. → → oder → ←) – jedes Stück ist dann ein ganzer, gerader Satz, das Feld wird grösser</span></label>' +
       '<p class="hinweis">Tipp: Mit den Pfeiltasten der Tastatur geht es auch, wenn ein Pfeilknopf ausgewählt ist.</p>' +
     '</div>' +
     '<div class="karte"><details class="optionen"><summary>Einstellungen</summary>' +
@@ -175,7 +257,7 @@ Labor.registriere({
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false;
   var TAB = 'richtungssuchsel-eingaben', OPT = 'richtungssuchsel-einstellungen';
-  var STANDARD = { satzZeigen:true, start:true, ausSatz:false, linien:true, mitLoesung:true, titelAn:true, anleitungAn:true };
+  var STANDARD = { gerade:false, satzZeigen:true, start:true, ausSatz:false, linien:true, mitLoesung:true, titelAn:true, anleitungAn:true };
   var st = { satz:'', code:[], seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
   try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.satz = String(e.satz || ''); st.code = (e.code || []).filter(function(c){ return Kern.RICHTUNG[c]; }).slice(0, MAXCODE); st.seed = +e.seed || st.seed; } } catch(x){}
@@ -190,7 +272,13 @@ function starte(bereich){
   $('#rsSatz').value = st.satz;
   $('#rsSatz').addEventListener('input', function(){ st.satz = this.value; speichern(); clearTimeout(warte); warte = setTimeout(erstellen, 250); });
   // Richtungscode: Pfeilknöpfe hängen an, Pfeiltasten auch
-  function anhaengen(r){ if (st.code.length >= MAXCODE) return; st.code.push(r); speichern(); erstellen(); }
+  function erlaubt(r){
+    if (st.code.length >= MAXCODE) return false;
+    if (st.opt.gerade || !st.code.length) return true;
+    var a = Kern.RICHTUNG[st.code[st.code.length - 1]], b = Kern.RICHTUNG[r];
+    return a[0] * b[0] + a[1] * b[1] === 0;   // die Schlange biegt ab
+  }
+  function anhaengen(r){ if (!erlaubt(r)) return; st.code.push(r); speichern(); erstellen(); }
   [].forEach.call(bereich.querySelectorAll('.rs-pfeil'), function(k){
     k.addEventListener('click', function(){ anhaengen(k.dataset.r); });
     k.addEventListener('keydown', function(ev){
@@ -200,7 +288,7 @@ function starte(bereich){
   });
   $('#rsZurueck').addEventListener('click', function(){ st.code.pop(); speichern(); erstellen(); });
   $('#rsLeeren').addEventListener('click', function(){ st.code = []; speichern(); erstellen(); });
-  [['#rsSatzZeigen', 'satzZeigen', 'zeigen'], ['#rsStart', 'start', 'zeigen'], ['#rsAusSatz', 'ausSatz', 'neu'], ['#rsLinien', 'linien', 'zeigen'], ['#rsMitLoesung', 'mitLoesung', '']].forEach(function(x){
+  [['#rsGerade', 'gerade', 'neu'], ['#rsSatzZeigen', 'satzZeigen', 'zeigen'], ['#rsStart', 'start', 'zeigen'], ['#rsAusSatz', 'ausSatz', 'neu'], ['#rsLinien', 'linien', 'zeigen'], ['#rsMitLoesung', 'mitLoesung', '']].forEach(function(x){
     $(x[0]).checked = !!st.opt[x[1]];
     $(x[0]).addEventListener('change', function(){ st.opt[x[1]] = this.checked; speichern(); if (x[2] === 'neu') erstellen(); else if (x[2] === 'zeigen' && F) anzeigen(); });
   });
@@ -218,7 +306,10 @@ function starte(bereich){
     $('#rsCode').innerHTML = st.code.length ? st.code.map(function(r, i){ return '<span class="rs-chip"><small>' + (i + 1) + '</small>' + Kern.PFEIL[r] + '</span>'; }).join('')
       : '<span class="rs-leer">Noch keine Richtung – tippe auf die Pfeile.</span>';
     $('#rsZurueck').disabled = $('#rsLeeren').disabled = !st.code.length;
-    [].forEach.call(bereich.querySelectorAll('.rs-pfeil'), function(k){ k.disabled = st.code.length >= MAXCODE; });
+    [].forEach.call(bereich.querySelectorAll('.rs-pfeil'), function(k){ k.disabled = !erlaubt(k.dataset.r); k.title = k.disabled && st.code.length < MAXCODE ? 'Die Schlange biegt bei jeder neuen Richtung ab' : ''; });
+    var letzte = st.code[st.code.length - 1];
+    $('#rsCodeHinweis').textContent = st.opt.gerade ? 'Jede Richtung ist ein ganzer, gerader Satz – auch gleiche Richtungen hintereinander und Umkehr gehen.'
+      : 'Die Schlange biegt bei jeder neuen Richtung ab: nach → oder ← kommt ↑ oder ↓, nach ↑ oder ↓ kommt → oder ←.' + (letzte ? ' Jetzt geht ' + (Kern.RICHTUNG[letzte][0] ? '→ oder ←' : '↑ oder ↓') + '.' : '');
   }
   function erstellen(){
     if (aus) return;
@@ -230,18 +321,25 @@ function starte(bereich){
     function nichts(art, html){ $('#rsBlatt').hidden = true; $('#rsWerkzeug').hidden = true; $('#rsLoesung').innerHTML = ''; meldung(art, html); }
     if (satz.length < 3) return nichts('info', '<p>Schreib links zuerst den Satz, der sich in der Schlange wiederholt (mindestens 3 Buchstaben). Dann gibst du den Richtungscode ein.</p>');
     if (!st.code.length) return nichts('info', '<p>Gib jetzt mit den Pfeilknöpfen den Richtungscode ein – zum Beispiel → ↓ ← ↓.</p>');
-    var r = Kern.erstelle(st.satz, st.code, { rnd:Kern.zufall(st.seed), ausSatz:st.opt.ausSatz, maxB:30, maxH:38 });
+    var r = Kern.erstelle(st.satz, st.code, { rnd:Kern.zufall(st.seed), ausSatz:st.opt.ausSatz, gerade:st.opt.gerade, maxB:30, maxH:38 });
+    if (r.fehler === 'abbiegen'){
+      var i = r.stelle, gleich = st.code[i] === st.code[i - 1];
+      return nichts('fehler', '<h3>Hier kann die Schlange nicht abbiegen</h3><p>Bei Richtung ' + i + ' und ' + (i + 1) + ' kommt ' + Kern.PFEIL[st.code[i - 1]] + ' ' + Kern.PFEIL[st.code[i]] +
+        (gleich ? ' – zweimal dieselbe Richtung würde einfach geradeaus weiterlaufen.' : ' – eine Umkehr geht in der Schlange nicht.') +
+        ' Ändere den Code oder kreuze «Gleiche Richtung zweimal hintereinander oder Umkehr erlauben» an (dann ist jedes Stück ein ganzer Satz).</p>');
+    }
     if (r.fehler === 'palindrom') return nichts('fehler', '<h3>Der Satz ist vorwärts und rückwärts gleich</h3><p>Dann sieht man nicht, in welche Richtung er läuft. Nimm einen anderen Satz.</p>');
     if (r.fehler === 'gross'){
       // Wie lang dürfte der Satz sein?
-      var max = 0; for (var n = satz.length - 1; n >= 3; n--){ if (Kern.schlange(n, st.code, Math.random, 28, 36)){ max = n; break; } }
-      return nichts('fehler', '<h3>Das Feld würde zu gross</h3><p>' + st.code.length + ' Sätze mit je ' + satz.length + ' Buchstaben passen nicht in ein Feld von höchstens 30 × 38 Buchstaben.' +
+      var max = 0; for (var n = satz.length - 1; n >= 3; n--){ if (st.opt.gerade ? Kern.schlange(n, st.code, Math.random, 28, 36) : Kern.eckSchlange(n, st.code, Math.random, 28, 36)){ max = n; break; } }
+      return nichts('fehler', '<h3>Das Feld würde zu gross</h3><p>' + (st.opt.gerade ? st.code.length + ' Sätze mit je ' + satz.length + ' Buchstaben passen' : 'Die Schlange passt') + ' nicht in ein Feld von höchstens 30 × 38 Buchstaben.' +
         (max ? ' Mit diesem Code geht ein Satz mit höchstens ' + max + ' Buchstaben.' : '') + ' Nimm einen kürzeren Satz oder weniger Richtungen.</p>');
     }
     F = r;
     anzeigen();
-    meldung(r.doppelt ? 'warnung' : 'erfolg', '<p><b>Fertig!</b> Feld mit ' + r.spalten + ' × ' + r.zeilen + ' Buchstaben, die Schlange besteht aus ' + r.woerter.length + (r.woerter.length === 1 ? ' Satz' : ' Sätzen') +
-      '. Code: <b class="rs-codetext">' + st.code.map(function(c){ return Kern.PFEIL[c]; }).join(' ') + '</b>. Du kannst die Sätze direkt im Feld markieren.</p>' +
+    meldung(r.doppelt ? 'warnung' : 'erfolg', '<p><b>Fertig!</b> Feld mit ' + r.spalten + ' × ' + r.zeilen + ' Buchstaben. Die Schlange ' +
+      (r.gerade ? 'besteht aus ' + r.R + (r.R === 1 ? ' Satz' : ' Sätzen') : 'enthält den Satz ' + r.R + '-mal und hat ' + r.woerter.length + (r.woerter.length === 1 ? ' gerades Stück' : ' gerade Stücke')) +
+      '. Code: <b class="rs-codetext">' + st.code.map(function(c){ return Kern.PFEIL[c]; }).join(' ') + '</b>. Die geraden Stücke lassen sich direkt im Feld markieren.</p>' +
       (r.doppelt ? '<p>Achtung: Der Satz steht noch ' + r.doppelt + '-mal zufällig im Feld. «Neu mischen» hilft.</p>' : ''));
   }
 
@@ -252,7 +350,7 @@ function starte(bereich){
     c.setAttribute('fill', 'none'); c.setAttribute('stroke', '#C2410C'); c.setAttribute('stroke-width', '0.9');
     svg.appendChild(c);
   }
-  // Lösung: Nummer am Anfang jedes Satzes und ein Pfeil am Ende
+  // Lösung: Nummer am Anfang jedes geraden Stücks und ein Pfeil in seiner Mitte
   function nummern(svg){
     var NS = 'http://www.w3.org/2000/svg', g = document.createElementNS(NS, 'g');
     g.setAttribute('class', 'rs-nummern');
@@ -262,7 +360,9 @@ function starte(bereich){
       var x = a[1] * 10 + 1.9, y = a[0] * 10 + 1.9, k = document.createElementNS(NS, 'circle');
       k.setAttribute('cx', x); k.setAttribute('cy', y); k.setAttribute('r', 1.75); k.setAttribute('fill', '#1C1714'); g.appendChild(k);
       var t = document.createElementNS(NS, 'text'); t.setAttribute('x', x); t.setAttribute('y', y + 0.1); t.setAttribute('class', 'rs-nr'); t.textContent = i + 1; g.appendChild(t);
-      var ex = z[1] * 10 + 5 + d[1] * 5.6, ey = z[0] * 10 + 5 + d[0] * 5.6, p = document.createElementNS(NS, 'path');
+      // Pfeil in der Mitte des Stücks (zwischen zwei Buchstaben), Spitze in Laufrichtung
+      var mi = Math.floor((w.zellen.length - 1) / 2), m1 = w.zellen[mi], m2 = w.zellen[mi + 1] || m1;
+      var ex = (m1[1] + m2[1]) * 5 + 5, ey = (m1[0] + m2[0]) * 5 + 5, p = document.createElementNS(NS, 'path');
       // Pfeilspitze in Laufrichtung, knapp hinter dem letzten Buchstaben
       var qx = -d[0], qy = d[1];
       p.setAttribute('d', 'M' + (ex + d[1] * 1.8) + ' ' + (ey + d[0] * 1.8) + 'L' + (ex + qx * 1.5) + ' ' + (ey + qy * 1.5) + 'L' + (ex - qx * 1.5) + ' ' + (ey - qy * 1.5) + 'Z');
@@ -274,8 +374,9 @@ function starte(bereich){
     var o = st.opt, satz = Kern.buchstaben(st.satz).join(''), n = F.woerter.length;
     var html = o.titelAn || art === 'loesung' ? '<h2>' + (art === 'loesung' ? 'Richtungs-Suchsel – Lösung' : 'Richtungs-Suchsel') + '</h2>' : '';
     if (art === 'spiel' && o.anleitungAn){
-      html += '<p class="rs-anleitung">' + (o.satzZeigen ? 'Der Satz <b>«' + esc(satz) + '»</b> steht' : 'Ein Satz steht') + ' immer wieder im Feld – Satz an Satz, wie eine Schlange. ' +
-        (o.start ? 'Beginne beim Kreis. ' : '') + 'Wo ein Satz aufhört, beginnt der nächste direkt daneben. Markiere die ' + n + ' Sätze der Reihe nach und schreibe für jeden auf, in welche Richtung er läuft: → ← ↑ ↓. ' +
+      html += '<p class="rs-anleitung">' + (o.satzZeigen ? 'Der Satz <b>«' + esc(satz) + '»</b> steht' : 'Ein Satz steht') + ' immer wieder im Feld – ' +
+        (F.gerade ? 'Satz an Satz, wie eine Schlange. ' + (o.start ? 'Beginne beim Kreis. ' : '') + 'Wo ein Satz aufhört, beginnt der nächste direkt daneben. Markiere die ' + n + ' Sätze der Reihe nach und schreibe für jeden auf, in welche Richtung er läuft: → ← ↑ ↓. '
+          : 'als Schlange, die um Ecken biegt. ' + (o.start ? 'Beginne beim Kreis und folge' : 'Folge') + ' dem Satz Buchstabe für Buchstabe. Jedes gerade Stück der Schlange zeigt eine Richtung: → ← ↑ ↓. Schreibe die ' + n + ' Richtungen der Reihe nach auf. ') +
         'Das ist der Code für das Richtungsschloss.</p>';
     }
     html += '<div class="rs-gitter"></div>';
@@ -303,7 +404,8 @@ function starte(bereich){
     var p = $('#rsFortschritt'); if (!p || !F) return;
     var n = Object.keys(gefunden).length;
     p.className = 'rs-fortschritt nur-bildschirm' + (n === F.woerter.length ? ' fertig' : '');
-    p.textContent = n === F.woerter.length ? '🎉 Alle ' + n + ' Sätze gefunden! Jetzt die Richtungen der Reihe nach aufschreiben.' : n + ' von ' + F.woerter.length + ' Sätzen gefunden.';
+    var wort = F.gerade ? ['Satz', 'Sätze', 'Sätzen'] : ['Stück', 'Stücke', 'Stücken'];
+    p.textContent = n === F.woerter.length ? '🎉 Alle ' + n + ' ' + wort[1] + ' gefunden! Jetzt die Richtungen der Reihe nach aufschreiben.' : n + ' von ' + F.woerter.length + ' ' + wort[2] + ' gefunden.';
   }
 
   /* ---------- PDF, Herunterladen ---------- */
