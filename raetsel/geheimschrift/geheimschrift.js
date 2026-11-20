@@ -133,6 +133,9 @@ var Kern = (function(){
       case 'finger': return FINGER[c] ? { bild:['finger', FINGER[c]] } : null;
       case 'segmente': return SEGMENTE[c] ? { segmente:SEGMENTE[c], ausmalen:o.segArt === 'ausmalen' } : null;
       case 'bausteine': return i < 0 ? null : { stein:BAUSTEINE[c] };
+      // Erpresserschrift: Buchstaben (mit Umlauten und ß), Ziffern, ! und ? als ausgeschnittene Schnipsel; das Aussehen
+      // (Schrift, Farben, Papier, Drehung) kommt beim Zeichnen aus seed und der Nummer des Schnipsels (nr, siehe zerlege)
+      case 'erpresser': return /^[A-ZÄÖÜß0-9!?]$/.test(c) ? { schnipsel:c, seed:o.erpSeed || 1, misch:o.erpMisch !== false } : null;
       case 'morse': return MORSE[c] ? { morse:MORSE[c] } : null;
       case 'braille':
         if (/[0-9]/.test(c)){ var m = BRAILLE[ZIFFER_BRAILLE[+c]]; return { braille:/[0-9]/.test(vorher || '') ? [m] : [ZAHLZEICHEN, m] }; }
@@ -155,14 +158,15 @@ var Kern = (function(){
     }
     return aus;
   }
-  var UMLAUTE = { morse:true, braille:true, finger:true };
+  var UMLAUTE = { morse:true, braille:true, finger:true, erpresser:true };
   // Text → Zeilen → Wörter → Zellen { b: Buchstabe (Lösung), code } (code null: Zeichen bleibt stehen)
   function zerlege(text, art, o){
     if (art === 'finger') text = String(text || '').replace(/[ßẞ]/g, 'SS');   // ß hat kein eigenes Handzeichen
+    var nr = 0;   // laufende Nummer der Schnipsel (Erpresserschrift): jeder sieht anders aus
     return normal(text, UMLAUTE[art]).split(/\r?\n/).map(function(z){
       return z.split(/\s+/).filter(Boolean).map(function(w){
         var zeichenListe = teilen(w, art);
-        return zeichenListe.map(function(c, k){ return { b:c, code:zeichen(art, c, o, zeichenListe[k - 1]) }; });
+        return zeichenListe.map(function(c, k){ var code = zeichen(art, c, o, zeichenListe[k - 1]); if (code && code.schnipsel) code.nr = nr++; return { b:c, code:code }; });
       });
     });
   }
@@ -185,6 +189,7 @@ var SCHRIFTEN = [
   ['baerte', 'Bärte-Code', 'Haare und Bart formen den Buchstaben'],
   ['segmente', 'Segment-Code', 'Leuchtende Striche wie auf einer Anzeige'],
   ['bausteine', 'Bausteine', 'Farbe und Anzahl Noppen der Bausteine'],
+  ['erpresser', 'Erpresserschrift', 'Wie aus Zeitungen ausgeschnitten und aufgeklebt'],
   ['altlatein', 'Altlatein', 'Alte Buchstaben aus Italien, oft gespiegelt'],
   ['runen', 'Runen', 'Schriftzeichen der Germanen'],
   ['finger', 'Fingeralphabet', 'Handzeichen der Gebärdensprache'],
@@ -449,7 +454,74 @@ function steinSvg(stein, klasse){
     '<rect x="1" y="1" width="' + (n * 10) + '" height="20" rx="1.6" fill="' + f[0] + '" stroke="' + f[1] + '" stroke-width="1"/>' +
     '<g fill="' + f[0] + '" stroke="' + f[1] + '" stroke-width="0.9">' + noppen + '</g></svg>';
 }
+/* Erpresserschrift: jeder Buchstabe ein ausgeschnittener Papierschnipsel – andere Schrift, Farbe, Grösse, Form und Drehung.
+   Das Papier ist ein kleines SVG (nur Formen), der Buchstabe normaler Text darüber: so zeichnet das PDF ihn mit der
+   geladenen Webschrift, ohne jede Schrift in jedes SVG einzubetten. Schriften: Google Fonts (SIL Open Font License). */
+var ERP_SCHRIFTEN = [   // [Familie, Ersatz, Gewicht, kursiv, nur 'gross' | nur 'klein', Umriss möglich (Schrift ohne überlappende Konturen)]
+  ['Abril Fatface', 'serif', 400, 0, '', 1], ['Alfa Slab One', 'serif', 400, 0, '', 1], ['Anton', 'sans-serif', 400, 0, '', 1], ['Archivo Black', 'sans-serif', 400, 0, '', 1],
+  ['Bebas Neue', 'sans-serif', 400, 0, 'gross', 1], ['Bungee', 'sans-serif', 400, 0, 'gross', 1], ['Courier Prime', 'monospace', 700], ['Libre Baskerville', 'serif', 700],
+  ['Lobster', 'cursive', 400], ['Oswald', 'sans-serif', 700, 0, '', 1], ['Playfair Display', 'serif', 900, 1], ['Righteous', 'sans-serif', 400, 0, '', 1],
+  ['Rye', 'serif', 400], ['Shrikhand', 'serif', 400], ['Special Elite', 'monospace', 400], ['Ultra', 'serif', 400, 0, '', 1], ['UnifrakturMaguntia', 'serif', 400, 0, 'klein']
+];
+var FRAKTUR_LESBAR = 'abcdeghilmnopqrtuyäöü';   // Kleinbuchstaben, die in Fraktur gut zu erkennen sind
+function erpHell(farbe){ var n = parseInt(farbe.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) / 255; }
+var ERP_CSS = 'https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Alfa+Slab+One&family=Anton&family=Archivo+Black&family=Bebas+Neue&family=Bungee' +
+  '&family=Courier+Prime:wght@700&family=Libre+Baskerville:wght@700&family=Lobster&family=Oswald:wght@700&family=Playfair+Display:ital,wght@1,900' +
+  '&family=Righteous&family=Rye&family=Shrikhand&family=Special+Elite&family=Ultra&family=UnifrakturMaguntia&display=swap';
+var ERP_FARBEN = [   // [Papier, Buchstabe] – immer gut lesbar
+  ['#F3EEE2', '#1C1714'], ['#FFFFFF', '#1C1714'], ['#E6D7B8', '#7A3B1D'], ['#1C1714', '#F5EFE0'], ['#1C1714', '#F7D02C'], ['#B8312F', '#F9E27A'],
+  ['#2D3E87', '#FFFFFF'], ['#7FAEDF', '#1C1714'], ['#F7E36B', '#1C1714'], ['#F4B6C2', '#1C1714'], ['#B9DCEF', '#C8312B'], ['#4F8A3B', '#FFFFFF'],
+  ['#EE9A4A', '#1C1714'], ['#CBC4BA', '#1C1714'], ['#6E4A9E', '#F7D02C'], ['#FFFFFF', '#C8312B'], ['#2F6F62', '#F5EFE0'], ['#D6B98E', '#2D3E87'],
+  ['#E3463F', '#FFFFFF'], ['#F2E8CF', '#2E7D4F'], ['#8C5A3C', '#F7E9C8'], ['#FFFFFF', '#2D3E87']
+];
+function erpZufall(seed){ var a = seed >>> 0; return function(){ a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ t >>> 15, t | 1); t ^= t + Math.imul(t ^ t >>> 7, t | 61); return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+/* Aussehen des Schnipsels Nummer nr: Schrift und Farbe nie gleich wie beim Schnipsel davor */
+var erpListen = {};
+function erpStil(seed, nr){
+  var liste = erpListen[seed] || (erpListen[seed] = []);
+  while (liste.length <= nr){
+    var i = liste.length, vor = liste[i - 1], r = erpZufall(seed * 7919 + i * 104729 + 13);
+    var sch = vor ? (vor.schrift + 1 + Math.floor(r() * (ERP_SCHRIFTEN.length - 1))) % ERP_SCHRIFTEN.length : Math.floor(r() * ERP_SCHRIFTEN.length);
+    var fa = vor ? (vor.farbe + 1 + Math.floor(r() * (ERP_FARBEN.length - 1))) % ERP_FARBEN.length : Math.floor(r() * ERP_FARBEN.length);
+    while (vor && ERP_FARBEN[fa][0] === ERP_FARBEN[vor.farbe][0]) fa = (fa + 1) % ERP_FARBEN.length;   // auch das Papier nie gleich wie davor
+    var form = []; for (var k = 0; k < 8; k++) form.push(r() * 9);
+    var ecke = r() < 0.35 ? Math.floor(r() * 4) : -1, hinten = -1, form2 = [];
+    for (var k2 = 0; k2 < 8; k2++) form2.push(r() * 9);
+    if (ecke < 0 && r() < 0.2){ hinten = (fa + 1 + Math.floor(r() * (ERP_FARBEN.length - 1))) % ERP_FARBEN.length; }   // zweites Papier dahinter, andere Farbe
+    liste.push({ schrift:sch, farbe:fa, klein:r(), dreh:(r() * 2 - 1) * 8, groesse:0.84 + r() * 0.26, dy:(r() * 2 - 1) * 5, padL:0.1 + r() * 0.16, padR:0.1 + r() * 0.16,
+      form:form, form2:form2, ecke:ecke, hinten:hinten, kontur:r() < 0.5 });
+  }
+  return liste[nr];
+}
+/* Ein Schnipsel: zeichen = der Buchstabe, wie er dastehen soll (gross oder klein schon entschieden) */
+function erpHtml(zeichen, stil){
+  var klein = zeichen !== zeichen.toUpperCase() || zeichen === 'ß', ziffer = !/\p{L}/u.test(zeichen);
+  // Schrift passend zu gross/klein: ab der zufälligen die nächste, die passt
+  var n = ERP_SCHRIFTEN.length, sch = null;
+  for (var k = 0; k < n && !sch; k++){ var s = ERP_SCHRIFTEN[(stil.schrift + k) % n]; if (!(s[4] === 'gross' && (klein || zeichen === 'ß')) && !(s[4] === 'klein' && FRAKTUR_LESBAR.indexOf(zeichen) < 0)) sch = s; }
+  // Umriss nur bei heller Schrift auf mittlerem Papier (auf dunklem wäre er unsichtbar) und nur bei Schriften ohne überlappende Konturen
+  var f = ERP_FARBEN[stil.farbe], umriss = stil.kontur && sch[5] && erpHell(f[1]) > 0.7 && erpHell(f[0]) > 0.3;
+  // Papier: Viereck mit unregelmässigen Ecken, manchmal eine Ecke abgeschnitten; dahinter ein leichter Schatten
+  var j = stil.form, P = [[j[0], j[1]], [100 - j[2], j[3]], [100 - j[4], 100 - j[5]], [j[6], 100 - j[7]]];
+  if (stil.ecke >= 0){ var e = P[stil.ecke], a = P[(stil.ecke + 3) % 4], b = P[(stil.ecke + 1) % 4];
+    // Reihenfolge: zuerst der Punkt Richtung vorherige Ecke, dann Richtung nächste – sonst kreuzt sich die Kante
+    P.splice(stil.ecke, 1, [e[0] + (a[0] - e[0]) * 0.2, e[1] + (a[1] - e[1]) * 0.2], [e[0] + (b[0] - e[0]) * 0.22, e[1] + (b[1] - e[1]) * 0.22]); }
+  var pkt = function(dx, dy, g, Q){ return (Q || P).map(function(q){ return ((q[0] - 50) * (g || 1) + 50 + dx).toFixed(1) + ',' + ((q[1] - 50) * (g || 1) + 50 + dy).toFixed(1); }).join(' '); };
+  var j2 = stil.form2, H = [[j2[0] - 4, j2[1] - 4], [104 - j2[2], j2[3] - 4], [104 - j2[4], 104 - j2[5]], [j2[6] - 4, 104 - j2[7]]];   // zweites Papier: eigene, grössere Form
+  var svg = '<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' +
+    (stil.hinten >= 0 ? '<polygon points="' + pkt(-2, 2, 1.1, H) + '" fill="' + ERP_FARBEN[stil.hinten][0] + '"/>' : '') +
+    '<polygon points="' + pkt(2, 3) + '" fill="#000" fill-opacity=".16"/><polygon points="' + pkt(0, 0) + '" fill="' + f[0] + '"' + (f[0] === '#FFFFFF' || f[0] === '#F3EEE2' ? ' stroke="#CFC6BC" stroke-width="1.2" vector-effect="non-scaling-stroke"' : '') + '/></svg>';
+  var stilText = 'font-family:\'' + sch[0] + '\',' + sch[1] + ';font-weight:' + sch[2] + (sch[3] ? ';font-style:italic' : '') + ';color:' + f[1] +
+    (umriss ? ';-webkit-text-stroke:max(1px,.03em) #1C1714' : '');
+  return '<span class="gs-erp" style="--s:' + stil.groesse.toFixed(2) + ';--r:' + stil.dreh.toFixed(1) + 'deg;--dy:' + stil.dy.toFixed(1) + '%;--pl:' + stil.padL.toFixed(2) + 'em;--pr:' + stil.padR.toFixed(2) + 'em">' +
+    svg + '<span class="gs-erp-b" style="' + stilText + '">' + esc(zeichen) + '</span></span>';
+}
+function schnipselHtml(code){
+  var stil = erpStil(code.seed, code.nr || 0), c = code.schnipsel;
+  return erpHtml(code.misch && stil.klein < 0.42 && c !== 'ß' ? c.toLowerCase() : c, stil);
+}
 function symbolHtml(code){
+  if (code.schnipsel) return schnipselHtml(code);
   if (code.stein) return steinSvg(code.stein);
   if (code.bild) return bildHtml(code.bild[0], code.bild[1]);
   if (code.segmente) return segmentHtml(code);
@@ -463,7 +535,7 @@ function symbolHtml(code){
 }
 function vorschauHtml(art){
   var o = { verschiebung:3 }, w = art === 'hieroglyphen' ? 'ABC' : art === 'braille' || art === 'morse' ? 'ABC' : 'ABC';
-  return '<span class="gs-vorschau gs-v-' + art + '">' + Array.from(w).map(function(c){ var z = Kern.zeichen(art, c, o); return '<span class="gs-vz">' + symbolHtml(z) + '</span>'; }).join('') + '</span>';
+  return '<span class="gs-vorschau gs-v-' + art + '">' + Array.from(w).map(function(c, i){ var z = Kern.zeichen(art, c, o); if (z && z.schnipsel){ z.seed = 5; z.nr = i; z.misch = false; } return '<span class="gs-vz">' + symbolHtml(z) + '</span>'; }).join('') + '</span>';
 }
 
 /* ---------- Schlüssel ---------- */
@@ -540,6 +612,12 @@ function schluesselHtml(art, o){
       return '<p class="gs-erklaerung">Jeder Buchstabe ist ein Baustein, von oben gesehen. Zähle die Noppen und schau die Farbe an: A bis I haben 4 Noppen (2 × 2), J bis R 6 Noppen (2 × 3) und S bis Z 8 Noppen (2 × 4). ' +
         'In jeder Gruppe kommen die Farben in derselben Reihenfolge: rot, orange, gelb, hellgrün, dunkelgrün, hellblau, blau, violett, rosa.</p>' +
         tabelle(A.map(function(c){ return [c, steinSvg(Kern.BAUSTEINE[c], 'gs-stein-k'), STEIN_NAME[Kern.BAUSTEINE[c][0]]]; }), 'gs-tab-steine');
+    case 'erpresser':
+      var sd = (o.erpSeed || 1) * 3 + 101, nr = 0, abc = function(liste){ return '<div class="gs-erp-bogen">' + liste.map(function(c){ return '<span class="gs-erp-zelle">' + erpHtml(c, erpStil(sd, nr++)) + '</span>'; }).join('') + '</div>'; };
+      return '<p class="gs-erklaerung">So sehen Briefe von Erpressern im Krimi aus: Jeder Buchstabe ist aus einer anderen Zeitung oder Zeitschrift ausgeschnitten und aufgeklebt – mit eigener Schrift, Farbe und Grösse. ' +
+        'Verschlüsselt ist nichts, aber weil kein Buchstabe wie der andere aussieht, muss man genau hinschauen. Gross- und Kleinbuchstaben dürfen gemischt sein.</p>' +
+        '<h3 class="gs-unter">Buchstaben zum Ausschneiden</h3><p class="gs-erklaerung">Damit kannst du selbst eine Nachricht kleben.</p>' +
+        abc(A) + abc(A.map(function(c){ return c.toLowerCase(); })) + abc(['Ä', 'Ö', 'Ü', 'ä', 'ö', 'ü', 'ß', '!', '?'].concat('0123456789'.split('')));
     case 'finger':
       return '<p class="gs-erklaerung">Mit dem Fingeralphabet buchstabieren gehörlose Menschen Namen und Wörter, für die es keine eigene Gebärde gibt. Jeder Buchstabe ist eine Handform. ' +
         'Im Fingeralphabet der Deutschschweiz haben auch Ä, Ö, Ü, CH und SCH eigene Zeichen. Bei J und Z bewegt sich die Hand (Pfeil).</p>' +
@@ -595,6 +673,11 @@ var VORLAGE = '<div class="gs">' +
           [['ausmalen', 'Segmente ausmalen'], ['anzeige', 'Anzeige lesen']].map(function(a){ return '<label><input type="radio" name="gsSegArt" value="' + a[0] + '"><span>' + a[1] + '</span></label>'; }).join('') + '</div>' +
         '<p class="hinweis">Beim Ausmalen stehen über jeder leeren Anzeige die Namen der Segmente (z. B. «a b c d g2 i l»); wer sie anmalt, sieht den Buchstaben.</p>' +
       '</div>' +
+      '<div class="gs-caesar" id="gsErpresser">' +
+        '<button type="button" class="btn klein" id="gsErpNeu" title="Alle Buchstaben neu ausschneiden und aufkleben">Neu ausschneiden</button>' +
+        '<label class="opt"><input type="checkbox" id="gsErpMisch"><span>Gross- und Kleinbuchstaben gemischt</span></label>' +
+        '<p class="hinweis">Jeder Buchstabe sieht anders aus: Schrift, Farbe, Grösse, Papier und Drehung sind zufällig. «Neu ausschneiden» klebt alles neu.</p>' +
+      '</div>' +
     '</div>' +
     '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Blatt</h2></div></div>' +
       '<p class="feld-label">Grösse der Zeichen</p>' +
@@ -640,9 +723,9 @@ var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke
 Labor.registriere({
   id:'geheimschrift',
   titel:'Geheimschriften',
-  kurz:'Caesar, Freimaurer, Vögel, Bücher, Bärte, Segmente, Bausteine, Runen, Morse, Hieroglyphen und mehr',
-  beschreibung:'Ein eigener Text in einer von achtzehn Geheimschriften – Caesar-Verschiebung, Rückwärts-Alphabet, Zahlen, Handy-Tasten, Koordinaten, Freimaurer-Code, Vögel auf dem Draht, Kreis-Code, Bücher-Code, Bärte-Code, Segment-Code, Bausteine, Altlatein, Runen, Fingeralphabet, Morse, Blindenschrift oder Hieroglyphen. Mit Schlüssel zum Entschlüsseln.',
-  merkmale:['Achtzehn Geheimschriften', 'Schlüssel einzeln als PDF oder Bild', 'Mit Lösungsblatt'],
+  kurz:'Caesar, Freimaurer, Vögel, Bücher, Bärte, Segmente, Bausteine, Erpresserschrift, Runen, Morse, Hieroglyphen und mehr',
+  beschreibung:'Ein eigener Text in einer von neunzehn Geheimschriften – Caesar-Verschiebung, Rückwärts-Alphabet, Zahlen, Handy-Tasten, Koordinaten, Freimaurer-Code, Vögel auf dem Draht, Kreis-Code, Bücher-Code, Bärte-Code, Segment-Code, Bausteine, Erpresserschrift, Altlatein, Runen, Fingeralphabet, Morse, Blindenschrift oder Hieroglyphen. Mit Schlüssel zum Entschlüsseln.',
+  merkmale:['Neunzehn Geheimschriften', 'Schlüssel einzeln als PDF oder Bild', 'Mit Lösungsblatt'],
   symbol:SYMBOL,
   css:'raetsel/geheimschrift/geheimschrift.css',
   html:VORLAGE,
@@ -660,7 +743,7 @@ window.addEventListener('hashchange', alterLink);
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false;
   var TAB = 'geheimschrift-eingaben', OPT = 'geheimschrift-einstellungen';
-  var STANDARD = { art:'caesar', verschiebung:3, scheibe:true, segArt:'ausmalen', groesse:'mittel', linien:true, mitLoesung:true, mitSchluessel:true, titelAn:true, anleitungAn:true };
+  var STANDARD = { art:'caesar', verschiebung:3, scheibe:true, segArt:'ausmalen', erpSeed:1, erpMisch:true, groesse:'mittel', linien:true, mitLoesung:true, mitSchluessel:true, titelAn:true, anleitungAn:true };
   var st = { text:'', titel:'', opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
   try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.text = String(e.text || ''); st.titel = String(e.titel || ''); } } catch(x){}
@@ -710,9 +793,10 @@ function starte(bereich){
     r.checked = r.value === st.opt.segArt;
     r.addEventListener('change', function(){ if (!r.checked) return; st.opt.segArt = r.value; speichern(); alles(); });
   });
+  $('#gsErpNeu').addEventListener('click', function(){ st.opt.erpSeed = Math.floor(Math.random() * 1e6) + 2; speichern(); alles(); });
   $('#gsVerschiebung').value = String(st.opt.verschiebung);
   $('#gsVerschiebung').addEventListener('change', function(){ st.opt.verschiebung = +this.value; speichern(); alles(); });
-  [['#gsLinien', 'linien', zeichnen], ['#gsScheibe', 'scheibe', schluesselZeichnen], ['#gsMitLoesung', 'mitLoesung'], ['#gsMitSchluessel', 'mitSchluessel']].forEach(function(c){
+  [['#gsLinien', 'linien', zeichnen], ['#gsScheibe', 'scheibe', schluesselZeichnen], ['#gsErpMisch', 'erpMisch', zeichnen], ['#gsMitLoesung', 'mitLoesung'], ['#gsMitSchluessel', 'mitSchluessel']].forEach(function(c){
     $(c[0]).checked = !!st.opt[c[1]];
     $(c[0]).addEventListener('change', function(){ st.opt[c[1]] = this.checked; speichern(); if (c[2]) c[2](); });
   });
@@ -738,7 +822,8 @@ function starte(bereich){
     var o = st.opt, leer = !hatZeichen();
     $('#gsCaesar').hidden = o.art !== 'caesar';
     $('#gsSegment').hidden = o.art !== 'segmente';
-    $('#gsTextHinweis').textContent = o.art === 'finger' ? 'Ä, Ö, Ü, CH und SCH haben eigene Handzeichen; ß wird als SS geschrieben. Ziffern und Satzzeichen bleiben stehen.' : o.art === 'segmente' ? 'Umlaute werden als AE, OE, UE geschrieben, ß als SS. Ziffern haben eigene Zeichen; Satzzeichen bleiben stehen.' : Kern.UMLAUTE[o.art] ? 'Ä, Ö, Ü und ß haben in dieser Schrift eigene Zeichen' + (o.art === 'morse' ? '; Ziffern und einige Satzzeichen auch.' : '; Ziffern bekommen das Zahlzeichen.') :
+    $('#gsErpresser').hidden = o.art !== 'erpresser';
+    $('#gsTextHinweis').textContent = o.art === 'erpresser' ? 'Buchstaben (auch Ä, Ö, Ü und ß), Ziffern, ! und ? werden ausgeschnitten; andere Satzzeichen bleiben stehen.' : o.art === 'finger' ? 'Ä, Ö, Ü, CH und SCH haben eigene Handzeichen; ß wird als SS geschrieben. Ziffern und Satzzeichen bleiben stehen.' : o.art === 'segmente' ? 'Umlaute werden als AE, OE, UE geschrieben, ß als SS. Ziffern haben eigene Zeichen; Satzzeichen bleiben stehen.' : Kern.UMLAUTE[o.art] ? 'Ä, Ö, Ü und ß haben in dieser Schrift eigene Zeichen' + (o.art === 'morse' ? '; Ziffern und einige Satzzeichen auch.' : '; Ziffern bekommen das Zahlzeichen.') :
       'Umlaute werden als AE, OE, UE geschrieben, ß als SS.' + (o.art === 'polybios' ? ' J wird wie I geschrieben.' : '') + ' Ziffern und Satzzeichen bleiben stehen.';
     $('#gsBlatt').hidden = $('#gsLoesung').hidden = leer;
     ['#gsZeigeLoesung', '#gsCodeBild', '#gsPdf', '#gsHerunterladen'].forEach(function(s){ $(s).disabled = leer; });
@@ -751,6 +836,7 @@ function starte(bereich){
     meldung('', '');
     var name = schriftName(o.art, o);
     var anleitung = o.art === 'segmente' && o.segArt === 'ausmalen' ? 'Male in jeder Anzeige die genannten Segmente an und lies den Buchstaben ab' + (o.linien ? '. Schreibe ihn auf die Linie' : '') + '. Der Schlüssel zeigt, wo welches Segment liegt.'
+      : o.art === 'erpresser' ? 'Diese Nachricht ist aus ausgeschnittenen Buchstaben zusammengeklebt. Lies sie' + (o.linien ? ' und schreibe die Buchstaben auf die Linien' : '') + '.'
       : 'Entschlüssle die Geheimschrift (' + esc(name) + ') mit dem Schlüssel' + (o.linien ? ' und schreibe die Buchstaben auf die Linien' : '') + '.';
     $('#gsBlatt').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + '</h2>' : '') +
       (o.anleitungAn ? '<p class="gs-anleitung">' + anleitung + '</p>' : '') + codeHtml();
@@ -769,7 +855,7 @@ function starte(bereich){
   /* ---------- Schlüssel ---------- */
   function schluesselZeichnen(){
     var o = st.opt;
-    $('#gsSchluessel').innerHTML = (o.titelAn ? '<h2>Schlüssel: ' + esc(schriftName(o.art, o)) + '</h2>' : '') + '<div class="gs-art-' + o.art + '">' + schluesselHtml(o.art, o) + '</div>';
+    $('#gsSchluessel').innerHTML = (o.titelAn ? '<h2>' + (o.art === 'erpresser' ? 'Erpresserschrift: Buchstaben zum Ausschneiden' : 'Schlüssel: ' + esc(schriftName(o.art, o))) + '</h2>' : '') + '<div class="gs-art-' + o.art + '">' + schluesselHtml(o.art, o) + '</div>';
   }
   function alles(){ zeichnen(); schluesselZeichnen(); }
 
@@ -811,6 +897,7 @@ function starte(bereich){
   function htmlSpeichern(blaetter, name){
     if (!speicherOrt) return;
     var inhalt = blaetter.map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); k.removeAttribute('hidden'); k.classList.remove('zeige-loesung'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
+    if (st.opt.art === 'erpresser') inhalt = '<link rel="stylesheet" href="' + ERP_CSS + '">' + inhalt;   // Schriften der Schnipsel
     speicherOrt.save({ filename:name, data:Labor.blattDatei(name.replace(/\.html$/, '').replace(/-/g, ' '), inhalt, '.gs-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
       meldung('warnung', '<p>Das Speichern hat nicht geklappt' + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
@@ -819,6 +906,7 @@ function starte(bereich){
   $('#gsHerunterladen').addEventListener('click', function(){ if (hatZeichen()) htmlSpeichern(codeBlaetter(), dateiName('Geheimschrift', 'html')); });
   $('#gsSchluesselHerunterladen').addEventListener('click', function(){ htmlSpeichern([$('#gsSchluessel')], 'Schluessel-' + (Labor.dateiname(schriftName(st.opt.art, st.opt)) || 'Geheimschrift') + '.html'); });
 
+  if (!document.getElementById('gsErpSchriften')){ var l = document.createElement('link'); l.id = 'gsErpSchriften'; l.rel = 'stylesheet'; l.href = ERP_CSS; document.head.appendChild(l); }
   vorschauen(); alles();
   hieroLaden();
   if (document.fonts && document.fonts.load) document.fonts.load('700 20px Andika').then(function(){ if (!aus) schluesselZeichnen(); }, function(){});

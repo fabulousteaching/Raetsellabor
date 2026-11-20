@@ -199,3 +199,16 @@
   .gs-reihen td.gs-geheim{background:#fff}
   body.mit-loesung .gs-loesungsblatt{display:block;break-before:page;margin-top:0}
 }
+
+/* Erpresserschrift: Papierschnipsel (SVG, nur Formen) mit dem Buchstaben als Text darüber */
+.gs-erp{position:relative;display:inline-grid;place-items:center;box-sizing:border-box;height:calc(var(--fm) * .86 * var(--s, 1));padding:0 var(--pr, .15em) 0 var(--pl, .15em);
+  font-size:calc(var(--fm) * .64 * var(--s, 1));transform:translateY(var(--dy, 0)) rotate(var(--r, 0deg))}
+.gs-erp > svg{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible}
+.gs-erp-b{position:relative;line-height:1;white-space:nowrap}
+.gs-art-erpresser .gs-wort{gap:calc(var(--fm) * .42) calc(var(--fm) * .07)}
+.gs-art-erpresser .gs-z,.gs-art-erpresser .gs-s{min-width:0}
+.gs-art-erpresser .gs-s{padding:0 1px}
+.gs-vorschau .gs-erp{--fm:25px}
+.gs-vorschau.gs-v-erpresser{gap:3px}
+.gs-erp-bogen{display:flex;flex-wrap:wrap;align-items:center;gap:16px 14px;--fm:48px;margin:6px 0 20px}
+.gs-erp-zelle{display:inline-flex;align-items:center;height:var(--fm)}
