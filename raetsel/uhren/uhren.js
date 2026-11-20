@@ -44,7 +44,7 @@ var Kern = (function(){
   function frei(w){ var d = ((w % 45) + 45) % 45; return d >= FREI && 45 - d >= FREI; }
   /* Zeit (und Drehung des Zifferblatts) für eine Uhr mit den Richtungen dirs (Winkel auf dem Blatt):
      – zwei Richtungen: ein Zeiger genau auf der einen, der andere höchstens GENAU° neben der anderen
-     – eine Richtung: ein Zeiger zeigt hin, der andere «frei»
+     – eine Richtung: der grosse Zeiger zeigt hin (nur wenn es nicht anders geht der kleine), der andere «frei»
      – keine: beide frei (oder null ohne Ablenkung)
      Aufrecht: am liebsten volle, halbe, Viertelstunden, die genauste Lösung. Gedreht (drehen): Zifferblatt um ein
      Vielfaches von 15° gedreht (nie 0°), 5-Minuten-Schritte; zufällig unter den guten Lösungen. → { h, m, dreh, fehler } */
@@ -61,7 +61,7 @@ var Kern = (function(){
         if (f > GENAU) f = -1;
       } else if (dirs.length === 1){
         if (abstand(mw, dirs[0]) < 0.01 && frei(hw)) f = 0;
-        else if (abstand(hw, dirs[0]) <= GENAU && frei(mw)) f = abstand(hw, dirs[0]) + 1;   // kleiner Zeiger zeigt hin: etwas weniger gern
+        else if (abstand(hw, dirs[0]) <= GENAU && frei(mw)) f = 100 + abstand(hw, dirs[0]);   // kleiner Zeiger zeigt hin: nur, wenn es nicht anders geht
       }
       if (f < 0) continue;
       // Punkte: Abweichung, dazu (aufrecht) Strafe für 5-Minuten-Zeiten bei Uhren mit Strichen
@@ -69,6 +69,8 @@ var Kern = (function(){
       l.push({ h:h, m:m, dreh:dr, fehler:f, punkte:punkte });
     }
     if (!l.length) return null;
+    // Zeigt bei einer Uhr mit nur einem Strich der grosse Zeiger hin, kommt der kleine Zeiger als Zeiger zum Strich nicht in Frage
+    if (l.some(function(x){ return x.fehler < 100; })) l = l.filter(function(x){ return x.fehler < 100; });
     var min = Math.min.apply(null, l.map(function(x){ return x.punkte; }));
     var gut = l.filter(function(x){ return x.punkte <= min + (o.drehen ? 6 : 0.01); });
     return nimm(gut, rnd);
