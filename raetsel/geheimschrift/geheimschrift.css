@@ -278,3 +278,14 @@
 .gs-scheiben-vorschau .gs-vorschau{height:22px}
 #gsScheibenWahl[hidden]{display:none}
 @media (max-width:420px){ .gs-scheiben{grid-template-columns:minmax(0,1fr)} }
+
+/* Spiegelschrift: die echte Schrift gespiegelt oder gedreht (Gross-/Kleinbuchstaben bleiben) */
+.gs-sp{display:inline-block}
+.gs-sp-horizontal{transform:scaleX(-1)}
+.gs-sp-vertikal{transform:scaleY(-1)}
+.gs-sp-kopf{transform:rotate(180deg)}
+.gs-art-spiegel .gs-t{font-size:calc(var(--fm) * .72)}
+.gs-spiegel-arten .gs-vorschau .gs-t{font-size:1.15rem}
+#gsSpiegelKopieren{margin-top:10px}
+/* Spiegelschrift, Kopfstand und Rückwärts beginnen rechts */
+.gs-sp-art-horizontal .gs-zeile,.gs-sp-art-kopf .gs-zeile,.gs-sp-art-rueckwaerts .gs-zeile{justify-content:flex-end}

@@ -122,6 +122,8 @@ var Kern = (function(){
       case 'emojis': return i < 0 || !EMOJI_THEMEN[o.emojiThema] ? null : { emoji:EMOJI_THEMEN[o.emojiThema].liste[(i + (+o.bildVerschiebung || 0)) % 26] };
       case 'farben': return i < 0 ? null : { farbe:FARB_CODE[(i + (+o.bildVerschiebung || 0)) % 26] };
       case 'atbasch': return i < 0 ? null : { text:ABC[25 - i] };
+      // Spiegelschrift: das Zeichen selbst, gespiegelt oder gedreht gezeichnet (o.spiegelArt)
+      case 'spiegel': return /\s/.test(c) ? null : { spiegel:c, sp:o.spiegelArt || 'horizontal' };
       case 'zahlen': return i < 0 ? null : { text:String(i + 1) };
       case 'handy':
         for (var h = 0; h < HANDY.length; h++){ var p = HANDY[h][1].indexOf(c); if (p >= 0) return { text:new Array(p + 2).join(HANDY[h][0]) }; }
@@ -207,8 +209,50 @@ var Kern = (function(){
     });
     return aus;
   }
+  /* Spiegelschrift: Gross-/Kleinschreibung, Umlaute und Satzzeichen bleiben; nur die Reihenfolge ändert sich je nach Art:
+     horizontal (Spiegelschrift) und rückwärts: jede Zeile von rechts nach links · Kopf: alles rückwärts, unterste Zeile oben ·
+     vertikal: Zeilen von unten nach oben · Wörter rückwärts: jedes Wort für sich */
+  function spiegelZerlegen(text, o){
+    var sp = o.spiegelArt || 'horizontal';
+    var zeilen = String(text || '').normalize('NFC').replace(/\r\n?/g, '\n').split('\n').map(function(z){
+      return z.split(/\s+/).filter(Boolean).map(function(w){ return Array.from(w).map(function(c){ return { b:c, code:{ spiegel:c, sp:sp } }; }); });
+    });
+    if (sp === 'kopf' || sp === 'vertikal') zeilen.reverse();
+    if (sp === 'horizontal' || sp === 'rueckwaerts' || sp === 'kopf') zeilen.forEach(function(z){ z.reverse(); z.forEach(function(w){ w.reverse(); }); });
+    if (sp === 'woerter') zeilen.forEach(function(z){ z.forEach(function(w){ w.reverse(); }); });
+    return zeilen;
+  }
+  /* Spiegelschrift als Text zum Kopieren (aus «Text spiegeln»): ähnlich aussehende Unicode-Zeichen – nicht jeder Buchstabe
+     hat ein perfektes Gegenstück. Auf dem Blatt wird dagegen die echte Schrift gespiegelt. */
+  function tabelle(paare){ var t = {}; paare.split(' ').forEach(function(p){ var z = Array.from(p); t[z[0]] = z.slice(1).join(''); }); return t; }
+  var KOPF = tabelle('aɐ bq cɔ dp eǝ fɟ gƃ hɥ iᴉ jɾ kʞ ll mɯ nu oo pd qb rɹ ss tʇ un vʌ wʍ xx yʎ zz ' +
+    'A∀ Bꓭ CƆ Dꓷ EƎ FℲ G⅁ HH II Jſ Kꓘ L˥ MW NN OO PԀ QΌ Rꓤ SS T⊥ U∩ VΛ WM XX Y⅄ ZZ ' +
+    '00 1Ɩ 2ᄅ 3Ɛ 4ㄣ 5ϛ 69 7ㄥ 88 96 .˙ ,\' \', !¡ ?¿ ¡! ¿? () )( [] ][ {} }{ <> >< _‾ &⅋ ;؛ «» »«');
+  KOPF['"'] = '„'; KOPF['„'] = '"'; KOPF['“'] = '„';
+  var SPIEGEL = tabelle('aɒ bd cɔ db eɘ fʇ gϱ hʜ ii jį kʞ ll mm nn oo pq qp rɿ sƨ tƚ uu vv ww xx yγ zz ' +
+    'AA Bᙠ CƆ Dᗡ EƎ Fꟻ GᎮ HH II JႱ Kꓘ L⅃ MM NИ OO Pꟼ QϘ RЯ SꙄ TT UU VV WW XX YY ZƸ ' +
+    '3Ɛ ?⸮ () )( [] ][ {} }{ <> >< «» »«');
+  SPIEGEL['/'] = '\\'; SPIEGEL['\\'] = '/';
+  var VERTIKAL = tabelle('aɐ bp cc dq eǝ fɟ gƃ hɥ iᴉ jɾ kʞ ll mɯ nu oo pb qd rɹ ss tʇ un vʌ wʍ xx yʎ zz ' +
+    'A∀ BB CC DD EE FℲ G⅁ HH II Jſ KK LΓ MW NN OO Pᑲ QΌ Rʁ SS T⊥ U∩ VΛ WM XX Y⅄ ZZ ' +
+    '00 1Ɩ 2ᄅ 33 4ㄣ 5ϛ 69 7ㄥ 88 96 .˙ ,\' \', !¡ ?¿ ¡! ¿?');
+  VERTIKAL['"'] = '„'; VERTIKAL['„'] = '"';
+  var SP_UMLAUT = { 'ä':'a', 'ö':'o', 'ü':'u', 'Ä':'A', 'Ö':'O', 'Ü':'U' };
+  function spZeichen(z, tab, punkteUnten){
+    if (SP_UMLAUT[z]){ var g = SP_UMLAUT[z]; return (tab[g] || g) + (punkteUnten ? '\u0324' : '\u0308'); }
+    return tab[z] !== undefined ? tab[z] : z;
+  }
+  function spiegelText(text, sp){
+    var t = String(text || '').normalize('NFC').replace(/\r\n?/g, '\n').replace(/ß/g, 'ss').replace(/ẞ/g, 'SS'), z = t.split('\n');
+    if (sp === 'vertikal') return z.reverse().map(function(l){ return Array.from(l).map(function(c){ return spZeichen(c, VERTIKAL, true); }).join(''); }).join('\n');
+    if (sp === 'kopf') return Array.from(t).reverse().map(function(c){ return c === '\n' ? c : spZeichen(c, KOPF, true); }).join('');
+    if (sp === 'rueckwaerts') return z.map(function(l){ return Array.from(l).reverse().join(''); }).join('\n');
+    if (sp === 'woerter') return t.replace(/[\p{L}\p{M}\p{N}]+/gu, function(w){ return Array.from(w).reverse().join(''); });
+    return z.map(function(l){ return Array.from(l).reverse().map(function(c){ return spZeichen(c, SPIEGEL, false); }).join(''); }).join('\n');
+  }
   // Text → Zeilen → Wörter → Zellen { b: Buchstabe (Lösung), code } (code null: Zeichen bleibt stehen)
   function zerlege(text, art, o){
+    if (art === 'spiegel') return spiegelZerlegen(text, o || {});
     if (art === 'finger') text = String(text || '').replace(/[ßẞ]/g, 'SS');   // ß hat kein eigenes Handzeichen
     var nr = 0;   // laufende Nummer der Schnipsel (Erpresserschrift): jeder sieht anders aus
     return normal(text, UMLAUTE[art]).split(/\r?\n/).map(function(z){
@@ -229,7 +273,7 @@ var Kern = (function(){
       }).filter(Boolean);
     });
   }
-  return { ABC:ABC, GITTER:GITTER, MORSE:MORSE, BRAILLE:BRAILLE, ZAHLZEICHEN:ZAHLZEICHEN, HANDY:HANDY, HIERO:HIERO, HIERO_NAME:HIERO_NAME, notenName:notenName,
+  return { ABC:ABC, GITTER:GITTER, MORSE:MORSE, BRAILLE:BRAILLE, ZAHLZEICHEN:ZAHLZEICHEN, HANDY:HANDY, HIERO:HIERO, HIERO_NAME:HIERO_NAME, notenName:notenName, spiegelText:spiegelText,
     normal:normal, zeichen:zeichen, zerlege:zerlege, freimaurer:freimaurer, VOEGEL:VOEGEL, KREISE:KREISE, BUECHER:BUECHER, BILDZEICHEN:BILDZEICHEN,
     SEGMENTE:SEGMENTE, FINGER:FINGER, UMLAUTE:UMLAUTE, BAUSTEINE:BAUSTEINE, STEIN_FARBEN:STEIN_FARBEN,
     EMOJI_THEMEN:EMOJI_THEMEN, FARB_CODE:FARB_CODE, NOTEN:NOTEN, NOTEN_WOERTER:NOTEN_WOERTER, NOTEN_WOERTER_BS:NOTEN_WOERTER_BS, notenFalsch:notenFalsch, notenBuchstaben:notenBuchstaben, notenMidi:notenMidi };
@@ -241,6 +285,7 @@ var SCHRIFTEN = [
   ['emojis', tx('Emoji-Scheibe'), tx('Wie Caesar, innen 26 Emojis zu einem Thema')],
   ['farben', tx('Regenbogen-Scheibe'), tx('Wie Caesar, innen 26 Farben im Regenbogen')],
   ['atbasch', tx('Rückwärts-Alphabet'), tx('A wird zu Z, B zu Y …')],
+  ['spiegel', tx('Spiegelschrift'), tx('Gespiegelt, auf dem Kopf oder rückwärts')],
   ['zahlen', tx('Zahlen-Code'), 'A = 1, B = 2 … Z = 26'],
   ['handy', tx('Handy-Tasten'), tx('So oft tippen wie auf der Handytaste: B = 22')],
   ['polybios', tx('Koordinaten-Gitter'), tx('Zeile und Spalte im Gitter: B = 12')],
@@ -263,6 +308,9 @@ var SCHRIFTEN = [
 var HIERO_SCHRIFT = '"Noto Sans Egyptian Hieroglyphs"';
 var HIERO_CSS = 'https://fonts.googleapis.com/css2?family=Noto+Sans+Egyptian+Hieroglyphs&display=swap';
 var TINTE = '#1C1714';
+var SPIEGEL_ARTEN = [['horizontal', tx('Spiegelschrift'), tx('von rechts nach links, Buchstaben gespiegelt')], ['kopf', tx('Auf dem Kopf'), tx('um 180° gedreht')],
+  ['vertikal', tx('Vertikal gespiegelt'), tx('an einer waagrechten Linie umgeklappt')], ['rueckwaerts', tx('Rückwärts'), tx('Buchstaben in umgekehrter Reihenfolge')],
+  ['woerter', tx('Wörter rückwärts'), tx('jedes Wort rückwärts, die Reihenfolge bleibt')]];
 var GROESSEN = [['klein', tx('Klein'), 30], ['mittel', tx('Mittel'), 42], ['gross', tx('Gross'), 58]];
 
 /* ---------- Zeichnen der Zeichen ---------- */
@@ -635,6 +683,7 @@ function symbolHtml(code){
   if (code.kreis) return kreisSvg(code.kreis);
   if (code.vogel) return vogelSvg(code.vogel);
   if (code.text !== undefined) return '<span class="gs-t">' + esc(code.text) + '</span>';
+  if (code.spiegel !== undefined) return '<span class="gs-t gs-sp gs-sp-' + code.sp + '">' + esc(code.spiegel) + '</span>';
   if (code.freimaurer) return fmSvg(code.freimaurer);
   if (code.morse) return morseSvg(code.morse);
   if (code.braille) return brailleSvg(code.braille);
@@ -733,6 +782,18 @@ function schluesselHtml(art, o){
           (sf ? tx('Der ★ auf der kleinen Scheibe zeigt den Anfang. Dreh die kleine Scheibe so, dass der ★ unter dem {b} steht.', { b:'<b>' + Kern.ABC[(26 - sf) % 26] + '</b>' }) : tx('Der ★ auf der kleinen Scheibe zeigt den Anfang. Dreh die kleine Scheibe so, dass der ★ unter dem {b} steht (also unter dem A).', { b:'<b>A</b>' })) + ' ' +
           tx('Jetzt steht unter jedem Buchstaben seine Farbe – unter dem A {f}.', { f:punkt(F[sf]) }) + '</p>' +
           caesarScheibe({ name:tx('Regenbogen-Scheibe'), innen:function(){ return ''; }, innenFarbe:function(i){ return F[i]; }, aussenFarbe:function(i){ return F[i]; } }) : '');
+    case 'spiegel':
+      var sp = o.spiegelArt || 'horizontal', spA = A.concat([]), klein = 'abcdefghijklmnopqrstuvwxyz'.split('');
+      function sz(c){ return '<span class="gs-t gs-sp gs-sp-' + sp + '">' + esc(c) + '</span>'; }
+      var spText = {
+        horizontal:tx('Spiegelschrift liest man am besten mit einem Spiegel: Stell ihn senkrecht neben die Zeile – im Spiegel steht der Text richtig. Ohne Spiegel: von rechts nach links lesen und jeden Buchstaben im Kopf umdrehen.'),
+        kopf:tx('Der Text steht auf dem Kopf. Dreh das Blatt einmal halb herum – dann kannst du ihn lesen.'),
+        vertikal:tx('Der Text ist an einer waagrechten Linie umgeklappt: Die Buchstaben stehen auf dem Kopf, die Zeilen von unten nach oben. Mit einem Spiegel, den du waagrecht unter die Zeile hältst, kannst du ihn lesen.'),
+        rueckwaerts:tx('Die Buchstaben stehen in umgekehrter Reihenfolge. Lies jede Zeile von rechts nach links.'),
+        woerter:tx('Jedes Wort ist rückwärts geschrieben, die Wörter stehen aber am richtigen Platz. Lies jedes Wort von hinten nach vorne.')
+      }[sp];
+      return '<p class="gs-erklaerung">' + spText + '</p>' + (sp === 'rueckwaerts' || sp === 'woerter' ? '' :
+        zweiReihen(spA, spA.map(sz), [tx('Normal'), tx('Geheim')]) + zweiReihen(klein, klein.map(sz), [tx('Normal'), tx('Geheim')]));
     case 'atbasch':
       return tx('<p class="gs-erklaerung">Das Alphabet wird umgedreht: A und Z tauschen, B und Y, C und X … Verschlüsseln und Entschlüsseln geht gleich.</p>') +
         zweiReihen(A, A.map(function(c){ return Kern.zeichen('atbasch', c, o).text; }), [tx('Klartext'), tx('Geheim')]);
@@ -840,6 +901,13 @@ var VORLAGE = '<div class="gs">' +
           Array.from({ length:26 }, function(_, i){ return '<option value="' + i + '">' + (i ? i : tx('0 (keine)')) + '</option>'; }).join('') + '</select></div>' +
         tx('<label class="opt"><input type="checkbox" id="gsBildScheibe"><span>Scheibe zum Basteln im Schlüssel</span></label></div>') +
       '</div>' +
+      '<div class="gs-caesar" id="gsSpiegel">' +
+        tx('<p class="feld-label">Wie gespiegelt?</p><div class="gs-themen gs-spiegel-arten" role="radiogroup" aria-label="Art der Spiegelschrift">') +
+          SPIEGEL_ARTEN.map(function(a){ return '<label><input type="radio" name="gsSpiegelArt" value="' + a[0] + '"><span><b>' + a[1] + '</b><i class="gs-vorschau"><span class="gs-t gs-sp gs-sp-' + a[0] + '">' +
+            esc(a[0] === 'rueckwaerts' ? 'cbA' : a[0] === 'woerter' ? 'cbA' : 'Abc') + '</span></i><small>' + a[2] + '</small></span></label>'; }).join('') + '</div>' +
+        tx('<button type="button" class="btn klein" id="gsSpiegelKopieren" title="Als Text zum Einfügen in WhatsApp, Word oder eine E-Mail">Als Text kopieren</button>') +
+        tx('<p class="hinweis">«Als Text kopieren» nimmt ähnlich aussehende Sonderzeichen – so lässt sich der Text überall einfügen. Auf dem Blatt wird die echte Schrift gespiegelt.</p>') +
+      '</div>' +
       '<div class="gs-caesar" id="gsSegment">' +
         tx('<p class="feld-label">Aufgabe</p><div class="gs-chips" role="radiogroup" aria-label="Aufgabe beim Segment-Code">') +
           [['ausmalen', tx('Segmente ausmalen')], ['anzeige', tx('Anzeige lesen')]].map(function(a){ return '<label><input type="radio" name="gsSegArt" value="' + a[0] + '"><span>' + a[1] + '</span></label>'; }).join('') + '</div>' +
@@ -926,7 +994,11 @@ Labor.registriere({
 /* Alte Links auf den früheren Generator «Freimaurer-Code» (…/#freimaurer): Geheimschriften mit dem Freimaurer-Code öffnen.
    Läuft vor dem Labor (beim Laden und vor dessen Adresswechsel), damit dieses gleich die richtige Seite zeigt. */
 var vorwahl = null;
-function alterLink(){ if (location.hash === '#freimaurer'){ vorwahl = 'freimaurer'; history.replaceState(null, '', location.pathname + location.search + '#geheimschrift'); } }
+// alte Adressen: #freimaurer (früher eigener Generator) und #text-spiegeln (jetzt «Spiegelschrift»)
+function alterLink(){
+  var alt = { '#freimaurer':'freimaurer', '#text-spiegeln':'spiegel' }[location.hash];
+  if (alt){ vorwahl = alt; location.replace(location.pathname + location.search + '#geheimschrift'); }
+}
 alterLink();
 window.addEventListener('hashchange', alterLink);
 
@@ -934,7 +1006,7 @@ window.addEventListener('hashchange', alterLink);
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false;
   var TAB = 'geheimschrift-eingaben', OPT = 'geheimschrift-einstellungen';
-  var STANDARD = { art:'', wahl:'', scheibenArt:'', verschiebung:3, scheibe:true, segArt:'ausmalen', erpSeed:1, erpMisch:true, emojiThema:'', bildVerschiebung:0, bildScheibe:true, notenBS:false, notenAudio:false, qrCm:6, groesse:'mittel', linien:true, mitLoesung:true, mitSchluessel:true, titelAn:true, anleitungAn:true };
+  var STANDARD = { art:'', wahl:'', scheibenArt:'', spiegelArt:'horizontal', verschiebung:3, scheibe:true, segArt:'ausmalen', erpSeed:1, erpMisch:true, emojiThema:'', bildVerschiebung:0, bildScheibe:true, notenBS:false, notenAudio:false, qrCm:6, groesse:'mittel', linien:true, mitLoesung:true, mitSchluessel:true, titelAn:true, anleitungAn:true };
   var st = { text:'', titel:'', opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
   if (Labor.sprache !== 'de') st.opt.notenBS = false;   // B und S (wie bei Bach) gibt es nur mit deutschen Tonnamen
@@ -1047,6 +1119,17 @@ function starte(bereich){
   $('#gsBildVerschiebung').value = String(st.opt.bildVerschiebung || 0);
   $('#gsBildVerschiebung').addEventListener('change', function(){ st.opt.bildVerschiebung = +this.value; speichern(); alles(); });
   $('#gsVerschiebung').addEventListener('change', function(){ st.opt.verschiebung = +this.value; speichern(); alles(); });
+  [].forEach.call(bereich.querySelectorAll('input[name="gsSpiegelArt"]'), function(r){
+    r.checked = r.value === (st.opt.spiegelArt || 'horizontal');
+    r.addEventListener('change', function(){ if (!r.checked) return; st.opt.spiegelArt = r.value; speichern(); alles(); });
+  });
+  $('#gsSpiegelKopieren').addEventListener('click', function(){
+    var t = Kern.spiegelText(st.text, st.opt.spiegelArt || 'horizontal'), k = this, alt = k.textContent;
+    if (!st.text.trim()){ $('#gsText').focus(); return; }
+    (navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(t) : Promise.reject()).then(function(){
+      k.textContent = tx('✓ Kopiert'); setTimeout(function(){ k.textContent = alt; }, 1600);
+    }, function(){ meldung('warnung', '<p>' + tx('Das Kopieren hat nicht geklappt') + '.</p>'); });
+  });
   [['#gsLinien', 'linien', zeichnen], ['#gsScheibe', 'scheibe', schluesselZeichnen], ['#gsBildScheibe', 'bildScheibe', schluesselZeichnen], ['#gsErpMisch', 'erpMisch', zeichnen], ['#gsNotenBS', 'notenBS', alles], ['#gsNotenAudio', 'notenAudio', zeichnen], ['#gsMitLoesung', 'mitLoesung'], ['#gsMitSchluessel', 'mitSchluessel']].forEach(function(c){
     $(c[0]).checked = !!st.opt[c[1]];
     $(c[0]).addEventListener('change', function(){ st.opt[c[1]] = this.checked; speichern(); if (c[2]) c[2](); });
@@ -1065,7 +1148,7 @@ function starte(bereich){
     // Notenschrift: jedes Wort ein eigenes Notensystem mit Violinschlüssel vorne und Schlussstrich hinten
     function rand(svg){ return '<span class="gs-z gs-andere gs-noten-rand"><span class="gs-s">' + svg + '</span><span class="gs-linie gs-leer"></span></span>'; }
     var luecke = '<span class="gs-z gs-andere"><span class="gs-s">' + drahtSvg('') + '</span><span class="gs-linie gs-leer"></span></span>';
-    return '<div class="gs-code gs-art-' + st.opt.art + (st.opt.art === 'segmente' && st.opt.segArt === 'ausmalen' ? ' gs-seg-ausmalen' : '') + (st.opt.linien ? '' : ' ohne-linien') + '" style="--fm:' + px() + 'px">' + zellen().map(function(zeile){
+    return '<div class="gs-code gs-art-' + st.opt.art + (st.opt.art === 'spiegel' ? ' gs-sp-art-' + (st.opt.spiegelArt || 'horizontal') : '') + (st.opt.art === 'segmente' && st.opt.segArt === 'ausmalen' ? ' gs-seg-ausmalen' : '') + (st.opt.linien ? '' : ' ohne-linien') + '" style="--fm:' + px() + 'px">' + zellen().map(function(zeile){
       return '<div class="gs-zeile">' + zeile.map(function(wort, k){
         return (voegel && k ? luecke : '') + '<span class="gs-wort">' + (noten ? rand(violinSvg()) : '') + wort.map(function(c){
           if (c.code) return '<span class="gs-z"><span class="gs-s">' + symbolHtml(c.code) + '</span>' + (ohneLinie ? '' : '<span class="gs-linie"><b class="gs-loes">' + esc(c.b) + '</b></span>') + '</span>';
@@ -1079,6 +1162,7 @@ function starte(bereich){
     var o = st.opt, leer = !hatZeichen();
     $('#gsCaesar').hidden = o.art !== 'caesar';
     $('#gsSegment').hidden = o.art !== 'segmente';
+    $('#gsSpiegel').hidden = o.art !== 'spiegel';
     $('#gsScheibenWahl').hidden = o.wahl !== 'scheibe';
     // Menüs nacheinander: Text erst nach der Wahl der Schrift, Blatt erst mit Text
     var bild = o.art === 'emojis' || o.art === 'farben', themaFehlt = o.art === 'emojis' && !Kern.EMOJI_THEMEN[o.emojiThema];
@@ -1105,7 +1189,7 @@ function starte(bereich){
     var erp = o.art === 'erpresser';   // keine Geheimschrift: ohne Linien, Lösung und Schlüssel – nur die Nachricht zum Drucken oder Kopieren
     bereich.querySelector('.gs').classList.toggle('gs-erpresser', erp);
     $('.gs-teil-titel').textContent = erp ? tx('Nachricht') : tx('Geheimtext');
-    $('#gsTextHinweis').textContent = o.art === 'noten' ? tx('Nur Wörter aus den Buchstaben {t} – den Namen der Töne. Andere Wörter werden weggelassen; Satzzeichen bleiben stehen.', { t:tonnamen }) : o.art === 'erpresser' ? tx('Buchstaben (auch Ä, Ö, Ü und ß), Ziffern, ! und ? werden ausgeschnitten; andere Satzzeichen bleiben stehen.') : o.art === 'finger' ? tx('Ä, Ö, Ü, CH und SCH haben eigene Handzeichen; ß wird als SS geschrieben. Ziffern und Satzzeichen bleiben stehen.') : o.art === 'segmente' ? tx('Umlaute werden als AE, OE, UE geschrieben, ß als SS. Ziffern haben eigene Zeichen; Satzzeichen bleiben stehen.') : Kern.UMLAUTE[o.art] ? tx('Ä, Ö, Ü und ß haben in dieser Schrift eigene Zeichen') + (o.art === 'morse' ? tx('; Ziffern und einige Satzzeichen auch.') : tx('; Ziffern bekommen das Zahlzeichen.')) :
+    $('#gsTextHinweis').textContent = o.art === 'spiegel' ? tx('Gross- und Kleinbuchstaben, Umlaute, Ziffern und Satzzeichen bleiben, wie sie sind.') : o.art === 'noten' ? tx('Nur Wörter aus den Buchstaben {t} – den Namen der Töne. Andere Wörter werden weggelassen; Satzzeichen bleiben stehen.', { t:tonnamen }) : o.art === 'erpresser' ? tx('Buchstaben (auch Ä, Ö, Ü und ß), Ziffern, ! und ? werden ausgeschnitten; andere Satzzeichen bleiben stehen.') : o.art === 'finger' ? tx('Ä, Ö, Ü, CH und SCH haben eigene Handzeichen; ß wird als SS geschrieben. Ziffern und Satzzeichen bleiben stehen.') : o.art === 'segmente' ? tx('Umlaute werden als AE, OE, UE geschrieben, ß als SS. Ziffern haben eigene Zeichen; Satzzeichen bleiben stehen.') : Kern.UMLAUTE[o.art] ? tx('Ä, Ö, Ü und ß haben in dieser Schrift eigene Zeichen') + (o.art === 'morse' ? tx('; Ziffern und einige Satzzeichen auch.') : tx('; Ziffern bekommen das Zahlzeichen.')) :
       tx('Umlaute werden als AE, OE, UE geschrieben, ß als SS.') + (o.art === 'polybios' ? tx(' J wird wie I geschrieben.') : '') + tx(' Ziffern und Satzzeichen bleiben stehen.');
     if (!o.art || themaFehlt){
       $('#gsBlatt').innerHTML = $('#gsLoesung').innerHTML = '';
