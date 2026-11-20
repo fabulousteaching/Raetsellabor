@@ -74,12 +74,12 @@ var Kern = (function(){
 /* KERN-ENDE */
 
 var TINTE = '#1C1714', AKZENT = '#D2601A', BMIN = 6, BMAX = 30;
-var SCHREIB = [['gross', 'GROSSBUCHSTABEN'], ['wie', tx('wie geschrieben')]];
+var SCHREIB = [['gross', tx('GROSSBUCHSTABEN')], ['wie', tx('wie geschrieben')]];
 // Farben für die Trennfelder (bisher immer schwarz); dazu eine eigene Farbe
 var FELDFARBEN = [['#1C1714', tx('Schwarz')], ['#6B6460', tx('Dunkelgrau')], ['#BDB7B2', tx('Hellgrau')], ['#2F5D9E', tx('Blau')], ['#A9CDEB', tx('Hellblau')], ['#2E7D4F', tx('Grün')],
   ['#B5DDA9', tx('Hellgrün')], ['#F3D36B', tx('Gelb')], ['#EE9A3A', tx('Orange')], ['#D64545', tx('Rot')], ['#F4B6C2', tx('Rosa')], ['#8E6BBF', tx('Violett')]];
 function farbName(f){ var x = FELDFARBEN.filter(function(a){ return a[0].toLowerCase() === String(f).toLowerCase(); })[0]; return x ? x[1] : tx('eigene Farbe'); }
-var MENGE = [['viertel', tx('ein Viertel'), 0.25], ['haelfte', tx('die Hälfte'), 0.5], ['dreiviertel', tx('drei Viertel'), 0.75], ['alle', 'alle', 1], ['zahl', tx('Anzahl wählen'), 0]];
+var MENGE = [['viertel', tx('ein Viertel'), 0.25], ['haelfte', tx('die Hälfte'), 0.5], ['dreiviertel', tx('drei Viertel'), 0.75], ['alle', tx('alle'), 1], ['zahl', tx('Anzahl wählen'), 0]];
 var SAETZE = [tx('Ich habe heute keine Hausaufgaben.'), tx('Der Hund schläft unter dem Tisch.'), tx('Im Sommer schwimmen wir im See.'), tx('Meine Katze trinkt gerne warme Milch.'),
   tx('Wir bauen im Wald eine Hütte.'), tx('Am Morgen scheint die Sonne ins Zimmer.'), tx('Der Zug fährt pünktlich um acht Uhr ab.'), tx('Lesen macht klug und Spass.'),
   tx('Im Winter fahren wir Schlitten.'), tx('Die Kinder spielen auf dem Pausenplatz.'), tx('Ein Igel sucht im Laub nach Futter.'), tx('Morgen gehen wir zusammen ins Museum.'),
@@ -240,10 +240,10 @@ function starte(bereich){
     var o = st.opt, satz = st.satz.replace(/\s+/g, ' ').trim();
     var W = Kern.woerter(satz, { gross:o.schreib === 'gross', satzzeichen:o.satzzeichen });
     var n = W.reduce(function(a, w){ return a + w.filter(function(c){ return c.b; }).length; }, 0);
-    $('#fbInfo').textContent = n ? n + (n === 1 ? tx(' Buchstabe') : tx(' Buchstaben')) + ' in ' + W.length + (W.length === 1 ? tx(' Wort') : tx(' Wörtern')) : '';
+    $('#fbInfo').textContent = n ? tx(n === 1 ? '1 Buchstabe' : '{n} Buchstaben', { n:n }) + ' · ' + tx(W.length === 1 ? '1 Wort' : '{w} Wörter', { w:W.length }) : '';
     // Zeilenbreite: automatisch, bis man den Schieber bewegt
     var auto = Kern.autoBreite(W, o.trennen), breite = st.breite ? Math.max(BMIN, Math.min(BMAX, st.breite)) : auto;
-    $('#fbBreite').value = breite; $('#fbBreiteWert').textContent = breite + (st.breite ? '' : tx(' (automatisch)')); $('#fbAuto').hidden = !st.breite;
+    $('#fbBreite').value = breite; $('#fbBreiteWert').textContent = breite + (st.breite ? '' : ' ' + tx('(automatisch)')); $('#fbAuto').hidden = !st.breite;
     // Anzahl fallender Buchstaben
     var m = MENGE.filter(function(a){ return a[0] === o.menge; })[0];
     $('#fbZahlFeld').hidden = o.menge !== 'zahl';
@@ -253,7 +253,7 @@ function starte(bereich){
       if (document.activeElement !== $('#fbZahl')) $('#fbZahl').value = n ? Math.min(st.zahl, n) : st.zahl;
     }
     var anzahl = !m || !n ? 0 : o.menge === 'zahl' ? Math.max(1, Math.min(st.zahl, n)) : Math.max(1, Math.round(n * m[2]));
-    $('#fbMengeInfo').textContent = m && n ? anzahl + tx(' von ') + n + tx(' Buchstaben fallen herunter.') + (o.menge === 'zahl' && st.zahl > n ? tx(' (Mehr hat der Satz nicht.)') : '') : '';
+    $('#fbMengeInfo').textContent = m && n ? tx('{a} von {n} Buchstaben fallen herunter.', { a:anzahl, n:n }) + (o.menge === 'zahl' && st.zahl > n ? ' ' + tx('(Mehr hat der Satz nicht.)') : '') : '';
     var fehlt = !n ? tx('Schreib links einen Satz oder lass dir einen vorschlagen.') : !o.schreib ? tx('Wähle links, ob die Buchstaben im Raster GROSS oder wie geschrieben stehen.') : !m ? tx('Wähle links, wie viele Buchstaben herunterfallen.') : '';
     ['#fbPdf', '#fbHerunterladen', '#fbZeigeLoesung', '#fbNeu'].forEach(function(s){ $(s).disabled = !!fehlt; });
     if (fehlt){ F = null; $('#fbBlatt').hidden = true; $('#fbBlatt').innerHTML = ''; $('#fbLoesung').parentNode.hidden = true; meldung('info', '<p>' + fehlt + '</p>'); return; }
@@ -264,7 +264,7 @@ function starte(bereich){
     var hMax = 980 - 56 - (o.titelAn ? 50 : 0) - (o.anleitungAn ? 86 : 0) - 10;
     var c = Math.min(46, 639 / breite, hMax / (R.length + (F.hoch ? 0.5 + 0.8 * F.hoch : 0)));
     var anleitung = tx('Die Buchstaben unter dem Raster sind aus ihrer Spalte heruntergefallen. Setze jeden zurück in ein leeres Feld derselben Spalte – in welche Zeile, musst du selbst herausfinden. ') +
-      (o.farbe.toLowerCase() === '#1c1714' ? tx('Schwarze') : tx('Farbige')) + tx(' Felder trennen die Wörter') + (o.trennen ? tx('; ein Wort kann am Zeilenende in der nächsten Zeile weitergehen.') : '.');
+      tx(o.farbe.toLowerCase() === '#1c1714' ? 'Schwarze Felder trennen die Wörter' : 'Farbige Felder trennen die Wörter') + (o.trennen ? tx('; ein Wort kann am Zeilenende in der nächsten Zeile weitergehen.') : '.');
     var kopf = (o.titelAn ? tx('<h2>Fallende Buchstaben</h2>') : '') + (o.anleitungAn ? '<p class="fb-anleitung">' + esc(anleitung) + '</p>' : '');
     $('#fbBlatt').innerHTML = kopf + '<div class="fb-bild">' + rasterSvg(F, c, false, o.farbe) + '</div>';
     $('#fbLoesung').innerHTML = (o.titelAn ? tx('<h2>Fallende Buchstaben – Lösung</h2>') : tx('<p class="fb-anleitung"><b>Lösung</b></p>')) +
