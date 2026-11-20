@@ -27,10 +27,11 @@ function schluessel(m){ return m.join(''); }
 var NACH_MUSTER = {};
 Object.keys(ZEICHEN).forEach(function(c){ NACH_MUSTER[schluessel(maske(c))] = c; });
 function zeichenVon(m){ return NACH_MUSTER[schluessel(m)] || null; }
-/* Eingabe → Zeichen der Schrift: Grossbuchstaben (Ä → AE, Ö → OE, Ü → UE, ß → SS), Ziffern; anderes fällt weg (Leerzeichen
+/* Eingabe → Zeichen der Schrift: Grossbuchstaben (Ä → AE, Ö → OE, Ü → UE, ß → SS, É → E …), Ziffern; anderes fällt weg (Leerzeichen
    auch). → { zeichen:[…], weg:[nicht darstellbare Zeichen] } */
 function lesen(text, max){
-  var t = String(text || '').normalize('NFC').toLocaleUpperCase('de-CH').replace(/Ä/g, 'AE').replace(/Ö/g, 'OE').replace(/Ü/g, 'UE').replace(/ẞ|ß/g, 'SS');
+  var t = String(text || '').normalize('NFC').toLocaleUpperCase('de-CH').replace(/Ä/g, 'AE').replace(/Ö/g, 'OE').replace(/Ü/g, 'UE').replace(/ẞ|ß/g, 'SS')
+    .replace(/Œ/g, 'OE').replace(/Æ/g, 'AE').normalize('NFD').replace(/[\u0300-\u036f]/g, '');   // andere Akzente fallen weg (É → E, Ç → C)
   var z = [], weg = [];
   Array.from(t).forEach(function(c){ if (ZEICHEN[c]) z.push(c); else if (/\S/.test(c) && weg.indexOf(c) < 0) weg.push(c); });
   return { zeichen:max ? z.slice(0, max) : z, weg:weg, zuViele:max ? Math.max(0, z.length - max) : 0 };

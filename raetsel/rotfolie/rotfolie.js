@@ -39,7 +39,10 @@ var Kern = (function(){
      Ferne wirken die Flächen der blauen Buchstaben etwas dunkler und violetter als der Rest – Karmin- und Magentawolken
      erzeugen solche Stellen überall, so gehen die «Schatten» der Buchstaben darin unter. */
   var WOLKEN = ['#E6003C', '#FF0090', '#FF5A14', '#F0004B', '#FF2D7A', '#E60028', '#FF1F1F', '#FF3B8E'];
-  var WOERTER = ['GEHEIM', 'PSST', 'DETEKTIV', 'RÄTSEL', 'SPION', 'CODE', 'SCHATZ', 'LUPE', 'TOPSECRET', 'HINWEIS'];
+  var SPRACHE = (typeof Labor !== 'undefined' && Labor.sprache) || 'de';   // Tarnwörter in der Sprache der Seite
+  var WOERTER = SPRACHE === 'en' ? ['SECRET', 'PSST', 'DETECTIVE', 'PUZZLE', 'SPY', 'CODE', 'TREASURE', 'CLUE', 'TOPSECRET', 'HINT']
+    : SPRACHE === 'fr' ? ['SECRET', 'CHUT', 'DÉTECTIVE', 'ÉNIGME', 'ESPION', 'CODE', 'TRÉSOR', 'LOUPE', 'TOPSECRET', 'INDICE']
+    : ['GEHEIM', 'PSST', 'DETEKTIV', 'RÄTSEL', 'SPION', 'CODE', 'SCHATZ', 'LUPE', 'TOPSECRET', 'HINWEIS'];
   var FIGUREN = ['herz', 'stern', 'spirale', 'kringel', 'blitz'];
   function text(t){ return String(t || '').replace(/\s+/g, ' ').trim(); }
   /* Zeilen umbrechen: Wörter mit Breiten → Zeilen [[wort, …], …]; null, wenn ein Wort allein breiter ist als max */
@@ -380,8 +383,8 @@ function starte(bereich){
     P = plan(satz, st.opt.groesse);
     if (!P){ $('#rfZaehler').innerHTML = ''; $('#rfBlatt').parentNode.hidden = true; $('#rfLoesung').parentNode.hidden = true; ['#rfZeigeLoesung', '#rfNeu', '#rfPdf', '#rfHerunterladen', '#rfFolieKnopf'].forEach(function(s){ $(s).disabled = true; }); meldung('warnung', tx('<p>Ein Wort ist zu lang für eine Zeile – kürze es oder trenne es mit einem Leerzeichen.</p>')); return; }
     meldung('', ''); $('#rfBlatt').parentNode.hidden = false; $('#rfLoesung').parentNode.hidden = false;
-    $('#rfZaehler').innerHTML = '<p class="rf-zaehler-haupt ok"><b>' + satz.length + tx('</b> Zeichen · ') + P.zeilen.length + (P.zeilen.length === 1 ? tx(' Zeile') : tx(' Zeilen')) + tx(', Schrift ') + P.gr + ' px</p>' +
-      (P.kleiner ? tx('<p class="warnung">Kleiner gesetzt als gewählt (') + st.opt.groesse + tx(' px): Sonst wäre ein Wort zu lang für die Zeile oder das Bild höher als die Seite.</p>') : '') + h;
+    $('#rfZaehler').innerHTML = '<p class="rf-zaehler-haupt ok">' + tx(P.zeilen.length === 1 ? '<b>{n}</b> Zeichen · 1 Zeile, Schrift {g} px' : '<b>{n}</b> Zeichen · {z} Zeilen, Schrift {g} px', { n:satz.length, z:P.zeilen.length, g:P.gr }) + '</p>' +
+      (P.kleiner ? '<p class="warnung">' + tx('Kleiner gesetzt als gewählt ({g} px): Sonst wäre ein Wort zu lang für die Zeile oder das Bild höher als die Seite.', { g:st.opt.groesse }) + '</p>' : '') + h;
     var k = [satz, P.gr, st.seed, Labor.blattSchrift('buchstaben')].join('|');
     if (k !== schluessel || !bilder){
       var cv = malen(P, Kern.muster({ seed:st.seed, b:P.b, h:P.h, gr:P.gr }), st.seed);

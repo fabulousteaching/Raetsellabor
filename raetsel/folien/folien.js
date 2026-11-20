@@ -250,7 +250,7 @@ function starte(bereich){
     return tx('Drucke diese Seite auf eine Folie und schneide die Karten aus. ') +
       (gemischt() ? tx('Lege jede obere Karte genau auf eine der unteren Karten. Nur bei der richtigen ergänzen sich die blauen Felder zu einem Zeichen') + (st.opt.extra ? tx(' – manche untere Karten passen nirgends.') : '.')
         : tx('Lege jede obere Karte genau auf die Karte mit derselben Nummer darunter – die blauen Felder ergänzen sich zu einem Zeichen.')) +
-      tx(' Lies die Zeichen in der Reihenfolge der Nummern: Wie heisst ') + (zahl ? tx('die Zahl') : tx('der Code')) + '?';
+      ' ' + tx(zahl ? 'Lies die Zeichen in der Reihenfolge der Nummern: Wie heisst die Zahl?' : 'Lies die Zeichen in der Reihenfolge der Nummern: Wie heisst der Code?');
   }
   /* Kartenblatt: obere Karten (Nummern) und/oder untere Karten (Symbole oder dieselben Nummern); teile: 'beide', 'oben', 'unten' */
   function kartenSvg(M, teile){
@@ -280,7 +280,7 @@ function starte(bereich){
     if (aus) return;
     var L = PS.lesen(st.code, 8), h = '';
     Z = L.zeichen;
-    if (L.weg.length) h += '<p class="warnung">' + esc(L.weg.join(' ')) + tx(' gibt es nicht – nur Ziffern und Buchstaben A–Z (Ä, Ö, Ü werden zu AE, OE, UE).</p>');
+    if (L.weg.length) h += '<p class="warnung">' + esc(L.weg.join(' ')) + ' ' + tx(Labor.sprache === 'de' ? 'gibt es nicht – nur Ziffern und Buchstaben A–Z (Ä, Ö, Ü werden zu AE, OE, UE).' : 'gibt es nicht – nur Ziffern und Buchstaben A–Z (Akzente fallen weg).') + '</p>';
     if (L.zuViele) h += tx('<p class="warnung">Höchstens 8 Zeichen – es werden die ersten 8 verwendet.</p>');
     var aehnlich = PS.AEHNLICH.filter(function(p){ return Z.indexOf(p[0]) >= 0 && Z.indexOf(p[1]) >= 0; });
     if (aehnlich.length) h += tx('<p class="warnung">Sehen sich ähnlich: ') + aehnlich.map(function(p){ return p[0] + tx(' und ') + p[1]; }).join(', ') + '.</p>';
@@ -318,8 +318,8 @@ function starte(bereich){
     P.oben.forEach(function(k, i){ karten.push({ art:'oben', i:i, felder:k.felder, start:o.orte[i], x:o.orte[i].x, y:o.orte[i].y, marke:{ art:'nummer', text:String(i + 1) } }); });
     P.unten.forEach(function(k, j){ karten.push({ art:'unten', i:j, felder:k.felder, start:u.orte[j], x:u.orte[j].x, y:u.orte[j].y, marke:gemischt() ? { art:'symbol', name:SYMBOLE[j % SYMBOLE.length] } : { art:'nummer', text:String(k.zu + 1) } }); });
     karten.forEach(function(k, n){
-      h += '<div class="uf-spielkarte' + (k.art === 'oben' ? tx(' oben') : '') + '" data-n="' + n + '" tabindex="0" role="button" aria-label="' + (k.art === 'oben' ? tx('Obere Karte ') + (k.i + 1) : tx('Untere Karte')) + ' – ziehen" style="width:' + f1(SM.b) + tx('px;height:') + f1(SM.h) + 'px">' +
-        '<svg width="' + f1(SM.b) + '" height="' + f1(SM.h) + '" viewBox="0 0 ' + f1(SM.b) + ' ' + f1(SM.h) + '">' + karteInhalt(SM, 0, 0, k.felder, k.marke, { grund:k.art === 'oben' ? tx('rgba(255,255,255,.08)') : '#fff' }) + '</svg></div>';
+      h += '<div class="uf-spielkarte' + (k.art === 'oben' ? ' oben' : '') + '" data-n="' + n + '" tabindex="0" role="button" aria-label="' + esc(k.art === 'oben' ? tx('Obere Karte {n} – ziehen', { n:k.i + 1 }) : tx('Untere Karte – ziehen')) + '" style="width:' + f1(SM.b) + tx('px;height:') + f1(SM.h) + 'px">' +
+        '<svg width="' + f1(SM.b) + '" height="' + f1(SM.h) + '" viewBox="0 0 ' + f1(SM.b) + ' ' + f1(SM.h) + '">' + karteInhalt(SM, 0, 0, k.felder, k.marke, { grund:k.art === 'oben' ? 'rgba(255,255,255,.08)' : '#fff' }) + '</svg></div>';
     });
     feld.innerHTML = h;
     karten.forEach(setzen);
@@ -345,7 +345,7 @@ function starte(bereich){
       if (c !== Z[k.i]) fertig = false;
     });
     var t = $('#ufSpielText');
-    if (fertig){ t.innerHTML = tx('<b>Geschafft! 🎉 Der Code heisst ') + esc(Z.join('')) + '.</b>'; return; }
+    if (fertig){ t.innerHTML = '<b>' + tx('Geschafft! 🎉 Der Code heisst {c}.', { c:esc(Z.join('')) }) + '</b>'; return; }
     t.textContent = gefunden.length ? tx('Gefunden: ') + gefunden.join(', ') + tx('. Weiter so!') : tx('Ziehe die oberen Karten (mit Nummer) auf die unteren. Passen zwei zusammen, erscheint ein Zeichen.');
   }
   $('#ufSpielfeld').addEventListener('pointerdown', function(ev){

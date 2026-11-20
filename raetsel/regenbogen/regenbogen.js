@@ -219,7 +219,7 @@ function f1(x){ return (Math.round(x * 10) / 10).toString(); }
 /* ---------- Zeichnen ---------- */
 // Form um (x, y) mit «Radius» r
 function formSvg(form, x, y, r, farbe, rand){
-  var a = ' fill="' + farbe + '" stroke="' + (rand || tx('rgba(0,0,0,.18)')) + '" stroke-width="' + (rand ? 1.4 : 1) + '"', p = [], i;
+  var a = ' fill="' + farbe + '" stroke="' + (rand || 'rgba(0,0,0,.18)') + '" stroke-width="' + (rand ? 1.4 : 1) + '"', p = [], i;
   function eck(k, rr, dreh){ var l = []; for (var j = 0; j < k; j++){ var w = (dreh + j * 360 / k) * Math.PI / 180; l.push(f1(x + rr * Math.sin(w)) + ',' + f1(y - rr * Math.cos(w))); } return l.join(' '); }
   switch (form){
     case 'kreis': return '<circle cx="' + f1(x) + '" cy="' + f1(y) + '" r="' + f1(r * 0.86) + '"' + a + '/>';
@@ -368,7 +368,9 @@ function starte(bereich){
   $('#rbZiffern').value = st.ziffern;
   $('#rbZiffern').addEventListener('input', function(){ st.ziffern = this.value; speichern(); baldZeichnen(); });
   // «Andere»: abwechselnd eine Zahl (2–4 Ziffern) oder ein kurzes Wort (gross oder klein geschrieben)
-  var WOERTER = [tx('Hut'), tx('Sonne'), 'MAUS', tx('Igel'), 'ZOO', tx('Ball'), tx('Kiwi'), tx('Haus'), tx('Fisch'), 'LAMA', tx('Pony'), tx('Eis'), tx('Baum'), tx('Hase'), tx('Wolke'), 'OTTER', tx('Buch'), tx('Stern'), tx('Regen')];
+  var WOERTER = Labor.sprache === 'en' ? ['Hat', 'Sun', 'MOUSE', 'Fox', 'ZOO', 'Ball', 'Kiwi', 'House', 'Fish', 'LLAMA', 'Pony', 'Ice', 'Tree', 'Hare', 'Cloud', 'OTTER', 'Book', 'Star', 'Rain']
+    : Labor.sprache === 'fr' ? ['Chat', 'Soleil', 'SOURIS', 'Lapin', 'ZOO', 'Balle', 'Kiwi', 'Maison', 'Poisson', 'LAMA', 'Poney', 'Glace', 'Arbre', 'Nuage', 'Livre', 'LOUTRE', 'Pluie', 'Lune', 'Ours']
+    : ['Hut', 'Sonne', 'MAUS', 'Igel', 'ZOO', 'Ball', 'Kiwi', 'Haus', 'Fisch', 'LAMA', 'Pony', 'Eis', 'Baum', 'Hase', 'Wolke', 'OTTER', 'Buch', 'Stern', 'Regen'];
   var zahlDran = /[A-Za-z]/.test(st.ziffern);
   $('#rbZufall').addEventListener('click', function(){
     var r = Kern.zufall(Date.now()), z = '';
@@ -384,9 +386,9 @@ function starte(bereich){
     for (var n = 3; n <= Kern.MAX_FARBEN; n++) l.push(n);
     var gewaehlt = Math.max(min, st.opt.farben || min);
     $('#rbFarben').innerHTML = l.map(function(n){
-      return '<label' + (n < min ? tx(' class="gesperrt" title="Diese Zeichen brauchen mindestens ') + min + tx(' Farben"') : '') + '><input type="radio" name="rbFarben" value="' + n + '"' + (n === gewaehlt ? tx(' checked') : '') + (n < min ? tx(' disabled') : '') + '><span>' + n + '</span></label>';
+      return '<label' + (n < min ? ' class="gesperrt" title="' + esc(tx('Diese Zeichen brauchen mindestens {n} Farben', { n:min })) + '"' : '') + '><input type="radio" name="rbFarben" value="' + n + '"' + (n === gewaehlt ? ' checked' : '') + (n < min ? ' disabled' : '') + '><span>' + n + '</span></label>';
     }).join('');
-    $('#rbFarbenInfo').textContent = tx('Diese Zeichen brauchen mindestens ') + min + tx(' Farben. Mit mehr Farben bekommen die Striche zusätzliche Punkte auf ihren Linien – das wird schwieriger. Kurze Striche brauchen nur die ersten Farben.');
+    $('#rbFarbenInfo').textContent = tx('Diese Zeichen brauchen mindestens {n} Farben. Mit mehr Farben bekommen die Striche zusätzliche Punkte auf ihren Linien – das wird schwieriger. Kurze Striche brauchen nur die ersten Farben.', { n:min });
     return gewaehlt;
   }
   $('#rbAblenker').checked = st.opt.ablenker !== false;
@@ -402,9 +404,11 @@ function starte(bereich){
   function titel(){ return tx('Regenbogenrätsel'); }
   function anleitung(z){
     var zahl = z.every(function(c){ return /[0-9]/.test(c); }), mehrere = P.gruppen.some(function(g){ return g.striche.length > 1; }), punkt = P.gruppen.some(function(g){ return g.striche.some(function(st){ return st.punkte.length === 1; }); });
-    return tx('Über jeder Gruppe siehst du, welche Formen zu ihr gehören. Verbinde ') + (mehrere ? tx('jede dieser Formen für sich') : 'sie') + tx(' der Reihe nach in den Farben des Regenbogens: zuerst ') +
-      Kern.FARBNAME[P.farben[0]] + tx(' (ganz aussen), dann ') + Kern.FARBNAME[P.farben[1]] + tx(' und so weiter.') + (st.opt.ablenker !== false ? tx(' Die anderen Formen gehören nicht dazu.') : '') +
-      (punkt ? tx(' Eine einzelne Form bleibt ein Punkt.') : '') + ' ' + (zahl ? tx('Welche Zahl') : tx('Welches Wort')) + ' entsteht?' + (z.length > 1 ? tx(' Lies von links nach rechts.') : '');
+    return tx(mehrere ? 'Über jeder Gruppe siehst du, welche Formen zu ihr gehören. Verbinde jede dieser Formen für sich der Reihe nach in den Farben des Regenbogens: zuerst {a} (ganz aussen), dann {b} und so weiter.'
+        : 'Über jeder Gruppe siehst du, welche Formen zu ihr gehören. Verbinde sie der Reihe nach in den Farben des Regenbogens: zuerst {a} (ganz aussen), dann {b} und so weiter.',
+        { a:tx(Kern.FARBNAME[P.farben[0]]), b:tx(Kern.FARBNAME[P.farben[1]]) }) +
+      (st.opt.ablenker !== false ? ' ' + tx('Die anderen Formen gehören nicht dazu.') : '') +
+      (punkt ? ' ' + tx('Eine einzelne Form bleibt ein Punkt.') : '') + ' ' + tx(zahl ? 'Welche Zahl entsteht?' : 'Welches Wort entsteht?') + (z.length > 1 ? ' ' + tx('Lies von links nach rechts.') : '');
   }
   function blattHtml(z, loesung, kopf){
     var o = st.opt;
@@ -416,7 +420,7 @@ function starte(bereich){
   function zeichnen(){
     if (aus) return;
     var roh = String(st.ziffern || ''), z = Kern.zeichen(roh), h = '', weg = Kern.unbekannt(roh);
-    if (weg.length) h += '<p class="warnung">' + esc(weg.join(' ')) + tx(' gibt es nicht – nur Ziffern und Buchstaben A–Z, a–z (statt Ä, Ö, Ü: AE, OE, UE).</p>');
+    if (weg.length) h += '<p class="warnung">' + esc(weg.join(' ')) + ' ' + tx(Labor.sprache === 'de' ? 'gibt es nicht – nur Ziffern und Buchstaben A–Z, a–z (statt Ä, Ö, Ü: AE, OE, UE).' : 'gibt es nicht – nur Ziffern und Buchstaben A–Z, a–z (ohne Akzente).') + '</p>';
     if (Array.from(roh).filter(function(c){ return Kern.ZEICHEN[c]; }).length > 6) h += tx('<p class="warnung">Höchstens 6 Zeichen – es werden die ersten 6 verwendet.</p>');
     $('#rbZaehler').innerHTML = z.length ? tx('<p class="rb-zaehler-haupt ok">Lösung: <b>') + esc(z.join('')) + '</b></p>' + h : h;
     var leer = !z.length;
@@ -425,7 +429,7 @@ function starte(bereich){
     meldung('', ''); $('#rbBlatt').parentNode.hidden = false;
     var min = Kern.mindestens(z), n = farbenZeigen(min);
     P = Kern.planen({ zeichen:z, farben:n, ablenker:st.opt.ablenker !== false, seed:st.seed });
-    $('#rbFolge').innerHTML = P.farben.map(function(f, i){ return '<span><i style="background:' + Kern.FARBE[f] + '"></i>' + (i + 1) + '. ' + esc(Kern.FARBNAME[f]) + '</span>'; }).join('');
+    $('#rbFolge').innerHTML = P.farben.map(function(f, i){ return '<span><i style="background:' + Kern.FARBE[f] + '"></i>' + (i + 1) + '. ' + esc(tx(Kern.FARBNAME[f])) + '</span>'; }).join('');
     var zeige = $('#rbZeigeLoesung').getAttribute('aria-pressed') === 'true';
     $('#rbBlatt').innerHTML = blattHtml(z, zeige, false);
     $('#rbLoesung').innerHTML = blattHtml(z, true, true);
