@@ -9,7 +9,8 @@
    Alles wird in ein Canvas gezeichnet (auch 150 Teile bleiben flüssig). */
 (function(){
 'use strict';
-var tx = Labor.uebersetzer('puzzle');
+// Auch ohne Labor nutzbar (Tablet-Seite P/<ID>/): dann ohne Wörterbuch, nur Platzhalter einsetzen
+var tx = typeof Labor !== 'undefined' && Labor.uebersetzer ? Labor.uebersetzer('puzzle') : function(s, w){ return w ? String(s).replace(/\{(\w+)\}/g, function(m, k){ return k in w ? w[k] : m; }) : s; };
 
 /* ---------- Puzzle-Teile ----------
    Kante von A nach B mit Nase: Punkte (u längs, v quer) einer klassischen Nase, gemessen in k (kürzere Seite der Zelle);
@@ -65,8 +66,8 @@ function starte(behaelter, o){
     x.save(); x.clip(t.pfad);
     x.drawImage(bild, M - t.c * ZW, M - t.r * ZH, spalten * ZW, zeilen * ZH);
     x.restore();
-    x.lineWidth = 1.2; x.strokeStyle = tx('rgba(0,0,0,.45)'); x.stroke(t.pfad);
-    x.save(); x.translate(-0.8, -0.8); x.lineWidth = 1; x.strokeStyle = tx('rgba(255,255,255,.55)'); x.stroke(t.pfad); x.restore();
+    x.lineWidth = 1.2; x.strokeStyle = 'rgba(0,0,0,.45)'; x.stroke(t.pfad);
+    x.save(); x.translate(-0.8, -0.8); x.lineWidth = 1; x.strokeStyle = 'rgba(255,255,255,.55)'; x.stroke(t.pfad); x.restore();
     t.bmp = k;
   }
   function brettPx(){ return { x:BX, y:BY, w:spalten * ZW, h:zeilen * ZH }; }
@@ -147,14 +148,14 @@ function starte(behaelter, o){
     g.setTransform(dpr, 0, 0, dpr, 0, 0);
     g.clearRect(0, 0, CW, CH);
     var b = brettPx();
-    g.save(); g.shadowColor = tx('rgba(45,28,12,.18)'); g.shadowBlur = 14; g.fillStyle = '#fff'; g.fillRect(b.x, b.y, b.w, b.h); g.restore();
+    g.save(); g.shadowColor = 'rgba(45,28,12,.18)'; g.shadowBlur = 14; g.fillStyle = '#fff'; g.fillRect(b.x, b.y, b.w, b.h); g.restore();
     if (vorlage){ g.save(); g.globalAlpha = 0.28; g.drawImage(bild, b.x, b.y, b.w, b.h); g.restore(); }
-    g.strokeStyle = tx('rgba(45,28,12,.35)'); g.lineWidth = 1; g.strokeRect(b.x + 0.5, b.y + 0.5, b.w - 1, b.h - 1);
+    g.strokeStyle = 'rgba(45,28,12,.35)'; g.lineWidth = 1; g.strokeRect(b.x + 0.5, b.y + 0.5, b.w - 1, b.h - 1);
     var SW = ZW + 2 * M, SH = ZH + 2 * M;
     teile.forEach(function(t){ if (t.fest) g.drawImage(t.bmp, BX + t.c * ZW - M, BY + t.r * ZH - M, SW, SH); });
     teile.forEach(function(t){
       if (t.fest) return;
-      if (ziehen && ziehen.t === t){ g.save(); g.shadowColor = tx('rgba(0,0,0,.35)'); g.shadowBlur = 16; g.shadowOffsetY = 6; }
+      if (ziehen && ziehen.t === t){ g.save(); g.shadowColor = 'rgba(0,0,0,.35)'; g.shadowBlur = 16; g.shadowOffsetY = 6; }
       g.drawImage(t.bmp, BX + t.x * ZW - M, BY + t.y * ZH - M, SW, SH);
       if (ziehen && ziehen.t === t) g.restore();
     });

@@ -304,9 +304,9 @@ function starte(bereich){
     $('#tfMitteOpt').hidden = !!o.form && !SPIRALE[o.form];
     $('#tfFarbInfo').textContent = o.farbe ? (o.farbe === 'bunt' ? (o.form === 'regenbogen' ? tx('Jeder Bogen eine Farbe.') : tx('Jedes Wort eine Farbe.')) : '') : tx('Noch nichts gewählt: schwarz.');
     if (text) h += '<p class="tf-info">' + text.length + tx(' Zeichen.</p>');
-    var fehlt = !text ? tx('einen Text') : !o.form ? tx('eine Form') : '';
+    var fehlt = !text ? 'text' : !o.form ? 'form' : '';
     ['#tfPdf', '#tfHerunterladen', '#tfZeigeLoesung'].forEach(function(s){ $(s).disabled = !!fehlt; });
-    if (fehlt){ R = null; $('#tfZaehler').innerHTML = h; $('#tfBlatt').parentNode.hidden = true; $('#tfLoesung').parentNode.hidden = true; meldung('info', '<p>' + (fehlt === 'einen Text' ? tx('Schreibe links einen Text.') : tx('Wähle links eine Form.')) + '</p>'); return; }
+    if (fehlt){ R = null; $('#tfZaehler').innerHTML = h; $('#tfBlatt').parentNode.hidden = true; $('#tfLoesung').parentNode.hidden = true; meldung('info', '<p>' + (fehlt === 'text' ? tx('Schreibe links einen Text.') : tx('Wähle links eine Form.')) + '</p>'); return; }
     // Platz für Linien zum Abschreiben
     var nLinien = o.linien ? Math.min(10, Math.ceil(breite(text, 15) / 600) + 1) : 0, hoehe = MAXZ - nLinien * 34 - (o.anleitungAn ? 30 : 0);
     var erg = SPIRALE[o.form] ? spiraleSvg(text, Math.min(hoehe, 680)) : o.form === 'welle' ? welleSvg(text, Math.min(hoehe, 560)) : regenbogenSvg(text, Math.min(hoehe, 520));

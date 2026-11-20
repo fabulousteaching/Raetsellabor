@@ -21,14 +21,32 @@ header('X-Robots-Tag: noindex, nofollow');
 header('X-Content-Type-Options: nosniff');
 if (!is_array($p)) http_response_code(404);
 function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
+/* Sprache: wie im Generator beim Speichern gewählt; fehlt das Puzzle, die Sprache des Browsers */
+$sprache = is_array($p) ? (string)($p['sprache'] ?? 'de') : strtolower(substr((string)($_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? 'de'), 0, 2));
+if (!in_array($sprache, ['de', 'en', 'fr'], true)) $sprache = 'de';
+$TEXTE = [
+  'nicht'   => ['Puzzle nicht gefunden', 'Puzzle not found', 'Puzzle introuvable'],
+  'mischen' => ['Neu mischen', 'Shuffle again', 'Mélanger à nouveau'],
+  'voll'    => ['Vollbild', 'Full screen', 'Plein écran'],
+  'laden'   => ['Das Puzzle wird geladen …', 'Loading the jigsaw …', 'Chargement du puzzle …'],
+  'gibtsnicht' => ['Dieses Puzzle gibt es nicht', 'This jigsaw does not exist', 'Ce puzzle n’existe pas'],
+  'pruefen' => ['Prüfe den Link oder scanne den QR-Code nochmals.', 'Check the link or scan the QR code again.', 'Vérifie le lien ou scanne à nouveau le code QR.'],
+  'labor'   => ['Zum Rätsellabor', 'To Rätsellabor', 'Vers Rätsellabor'],
+  'teile'   => ['{a} von {b} Teilen', '{a} of {b} pieces', '{a} pièces sur {b}'],
+  'geschafft' => ['Geschafft!', 'Done!', 'Bravo !'],
+  'minuten' => ['In {z} Minuten.', 'In {z} minutes.', 'En {z} minutes.'],
+  'nochmals' => ['Nochmals', 'Again', 'Encore'],
+  'bild'    => ['Das Bild konnte nicht geladen werden. Lade die Seite neu.', 'The picture could not be loaded. Reload the page.', 'L’image n’a pas pu être chargée. Recharge la page.'],
+];
+function t(string $k): string { global $TEXTE, $sprache; return $TEXTE[$k][['de' => 0, 'en' => 1, 'fr' => 2][$sprache]]; }
 ?><!DOCTYPE html>
-<html lang="de">
+<html lang="<?= h($sprache) ?>">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#F8F5F1">
-<title><?= is_array($p) ? 'Puzzle' : 'Puzzle nicht gefunden' ?></title>
+<title><?= is_array($p) ? 'Puzzle' : h(t('nicht')) ?></title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Inter:wght@400;600&display=swap">
 <style>
@@ -71,11 +89,11 @@ function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
   <header>
     <h1>Puzzle</h1>
     <span class="status" id="status" aria-live="polite"></span>
-    <button type="button" id="mischen">Neu mischen</button>
-    <button type="button" id="voll">Vollbild</button>
+    <button type="button" id="mischen"><?= h(t('mischen')) ?></button>
+    <button type="button" id="voll"><?= h(t('voll')) ?></button>
   </header>
   <div class="spiel" id="spiel">
-    <p class="laden" id="laden">Das Puzzle wird geladen …</p>
+    <p class="laden" id="laden"><?= h(t('laden')) ?></p>
     <div class="geschafft" id="geschafft" hidden></div>
   </div>
 </div>
@@ -84,6 +102,7 @@ function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
 (function(){
   'use strict';
   var P = <?= json_encode($daten, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) ?>;
+  var T = <?= json_encode(array_map(function($k){ return t($k); }, array_combine(array_keys($TEXTE), array_keys($TEXTE))), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?>;
   var $ = function(i){ return document.getElementById(i); }, spiel = null;
   function zeit(s){ return Math.floor(s / 60) + ':' + ('0' + s % 60).slice(-2); }
   function konfetti(){
@@ -95,10 +114,10 @@ function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
   function los(bild){
     $('laden').remove();
     spiel = PuzzleSpiel.starte($('spiel'), { bild:bild, teile:P.teile, vorlage:P.vorlage,
-      status:function(s){ $('status').textContent = s.fest + ' von ' + s.alle + ' Teilen · ' + zeit(s.sekunden); },
+      status:function(s){ $('status').textContent = T.teile.replace('{a}', s.fest).replace('{b}', s.alle) + ' · ' + zeit(s.sekunden); },
       fertig:function(sek){
         var g = $('geschafft');
-        g.innerHTML = '<p>🎉 <b>Geschafft!</b> In ' + zeit(sek) + ' Minuten.</p><button type="button" class="haupt">Nochmals</button>';
+        g.innerHTML = '<p>🎉 <b>' + T.geschafft + '</b> ' + T.minuten.replace('{z}', zeit(sek)) + '</p><button type="button" class="haupt">' + T.nochmals + '</button>';
         g.hidden = false; konfetti();
         g.querySelector('button').addEventListener('click', function(){ g.hidden = true; spiel.neu(); });
       } });
@@ -113,16 +132,16 @@ function h(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8')
   });
   var img = new Image();
   img.onload = function(){ los(img); };
-  img.onerror = function(){ $('laden').textContent = 'Das Bild konnte nicht geladen werden. Lade die Seite neu.'; };
+  img.onerror = function(){ $('laden').textContent = T.bild; };
   img.src = P.bild;
 })();
 </script>
 <?php else: ?>
 <div class="fehlt"><main>
   <p class="symbol" aria-hidden="true">🧩</p>
-  <h1>Dieses Puzzle gibt es nicht</h1>
-  <p>Prüfe den Link oder scanne den QR-Code nochmals.</p>
-  <p><a href="<?= h($basis) ?>">Zum Rätsellabor</a></p>
+  <h1><?= h(t('gibtsnicht')) ?></h1>
+  <p><?= h(t('pruefen')) ?></p>
+  <p><a href="<?= h($basis) ?>"><?= h(t('labor')) ?></a></p>
 </main></div>
 <?php endif; ?>
 </body>

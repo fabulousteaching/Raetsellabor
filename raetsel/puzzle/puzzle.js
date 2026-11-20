@@ -102,7 +102,7 @@ function starte(bereich){
   $('#pzDatei').addEventListener('change', function(){ bildLaden(this.files && this.files[0]); this.value = ''; });
   $('#pzLeerKnopf').addEventListener('click', function(){ $('#pzDatei').click(); });
   [$('#pzAblage'), $('#pzSpiel')].forEach(function(z){
-    z.addEventListener('dragover', function(ev){ if (ev.dataTransfer && [].indexOf.call(ev.dataTransfer.types, tx('Files')) >= 0){ ev.preventDefault(); z.classList.add('ziehen'); } });
+    z.addEventListener('dragover', function(ev){ if (ev.dataTransfer && [].indexOf.call(ev.dataTransfer.types, 'Files') >= 0){ ev.preventDefault(); z.classList.add('ziehen'); } });
     z.addEventListener('dragleave', function(){ z.classList.remove('ziehen'); });
     z.addEventListener('drop', function(ev){ z.classList.remove('ziehen'); var f = ev.dataTransfer && ev.dataTransfer.files[0]; if (!f) return; ev.preventDefault(); bildLaden(f); });
   });
@@ -123,8 +123,8 @@ function starte(bereich){
     $('#pzLeer').hidden = !!bild; $('#pzMischen').disabled = !bild;
     if (!bild){ $('#pzStatus').textContent = ''; return; }
     spiel = PuzzleSpiel.starte($('#pzSpiel'), { bild:bild, teile:st.opt.teile, vorlage:st.opt.vorlage,
-      status:function(s){ $('#pzStatus').textContent = s.fest + tx(' von ') + s.alle + tx(' Teilen · ') + zeit(s.sekunden); },
-      fertig:function(sek){ var f = $('#pzFertig'); f.innerHTML = tx('<p>🎉 <b>Geschafft!</b> In ') + zeit(sek) + tx(' Minuten.</p><button type="button" class="btn primary klein">Nochmals</button>');
+      status:function(s){ $('#pzStatus').textContent = tx('{a} von {b} Teilen', { a:s.fest, b:s.alle }) + ' · ' + zeit(s.sekunden); },
+      fertig:function(sek){ var f = $('#pzFertig'); f.innerHTML = '<p>🎉 <b>' + tx('Geschafft!') + '</b> ' + tx('In {z} Minuten.', { z:zeit(sek) }) + '</p><button type="button" class="btn primary klein">' + tx('Nochmals') + '</button>';
         f.hidden = false; f.querySelector('button').addEventListener('click', function(){ f.hidden = true; spiel.neu(); }); } });
   }
   $('#pzMischen').addEventListener('click', function(){ if (spiel){ $('#pzFertig').hidden = true; spiel.neu(); } });
@@ -160,7 +160,7 @@ function starte(bereich){
   $('#pzQr').addEventListener('click', function(){
     var knopf = this;
     if (!bild){ meldung('fehler', tx('<p>Wähle zuerst ein Bild aus.</p>')); return; }
-    var daten = { teile:st.opt.teile, vorlage:!!st.opt.vorlage };
+    var daten = { teile:st.opt.teile, vorlage:!!st.opt.vorlage, sprache:Labor.sprache };
     [0.85, 0.72, 0.6, 0.45].some(function(q){ daten.bild = bild.toDataURL('image/jpeg', q); return daten.bild.length < 2600000; });   // höchstens etwa 2 MB
     var key = schluessel();
     knopf.disabled = true; $('#pzQrInfo').innerHTML = tx('<span class="lade" aria-hidden="true"></span>Das Puzzle wird gespeichert …');
@@ -178,7 +178,7 @@ function starte(bereich){
   });
   function qrSvg(text, gross){
     qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
-    var q = qrcode(0, 'M'); q.addData(text, /^[0-9A-Z $%*+\-.\/:]+$/.test(text) ? tx('Alphanumeric') : tx('Byte')); q.make();
+    var q = qrcode(0, 'M'); q.addData(text, /^[0-9A-Z $%*+\-.\/:]+$/.test(text) ? 'Alphanumeric' : 'Byte'); q.make();
     var n = q.getModuleCount(), d = '', R = 4;
     for (var y = 0; y < n; y++) for (var x = 0; x < n; x++) if (q.isDark(y, x)) d += 'M' + (x + R) + ' ' + (y + R) + 'h1v1h-1z';
     return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + (n + 2 * R) + ' ' + (n + 2 * R) + '" width="' + gross + '" height="' + gross + tx('" shape-rendering="crispEdges" role="img" aria-label="QR-Code zum Puzzle">') +
@@ -196,7 +196,7 @@ function starte(bereich){
     if (!qr) return;
     var o = st.opt;
     $('#pzBlatt').innerHTML = (o.titelAn ? tx('<h2>Puzzle</h2>') : '') +
-      (o.anleitungAn ? tx('<p class="pz-anleitung">Scanne den QR-Code mit dem Tablet oder Handy. Ziehe die Teile aufs Brett – am richtigen Platz rasten sie ein. (') + o.teile + tx(' Teile)</p>') : '') +
+      (o.anleitungAn ? '<p class="pz-anleitung">' + tx('Scanne den QR-Code mit dem Tablet oder Handy. Ziehe die Teile aufs Brett – am richtigen Platz rasten sie ein. ({n} Teile)', { n:o.teile }) + '</p>' : '') +
       '<div class="pz-blatt-inhalt"><div class="pz-blatt-qr">' + qrSvg(qr.url, 340) + '</div><p class="pz-blatt-link">' + esc(linkText()) + '</p></div>';   // ohne Bild: die Kinder sollen es erst beim Puzzeln sehen
   }
   Labor.blattSchalter(bereich, st.opt, function(){ speichern(); blattZeichnen(); });
@@ -211,11 +211,11 @@ function starte(bereich){
     var img = new Image(), svg = qrSvg(qr.url, 800);
     img.onload = function(){
       var c = document.createElement('canvas'); c.width = c.height = 800; c.getContext('2d').drawImage(img, 0, 0, 800, 800);
-      c.toBlob(function(bl){ var a = document.createElement('a'); a.href = URL.createObjectURL(bl); a.download = tx('Puzzle-QR-') + qr.id + '.png'; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000); });
+      c.toBlob(function(bl){ var a = document.createElement('a'); a.href = URL.createObjectURL(bl); a.download = 'Puzzle-QR-' + qr.id + '.png'; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000); });
     };
     img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
   });
-  Labor.pdfKnopf($('#pzPdf'), function(){ return qr && { blaetter:[$('#pzBlatt')], name:tx('Puzzle-') + qr.id + '.pdf' }; }, function(t){ meldung('fehler', '<p>' + esc(t) + '</p>'); });
+  Labor.pdfKnopf($('#pzPdf'), function(){ return qr && { blaetter:[$('#pzBlatt')], name:'Puzzle-' + qr.id + '.pdf' }; }, function(t){ meldung('fehler', '<p>' + esc(t) + '</p>'); });
 
   neuesSpiel();
   bereich.puzzleSpiel = function(){ return spiel; };   // für Tests

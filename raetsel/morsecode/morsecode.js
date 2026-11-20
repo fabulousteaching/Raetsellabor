@@ -16,7 +16,7 @@ var Kern = (function(){
     A:'.-', B:'-...', C:'-.-.', D:'-..', E:'.', F:'..-.', G:'--.', H:'....', I:'..', J:'.---', K:'-.-', L:'.-..', M:'--',
     N:'-.', O:'---', P:'.--.', Q:'--.-', R:'.-.', S:'...', T:'-', U:'..-', V:'...-', W:'.--', X:'-..-', Y:'-.--', Z:'--..',
     '0':'-----', '1':'.----', '2':'..---', '3':'...--', '4':'....-', '5':'.....', '6':'-....', '7':'--...', '8':'---..', '9':'----.',
-    'Ä':'.-.-', 'Ö':'---.', 'Ü':'..--', 'CH':'----',
+    'Ä':'.-.-', 'Ö':'---.', 'Ü':'..--', 'CH':'----', 'É':'..-..', 'È':'.-..-', 'À':'.--.-', 'Ç':'-.-..',
     '.':'.-.-.-', ',':'--..--', '?':'..--..', '!':'-.-.--', '-':'-....-', '/':'-..-.', ':':'---...', "'":'.----.', '(':'-.--.', ')':'-.--.-',
     '=':'-...-', '+':'.-.-.', '@':'.--.-.', '"':'.-..-.'
   };
@@ -74,7 +74,7 @@ var Kern = (function(){
 /* KERN-ENDE */
 
 var TINTE = '#1C1714', RATE = 22050, MAX = 300;
-var TEMPI = [[5, tx('sehr langsam')], [8, 'langsam'], [12, 'mittel'], [16, tx('zügig')], [20, 'schnell']];
+var TEMPI = [[5, tx('sehr langsam')], [8, tx('langsam')], [12, tx('mittel')], [16, tx('zügig')], [20, tx('schnell')]];
 function esc(t){ return Labor.esc(t); }
 function zeigeCode(c){ return c.replace(/\./g, '·').replace(/-/g, '−'); }
 
@@ -185,7 +185,7 @@ function starte(bereich){
     $('#mcBand').innerHTML = html;
   }
   function tabelleHtml(){
-    var l = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('').concat(['Ä', 'Ö', 'Ü']).concat(st.opt.ch ? ['CH'] : []);
+    var l = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('').concat(Labor.sprache === 'fr' ? ['É', 'È', 'À', 'Ç'] : Labor.sprache === 'en' ? [] : ['Ä', 'Ö', 'Ü']).concat(st.opt.ch ? ['CH'] : []);
     // dazu die Satzzeichen, die im Text vorkommen
     R.L.woerter.forEach(function(w){ w.forEach(function(c){ if (l.indexOf(c) < 0) l.push(c); }); });
     return '<div class="mc-tabelle">' + l.map(function(c){ return '<span><b>' + esc(c) + '</b><i>' + zeigeCode(Kern.CODE[c]) + '</i></span>'; }).join('') + '</div>';
@@ -196,7 +196,7 @@ function starte(bereich){
     var r = berechnen(), h = '';
     if (r.L.weg.length) h += '<p class="warnung">' + esc(r.L.weg.join(' ')) + tx(' gibt es im Morsealphabet nicht – fällt weg.</p>');
     var n = r.L.woerter.reduce(function(a, w){ return a + w.length; }, 0);
-    if (n) h += '<p class="mc-info">' + n + tx(' Zeichen in ') + r.L.woerter.length + (r.L.woerter.length === 1 ? tx(' Wort.') : tx(' Wörtern.')) + '</p>';
+    if (n) h += '<p class="mc-info">' + tx(r.L.woerter.length === 1 ? '{n} Zeichen in 1 Wort.' : '{n} Zeichen in {w} Wörtern.', { n:n, w:r.L.woerter.length }) + '</p>';
     $('#mcZaehler').innerHTML = h;
     var leer = !n;
     ['#mcPdf', '#mcHerunterladen', '#mcZeigeLoesung', '#mcSpielen', '#mcMp3'].forEach(function(s){ $(s).disabled = leer; });
@@ -206,7 +206,7 @@ function starte(bereich){
     band();
     var o = st.opt;
     var anleitung = o.codeZeigen ? tx('Übersetze den Morsecode: · ist kurz, − ist lang. Schreibe jedes Zeichen in ein Kästchen.') :
-      tx('Hör dir die Aufnahme an: kurze und lange Töne. Schreibe jedes Zeichen in ein Kästchen.') + (o.wdh > 1 ? tx(' Die Nachricht kommt ') + o.wdh + tx('-mal.') : '');
+      tx('Hör dir die Aufnahme an: kurze und lange Töne. Schreibe jedes Zeichen in ein Kästchen.') + (o.wdh > 1 ? ' ' + tx('Die Nachricht kommt {n}-mal.', { n:o.wdh }) : '');
     var woerter = r.L.woerter.map(function(w){
       return '<span class="mc-blattwort">' + w.map(function(c){ return '<span class="mc-feld">' + (o.codeZeigen ? '<i>' + zeigeCode(Kern.CODE[c]) + '</i>' : '') + '<span class="mc-kaestchen"></span></span>'; }).join('') + '</span>';
     }).join('');
@@ -267,7 +267,7 @@ function starte(bereich){
     var f = enc.flush(); if (f.length) teile.push(new Uint8Array(f));
     return new Blob(teile, { type:'audio/mpeg' });
   }
-  function dateiName(){ var w = R.L.woerter.map(function(x){ return x.join(''); }).join('-').replace(/[^A-Z0-9ÄÖÜ-]/gi, '').slice(0, 30); return tx('Morsecode-') + (w || tx('Nachricht')) + '.mp3'; }
+  function dateiName(){ var w = R.L.woerter.map(function(x){ return x.join(''); }).join('-').replace(/[^A-Z0-9ÄÖÜ-]/gi, '').slice(0, 30); return 'Morsecode-' + (w || 'Nachricht') + '.mp3'; }
   var speicherOrt = null;
   $('#mcMp3').addEventListener('click', function(){
     if (!R) return;

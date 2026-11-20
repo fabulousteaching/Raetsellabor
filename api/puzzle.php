@@ -59,6 +59,9 @@ $teile = (int)($e['teile'] ?? 0);
 if (!in_array($teile, TEILE, true)) antwort(400, ['fehler' => 'teile']);
 $vorlage = !empty($e['vorlage']);
 $inhalt = ['teile' => $teile, 'vorlage' => $vorlage];
+// Sprache der Puzzle-Seite (nur gespeichert, wenn nicht Deutsch – so bleiben bestehende Puzzles gleich)
+$sprache = (string)($e['sprache'] ?? 'de');
+if (in_array($sprache, ['en', 'fr'], true)) $inhalt['sprache'] = $sprache;
 
 // das Bild: nur ein echtes JPEG in vernünftiger Grösse
 if (!is_string($e['bild'] ?? null) || !preg_match('#^data:image/jpeg;base64,([A-Za-z0-9+/]+={0,2})$#', $e['bild'], $m)) antwort(400, ['fehler' => 'bild']);
