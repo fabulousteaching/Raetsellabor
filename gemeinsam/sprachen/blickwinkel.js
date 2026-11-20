@@ -71,5 +71,12 @@ Labor.woerter('blickwinkel', {
   'Aus jeder Richtung steht etwas anderes.': ['Each direction shows something different.', 'Chaque direction montre autre chose.'],
   'Schreibe auf, was du liest.': ['Write down what you read.', 'Écris ce que tu lis.'],
   'Blickwinkel – Lösung': ['Viewing Angle – Solution', 'Angle de vue – Solution'],
-  'von oben': ['from above', 'vu d’en haut']
+  'von oben': ['from above', 'vu d’en haut'],
+  'von unten': ['from below', 'vu d’en bas'],
+  'von unten rechts': ['from bottom right', 'vu d’en bas à droite'],
+  'von rechts': ['from the right', 'vu de droite'],
+  'von oben rechts': ['from top right', 'vu d’en haut à droite'],
+  'von oben links': ['from top left', 'vu d’en haut à gauche'],
+  'von links': ['from the left', 'vu de gauche'],
+  'von unten links': ['from bottom left', 'vu d’en bas à gauche']
 });

@@ -452,7 +452,7 @@ function starte(bereich){
     // Lösung: je Nachricht der flache Blick
     $('#bwLoesung').innerHTML = (o.titelAn ? tx('<h2>Blickwinkel – Lösung</h2>') : tx('<p class="bw-anleitung"><b>Lösung</b></p>')) +
       '<div class="bw-loesungen">' + P.slice().sort(function(a, b){ return a.richtung - b.richtung; }).map(function(n){
-        return '<div class="bw-loesung"><p><b>' + n.richtung + tx('</b> von ') + Kern.richtungsName(n.richtung, nR()) + ': <b>' + esc(n.text) + '</b></p>' + formSvg(280, n.richtung, 'l' + n.richtung) + '</div>';
+        return '<div class="bw-loesung"><p><b>' + n.richtung + '</b> ' + tx('von ' + Kern.richtungsName(n.richtung, nR())) + ': <b>' + esc(n.text) + '</b></p>' + formSvg(280, n.richtung, 'l' + n.richtung) + '</div>';
       }).join('') + '</div>';
     // Am Bildschirm: Blickrichtung wählen
     if (!P.some(function(n){ return n.richtung === blick; })) blick = 0;
