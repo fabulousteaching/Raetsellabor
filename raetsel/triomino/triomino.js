@@ -130,7 +130,11 @@ var Kern = (function(){
   }
 
   /* ---------- Stellenwerte: Zahl mit farbiger Ziffer ↔ «4 Hundertstel» ---------- */
-  var STELLEN = { '3':'Tausender', '2':'Hunderter', '1':'Zehner', '0':'Einer', '-1':'Zehntel', '-2':'Hundertstel', '-3':'Tausendstel' };
+  var SPR = typeof Labor !== 'undefined' && Labor.sprache ? Labor.sprache : 'de';
+  // [Einzahl, Mehrzahl]
+  var STELLEN = SPR === 'en' ? { '3':['thousand', 'thousands'], '2':['hundred', 'hundreds'], '1':['ten', 'tens'], '0':['one', 'ones'], '-1':['tenth', 'tenths'], '-2':['hundredth', 'hundredths'], '-3':['thousandth', 'thousandths'] }
+    : SPR === 'fr' ? { '3':['millier', 'milliers'], '2':['centaine', 'centaines'], '1':['dizaine', 'dizaines'], '0':['unité', 'unités'], '-1':['dixième', 'dixièmes'], '-2':['centième', 'centièmes'], '-3':['millième', 'millièmes'] }
+    : { '3':['Tausender', 'Tausender'], '2':['Hunderter', 'Hunderter'], '1':['Zehner', 'Zehner'], '0':['Einer', 'Einer'], '-1':['Zehntel', 'Zehntel'], '-2':['Hundertstel', 'Hundertstel'], '-3':['Tausendstel', 'Tausendstel'] };
   function stellenwerte(art, sep){
     var plaetze = art === 'ganz' ? [0, 1, 2, 3] : art === 'dezimal' ? [0, -1, -2, -3] : [3, 2, 1, 0, -1, -2, -3];
     return function(rnd){
@@ -144,15 +148,25 @@ var Kern = (function(){
         if (s >= 0) ganz += z; else bruch += z;
       }
       var text = ganz + (nach ? sep + bruch : ''), mark = p >= 0 ? vor - 1 - p : vor - p;
-      return { a:{ zahl:text, mark:mark }, b:{ t:d + ' ' + STELLEN[p] }, ka:'z' + text + '@' + mark, kb:'s' + d + '|' + p };
+      return { a:{ zahl:text, mark:mark }, b:{ t:d + ' ' + STELLEN[p][d === 1 ? 0 : 1] }, ka:'z' + text + '@' + mark, kb:'s' + d + '|' + p };
     };
   }
 
   /* ---------- Brüche in Worten ↔ Brüche ---------- */
-  var ZAHLWORT = ['', 'ein', 'zwei', 'drei', 'vier', 'fünf', 'sechs', 'sieben', 'acht', 'neun', 'zehn', 'elf', 'zwölf', 'dreizehn', 'vierzehn',
-    'fünfzehn', 'sechzehn', 'siebzehn', 'achtzehn', 'neunzehn', 'zwanzig', 'einundzwanzig', 'zweiundzwanzig', 'dreiundzwanzig'];
-  var NENNER = { 2:'Halbe', 3:'Drittel', 4:'Viertel', 5:'Fünftel', 6:'Sechstel', 7:'Siebtel', 8:'Achtel', 9:'Neuntel', 10:'Zehntel', 11:'Elftel', 12:'Zwölftel' };
-  function bruchWort(z, n){ return n === 2 ? (z === 1 ? 'ein Halb' : ZAHLWORT[z] + ' Halbe') : ZAHLWORT[z] + ' ' + NENNER[n]; }
+  var ZAHLWORT = SPR === 'en' ? ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen',
+      'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty', 'twenty-one', 'twenty-two', 'twenty-three']
+    : SPR === 'fr' ? ['', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf', 'dix', 'onze', 'douze', 'treize', 'quatorze',
+      'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf', 'vingt', 'vingt et un', 'vingt-deux', 'vingt-trois']
+    : ['', 'ein', 'zwei', 'drei', 'vier', 'fünf', 'sechs', 'sieben', 'acht', 'neun', 'zehn', 'elf', 'zwölf', 'dreizehn', 'vierzehn',
+      'fünfzehn', 'sechzehn', 'siebzehn', 'achtzehn', 'neunzehn', 'zwanzig', 'einundzwanzig', 'zweiundzwanzig', 'dreiundzwanzig'];
+  // Nenner: [Einzahl, Mehrzahl]
+  var NENNER = SPR === 'en' ? { 2:['half', 'halves'], 3:['third', 'thirds'], 4:['quarter', 'quarters'], 5:['fifth', 'fifths'], 6:['sixth', 'sixths'], 7:['seventh', 'sevenths'],
+      8:['eighth', 'eighths'], 9:['ninth', 'ninths'], 10:['tenth', 'tenths'], 11:['eleventh', 'elevenths'], 12:['twelfth', 'twelfths'] }
+    : SPR === 'fr' ? { 2:['demi', 'demis'], 3:['tiers', 'tiers'], 4:['quart', 'quarts'], 5:['cinquième', 'cinquièmes'], 6:['sixième', 'sixièmes'], 7:['septième', 'septièmes'],
+      8:['huitième', 'huitièmes'], 9:['neuvième', 'neuvièmes'], 10:['dixième', 'dixièmes'], 11:['onzième', 'onzièmes'], 12:['douzième', 'douzièmes'] }
+    : { 2:['Halb', 'Halbe'], 3:['Drittel', 'Drittel'], 4:['Viertel', 'Viertel'], 5:['Fünftel', 'Fünftel'], 6:['Sechstel', 'Sechstel'], 7:['Siebtel', 'Siebtel'],
+      8:['Achtel', 'Achtel'], 9:['Neuntel', 'Neuntel'], 10:['Zehntel', 'Zehntel'], 11:['Elftel', 'Elftel'], 12:['Zwölftel', 'Zwölftel'] };
+  function bruchWort(z, n){ return ZAHLWORT[z] + ' ' + NENNER[n][z === 1 ? 0 : 1]; }
   // Liste aller Brüche bis zum Nenner max; reichen die echten Brüche nicht für «bedarf», kommen unechte dazu (z. B. fünf Viertel)
   function brueche(max, bedarf){
     var liste = [], n, z;
@@ -233,7 +247,7 @@ var VORLAGE = '<div class="tr">' +
   tx('<div class="tr-layout"><section class="tr-eingabe" aria-label="Eingaben">') +
     tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Form</h2></div></div>') +
       tx('<div class="tr-formen" role="radiogroup" aria-label="Form">') +
-        Object.keys(Kern.FORMEN).map(function(k){ var f = Kern.FORMEN[k]; return '<label><input type="radio" name="trForm" value="' + k + '"><span>' + formBild(k) + '<b>' + f.name + '</b><small>' + f.teile + tx(' Teile · ') + f.paare + tx(' Paare</small></span></label>'); }).join('') +
+        Object.keys(Kern.FORMEN).map(function(k){ var f = Kern.FORMEN[k]; return '<label><input type="radio" name="trForm" value="' + k + '"><span>' + formBild(k) + '<b>' + tx(f.name) + '</b><small>' + tx('{t} Teile · {p} Paare', { t:f.teile, p:f.paare }) + '</small></span></label>'; }).join('') +
       '</div></div>' +
     tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Inhalt</h2></div></div>') +
       tx('<p class="feld-label">Fach</p><div class="tr-chips" role="radiogroup" aria-label="Fach">') + chips('trFach', FAECHER) + '</div>' +
@@ -250,7 +264,7 @@ var VORLAGE = '<div class="tr">' +
       '</div>' +
       '<div class="tr-unter" data-art="stellenwerte">' +
         tx('<p class="feld-label">Zahlen</p><div class="tr-chips">') + chips('trStellen', [['dezimal', tx('Dezimalzahlen')], ['ganz', tx('Ganze Zahlen')], ['gemischt', tx('Gemischt')]]) + '</div>' +
-        tx('<p class="hinweis">Eine Ziffer ist farbig, z. B. 0.3<b style="color:') + MARKE + tx('">4</b>5 und «4 Hundertstel».</p>') +
+        '<p class="hinweis">' + tx('Eine Ziffer ist farbig, z. B. {z} und «4 Hundertstel».', { z:'0.3<b style="color:' + MARKE + '">4</b>5' }) + '</p>' +
       '</div>' +
       '<div class="tr-unter" data-art="brueche">' +
         tx('<p class="feld-label">Nenner</p><div class="tr-chips">') + chips('trBruch', [['6', tx('bis Sechstel')], ['10', tx('bis Zehntel')], ['12', tx('bis Zwölftel')]]) + '</div>' +
@@ -404,13 +418,13 @@ function starte(bereich){
   function zaehlerZeigen(){
     if (!sprache()) return;
     var w = paare(), n = w.paare.length, f = form(), fehlt = f.paare - n;
-    var h = '<p class="tr-zaehler-haupt ' + (fehlt > 0 ? 'fehlt' : 'ok') + '"><b>' + n + '</b> ' + (n === 1 ? tx('Paar') : tx('Paare')) + tx(' eingegeben · ') + f.name + tx(' braucht <b>') + f.paare + '</b>' +
-      (fehlt > 0 ? tx(' – es fehlen noch <b>') + fehlt + '</b>.' : ' ✓') + '</p>';
+    var h = '<p class="tr-zaehler-haupt ' + (fehlt > 0 ? 'fehlt' : 'ok') + '">' + (n === 1 ? tx('{n} Paar eingegeben', { n:'<b>1</b>' }) : tx('{n} Paare eingegeben', { n:'<b>' + n + '</b>' })) + ' · ' + tx('{name} braucht {n}', { name:esc(tx(f.name)), n:'<b>' + f.paare + '</b>' }) +
+      (fehlt > 0 ? tx(' – es fehlen noch {n}.', { n:'<b>' + fehlt + '</b>' }) : ' ✓') + '</p>';
     h += '<p class="tr-zaehler-formen">' + Object.keys(Kern.FORMEN).map(function(k){ var x = Kern.FORMEN[k]; return '<span class="' + (n >= x.paare ? 'ok' : '') + '">' + x.name + ': ' + x.paare + '</span>'; }).join('') + '</p>';
-    if (fehlt < 0) h += '<p>' + (-fehlt) + tx(' Paare mehr als nötig: Es werden zufällig ') + f.paare + tx(' ausgewählt') + (st.opt.rand === 'ablenker' ? tx(', übrige Wörter dienen als Ablenker an den Aussenkanten.') : '.') + '</p>';
+    if (fehlt < 0) h += '<p>' + tx('{a} Paare mehr als nötig: Es werden zufällig {b} ausgewählt', { a:-fehlt, b:f.paare }) + (st.opt.rand === 'ablenker' ? tx(', übrige Wörter dienen als Ablenker an den Aussenkanten.') : '.') + '</p>';
     var wartend = zeilen().filter(function(z){ return z.laedt; }).length;
-    if (w.ohne > wartend) h += '<p class="warnung">' + (w.ohne - wartend) + tx(' Zeile') + (w.ohne - wartend > 1 ? tx('n haben') : tx(' hat')) + tx(' erst ein Wort – sie zählt, sobald beide Felder ausgefüllt sind.</p>');
-    if (w.doppelt) h += '<p class="warnung">' + w.doppelt + tx(' doppelte') + (w.doppelt > 1 ? '' : 's') + tx(' Wort') + (w.doppelt > 1 ? 'e' : '') + tx(' nicht verwendet (sonst passten zwei Teile).</p>');
+    if (w.ohne > wartend) h += '<p class="warnung">' + (w.ohne - wartend > 1 ? tx('{n} Zeilen haben erst ein Wort – sie zählen, sobald beide Felder ausgefüllt sind.', { n:w.ohne - wartend }) : tx('1 Zeile hat erst ein Wort – sie zählt, sobald beide Felder ausgefüllt sind.')) + '</p>';
+    if (w.doppelt) h += '<p class="warnung">' + (w.doppelt > 1 ? tx('{n} doppelte Wörter nicht verwendet (sonst passten zwei Teile).', { n:w.doppelt }) : tx('1 doppeltes Wort nicht verwendet (sonst passten zwei Teile).')) + '</p>';
     $('#trZaehler').innerHTML = h;
   }
   function erzeugen(){
@@ -419,13 +433,13 @@ function starte(bereich){
     var ablenker = st.opt.rand === 'ablenker' ? k.aussen.length : 0;
     zaehlerZeigen();
     info = Kern.auswahl(quelle(f.paare + ablenker), f.paare, ablenker, rnd);
-    $('#trRandInfo').textContent = st.opt.rand === 'ablenker' ? (sprache() && info.ablenker.length < k.aussen.length ? tx('Für Ablenker braucht es zusätzliche Wortpaare (bis ') + k.aussen.length + tx('). Jetzt: ') + info.ablenker.length + '.' : tx('An den Aussenkanten stehen Aufgaben oder Lösungen, die nirgends passen.')) : tx('Randteile erkennt man an den leeren Seiten.');
+    $('#trRandInfo').textContent = st.opt.rand === 'ablenker' ? (sprache() && info.ablenker.length < k.aussen.length ? tx('Für Ablenker braucht es zusätzliche Wortpaare (bis {a}). Jetzt: {b}.', { a:k.aussen.length, b:info.ablenker.length }) : tx('An den Aussenkanten stehen Aufgaben oder Lösungen, die nirgends passen.')) : tx('Randteile erkennt man an den leeren Seiten.');
     if (info.fehlen > 0){
       trimino = null;
       $('#trBlatt').hidden = $('#trLoesung').hidden = $('#trPaare').hidden = true;
       ['#trZeigeLoesung', '#trPdf', '#trHerunterladen'].forEach(function(s){ $(s).disabled = true; });
       meldung(sprache() && !paare().paare.length ? 'info' : 'warnung', sprache()
-        ? tx('<p>Für ') + (st.opt.form === 'stern' ? tx('einen ') : st.opt.form === 'sechseck' ? tx('ein ') : tx('ein ')) + esc(f.name) + tx(' braucht es <b>') + f.paare + tx(' Paare</b>') + (paare().paare.length ? tx(' – es fehlen noch ') + info.fehlen + '.' : tx('. Gib links deine Wortpaare ein.')) + '</p>'
+        ? '<p>' + (st.opt.form === 'stern' ? tx('Für einen {name} braucht es {n} Paare', { name:esc(tx(f.name)), n:'<b>' + f.paare + '</b>' }) : tx('Für ein {name} braucht es {n} Paare', { name:esc(tx(f.name)), n:'<b>' + f.paare + '</b>' })) + (paare().paare.length ? tx(' – es fehlen noch {n}.', { n:info.fehlen }) : '. ' + tx('Gib links deine Wortpaare ein.')) + '</p>'
         : tx('<p>Mit diesen Einstellungen gibt es nicht genug verschiedene Aufgaben. Wähle einen grösseren Zahlenraum oder eine kleinere Form.</p>'));
       return;
     }
@@ -493,7 +507,7 @@ function starte(bereich){
       var A = P[k], B = P[(k + 1) % 3], M = [(A[0] + B[0]) / 2, (A[1] + B[1]) / 2], n = [C[0] - M[0], C[1] - M[1]], ln = Math.hypot(n[0], n[1]);
       n = [n[0] / ln, n[1] / ln];
       var winkel = Math.atan2(n[0], -n[1]) * 180 / Math.PI, Q = [M[0] + n[0] * l.abst, M[1] + n[1] * l.abst];   // Textrichtung (−n.y, n.x), Oberseite zur Mitte
-      return '<g transform="translate(' + Q[0].toFixed(2) + ' ' + Q[1].toFixed(2) + tx(') rotate(') + winkel.toFixed(2) + ')" font-size="' + l.fs.toFixed(2) + '">' + l.svg(l.fs) + '</g>';
+      return '<g transform="translate(' + Q[0].toFixed(2) + ' ' + Q[1].toFixed(2) + ') rotate(' + winkel.toFixed(2) + ')" font-size="' + l.fs.toFixed(2) + '">' + l.svg(l.fs) + '</g>';
     }).join('');
   }
   function figurSvg(loesung){
@@ -512,7 +526,7 @@ function starte(bereich){
       texte += teilTexte(P, C, [0, 1, 2].map(function(k){ return t.inhalt[platz.teil][(k + platz.dreh) % 3]; }));
       linien += 'M' + P.map(function(p){ return p[0].toFixed(2) + ' ' + p[1].toFixed(2); }).join('L') + 'Z';
     });
-    return '<svg class="tr-figur" viewBox="' + x0.toFixed(1) + ' ' + y0.toFixed(1) + ' ' + (x1 - x0).toFixed(1) + ' ' + (y1 - y0).toFixed(1) + tx('" role="img" aria-label="Triomino ') + esc(form().name) + (loesung ? tx(', Lösung') : '') + '">' +
+    return '<svg class="tr-figur" viewBox="' + x0.toFixed(1) + ' ' + y0.toFixed(1) + ' ' + (x1 - x0).toFixed(1) + ' ' + (y1 - y0).toFixed(1) + '" role="img" aria-label="' + esc(loesung ? tx('Triomino {name}, Lösung', { name:tx(form().name) }) : tx('Triomino {name}', { name:tx(form().name) })) + '">' +
       '<path d="' + ecken + '" fill="' + farbe + '"/>' +
       '<path d="' + linien + '" fill="none" stroke="' + TINTE + '" stroke-width="0.9" stroke-linejoin="round"/>' +
       '<g style="font-family:var(--blatt-buchstaben)" fill="' + TINTE + '" text-anchor="middle">' + texte + '</g></svg>';
@@ -522,15 +536,15 @@ function starte(bereich){
     if (!trimino) return;
     var o = st.opt, f = form();
     $('#trBlatt').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + '</h2>' : '') +
-      (o.anleitungAn ? tx('<p class="tr-anleitung">Schneide die Dreiecke aus. Lege sie so aneinander, dass die Seiten zusammenpassen – es entsteht ') + f.figur + '.</p>' : '') +
+      (o.anleitungAn ? '<p class="tr-anleitung">' + tx('Schneide die Dreiecke aus. Lege sie so aneinander, dass die Seiten zusammenpassen – es entsteht {figur}.', { figur:tx(f.figur) }) + '</p>' : '') +
       '<div class="tr-figur-rahmen tr-' + o.form + '">' + figurSvg(false) + '</div>';
-    $('#trLoesung').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + tx(' – Lösung</h2>') : tx('<p class="tr-anleitung"><b>Lösung</b></p>')) +
+    $('#trLoesung').innerHTML = (o.titelAn ? '<h2>' + esc(titel()) + ' ' + tx('– Lösung') + '</h2>' : tx('<p class="tr-anleitung"><b>Lösung</b></p>')) +
       '<div class="tr-figur-rahmen tr-' + o.form + '">' + figurSvg(true) + '</div>';
     $('#trPaarListe').innerHTML = info.paare.map(function(p){ return '<li>' + kurz(p.a) + ' <span aria-hidden="true">↔</span> ' + kurz(p.b) + '</li>'; }).join('') +
       (info.ablenker.length ? tx('<li class="tr-ablenker">Ablenker: ') + info.ablenker.map(kurz).join(' · ') + '</li>' : '');
-    $('#trPaare').querySelector('summary').textContent = tx('Verwendete Paare (') + info.paare.length + ')';
+    $('#trPaare').querySelector('summary').textContent = tx('Verwendete Paare ({n})', { n:info.paare.length });
   }
-  function kurz(x){ return x.bruch ? '<span class="bruch" aria-label="' + x.bruch[0] + tx(' durch ') + x.bruch[1] + '"><span>' + x.bruch[0] + '</span><span>' + x.bruch[1] + '</span></span>' : x.zahl ? esc(x.zahl.slice(0, x.mark)) + '<b style="color:' + MARKE + '">' + esc(x.zahl.charAt(x.mark)) + '</b>' + esc(x.zahl.slice(x.mark + 1)) : esc(x.t); }
+  function kurz(x){ return x.bruch ? '<span class="bruch" aria-label="' + tx('{a} durch {b}', { a:x.bruch[0], b:x.bruch[1] }) + '"><span>' + x.bruch[0] + '</span><span>' + x.bruch[1] + '</span></span>' : x.zahl ? esc(x.zahl.slice(0, x.mark)) + '<b style="color:' + MARKE + '">' + esc(x.zahl.charAt(x.mark)) + '</b>' + esc(x.zahl.slice(x.mark + 1)) : esc(x.t); }
 
   /* ---------- Werkzeuge, PDF ---------- */
   $('#trNeu').addEventListener('click', function(){ st.seed = Math.floor(Math.random() * 1e9) + 1; speichern(); erzeugen(); });
@@ -550,7 +564,7 @@ function starte(bereich){
     var inhalt = bl.map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); k.removeAttribute('hidden'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
     speicherOrt.save({ filename:Labor.pdfName('Triomino', st.titel).replace(/\.pdf$/, '.html'), data:Labor.blattDatei(tx('Triomino'), inhalt, '.tr-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', '<p>' + tx('Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 
