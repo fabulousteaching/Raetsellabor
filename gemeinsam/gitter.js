@@ -72,7 +72,7 @@ var tx = Labor.uebersetzer('labor');
     o = o || {};
     var w = f.spalten * S, h = f.zeilen * S;
     var s = el('svg', { viewBox:'0 0 ' + w + ' ' + h, 'class':'gitter', role:'img', style:'--spalten:' + f.spalten,
-      'aria-label':tx('Buchstabenfeld mit ') + f.spalten + tx(' Spalten und ') + f.zeilen + tx(' Zeilen') });
+      'aria-label':tx('Buchstabenfeld mit {s} Spalten und {z} Zeilen', { s:f.spalten, z:f.zeilen }) });
     el('rect', { x:0, y:0, width:w, height:h, fill:'#fff' }, s);
     var gL = el('g', { 'class':'ebene-loesung' }, s);
     f.woerter.forEach(function(wort, i){ kapsel(gL, wort.zellen, FARBEN[i % FARBEN.length]); });

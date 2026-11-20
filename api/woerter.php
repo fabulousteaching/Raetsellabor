@@ -65,10 +65,23 @@ foreach ((array)($e['schon'] ?? []) as $w) {
   if ($w !== '' && laenge($w) <= 30 && preg_match('/^\p{L}+$/u', $w)) $schon[$w] = true;
 }
 $schon = array_slice(array_keys($schon), -80);
+// Sprache der Wörter: de (Standard), en, fr
+$sprache = in_array((string)($e['sprache'] ?? 'de'), ['de', 'en', 'fr'], true) ? (string)$e['sprache'] : 'de';
+$REGELN = [
+  'de' => ['nomen' => 'Nomen in der Einzahl, mit grossem Anfangsbuchstaben, ohne Artikel (z. B. «Kamera»)',
+           'verb' => 'Verben in der Grundform (Infinitiv), klein geschrieben (z. B. «rennen»)',
+           'adjektiv' => 'Adjektive in der Grundform, klein geschrieben (z. B. «schnell»)'],
+  'en' => ['nomen' => 'English nouns in the singular, lowercase, without an article (e.g. «camera»)',
+           'verb' => 'English verbs in the base form without «to», lowercase (e.g. «run»)',
+           'adjektiv' => 'English adjectives in the base form, lowercase (e.g. «fast»)'],
+  'fr' => ['nomen' => 'noms français au singulier, en minuscules, sans article (p. ex. «caméra»)',
+           'verb' => 'verbes français à l’infinitif, en minuscules (p. ex. «courir»)',
+           'adjektiv' => 'adjectifs français au masculin singulier, en minuscules (p. ex. «rapide»)'],
+];
 $ARTEN = [
-  'nomen'    => ['schluessel' => 'nomen',     'regel' => 'Nomen in der Einzahl, mit grossem Anfangsbuchstaben, ohne Artikel (z. B. «Kamera»)'],
-  'verb'     => ['schluessel' => 'verben',    'regel' => 'Verben in der Grundform (Infinitiv), klein geschrieben (z. B. «rennen»)'],
-  'adjektiv' => ['schluessel' => 'adjektive', 'regel' => 'Adjektive in der Grundform, klein geschrieben (z. B. «schnell»)'],
+  'nomen'    => ['schluessel' => 'nomen',     'regel' => $REGELN[$sprache]['nomen']],
+  'verb'     => ['schluessel' => 'verben',    'regel' => $REGELN[$sprache]['verb']],
+  'adjektiv' => ['schluessel' => 'adjektive', 'regel' => $REGELN[$sprache]['adjektiv']],
 ];
 $arten = array_values(array_intersect(array_keys($ARTEN), array_map('strval', (array)($e['arten'] ?? ['nomen']))));
 if (!$arten) $arten = ['nomen'];
@@ -85,7 +98,7 @@ if (mt_rand(1, 50) === 1) {   // ab und zu aufräumen
     if ($alter > (substr((string)$d, -5) === '.json' ? SPEICHER_TAGE * 86400 : 2 * 86400)) @unlink((string)$d);
   }
 }
-$speicher = $ordner . '/vorschlag-' . sha1('mistral|' . implode(',', $arten) . '|' . mb_strtolower($thema, 'UTF-8')) . '.json';
+$speicher = $ordner . '/vorschlag-' . sha1('mistral|' . ($sprache === 'de' ? '' : $sprache . '|') . implode(',', $arten) . '|' . mb_strtolower($thema, 'UTF-8')) . '.json';
 if (!$schon && is_file($speicher) && time() - (int)filemtime($speicher) < SPEICHER_TAGE * 86400) {
   $alt = json_decode((string)file_get_contents($speicher), true);
   if (is_array($alt) && !empty($alt['woerter']) && is_array($alt['woerter'][0] ?? null)) antwort(200, ['woerter' => $alt['woerter'], 'anbieter' => $ki['name'], 'gespeichert' => true]);
@@ -109,6 +122,28 @@ if (!zaehlen($ordner . '/netz-' . sha1(hash('sha256', $schluessel) . '|' . $ip .
 
 /* ---------- KI fragen ---------- */
 $je = (int)round(30 / count($arten));
+$liste = implode("\n", array_map(function($a) use ($ARTEN, $je){ return '- ' . $je . ' ' . $ARTEN[$a]['regel']; }, $arten));
+$form = '{' . implode(', ', array_map(function($a) use ($ARTEN){ return '"' . $ARTEN[$a]['schluessel'] . '": ["…"]'; }, $arten)) . '}';
+if ($sprache === 'en') {
+  $prompt = 'Topic: «' . $thema . "»\nWe need English words that are closely related to this topic:\n" . $liste . "\n" .
+    'Very important: children aged 8 to 14 must know and understand every word. Use simple, everyday words from basic vocabulary – ' .
+    "no technical terms, no rare or old-fashioned words. Better a simple, well-known word than a precise, difficult one.\n" .
+    "Rules:\n- Each a single word without spaces, hyphens, digits or abbreviations, 3 to 12 letters, mixed lengths.\n" .
+    '- No word may contain «' . $thema . "» (no compounds with the topic itself).\n- No names of people, brands or places.\n" .
+    ($schon ? '- Not these words (already suggested): ' . implode(', ', $schon) . "\n" : '') .
+    'Answer only with JSON in this form: ' . $form;
+  $system = 'You help teachers create word puzzles for children. All words must be English. You answer only with JSON.';
+} elseif ($sprache === 'fr') {
+  $prompt = 'Thème : «' . $thema . "»\nOn cherche des mots français étroitement liés à ce thème :\n" . $liste . "\n" .
+    'Très important : des enfants de 8 à 14 ans doivent connaître et comprendre chaque mot. Prends des mots simples et courants du vocabulaire de base – ' .
+    "pas de termes techniques, pas de mots rares ou vieillis. Mieux vaut un mot simple et connu qu’un mot précis et difficile.\n" .
+    "Règles :\n- Chaque fois un seul mot sans espace, trait d’union, chiffre ni abréviation, de 3 à 12 lettres, de longueurs variées.\n" .
+    '- Aucun mot ne doit contenir «' . $thema . "» (pas de mots composés avec le thème lui-même).\n- Pas de noms de personnes, de marques ou de lieux.\n" .
+    ($schon ? '- Pas ces mots (déjà proposés) : ' . implode(', ', $schon) . "\n" : '') .
+    'Réponds uniquement en JSON sous cette forme : ' . $form;
+  $system = 'Tu aides des enseignants à créer des jeux de mots pour des enfants. Tous les mots doivent être en français. Tu réponds uniquement en JSON.';
+} else {
+$system = 'Du hilfst Lehrpersonen in der Schweiz, Worträtsel für Kinder zu erstellen. Du antwortest nur mit JSON.';
 $prompt = 'Thema: «' . $thema . "»\n" .
   "Gesucht sind Wörter, die eng zu diesem Thema gehören:\n" .
   implode("\n", array_map(function($a) use ($ARTEN, $je){ return '- ' . $je . ' ' . $ARTEN[$a]['regel']; }, $arten)) . "\n" .
@@ -119,9 +154,10 @@ $prompt = 'Thema: «' . $thema . "»\n" .
   '- Kein Wort darf «' . $thema . "» enthalten (keine Zusammensetzungen mit dem Thema selbst).\n" .
   "- Keine Namen von Personen, Marken oder Orten.\n- Schweizer Rechtschreibung: ss statt ß.\n" .
   ($schon ? '- Nicht diese Wörter (schon vorgeschlagen): ' . implode(', ', $schon) . "\n" : '') .
-  'Antworte nur mit JSON in dieser Form: {' . implode(', ', array_map(function($a) use ($ARTEN){ return '"' . $ARTEN[$a]['schluessel'] . '": ["…"]'; }, $arten)) . '}';
+  'Antworte nur mit JSON in dieser Form: ' . $form;
+}
 $body = ['messages' => [
-  ['role' => 'system', 'content' => 'Du hilfst Lehrpersonen in der Schweiz, Worträtsel für Kinder zu erstellen. Du antwortest nur mit JSON.'],
+  ['role' => 'system', 'content' => $system],
   ['role' => 'user', 'content' => $prompt],
 ]];
 $body['model'] = $ki['modell'];

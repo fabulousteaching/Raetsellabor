@@ -76,6 +76,7 @@ var tx = Labor.uebersetzer('labor');
   // Nomen gross, Verben und Adjektive klein
   function schreibweise(w, art){
     w = String(w || '').replace(/ß/g, 'ss').trim();
+    if (Labor.sprache !== 'de') return w;   // Englisch/Französisch: Nomen klein (so liefern sie die Listen und die KI)
     return art === 'nomen' ? w.charAt(0).toLocaleUpperCase('de-CH') + w.slice(1) : w.toLocaleLowerCase('de-CH');
   }
 
@@ -144,7 +145,7 @@ var tx = Labor.uebersetzer('labor');
   function kiFehler(code){ var e = new Error(code); e.code = code; return e; }
   function serverKi(thema, arten, schon){
     var ctl = typeof AbortController !== 'undefined' ? new AbortController() : null, uhr = setTimeout(function(){ if (ctl) ctl.abort(); }, 40000);
-    return fetch(SERVER, { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ thema:thema, arten:arten, schon:schon.slice(-80) }),
+    return fetch(SERVER, { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ thema:thema, arten:arten, schon:schon.slice(-80), sprache:Labor.sprache }),
       signal:ctl ? ctl.signal : undefined }).then(function(r){
       clearTimeout(uhr);
       return r.json().catch(function(){ return {}; }).then(function(j){
@@ -241,7 +242,7 @@ var tx = Labor.uebersetzer('labor');
     }
     function kiVersuch(token){
       if (Labor.imArtefakt()){ claudeFragen(token); return; }   // im Artefakt ist das Internet gesperrt
-      laedt(true, tx('Die KI sucht passende ') + artenText(vorschlag.arten) + ' …');
+      laedt(true, tx('Die KI sucht passende {arten} …', { arten:artenText(vorschlag.arten) }));
       kiFragen(vorschlag.thema, vorschlag.arten, vorschlag.alle).then(function(r){
         if (token !== lauf || aus) return;
         var gut = aufbereiten(r.woerter);
@@ -268,7 +269,7 @@ var tx = Labor.uebersetzer('labor');
       laedt(false);
       vorschlag.notiz = notiz;
       var liste = vorschlag.ctx.liste.filter(function(x){ return !vorschlag.gezeigt[norm(x.w)]; });
-      if (liste.length){ vorschlag.quelle = tx('Themenliste'); zeige(mischen(liste).slice(0, 20), tx('Themenliste')); return; }
+      if (liste.length){ vorschlag.quelle = 'Themenliste'; zeige(mischen(liste).slice(0, 20), 'Themenliste'); return; }
       info(esc(notiz) + (vorschlag.woerter.length ? '' : ' ' + eingebaute()));
     }
     // Aus dem Vorrat der KI: bis 20 Wörter, die Wortarten abwechselnd; ist er fast leer, die KI nochmals fragen
@@ -282,7 +283,7 @@ var tx = Labor.uebersetzer('labor');
       zeige(neu, vorschlag.quelle || 'KI');
     }
     function claudeFragen(token){
-      laedt(true, tx('Claude sucht passende ') + artenText(vorschlag.arten) + ' …');
+      laedt(true, tx('Claude sucht passende {arten} …', { arten:artenText(vorschlag.arten) }));
       Labor.claude('sample').then(function(ki){
         if (token !== lauf || aus) return;
         if (!ki || kiAus){ ohneKi(tx('Vorschläge von Claude sind hier nicht verfügbar.')); return; }
@@ -292,7 +293,7 @@ var tx = Labor.uebersetzer('labor');
           var gut = aufbereiten(kiListe(d, vorschlag.arten));
           if (gut.length < 3){ ohneKi(tx('Es kamen keine brauchbaren Vorschläge. Versuch es nochmals oder formuliere das Thema etwas anders.')); return; }
           laedt(false);
-          vorschlag.kiName = tx('Claude'); vorschlag.pool = gut; vorschlag.quelle = tx('Claude');
+          vorschlag.kiName = 'Claude'; vorschlag.pool = gut; vorschlag.quelle = 'Claude';
           ausPool();
         }).catch(function(e){
           if (token !== lauf || aus) return;
@@ -306,7 +307,7 @@ var tx = Labor.uebersetzer('labor');
       });
     }
     function eingebaute(){ return tx('Ohne KI gibt es Nomen zu diesen Themen: ') + THEMEN.map(function(th){ return th.name; }).join(', ') + tx('. Eigene Wörter gehen immer.'); }
-    function kopf(){ return artenText(vorschlag.arten) + tx(' zu «') + esc(vorschlag.thema) + '»'; }
+    function kopf(){ return tx('{arten} zu «{thema}»', { arten:artenText(vorschlag.arten), thema:esc(vorschlag.thema) }); }
     function laedt(ja, text){
       $('#vorschlagen').disabled = ja; $('#mehrVorschlaege').disabled = ja;
       if (ja){
@@ -328,9 +329,9 @@ var tx = Labor.uebersetzer('labor');
       eintraege.forEach(function(x){ vorschlag.gezeigt[norm(x.w)] = true; });
       $('#vorschlaege').hidden = false;
       $('#vorschlagTitel').innerHTML = kopf() + '<span class="quelle">' +
-        (quelle === 'KI' || quelle === 'Claude' ? tx('von ') + (quelle === 'Claude' ? tx('Claude') : tx('der KI')) : tx('eingebaute Liste')) + '</span>';
+        (quelle === 'KI' || quelle === 'Claude' ? tx('von ') + (quelle === 'Claude' ? 'Claude' : tx('der KI')) : tx('eingebaute Liste')) + '</span>';
       $('#vorschlagInfo').innerHTML = tx('Anklicken, um ein Wort zu übernehmen oder wieder zu entfernen.') +
-        (quelle === 'KI' ? tx(' Vorgeschlagen von einer KI (') + esc(vorschlag.kiName || 'KI') + tx(') – kurz prüfen, ob alles passt.') : '') +
+        (quelle === 'KI' ? ' ' + tx('Vorgeschlagen von einer KI ({ki}) – kurz prüfen, ob alles passt.', { ki:esc(vorschlag.kiName || 'KI') }) : '') +
         (quelle === 'Themenliste' && vorschlag.notiz ? '<br><span class="ki-notiz">' + esc(vorschlag.notiz) + '</span>' : '');
       $('#alleUebernehmen').hidden = $('#mehrVorschlaege').hidden = false;
       var box = $('#vorschlagChips'); box.innerHTML = '';
@@ -362,7 +363,7 @@ var tx = Labor.uebersetzer('labor');
       });
       var notiz = [];
       if (kurz.length) notiz.push(tx('Zu kurz: ') + kurz.map(esc).join(', '));
-      if (schon.length && liste.length === 1) notiz.push('«' + esc(schon[0]) + tx('» ist schon in der Liste'));
+      if (schon.length && liste.length === 1) notiz.push(tx('«{w}» ist schon in der Liste', { w:esc(schon[0]) }));
       zeichne(); o.geaendert(notiz.join(' · '));
     }
     function entferne(n){ st.woerter = st.woerter.filter(function(w){ return norm(w) !== n; }); zeichne(); o.geaendert(''); }
@@ -370,11 +371,11 @@ var tx = Labor.uebersetzer('labor');
       var box = $('#wortChips'), gesehen = {};
       box.innerHTML = '';
       st.woerter.forEach(function(w){
-        var n = norm(w), chip = document.createElement('span'), problem = n.length < 2 ? tx('zu kurz') : gesehen[n] ? 'doppelt' : '';
+        var n = norm(w), chip = document.createElement('span'), problem = n.length < 2 ? tx('zu kurz') : gesehen[n] ? tx('doppelt') : '';
         gesehen[n] = true;
-        chip.className = 'chip-wort' + (problem ? tx(' ungueltig') : '');
-        if (problem) chip.title = tx('Wird weggelassen (') + problem + ')';
-        chip.innerHTML = '<span></span><button type="button" aria-label="' + esc(w) + tx(' entfernen" title="Entfernen">×</button>');
+        chip.className = 'chip-wort' + (problem ? ' ungueltig' : '');
+        if (problem) chip.title = tx('Wird weggelassen ({p})', { p:problem });
+        chip.innerHTML = '<span></span><button type="button" aria-label="' + esc(tx('{w} entfernen', { w:w })) + '" title="' + tx('Entfernen') + '">×</button>';
         chip.firstChild.textContent = w;
         chip.lastChild.addEventListener('click', function(){ var i = st.woerter.indexOf(w); if (i >= 0) st.woerter.splice(i, 1); zeichne(); o.geaendert(''); });
         box.appendChild(chip);

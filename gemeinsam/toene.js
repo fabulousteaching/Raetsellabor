@@ -9,7 +9,6 @@
    Audio erst nach besonderen Freigaben erlauben. Abspielen nur nach einem Antippen (so wollen es alle Browser). */
 window.Toene = (function(){
   'use strict';
-var tx = Labor.uebersetzer('labor');
   var RATE = 22050, DAUER = 1.4, SCHRITT = 0.55, WORTPAUSE = 0.5;
   var spieler = null, uhren = [], dateien = {};
   function audio(){ if (!spieler && window.Audio){ spieler = new Audio(); spieler.preload = 'auto'; } return spieler; }
@@ -34,7 +33,7 @@ var tx = Labor.uebersetzer('labor');
     var b = new ArrayBuffer(44 + x.length * 2), v = new DataView(b), o = 0;
     function txt(s){ for (var i = 0; i < s.length; i++) v.setUint8(o++, s.charCodeAt(i)); }
     function u32(z){ v.setUint32(o, z, true); o += 4; } function u16(z){ v.setUint16(o, z, true); o += 2; }
-    txt('RIFF'); u32(36 + x.length * 2); txt('WAVE'); txt(tx('fmt ')); u32(16); u16(1); u16(1); u32(RATE); u32(RATE * 2); u16(2); u16(16); txt('data'); u32(x.length * 2);
+    txt('RIFF'); u32(36 + x.length * 2); txt('WAVE'); txt('fmt '); u32(16); u16(1); u16(1); u32(RATE); u32(RATE * 2); u16(2); u16(16); txt('data'); u32(x.length * 2);
     for (var i = 0; i < x.length; i++){ v.setInt16(o, Math.max(-1, Math.min(1, x[i])) * 32767, true); o += 2; }
     return URL.createObjectURL(new Blob([b], { type:'audio/wav' }));
   }

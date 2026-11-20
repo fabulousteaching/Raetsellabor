@@ -141,5 +141,13 @@ Labor.woerter('labor', {
   'Orange': ['Orange', 'Orange'],
   'Grün': ['Green', 'Vert'],
   'Blau': ['Blue', 'Bleu'],
-  'Violett': ['Purple', 'Violet']
+  'Violett': ['Purple', 'Violet'],
+  'Drei Schwierigkeitsstufen': ['Three difficulty levels', 'Trois niveaux de difficulté'],
+  'Ziffern und Buchstaben': ['Digits and letters', 'Chiffres et lettres'],
+  'Zahlen und Buchstaben': ['Numbers and letters', 'Nombres et lettres'],
+  'Eigener Satz': ['Your own sentence', 'Votre propre phrase'],
+  'Eigener Code': ['Your own code', 'Votre propre code'],
+  'Eigener Text': ['Your own text', 'Votre propre texte'],
+  'Eigene Wörter': ['Your own words', 'Vos propres mots'],
+  'Am Bildschirm lösbar': ['Can be solved on screen', 'Se résout à l’écran']
 });

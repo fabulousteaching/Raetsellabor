@@ -41,7 +41,7 @@ var Labor = (function(){
   var SPRACHEN = [['de', 'Deutsch'], ['en', 'English'], ['fr', 'Français']];
   var SPRACHE = (function(){ var l = String(document.documentElement.lang || '').slice(0, 2).toLowerCase(); return l === 'en' || l === 'fr' ? l : 'de'; })();
   var SPRACH_SPEICHER = 'labor-sprache', SPRACH_WECHSEL = 'labor-sprachwechsel';
-  var SPRACHDATEIEN = ['labor', 'zahlen-suchsel', 'suchsel', 'rebus', 'qr-code', 'labyrinth', 'emoji-rechnen', 'text-spiegeln', 'puzzle', 'geheimschrift',
+  var SPRACHDATEIEN = ['labor', 'bausteine', 'zahlen-suchsel', 'suchsel', 'rebus', 'qr-code', 'labyrinth', 'emoji-rechnen', 'text-spiegeln', 'puzzle', 'geheimschrift',
     'triomino', 'kreuzwort', 'fleissner', 'kette', 'drehscheiben', 'codeschloss', 'regenbogen', 'rotfolie', 'folien', 'schiebefenster', 'legekaertchen',
     'blickwinkel', 'uhren', 'nonogramm', 'textformen', 'morsecode', 'plaettchen', 'schuettelwoerter', 'fallbuchstaben', 'buchstabenteile', 'skytale',
     'richtungssuchsel', 'schachraetsel'];

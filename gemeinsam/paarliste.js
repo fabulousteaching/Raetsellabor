@@ -159,16 +159,16 @@ var tx = Labor.uebersetzer('labor');
     }, function(){ clearTimeout(uhr); throw ueFehler('netz'); });
   }
   function ueClaude(ki, sprache, richtung, woerter){
-    var fremd = sprache === 'englisch' ? tx('Englisch (britisches Englisch)') : tx('Französisch'), von = richtung === 'hin' ? tx('Deutsch') : fremd, nach = richtung === 'hin' ? fremd : tx('Deutsch');
-    var regeln = [tx('Nimm die gebräuchlichste Übersetzung, wie sie in einem Schulwörterbuch für Kinder steht; bei mehreren Bedeutungen die häufigste.'),
-      tx('Gleiche Form wie das Original: Nomen bleiben Nomen (Einzahl oder Mehrzahl wie im Original), Verben und Adjektive in der Grundform; Ausdrücke als Ganzes übersetzen.'),
-      tx('Hat das Original einen Artikel, übersetze mit Artikel; sonst ohne.')];
-    if (nach === 'Französisch') regeln.push(tx("Französische Nomen immer mit bestimmtem Artikel (le, la, l', les)."));
-    if (nach === 'Deutsch') regeln.push(tx('Deutsche Nomen mit grossem Anfangsbuchstaben; Schweizer Rechtschreibung: ss statt ß.'));
-    if (sprache === 'englisch' && richtung === 'hin') regeln.push(tx('Englische Verben ohne «to».'));
-    var auftrag = tx('Du bist ein zuverlässiges Wörterbuch für den Sprachunterricht an Schweizer Schulen (Kinder von 8 bis 14 Jahren).\n') +
-      tx('Übersetze jedes dieser Wörter von ') + von + tx(' nach ') + nach + tx('.\nRegeln:\n- ') + regeln.join('\n- ') + tx('\nWörter (JSON-Liste): ') + JSON.stringify(woerter) + '\n' +
-      tx('Antworte nur mit JSON in dieser Form: {"uebersetzungen": [{"von": "…", "nach": "…"}]} – für jedes Wort genau einen Eintrag, «von» genau wie in der Liste.');
+    var fremd = sprache === 'englisch' ? 'Englisch (britisches Englisch)' : 'Französisch', von = richtung === 'hin' ? 'Deutsch' : fremd, nach = richtung === 'hin' ? fremd : 'Deutsch';
+    var regeln = ['Nimm die gebräuchlichste Übersetzung, wie sie in einem Schulwörterbuch für Kinder steht; bei mehreren Bedeutungen die häufigste.',
+      'Gleiche Form wie das Original: Nomen bleiben Nomen (Einzahl oder Mehrzahl wie im Original), Verben und Adjektive in der Grundform; Ausdrücke als Ganzes übersetzen.',
+      'Hat das Original einen Artikel, übersetze mit Artikel; sonst ohne.'];
+    if (nach === 'Französisch') regeln.push("Französische Nomen immer mit bestimmtem Artikel (le, la, l', les).");
+    if (nach === 'Deutsch') regeln.push('Deutsche Nomen mit grossem Anfangsbuchstaben; Schweizer Rechtschreibung: ss statt ß.');
+    if (sprache === 'englisch' && richtung === 'hin') regeln.push('Englische Verben ohne «to».');
+    var auftrag = 'Du bist ein zuverlässiges Wörterbuch für den Sprachunterricht an Schweizer Schulen (Kinder von 8 bis 14 Jahren).\n' +
+      'Übersetze jedes dieser Wörter von ' + von + ' nach ' + nach + '.\nRegeln:\n- ' + regeln.join('\n- ') + '\nWörter (JSON-Liste): ' + JSON.stringify(woerter) + '\n' +
+      'Antworte nur mit JSON in dieser Form: {"uebersetzungen": [{"von": "…", "nach": "…"}]} – für jedes Wort genau einen Eintrag, «von» genau wie in der Liste.';
     return ki.json(auftrag, { modelTier:'quick' }).then(function(d){
       var ergebnis = {}, liste = d && (d.uebersetzungen || d);
       (Array.isArray(liste) ? liste : []).forEach(function(x){
@@ -248,14 +248,14 @@ var tx = Labor.uebersetzer('labor');
       var sprache = o.sprache(o.art()), getauscht = false;
       if (sprache && fremdLinks(paare, sprache)){ paare = paare.map(function(p){ return [p[1], p[0]]; }); getauscht = true; }
       var neu = paare.map(function(p){ return { a:p[0], b:p[1], auto:'' }; });
-      if (!neu.length){ melden('In ' + woher + tx(' wurden keine Wortpaare gefunden.')); return; }
+      if (!neu.length){ melden(tx('In {woher} wurden keine Wortpaare gefunden.', { woher:woher })); return; }
       var l = liste();
       while (l.length && !l[l.length - 1].a && !l[l.length - 1].b) l.pop();
       var i = l.length;
       l.push.apply(l, neu);
       zeilenZeigen(); o.geaendert();
       neu.forEach(function(z, k){ if (!z.b) uebersetzen(i + k, 'a'); else if (!z.a) uebersetzen(i + k, 'b'); });
-      melden(neu.length + (neu.length === 1 ? tx(' Paar') : tx(' Paare')) + tx(' aus ') + woher + tx(' übernommen.') + (getauscht ? tx(' Die Spalten wurden getauscht, damit Deutsch links steht.') : ''), true);
+      melden(tx(neu.length === 1 ? '1 Paar aus {woher} übernommen.' : '{n} Paare aus {woher} übernommen.', { n:neu.length, woher:woher }) + (getauscht ? tx(' Die Spalten wurden getauscht, damit Deutsch links steht.') : ''), true);
     }
     var FEHLER = { format:tx('Diese Datei kann ich nicht lesen. Bitte als Excel (.xlsx), Word (.docx) oder Text (.txt, .csv) speichern – oder die Liste kopieren und einfügen.'),
       zip:tx('Die Datei ist beschädigt oder kein Excel-/Word-Dokument.'), entpacken:tx('Dieser Browser kann die Datei nicht entpacken – bitte die Liste kopieren und einfügen.'),
@@ -266,7 +266,7 @@ var tx = Labor.uebersetzer('labor');
     }
     // Ziehen: Datei oder markierten Text auf die Liste
     var tiefe = 0;
-    function ziehbar(ev){ var t = ev.dataTransfer && ev.dataTransfer.types; return !!t && ([].indexOf.call(t, tx('Files')) >= 0 || [].indexOf.call(t, 'text/plain') >= 0); }
+    function ziehbar(ev){ var t = ev.dataTransfer && ev.dataTransfer.types; return !!t && ([].indexOf.call(t, 'Files') >= 0 || [].indexOf.call(t, 'text/plain') >= 0); }
     wurzel.addEventListener('dragenter', function(ev){ if (!ziehbar(ev)) return; ev.preventDefault(); tiefe++; wurzel.classList.add('pl-ziehen'); });
     wurzel.addEventListener('dragover', function(ev){ if (!ziehbar(ev)) return; ev.preventDefault(); ev.dataTransfer.dropEffect = 'copy'; });
     wurzel.addEventListener('dragleave', function(){ if (--tiefe <= 0){ tiefe = 0; wurzel.classList.remove('pl-ziehen'); } });
