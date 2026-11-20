@@ -247,3 +247,9 @@
 .gs-qr-groesse{margin-top:8px}
 .gs-qr-groesse[hidden]{display:none}
 .gs-qr-groesse input{width:100%;accent-color:var(--accent)}
+/* Menüs nacheinander: nach der Wahl bleibt nur die gewählte Schrift sichtbar */
+.gs-schriften.zu{grid-template-columns:minmax(0,1fr)}
+.gs-schriften.zu > label:not(:has(input:checked)){display:none}
+.gs-andere{margin-top:10px}
+.gs-andere[hidden],#gsSchriftFrage[hidden],.gs-teil[hidden],#gsNotenText[hidden],#gsNotenBlatt[hidden]{display:none}
+.karte[hidden]{display:none}

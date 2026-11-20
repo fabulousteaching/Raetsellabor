@@ -747,14 +747,11 @@ var VORLAGE = '<div class="gs">' +
   '<header class="gs-kopf"><p class="augenbraue">Rätselgenerator</p><h1>Geheimschriften</h1>' +
     '<p>Dein Text in einer Geheimschrift – von der Caesar-Verschiebung über den Freimaurer-Code und das Morsen bis zu Hieroglyphen. Zu jeder Schrift gibt es den Schlüssel zum Entschlüsseln.</p></header>' +
   '<div class="gs-layout"><section class="gs-eingabe" aria-label="Eingaben">' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Geheimer Text</h2><p>Wörter oder Sätze, auch mehrere Zeilen.</p></div></div>' +
-      '<label class="vh" for="gsText">Geheimer Text</label><textarea id="gsText" rows="5" maxlength="400" autocomplete="off" spellcheck="false"></textarea>' +
-      '<p class="hinweis" id="gsTextHinweis"></p>' +
-    '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Geheimschrift</h2></div></div>' +
+    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">1</span><div><h2>Geheimschrift</h2><p id="gsSchriftFrage">Wähle zuerst, in welcher Schrift der Text stehen soll.</p></div></div>' +
       '<div class="gs-schriften" role="radiogroup" aria-label="Geheimschrift">' +
         SCHRIFTEN.map(function(s){ return '<label><input type="radio" name="gsSchrift" value="' + s[0] + '"><span><i class="gs-vorschau-platz" data-art="' + s[0] + '"></i><b>' + s[1] + '</b><small>' + s[2] + '</small></span></label>'; }).join('') +
       '</div>' +
+      '<button type="button" class="btn klein gs-andere" id="gsAndere" hidden>Andere Geheimschrift wählen</button>' +
       '<div class="gs-caesar" id="gsCaesar">' +
         '<div class="opt-raster"><label for="gsVerschiebung">Verschiebung</label><select id="gsVerschiebung">' +
           Array.from({ length:25 }, function(_, i){ return '<option value="' + (i + 1) + '">' + (i + 1) + ' (A → ' + Kern.ABC[i + 1] + ')</option>'; }).join('') + '</select></div>' +
@@ -767,14 +764,6 @@ var VORLAGE = '<div class="gs">' +
       '</div>' +
       '<div class="gs-caesar" id="gsNoten">' +
         '<label class="opt"><input type="checkbox" id="gsNotenBS"><span>Mit B und S – wie bei Bach: B ist das H mit ♭, S das Es (E mit ♭)</span></label>' +
-        '<p class="feld-label">Wörter, die mit Noten gehen</p><div class="gs-notenwoerter">' +
-          Kern.NOTEN_WOERTER.map(function(w){ return '<button type="button" class="gs-wortchip" data-wort="' + w + '">' + w + '</button>'; }).join('') +
-          Kern.NOTEN_WOERTER_BS.map(function(w){ return '<button type="button" class="gs-wortchip gs-bs" data-wort="' + w + '">' + w + '</button>'; }).join('') + '</div>' +
-        '<p class="hinweis" id="gsNotenHinweis"></p>' +
-        '<div class="gs-noten-ton"><button type="button" class="btn klein" id="gsNotenSpielen">▶ Anhören</button><button type="button" class="btn klein" id="gsNotenStopp">■ Stopp</button></div>' +
-        '<label class="opt"><input type="checkbox" id="gsNotenAudio"><span>Mit Audio: Auf dem Blatt steht nur ein QR-Code zur Hörseite (alle Töne der Botschaft und das Tonalphabet zum Vergleichen); die Lösung kommt auf ein eigenes Blatt</span></label>' +
-        '<div class="gs-einzug gs-qr-groesse" id="gsQrGroesseFeld" hidden><label class="feld-label" for="gsQrGroesse">Grösse des QR-Codes: <b id="gsQrGroesseWert"></b></label><input type="range" id="gsQrGroesse" min="3" max="16" step="0.5"></div>' +
-        '<p class="hinweis gs-einzug" id="gsNotenSeiteZeile" hidden><a id="gsNotenSeite" href="#" target="_blank" rel="noopener">Hörseite öffnen</a> (so sehen es die Kinder nach dem Scannen)</p>' +
       '</div>' +
       '<div class="gs-caesar" id="gsErpresser">' +
         '<button type="button" class="btn klein" id="gsErpNeu" title="Alle Buchstaben neu ausschneiden und aufkleben">Neu ausschneiden</button>' +
@@ -782,16 +771,32 @@ var VORLAGE = '<div class="gs">' +
         '<p class="hinweis">Jeder Buchstabe sieht anders aus: Schrift, Farbe, Grösse, Papier und Drehung sind zufällig. «Neu ausschneiden» klebt alles neu.</p>' +
       '</div>' +
     '</div>' +
-    '<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Blatt</h2></div></div>' +
+    '<div class="karte" id="gsTextKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Geheimer Text</h2><p>Wörter oder Sätze, auch mehrere Zeilen.</p></div></div>' +
+      '<label class="vh" for="gsText">Geheimer Text</label><textarea id="gsText" rows="5" maxlength="400" autocomplete="off" spellcheck="false"></textarea>' +
+      '<p class="hinweis" id="gsTextHinweis"></p>' +
+      '<div id="gsNotenText" hidden>' +
+        '<p class="feld-label">Wörter, die mit Noten gehen</p><div class="gs-notenwoerter">' +
+          Kern.NOTEN_WOERTER.map(function(w){ return '<button type="button" class="gs-wortchip" data-wort="' + w + '">' + w + '</button>'; }).join('') +
+          Kern.NOTEN_WOERTER_BS.map(function(w){ return '<button type="button" class="gs-wortchip gs-bs" data-wort="' + w + '">' + w + '</button>'; }).join('') + '</div>' +
+        '<p class="hinweis" id="gsNotenHinweis"></p>' +
+        '<div class="gs-noten-ton"><button type="button" class="btn klein" id="gsNotenSpielen">▶ Anhören</button><button type="button" class="btn klein" id="gsNotenStopp">■ Stopp</button></div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="karte" id="gsBlattKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Blatt</h2></div></div>' +
       '<p class="feld-label">Grösse der Zeichen</p>' +
       '<div class="gs-chips" role="radiogroup" aria-label="Grösse der Zeichen">' +
         GROESSEN.map(function(g){ return '<label><input type="radio" name="gsGroesse" value="' + g[0] + '"><span>' + g[1] + '</span></label>'; }).join('') + '</div>' +
       '<div class="opt-raster"><label for="gsTitel">Titel auf dem Blatt</label><input type="text" id="gsTitel" maxlength="60" autocomplete="off"></div>' +
+      '<div id="gsNotenBlatt" hidden>' +
+        '<label class="opt"><input type="checkbox" id="gsNotenAudio"><span>Mit Audio: Auf dem Blatt steht nur ein QR-Code zur Hörseite (alle Töne der Botschaft und das Tonalphabet zum Vergleichen); die Lösung kommt auf ein eigenes Blatt</span></label>' +
+        '<div class="gs-einzug gs-qr-groesse" id="gsQrGroesseFeld" hidden><label class="feld-label" for="gsQrGroesse">Grösse des QR-Codes: <b id="gsQrGroesseWert"></b></label><input type="range" id="gsQrGroesse" min="3" max="16" step="0.5"></div>' +
+        '<p class="hinweis gs-einzug" id="gsNotenSeiteZeile" hidden><a id="gsNotenSeite" href="#" target="_blank" rel="noopener">Hörseite öffnen</a> (so sehen es die Kinder nach dem Scannen)</p>' +
+      '</div>' +
     '</div>' +
   '</section>' +
   '<section class="gs-ausgabe" aria-label="Ergebnis">' +
     '<div id="gsMeldung" aria-live="polite"></div>' +
-    '<div class="gs-teil">' +
+    '<div class="gs-teil" id="gsTeilText">' +
       '<h2 class="gs-teil-titel">Geheimtext</h2>' +
       '<div class="gs-werkzeug">' +
         '<button type="button" class="btn klein gs-nur-geheim" id="gsZeigeLoesung" aria-pressed="false">Lösung zeigen</button>' +
@@ -846,12 +851,12 @@ window.addEventListener('hashchange', alterLink);
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false;
   var TAB = 'geheimschrift-eingaben', OPT = 'geheimschrift-einstellungen';
-  var STANDARD = { art:'caesar', verschiebung:3, scheibe:true, segArt:'ausmalen', erpSeed:1, erpMisch:true, notenBS:false, notenAudio:false, qrCm:6, groesse:'mittel', linien:true, mitLoesung:true, mitSchluessel:true, titelAn:true, anleitungAn:true };
+  var STANDARD = { art:'', verschiebung:3, scheibe:true, segArt:'ausmalen', erpSeed:1, erpMisch:true, notenBS:false, notenAudio:false, qrCm:6, groesse:'mittel', linien:true, mitLoesung:true, mitSchluessel:true, titelAn:true, anleitungAn:true };
   var st = { text:'', titel:'', opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
   try { var e = JSON.parse(sessionStorage.getItem(TAB)); if (e){ st.text = String(e.text || ''); st.titel = String(e.titel || ''); } } catch(x){}
   if (vorwahl){ st.opt.art = vorwahl; vorwahl = null; }
-  if (!SCHRIFTEN.some(function(s){ return s[0] === st.opt.art; })) st.opt.art = 'caesar';
+  if (!SCHRIFTEN.some(function(s){ return s[0] === st.opt.art; })) st.opt.art = '';   // keine Vorauswahl: zuerst die Schrift wählen
   st.opt.erpSeed = erpNeuerZufall(); erpVorschau = erpNeuerZufall();   // Erpresserschrift: jedes Mal anders
   var timer = 0;
   function speichernJetzt(){ clearTimeout(timer); timer = 0;
@@ -887,7 +892,9 @@ function starte(bereich){
   $('#gsTitel').addEventListener('input', function(){ st.titel = this.value; speichern(); zeichnen(); schluesselZeichnen(); });
   [].forEach.call(bereich.querySelectorAll('input[name="gsSchrift"]'), function(r){
     r.checked = r.value === st.opt.art;
-    r.addEventListener('change', function(){ if (!r.checked) return; st.opt.art = r.value; if (r.value === 'erpresser') st.opt.erpSeed = erpNeuerZufall(); speichern(); $('#gsZeigeLoesung').setAttribute('aria-pressed', 'false'); hieroLaden(); alles(); });
+    r.addEventListener('change', function(){ if (!r.checked) return; st.opt.art = r.value; if (r.value === 'erpresser') st.opt.erpSeed = erpNeuerZufall(); speichern(); listeZu(true);
+      // weiter zum nächsten Schritt: Textfeld, wenn noch kein Text da ist
+      setTimeout(function(){ if (!st.text.trim()) $('#gsText').focus(); }, 0); $('#gsZeigeLoesung').setAttribute('aria-pressed', 'false'); hieroLaden(); alles(); });
   });
   [].forEach.call(bereich.querySelectorAll('input[name="gsGroesse"]'), function(r){
     r.checked = r.value === st.opt.groesse;
@@ -925,6 +932,13 @@ function starte(bereich){
   $('#gsQrGroesse').value = st.opt.qrCm;
   $('#gsQrGroesse').addEventListener('input', function(){ st.opt.qrCm = +this.value; speichern(); zeichnen(); });
   $('#gsNotenStopp').addEventListener('click', function(){ if (window.Toene) Toene.stopp(); $('#gsNotenSpielen').disabled = false; [].forEach.call(bereich.querySelectorAll('.gs-spielt'), function(n){ n.classList.remove('gs-spielt'); }); });
+  // Liste der Schriften: nach der Wahl zuklappen (nur die gewählte bleibt), «Andere Geheimschrift wählen» öffnet sie wieder
+  function listeZu(zu){
+    bereich.querySelector('.gs-schriften').classList.toggle('zu', !!zu && !!st.opt.art);
+    $('#gsAndere').hidden = !(zu && st.opt.art);
+    $('#gsSchriftFrage').hidden = !!st.opt.art;
+  }
+  $('#gsAndere').addEventListener('click', function(){ listeZu(false); var r = bereich.querySelector('input[name="gsSchrift"]:checked'); if (r) r.focus(); });
   $('#gsErpNeu').addEventListener('click', function(){ st.opt.erpSeed = erpNeuerZufall(); speichern(); alles(); });
   $('#gsVerschiebung').value = String(st.opt.verschiebung);
   $('#gsVerschiebung').addEventListener('change', function(){ st.opt.verschiebung = +this.value; speichern(); alles(); });
@@ -957,6 +971,12 @@ function starte(bereich){
     var o = st.opt, leer = !hatZeichen();
     $('#gsCaesar').hidden = o.art !== 'caesar';
     $('#gsSegment').hidden = o.art !== 'segmente';
+    // Menüs nacheinander: Text erst nach der Wahl der Schrift, Blatt erst mit Text
+    $('#gsTextKarte').hidden = !o.art;
+    $('#gsBlattKarte').hidden = !o.art || !st.text.trim();
+    $('#gsNotenText').hidden = $('#gsNotenBlatt').hidden = o.art !== 'noten';
+    $('#gsTeilText').hidden = !o.art;
+    bereich.querySelector('.gs-teil-schluessel').hidden = !o.art;
     $('#gsErpresser').hidden = o.art !== 'erpresser';
     $('#gsNoten').hidden = o.art !== 'noten';
     var melodie = o.art === 'noten' ? notenMelodie() : [];
@@ -976,6 +996,11 @@ function starte(bereich){
     $('.gs-teil-titel').textContent = erp ? 'Nachricht' : 'Geheimtext';
     $('#gsTextHinweis').textContent = o.art === 'noten' ? 'Nur Wörter aus den Buchstaben ' + tonnamen + ' – den Namen der Töne. Andere Wörter werden weggelassen; Satzzeichen bleiben stehen.' : o.art === 'erpresser' ? 'Buchstaben (auch Ä, Ö, Ü und ß), Ziffern, ! und ? werden ausgeschnitten; andere Satzzeichen bleiben stehen.' : o.art === 'finger' ? 'Ä, Ö, Ü, CH und SCH haben eigene Handzeichen; ß wird als SS geschrieben. Ziffern und Satzzeichen bleiben stehen.' : o.art === 'segmente' ? 'Umlaute werden als AE, OE, UE geschrieben, ß als SS. Ziffern haben eigene Zeichen; Satzzeichen bleiben stehen.' : Kern.UMLAUTE[o.art] ? 'Ä, Ö, Ü und ß haben in dieser Schrift eigene Zeichen' + (o.art === 'morse' ? '; Ziffern und einige Satzzeichen auch.' : '; Ziffern bekommen das Zahlzeichen.') :
       'Umlaute werden als AE, OE, UE geschrieben, ß als SS.' + (o.art === 'polybios' ? ' J wird wie I geschrieben.' : '') + ' Ziffern und Satzzeichen bleiben stehen.';
+    if (!o.art){
+      $('#gsBlatt').innerHTML = $('#gsLoesung').innerHTML = '';
+      meldung('info', '<p>Wähle links zuerst eine Geheimschrift. Danach schreibst du den Text.</p>');
+      return;
+    }
     $('#gsBlatt').hidden = $('#gsLoesung').hidden = leer;
     ['#gsZeigeLoesung', '#gsCodeBild', '#gsPdf', '#gsHerunterladen'].forEach(function(s){ $(s).disabled = leer; });
     $('#gsTipp').hidden = leer;
@@ -1027,6 +1052,7 @@ function starte(bereich){
   /* ---------- Schlüssel ---------- */
   function schluesselZeichnen(){
     var o = st.opt;
+    if (!o.art){ $('#gsSchluessel').innerHTML = ''; return; }
     $('#gsSchluessel').innerHTML = (o.titelAn ? '<h2>' + 'Schlüssel: ' + esc(schriftName(o.art, o)) + '</h2>' : '') + '<div class="gs-art-' + o.art + '">' + schluesselHtml(o.art, o) + '</div>';
   }
   function alles(){ zeichnen(); schluesselZeichnen(); }
@@ -1081,7 +1107,7 @@ function starte(bereich){
   $('#gsSchluesselHerunterladen').addEventListener('click', function(){ htmlSpeichern([$('#gsSchluessel')], 'Schluessel-' + (Labor.dateiname(schriftName(st.opt.art, st.opt)) || 'Geheimschrift') + '.html'); });
 
   if (!document.getElementById('gsErpSchriften')){ var l = document.createElement('link'); l.id = 'gsErpSchriften'; l.rel = 'stylesheet'; l.href = ERP_CSS; document.head.appendChild(l); }
-  vorschauen(); alles();
+  vorschauen(); alles(); listeZu(true);
   hieroLaden();
   if (document.fonts && document.fonts.load) document.fonts.load('700 20px Andika').then(function(){ if (!aus) schluesselZeichnen(); }, function(){});
   return function stopp(){ aus = true; if (timer) speichernJetzt(); window.removeEventListener('beforeprint', druckVorbereiten); document.body.classList.remove('mit-loesung'); };
