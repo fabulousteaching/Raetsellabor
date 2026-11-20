@@ -1,7 +1,8 @@
 /* Rätsellabor – gemeinsamer Baustein «Buchstabengitter»
    Ein Feld ist { zeilen, spalten, gitter:[[Buchstabe]], woerter:[{ text, b:[Buchstaben], zellen:[[r,c], …] }] }.
      Gitter.fuellen(feld, woerter, rnd)       → leere Felder mit unauffälligen Buchstaben füllen; liefert Wörter, die doppelt vorkommen
-     Gitter.svg(feld, { spiel, linien })      → SVG-Element (Ebenen: Lösung, Markierungen, Auswahl, Linien, Buchstaben)
+     Gitter.svg(feld, { spiel, linien, nachricht }) → SVG-Element (Ebenen: Lösung, Markierungen, Auswahl, Linien, Buchstaben);
+                                               nachricht: Felder [[r,c], …], deren Buchstaben hervorgehoben werden
      Gitter.spiel(svg, feld, { gefunden, treffer(i) }) → Wörter durch Ziehen oder Antippen markieren
    Das Aussehen (Schrift, Farben der Ebenen) steht im Stylesheet des Generators. */
 var Gitter = (function(){
@@ -83,7 +84,11 @@ var Gitter = (function(){
     }
     el('rect', { x:0.4, y:0.4, width:w - 0.8, height:h - 0.8, 'class':'rahmen', fill:'none', stroke:'#3D3530', 'stroke-width':0.7, rx:1.2 }, s);
     var gT = el('g', { 'class':'ebene-text' }, s);
-    f.gitter.forEach(function(zeile, r){ zeile.forEach(function(ch, c){ el('text', { x:c * S + S / 2, y:r * S + S / 2 + 0.3 }, gT).textContent = ch; }); });
+    var mark = {}; (o.nachricht || []).forEach(function(rc){ mark[rc[0] + ',' + rc[1]] = true; });
+    f.gitter.forEach(function(zeile, r){ zeile.forEach(function(ch, c){
+      var a = { x:c * S + S / 2, y:r * S + S / 2 + 0.3 }; if (mark[r + ',' + c]) a['class'] = 'nachricht';
+      el('text', a, gT).textContent = ch;
+    }); });
     return s;
   }
   /* In welche Richtungen die Wörter laufen (für die Anleitung) */

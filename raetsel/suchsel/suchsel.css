@@ -89,4 +89,20 @@ svg.gitter .startpunkt{fill:none;stroke:var(--accent);stroke-width:1}
   svg.gitter{max-height:200mm;max-width:calc(var(--spalten, 15) * 12mm)}
   body.mit-loesung .sb-loesungsblatt{display:block;break-before:page;margin-top:0}
   body.mit-loesung .sb-loesungsblatt svg.gitter{max-height:235mm}
+  .sb-blatt.mit-nachricht svg.gitter,body.mit-loesung .sb-loesungsblatt.mit-nachricht svg.gitter{max-height:175mm}
 }
+
+/* ---------- Versteckte Nachricht ---------- */
+.sb-nachricht{margin:4px 0 0 26px}
+.sb-nachricht[hidden]{display:none}
+.sb-text{display:block;width:100%;box-sizing:border-box;margin-top:6px;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;font:inherit;font-size:1rem;line-height:1.45;resize:vertical;min-height:64px;transition:border-color .15s,box-shadow .15s}
+.sb-text:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(242,140,56,.28)}
+#sbGroesse:disabled{opacity:.55}
+.sb-nachricht-box h3{font-size:.95rem;font-weight:650;margin:22px 0 8px;color:#1C1714}
+.sb-nk{display:flex;flex-wrap:wrap;gap:10px 18px}
+.sb-nk-wort{display:inline-flex}
+.sb-nk-feld{display:inline-block;width:24px;height:28px;border:1.5px solid #3D3530;background:#fff}
+.sb-nk-feld + .sb-nk-feld{border-left-width:0}
+.sb-nk-linie{height:2.1em;border-bottom:1.5px solid #3D3530}
+.sb-nachricht-text{margin:0;font-size:1.1rem;font-weight:650;letter-spacing:.02em}
+svg.gitter text.nachricht{fill:#C2410C;font-weight:800}

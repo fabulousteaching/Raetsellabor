@@ -52,6 +52,7 @@ Das klassische Wortsuchrätsel: Die Wörter liegen kreuz und quer im Buchstabenf
 
 - **Schwierigkeit:** *Leicht* (waagrecht → und senkrecht ↓), *Mittel* (dazu schräg ↘ ↗), *Schwer* (dazu rückwärts ← ↑ ↖ ↙). Wörter dürfen sich auf Wunsch kreuzen.
 - **Feldgrösse:** automatisch (so klein wie möglich) oder fest 10 × 10 bis 20 × 20.
+- **Versteckte Nachricht** (Häkchen, darunter das Eingabefeld): Die Buchstaben, die übrig bleiben, wenn alle Wörter angestrichen sind, ergeben – Zeile für Zeile von links nach rechts gelesen – den eingegebenen Satz. Dafür wird das Feld automatisch so gewählt (auch rechteckig, bis 24 × 24), dass genau so viele Felder frei bleiben, wie der Satz Buchstaben hat: Zeilen · Spalten = Buchstaben der Wörter + Nachricht − geteilte Felder. Die Zahl der Kreuzungen wird dabei genau gesteuert; sind Kreuzungen nicht erlaubt, teilen sich Wörter nur so viele Buchstaben wie nötig (mit Hinweis). Ist die Nachricht zu kurz für die Wörter, sagt das Suchsel, ab wie vielen Buchstaben es klappt. Auf dem Blatt Kästchen für die Nachricht (zeigen die Wortlängen) oder Schreiblinien; im Lösungsblatt sind die Buchstaben der Nachricht farbig. Getestet mit 6, 10 und 14 Wörtern, allen Stufen, mit und ohne Kreuzungen und Nachrichten von einem Zehntel bis anderthalb Mal so vielen Buchstaben wie die Wörter: Die übrigen Buchstaben ergeben immer genau die Nachricht; ab 10 Wörtern klappt es praktisch immer.
 - Markieren am Bildschirm, Lösung zeigen, PDF mit Lösungsblatt.
 
 ### Rebus
