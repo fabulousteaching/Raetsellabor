@@ -239,21 +239,20 @@ a:focus-visible,button:focus-visible,summary:focus-visible,input[type=checkbox]:
 .suche-leer[hidden]{display:none}
 @media (max-width:640px){ .suche{flex:1 1 100%} }
 .raetsel-karten{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr));gap:18px;align-items:stretch}   /* alle Karten gleich gross */
-.raetsel-karte{position:relative;display:flex;flex-direction:column;justify-content:flex-end;min-width:0;min-height:330px;padding:0;overflow:hidden;border:1px solid var(--line);border-radius:16px;
+.raetsel-karte{position:relative;display:flex;flex-direction:column;justify-content:flex-start;min-width:0;padding:0;overflow:hidden;border:1px solid var(--line);border-radius:16px;
   background:linear-gradient(180deg,#E6F1FA 0%,#F3F8FC 42%,var(--card) 72%);
   color:inherit;text-decoration:none;box-shadow:0 1px 2px rgba(16,24,40,.05);transition:border-color .15s,box-shadow .2s,transform .2s}
 a.raetsel-karte:hover{border-color:var(--accent);box-shadow:0 12px 30px rgba(0,117,186,.22);transform:translateY(-2px)}
 a.raetsel-karte:focus-visible{outline:3px solid var(--accent-2);outline-offset:2px}
-/* Beispielrätsel oben rechts: etwa 60 % breit, blendet nach unten und nach links in die Kachel aus.
-   Die Bilder haben einen durchsichtigen Grund (gemeinsam/vorschau/*.webp). */
-.karte-bild{position:absolute;top:0;right:0;width:62%;height:66%;display:block;pointer-events:none;
-  -webkit-mask-image:linear-gradient(to bottom,#000 30%,transparent 90%),linear-gradient(to right,transparent 0%,#000 28%);
-  -webkit-mask-composite:source-in;mask-image:linear-gradient(to bottom,#000 30%,transparent 90%),linear-gradient(to right,transparent 0%,#000 28%);mask-composite:intersect}
-.karte-bild img{position:absolute;top:14px;right:14px;width:calc(100% - 14px);height:calc(100% - 14px);object-fit:contain;object-position:top right;
+/* Beispielrätsel oben: Papierblätter, leicht schräg übereinander (gemeinsam/vorschau/*.webp, durchsichtiger Grund).
+   Das Bild sitzt oben rechts, so gross es ins Feld passt, und blendet nur ganz unten schwach aus; Titel und Text stehen darunter. */
+.karte-bild{position:relative;flex:none;height:228px;margin:12px 12px 8px;display:block;pointer-events:none}
+.karte-bild img{position:absolute;top:0;right:0;width:auto;height:auto;max-width:100%;max-height:100%;
+  -webkit-mask-image:linear-gradient(to bottom,#000 82%,rgba(0,0,0,.25) 100%);mask-image:linear-gradient(to bottom,#000 82%,rgba(0,0,0,.25) 100%);
   transform-origin:top right;transition:transform .35s ease}
-a.raetsel-karte:hover .karte-bild img{transform:scale(1.05)}
+a.raetsel-karte:hover .karte-bild img{transform:scale(1.03)}
 .karte-bild.ohne{display:none}
-.karte-text{position:relative;z-index:1;display:grid;gap:6px;padding:0 18px 8px}
+.karte-text{position:relative;z-index:1;flex:1 0 auto;display:grid;align-content:start;gap:6px;padding:0 18px 8px}
 .raetsel-karte h3{font-family:var(--display);font-weight:600;font-size:1.25rem;letter-spacing:-.005em;line-height:1.2;margin:0;color:var(--ink)}
 .raetsel-karte p{margin:0;font-size:.92rem;line-height:1.45;color:#4B5563}
 .oeffnen{position:relative;z-index:1;align-self:flex-start;margin:4px 18px 18px;display:inline-flex;align-items:center;padding:8px 16px;border-radius:999px;background:var(--accent-soft);
