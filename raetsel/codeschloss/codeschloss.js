@@ -33,7 +33,13 @@ var Kern = (function(){
   function thema(id){ for (var i = 0; i < THEMEN.length; i++) if (THEMEN[i].id === id) return THEMEN[i]; return THEMEN[0]; }
   function farbenVon(id){ var T = thema(id); return REIHE.filter(function(f){ return T.ziel[f]; }); }
   // Eingabe → Code: Grossbuchstaben (auch Ä, Ö, Ü) und Ziffern; alles andere fällt weg
-  function code(text){ return String(text || '').replace(/ß/g, 'SS').toUpperCase().replace(/[^0-9A-ZÄÖÜ]/g, '').split(''); }
+  // Sprache der Seite (Wörter und Sätze); in Node-Tests Deutsch
+  var SPR = typeof Labor !== 'undefined' && Labor.sprache ? Labor.sprache : 'de';
+  // Text → Zeichen: Grossbuchstaben (Ä, Ö, Ü bleiben, ß → SS, andere Akzente fallen weg: É → E, Œ → OE) und Ziffern
+  function code(text){
+    return String(text || '').normalize('NFC').replace(/ß/g, 'SS').toUpperCase().replace(/Œ/g, 'OE').replace(/Æ/g, 'AE')
+      .replace(/[^0-9A-ZÄÖÜ]/g, function(c){ var o = c.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); return /^[A-Z]$/.test(o) ? o : ''; }).split('');
+  }
   /* «Andere»: ein Wort fürs Buchstabenschloss (höchstens max Zeichen, nicht ausser). Mit saetze: bevorzugt Wörter, die zu
      möglichst vielen dieser Sätze passen (mindestens 3, sonst so vielen wie möglich); streng: nur solche, sonst null. */
   function zufallsWort(rnd, max, ausser, saetze, n, streng){
@@ -55,8 +61,19 @@ var Kern = (function(){
     for (var i = 0; i < 5; i++){ var c = codeZ[i] || '-'; if (SCHLOSS[i].indexOf(c) < 0) return { rad:i + 1, c:c }; }
     return null;
   }
-  // Deutsche Wörter, die sich am Buchstabenschloss einstellen lassen (alle geprüft) – «Andere» schlägt nur diese vor
-  var WOERTER = ['SONNE', 'TISCH', 'STEIN', 'TANTE', 'MALEN', 'LESEN', 'BADEN', 'MILCH', 'LINIE', 'LISTE', 'TASSE', 'TORTE', 'TINTE', 'BIENE',
+  // Wörter, die sich am Buchstabenschloss einstellen lassen (alle geprüft) – «Andere» schlägt nur diese vor
+  var WOERTER = SPR === 'en' ? ['ALIEN', 'ARENA', 'ATLAS', 'BACON', 'BEACH', 'BEANS', 'BELLS', 'BENCH', 'BOATS', 'BONES', 'BRAIN', 'BREAD', 'BRICK',
+      'CANAL', 'CHAIN', 'CHALK', 'CHESS', 'CHILD', 'CHINA', 'CLEAN', 'CORAL', 'DAISY', 'DANCE', 'DOLLS', 'DRESS', 'DRINK', 'EARLY', 'EARTH', 'JEANS',
+      'JELLY', 'JOLLY', 'LUNCH', 'MATCH', 'MELON', 'METAL', 'MONEY', 'SALAD', 'SALON', 'SALTY', 'SATIN', 'SHELL', 'SHINE', 'SNAIL', 'SOLID', 'STAND',
+      'STEAK', 'STICK', 'STILL', 'SUNNY', 'TEACH', 'TEETH', 'TENTS', 'TILES', 'TOTAL', 'TRAIL', 'TRAIN', 'TREES', 'TRICK',
+      'BALL', 'BELL', 'BOAT', 'BONE', 'COAT', 'COIN', 'CORN', 'DOLL', 'EARS', 'JULY', 'JUNE', 'LADY', 'MAIL', 'MEAL', 'MILE', 'MOLE', 'SAIL', 'SALT',
+      'SEAL', 'STAY', 'TAIL', 'TENT', 'TIDE', 'TILE', 'TOES', 'TONE', 'TREE', 'TRIO']
+    : SPR === 'fr' ? ['BALLE', 'BELLE', 'BIDON', 'BILLE', 'BONNE', 'BOTTE', 'BULLE', 'CANAL', 'CANNE', 'CARTE', 'CASSE', 'CHIEN', 'COLLE', 'CORNE',
+      'COTON', 'CRAIE', 'DANSE', 'DENTS', 'JETON', 'JOLIE', 'LAINE', 'LANCE', 'LILAS', 'LISTE', 'MALIN', 'MALLE', 'MARIN', 'MATIN', 'MELON', 'MERLE',
+      'MOINS', 'SALLE', 'SALON', 'SORTE', 'SUITE', 'TALON', 'TANTE', 'TARTE', 'TASSE', 'TENTE', 'TOILE', 'TONNE', 'TOTAL', 'TRACE', 'TRAIN',
+      'BAIN', 'BIEN', 'BOIS', 'BRAS', 'CHAT', 'CIEL', 'COIN', 'DENT', 'DUNE', 'JOIE', 'JUIN', 'LAIT', 'LIEN', 'LIRE', 'LOIN', 'LUNE', 'MAIN', 'MAIS',
+      'MIEL', 'MOTO', 'SOIE', 'SOLO', 'TOIT', 'TRIO']
+    : ['SONNE', 'TISCH', 'STEIN', 'TANTE', 'MALEN', 'LESEN', 'BADEN', 'MILCH', 'LINIE', 'LISTE', 'TASSE', 'TORTE', 'TINTE', 'BIENE',
     'BIRNE', 'LINSE', 'LEINE', 'BESEN', 'TANNE', 'TONNE', 'ENTEN', 'EULEN', 'MITTE', 'SEITE', 'ERNTE', 'MUSIK', 'TITEL', 'TEICH', 'MEISE',
     'MOLCH', 'MOTTE', 'ATLAS', 'DUDEN', 'STALL', 'STROH', 'ALLEE', 'EISEN', 'LADEN', 'BODEN', 'STILL', 'LEISE', 'BUNTE', 'STIEL', 'LILIE',
     'ARENA', 'BLASE', 'SOSSE', 'BASEL', 'BEINE',
@@ -76,13 +93,33 @@ var Kern = (function(){
     var fehlt = Object.keys(braucht).filter(function(c){ return (hat[c] || 0) < braucht[c]; }).map(function(c){ return { c:c, hat:hat[c] || 0, braucht:braucht[c] }; });
     return { L:satz.length, maxL:n * n - codeZ.length, fehlt:fehlt };
   }
-  var SAETZE = ['Basel liegt am Rhein', 'Heute lösen wir ein Rätsel', 'Das Schloss ist bald offen', 'Alle Kinder lieben Rätsel', 'Die Sonne scheint warm',
+  var SAETZE = SPR === 'en' ? ['Bern is the capital city', 'Today we solve a puzzle', 'The lock will open soon', 'All children love puzzles',
+      'The sun is shining brightly', 'Flowers bloom in the garden', 'The tiger sleeps at the zoo', 'We are looking for the secret code', 'An apple falls from the tree',
+      'The pirate finds a treasure', 'My friend has a little dog', 'School starts at eight', 'The moon is shining bright', 'There is a light in the house']
+    : SPR === 'fr' ? ['Berne est une belle ville', 'Aujourd’hui nous faisons une énigme', 'Le cadenas sera bientôt ouvert', 'Tous les enfants aiment les énigmes',
+      'Le soleil brille très fort', 'Les fleurs poussent au jardin', 'Le tigre dort au zoo', 'Nous cherchons le code secret', 'Une pomme tombe de l’arbre',
+      'Le pirate trouve un trésor', 'Mon ami a un petit chien', 'L’école commence à huit heures', 'La lune brille dans la nuit', 'Il y a de la lumière dans la maison']
+    : ['Basel liegt am Rhein', 'Heute lösen wir ein Rätsel', 'Das Schloss ist bald offen', 'Alle Kinder lieben Rätsel', 'Die Sonne scheint warm',
     'Im Garten blühen Blumen', 'Der Tiger schläft im Zoo', 'Wir suchen den geheimen Code', 'Ein Apfel fällt vom Baum', 'Der Pirat findet einen Schatz',
     'Mein Freund hat einen Hund', 'Die Schule beginnt um acht', 'Der Mond scheint hell', 'Im Haus brennt Licht'];
   /* Sätze zu den Emoji-Themen: je 5, «Vorschlag» zeigt die des gewählten Themas. Jedes Thema hat einen kurzen Satz (bis 20
      Buchstaben, passt ins Feld 5 × 5), die anderen haben 23–31 Buchstaben (Feld 6 × 6). Gewählt so, dass zu jedem Thema
      mindestens 19 Wörter des Buchstabenschlosses zu 3 oder mehr Sätzen passen (Feld 6 × 6). */
-  var THEMA_SAETZE = {
+  var THEMA_SAETZE = SPR === 'en' ? {
+    fruechte:['Strawberries are red and sweet', 'The orange is full of juice', 'The lemon is sour', 'A green apple lies in the basket', 'Blueberries and grapes are blue'],
+    gemuese:['Tomatoes ripen in the sun', 'The carrot grows in the soil', 'Corn is yellow', 'Broccoli looks like a tree', 'The aubergine is dark purple'],
+    tiere:['The ladybird has seven black spots', 'The fox creeps through the forest', 'The frog croaks loudly', 'The little chick sits in the nest', 'The whale swims in the deep blue sea'],
+    buecher:['We read an exciting book every day', 'It is calm and quiet in the library', 'The book has many colourful pages', 'Reading is fun', 'Thick books stand on the long shelf'],
+    herzen:['I love you very much', 'Friends always stick together', 'With love everything is easier', 'My heart dances with joy', 'A smile makes everyone happy'],
+    formen:['A circle has no corners', 'A square has four equal sides', 'A triangle has three corners', 'The full moon is round like a ball', 'We draw dots, lines and circles']
+  } : SPR === 'fr' ? {
+    fruechte:['Les fraises sont rouges et sucrées', 'L’orange a beaucoup de jus', 'Le citron est acide', 'Une pomme verte est dans le panier', 'Les myrtilles et les raisins sont bleus'],
+    gemuese:['Les tomates mûrissent au soleil', 'La carotte pousse dans la terre', 'Le maïs est jaune', 'Le brocoli ressemble à un arbre', 'L’aubergine est violet foncé'],
+    tiere:['La coccinelle a sept points', 'Le renard se faufile dans la forêt', 'Le poussin piaille', 'La grenouille coasse près de l’étang', 'La baleine nage dans la mer'],
+    buecher:['Les élèves lisent un conte en classe', 'Il fait calme à la bibliothèque', 'Le livre a de belles pages colorées', 'Lire est amusant', 'Dans la salle, les enfants lisent'],
+    herzen:['Je t’aime très fort', 'Les amis restent toujours ensemble', 'Avec amour tout est plus facile', 'Mon cœur danse de joie', 'Un sourire rend tout le monde heureux'],
+    formen:['Un cercle est tout rond, sans coin', 'Le carré a quatre côtés égaux', 'Le triangle a trois coins', 'La lune est ronde comme une balle', 'Nous traçons des lignes et des points']
+  } : {
     fruechte:['Erdbeeren sind rot und süss', 'Die Orange hat viel Saft', 'Die Zitrone ist gelb und sauer', 'Ein grüner Apfel liegt im Korb', 'Heidelbeeren und Trauben sind blau'],
     gemuese:['Tomaten reifen in der Sonne', 'Die Karotte wächst in der Erde', 'Maiskolben sind gelb', 'Broccoli sieht aus wie ein Baum', 'Die Aubergine ist dunkel violett'],
     tiere:['Der Marienkäfer hat sieben Punkte', 'Der Fuchs schleicht durch den Wald', 'Das Küken piepst im Nest', 'Der Frosch quakt laut am Teich', 'Der Wal schwimmt im tiefen Meer'],
@@ -95,7 +132,7 @@ var Kern = (function(){
      Worts (so oft, wie es sie braucht), aber nicht das Wort selbst (sonst verriete das Feld die Lösung), und hat 8 bis 30
      Buchstaben – passt also ins Feld 6 × 6; die kürzesten (bis 19–22 Buchstaben) auch ins Feld 5 × 5. Alles geprüft.
      Für eigene Codewörter werden alle Sätze der Datenbank durchsucht, aus denen sich der Code legen lässt. */
-  var THEMA = {
+  var THEMA = SPR !== 'de' ? {} : {
     ZOO:['Zebras und Robben wohnen dort', 'Zwei Robben spielen und toben', 'Zebras grasen, Affen toben froh', 'Zebras toben froh'],
     OHR:['Wir horchen auf jedes Geräusch', 'Leise Worte hört man schlecht', 'Hörst du das Rauschen vom Bach', 'Horch, wer ruft da'],
     UHR:['Der Zeiger dreht sich rundherum', 'Die Stunden gehen schnell vorbei', 'Der Wecker klingelt um halb acht', 'Es ist schon spät, hurra'],
@@ -161,14 +198,16 @@ var Kern = (function(){
   // passt der Satz zum Code? (Buchstaben reichen, passt ins Feld, enthält das Codewort nicht)
   function satzPasst(t, codeZ, n){ var z = code(t), p = satzPruefen(z, codeZ, n); return !p.fehlt.length && p.L <= p.maxL && p.L >= 8 && z.join('').indexOf(codeZ.join('')) < 0; }
   // warum passt der Satz nicht? '' = passt; sonst kurz, z. B. «zu lang für 5 × 5 · es fehlt O, ein zweites E»
-  function satzGrund(t, codeZ, n){
-    var z = code(t), p = satzPruefen(z, codeZ, n), g = [], ZAHL = ['', '', 'zweites', 'drittes', 'viertes', 'fünftes'];
-    if (p.L > p.maxL) g.push('zu lang für ' + n + ' × ' + n);
-    if (p.L < 8) g.push('zu kurz');
-    if (p.fehlt.length) g.push('es fehl' + (p.fehlt.length > 1 ? 'en ' : 't ') + p.fehlt.map(function(f){
-      return f.hat ? (f.braucht - f.hat > 1 ? f.braucht - f.hat + ' weitere ' + f.c : 'ein ' + (ZAHL[f.braucht] || 'weiteres') + ' ' + f.c) : f.c;
-    }).join(', '));
-    if (!g.length && z.join('').indexOf(codeZ.join('')) >= 0) g.push('enthält das Codewort');
+  function satzGrund(t, codeZ, n, tr){
+    tr = tr || function(s, w){ return s.replace(/\{(\w+)\}/g, function(m, k){ return w && k in w ? w[k] : m; }); };
+    var z = code(t), p = satzPruefen(z, codeZ, n), g = [], ZAHL = ['', '', 'ein zweites {c}', 'ein drittes {c}', 'ein viertes {c}', 'ein fünftes {c}'];
+    if (p.L > p.maxL) g.push(tr('zu lang für {n} × {n}', { n:n }));
+    if (p.L < 8) g.push(tr('zu kurz'));
+    if (p.fehlt.length){
+      var l = p.fehlt.map(function(f){ return f.hat ? (f.braucht - f.hat > 1 ? tr('{n} weitere {c}', { n:f.braucht - f.hat, c:f.c }) : tr(ZAHL[f.braucht] || 'ein weiteres {c}', { c:f.c })) : f.c; }).join(', ');
+      g.push(p.fehlt.length > 1 ? tr('es fehlen {l}', { l:l }) : tr('es fehlt {l}', { l:l }));
+    }
+    if (!g.length && z.join('').indexOf(codeZ.join('')) >= 0) g.push(tr('enthält das Codewort'));
     return g.join(' · ');
   }
   function themenSaetze(id, codeZ, n){ return themaSaetze(id).filter(function(t){ return satzPasst(t, codeZ, n); }); }
@@ -287,6 +326,7 @@ var Kern = (function(){
 /* KERN-ENDE */
 
 var TINTE = '#1C1714', BLAU = '#1593D6';
+var FARBNAME = { rot:tx('rot'), orange:tx('orange'), gelb:tx('gelb'), gruen:tx('grün'), blau:tx('blau'), violett:tx('violett') };
 var FELD = { 5:60, 6:52, 7:45 };   // Feldgrösse in Pixeln (je nach Anzahl Felder)
 function esc(t){ return Labor.esc(t); }
 function chips(name, liste){ return liste.map(function(x){ return '<label><input type="radio" name="' + name + '" value="' + x[0] + '"><span>' + x[1] + '</span></label>'; }).join(''); }
@@ -298,8 +338,8 @@ function feldHtml(R, loesung){
   return '<div class="cs-feld" style="--z:' + Z + 'px;grid-template-columns:repeat(' + R.n + ',var(--z))">' + R.zellen.map(function(z){
     var ring = loesung && z.ziel >= 0, farbe = ring ? Kern.FARBE[R.ziele[z.ziel].farbe] : '';
     return z.typ === 'e'
-      ? '<span class="cs-z cs-emoji' + (ring ? tx(' cs-start') : '') + '"' + (ring ? ' style="--ring:' + farbe + '"' : '') + '>' + z.t + '</span>'
-      : '<span class="cs-z cs-buchstabe' + (ring ? tx(' cs-ziel') : '') + '">' + esc(z.t) + '</span>';
+      ? '<span class="cs-z cs-emoji' + (ring ? ' cs-start' : '') + '"' + (ring ? ' style="--ring:' + farbe + '"' : '') + '>' + z.t + '</span>'
+      : '<span class="cs-z cs-buchstabe' + (ring ? ' cs-ziel' : '') + '">' + esc(z.t) + '</span>';
   }).join('') + '</div>';
 }
 /* Kästchen: gr × gr Felder (Feld u Pixel), am Punkt p das Emoji, am Punkt q das Schloss. Die Linien laufen unter den
@@ -308,14 +348,14 @@ function feldHtml(R, loesung){
 var KAESTCHEN = { 2:{ u:42, rand:30, sym:30 }, 3:{ u:32, rand:24, sym:25 }, 4:{ u:25, rand:24, sym:22 } };
 function figurHtml(z, loesung, gr){
   var K = KAESTCHEN[gr] || KAESTCHEN[2], u = K.u, rand = K.rand, s = gr * u, g = s + 2 * rand, linien = '';
-  function pos(p){ return tx('left:') + (rand + p[0] * u) + tx('px;top:') + (rand + p[1] * u) + tx('px;font-size:') + K.sym + 'px'; }
+  function pos(p){ return 'left:' + (rand + p[0] * u) + 'px;top:' + (rand + p[1] * u) + 'px;font-size:' + K.sym + 'px'; }
   for (var i = 1; i < gr; i++) linien += 'M' + (rand + i * u) + ' ' + rand + 'V' + (rand + s) + 'M' + rand + ' ' + (rand + i * u) + 'H' + (rand + s);
   var svg = '<svg class="cs-linien" width="' + g + '" height="' + g + '" viewBox="0 0 ' + g + ' ' + g + '" aria-hidden="true"><g fill="none" stroke="' + TINTE + '" stroke-width="2" stroke-linecap="square">' +
     '<rect x="' + rand + '" y="' + rand + '" width="' + s + '" height="' + s + '"/><path d="' + linien + '"/></g></svg>';
   // Lösungsbuchstabe neben dem Schloss, zur Mitte des Kästchens hin
   var lx = Math.sign(gr / 2 - z.q[0]), ly = Math.sign(gr / 2 - z.q[1]), weg = Math.min(30, u * 0.8);
-  var l = loesung ? '<span class="cs-figur-l" style="left:' + (rand + z.q[0] * u + lx * weg) + tx('px;top:') + (rand + z.q[1] * u + ly * weg) + 'px">' + esc(z.c) + '</span>' : '';
-  return '<div class="cs-figur" style="width:' + g + tx('px;height:') + g + 'px">' + svg +
+  var l = loesung ? '<span class="cs-figur-l" style="left:' + (rand + z.q[0] * u + lx * weg) + 'px;top:' + (rand + z.q[1] * u + ly * weg) + 'px">' + esc(z.c) + '</span>' : '';
+  return '<div class="cs-figur" style="width:' + g + 'px;height:' + g + 'px">' + svg +
     '<span class="cs-sym" style="' + pos(z.p) + '">' + z.emoji + '</span><span class="cs-sym" style="' + pos(z.q) + '">🔐</span>' + l + '</div>';
 }
 // Zahlenschloss mit k Rädchen (gezeichnet); Lösung: der Code in den Rädchen
@@ -333,7 +373,7 @@ function schlossSvg(k, zeichen){
 }
 // Code: Farbpunkte in Regenbogen-Reihenfolge, darunter je eine Linie; Lösung: Emoji über dem Punkt, Zeichen auf der Linie
 function codeHtml(R, loesung){
-  return '<div class="cs-code' + (loesung ? tx(' mit-emoji') : '') + tx('"><span class="cs-code-titel">Code:</span><div class="cs-punkte">') + R.ziele.map(function(z){
+  return '<div class="cs-code' + (loesung ? ' mit-emoji' : '') + '"><span class="cs-code-titel">' + tx('Code:') + '</span><div class="cs-punkte">' + R.ziele.map(function(z){
     return '<div class="cs-stelle">' + (loesung ? '<span class="cs-stelle-emoji">' + z.emoji + '</span>' : '') +
       '<span class="cs-punkt" style="background:' + Kern.FARBE[z.farbe] + '"></span><span class="cs-strich">' + (loesung ? esc(z.c) : '') + '</span></div>';
   }).join('') + '</div></div>';
@@ -356,7 +396,7 @@ var VORLAGE = '<div class="cs">' +
     '</div>' +
     tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Emojis</h2><p>Jedes Thema hat Emojis in passenden Farben.</p></div></div>') +
       tx('<div class="cs-themen" role="radiogroup" aria-label="Emoji-Thema">') + Kern.THEMEN.map(function(T){
-        return '<label><input type="radio" name="csThema" value="' + T.id + '"><span><i aria-hidden="true">' + Kern.farbenVon(T.id).map(function(f){ return T.ziel[f]; }).join('') + '</i><b>' + esc(T.name) + '</b></span></label>';
+        return '<label><input type="radio" name="csThema" value="' + T.id + '"><span><i aria-hidden="true">' + Kern.farbenVon(T.id).map(function(f){ return T.ziel[f]; }).join('') + '</i><b>' + esc(tx(T.name)) + '</b></span></label>';
       }).join('') + '</div>' +
     '</div>' +
     tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Feld und Kästchen</h2></div></div>') +
@@ -455,15 +495,16 @@ function starte(bereich){
   function satzWaehlen(t){ st.satz = t; $('#csSatz').value = t; speichern(); listeMarkieren(); zeichnen(); }
   function listeMarkieren(){ [].forEach.call($('#csSatzListe').querySelectorAll('button'), function(b){ b.setAttribute('aria-pressed', b.getAttribute('data-satz') === st.satz ? 'true' : 'false'); }); }
   function knopf(t, grund){
-    return '<button type="button" class="cs-satz-knopf" data-satz="' + esc(t) + '" aria-pressed="false"' + (grund ? tx(' disabled') : '') + '>' + esc(t) +
+    return '<button type="button" class="cs-satz-knopf" data-satz="' + esc(t) + '" aria-pressed="false"' + (grund ? ' disabled' : '') + '>' + esc(t) +
       (grund ? '<small> – ' + esc(grund) + '</small>' : '') + '</button>';
   }
   // eigene: Sätze des Themas (mit Grund, falls sie nicht passen); andere: passende aus der Sammlung; null = Liste weg
   function vorschlaegeZeigen(eigene, z, n, andere, kopf){
     if (!eigene){ $('#csSatzListe').innerHTML = ''; return; }
-    var h = '<p>' + esc(kopf) + '</p>' + eigene.map(function(t){ return knopf(t, Kern.satzGrund(t, z, n)); }).join('');
-    if (andere) h += andere.length ? tx('<p>Keiner passt zu «') + esc(z.join('')) + tx('» – diese Sätze aus der Sammlung schon:</p>') + andere.map(function(t){ return knopf(t, ''); }).join('')
-      : tx('<p class="warnung">Für «') + esc(z.join('')) + tx('» passt kein Satz aus der Sammlung') + (n < 7 ? tx(' (in ein grösseres Feld passen längere Sätze)') : '') + tx('. Schreib einen eigenen Satz, in dem alle Buchstaben des Codes vorkommen.</p>');
+    var h = '<p>' + esc(kopf) + '</p>' + eigene.map(function(t){ return knopf(t, Kern.satzGrund(t, z, n, tx)); }).join('');
+    if (andere) h += andere.length ? '<p>' + tx('Keiner passt zu «{z}» – diese Sätze aus der Sammlung schon:', { z:esc(z.join('')) }) + '</p>' + andere.map(function(t){ return knopf(t, ''); }).join('')
+      : '<p class="warnung">' + (n < 7 ? tx('Für «{z}» passt kein Satz aus der Sammlung (in ein grösseres Feld passen längere Sätze). Schreib einen eigenen Satz, in dem alle Buchstaben des Codes vorkommen.', { z:esc(z.join('')) })
+        : tx('Für «{z}» passt kein Satz aus der Sammlung. Schreib einen eigenen Satz, in dem alle Buchstaben des Codes vorkommen.', { z:esc(z.join('')) })) + '</p>';
     $('#csSatzListe').innerHTML = h;
     listeMarkieren();
   }
@@ -473,7 +514,7 @@ function starte(bereich){
     if (z.length < 3) return;
     var eigene = Kern.themaSaetze(T.id), gute = Kern.themenSaetze(T.id, z, n);
     var andere = gute.length ? null : Kern.mischen(Kern.andereSaetze(z, n, T.id), Kern.zufall(Date.now())).slice(0, 6);
-    vorschlaegeZeigen(eigene, z, n, andere, tx('Sätze zum Thema «') + T.name + tx('» – zum Auswählen anklicken:'));
+    vorschlaegeZeigen(eigene, z, n, andere, tx('Sätze zum Thema «{t}» – zum Auswählen anklicken:', { t:tx(T.name) }));
     var wahl = gute.length ? gute : andere, neu = wahl.filter(function(t){ return t !== st.satz; });
     if (neu.length) satzWaehlen(neu[Math.floor(Math.random() * neu.length)]);
   });
@@ -499,35 +540,35 @@ function starte(bereich){
   /* ---------- Rätsel ---------- */
   var R = null, eingabeSchluessel = '';
   function anleitung(z){
-    var ziffern = z.every(function(c){ return /\d/.test(c); }), was = ziffern ? tx('eine Ziffer') : tx('ein Buchstabe');
-    return tx('Jedes Kästchen zeigt einen Weg. Suche sein Emoji im grossen Feld. Gehe von dort so viele Felder nach oben, unten, links oder rechts wie im Kästchen vom Emoji bis zum Schloss 🔐. ') +
-      tx('Dort steht ') + was + tx('. Schreibe ') + (ziffern ? 'sie' : 'ihn') + tx(' unter den Punkt mit der Farbe des Emojis. Wie heisst der Code?') +
-      (R && R.satz ? tx(' Zum Schluss: Lies alle Buchstaben im Feld der Reihe nach, Zeile für Zeile – sie ergeben einen Satz.') : '');
+    var ziffern = z.every(function(c){ return /\d/.test(c); });
+    return tx('Jedes Kästchen zeigt einen Weg. Suche sein Emoji im grossen Feld. Gehe von dort so viele Felder nach oben, unten, links oder rechts wie im Kästchen vom Emoji bis zum Schloss 🔐.') + ' ' +
+      (ziffern ? tx('Dort steht eine Ziffer. Schreibe sie unter den Punkt mit der Farbe des Emojis. Wie heisst der Code?') : tx('Dort steht ein Buchstabe. Schreibe ihn unter den Punkt mit der Farbe des Emojis. Wie heisst der Code?')) +
+      (R && R.satz ? ' ' + tx('Zum Schluss: Lies alle Buchstaben im Feld der Reihe nach, Zeile für Zeile – sie ergeben einen Satz.') : '');
   }
   function titel(){ return tx('Code-Schloss'); }
   function blattHtml(R, z, loesung, kopf){
     var o = st.opt;
-    return (o.titelAn ? '<h2>' + esc(titel()) + (kopf ? tx(' – Lösung') : '') + '</h2>' : (kopf ? tx('<p class="cs-anleitung"><b>Lösung</b></p>') : '')) +
+    return (o.titelAn ? '<h2>' + esc(titel()) + (kopf ? ' ' + tx('– Lösung') : '') + '</h2>' : (kopf ? tx('<p class="cs-anleitung"><b>Lösung</b></p>') : '')) +
       (o.anleitungAn && !kopf ? '<p class="cs-anleitung">' + esc(anleitung(z)) + '</p>' : '') +
       '<div class="cs-haupt"><div class="cs-links">' + feldHtml(R, loesung) + codeHtml(R, loesung) +
         '<div class="cs-schloss-platz">' + schlossSvg(z.length, loesung ? z : null) + (loesung ? '<span class="cs-jubel" aria-hidden="true">🥳</span>' : '') + '</div></div>' +
       '<div class="cs-figuren">' + R.reihe.map(function(i){ return figurHtml(R.ziele[i], loesung, R.gr); }).join('') + '</div></div>' +
-      (kopf && R.satz ? tx('<p class="cs-satz-loesung">Satz im Feld: <b>') + esc(st.satz.trim()) + '</b></p>' : '');
+      (kopf && R.satz ? '<p class="cs-satz-loesung">' + tx('Satz im Feld:') + ' <b>' + esc(st.satz.trim()) + '</b></p>' : '');
   }
   function zeichnen(){
     if (aus) return;
     var o = st.opt, max = Kern.farbenVon(o.thema).length, alle = Kern.code(st.code), z = alle.slice(0, max), T = Kern.thema(o.thema), h = '';
-    if (alle.length > max) h += '<p class="warnung">«' + esc(T.name) + tx('» hat ') + max + tx(' Farben – es werden die ersten ') + max + tx(' Zeichen verwendet.</p>');
+    if (alle.length > max) h += '<p class="warnung">' + tx('«{t}» hat {n} Farben – es werden die ersten {n} Zeichen verwendet.', { t:esc(tx(T.name)), n:max }) + '</p>';
     if (z.length && z.length < 3) h += tx('<p class="warnung">Es braucht mindestens 3 Zeichen.</p>');
     var sl = Kern.amSchloss(z);
-    if (z.length >= 3) h += sl ? tx('<p class="cs-schloss-info">Am Buchstabenschloss nicht einstellbar: ') + (sl.laenge ? tx('Es hat 5 Räder – es braucht 4 oder 5 Buchstaben.') : tx('Rad ') + sl.rad + tx(' hat kein «') + esc(sl.c) + '».') + '</p>'
-      : tx('<p class="cs-schloss-info ja">🔒 Lässt sich am Buchstabenschloss einstellen') + (z.length === 4 ? tx(' (Rad 5 auf «–»)') : '') + '.</p>';
-    $('#csZaehler').innerHTML = z.length ? '<p class="cs-zaehler-haupt ' + (z.length >= 3 ? 'ok' : 'fehlt') + tx('">Code: <b>') + esc(z.join('')) + '</b> (' + z.length + tx(' Zeichen)</p>') + h : '';
+    if (z.length >= 3) h += sl ? '<p class="cs-schloss-info">' + tx('Am Buchstabenschloss nicht einstellbar:') + ' ' + (sl.laenge ? tx('Es hat 5 Räder – es braucht 4 oder 5 Buchstaben.') : tx('Rad {r} hat kein «{c}».', { r:sl.rad, c:esc(sl.c) })) + '</p>'
+      : '<p class="cs-schloss-info ja">' + (z.length === 4 ? tx('🔒 Lässt sich am Buchstabenschloss einstellen (Rad 5 auf «–»).') : tx('🔒 Lässt sich am Buchstabenschloss einstellen.')) + '</p>';
+    $('#csZaehler').innerHTML = z.length ? '<p class="cs-zaehler-haupt ' + (z.length >= 3 ? 'ok' : 'fehlt') + '">' + tx('Code: {c} ({n} Zeichen)', { c:'<b>' + esc(z.join('')) + '</b>', n:z.length }) + '</p>' + h : '';
     var leer = z.length < 3;
     ['#csZeigeLoesung', '#csNeu', '#csPdf', '#csHerunterladen'].forEach(function(s){ $(s).disabled = leer; });
     if (leer){
       R = null; $('#csInhalt').hidden = true;
-      meldung('info', tx('<p>Gib links den Code ein – 3 bis ') + max + tx(' Buchstaben oder Ziffern.</p>'));
+      meldung('info', '<p>' + tx('Gib links den Code ein – 3 bis {n} Buchstaben oder Ziffern.', { n:max }) + '</p>');
       return;
     }
     // Satz im Feld: Lässt sich der Code aus seinen Buchstaben legen, und passt er ins Feld?
@@ -535,16 +576,16 @@ function starte(bereich){
     if (o.feldArt === 'satz'){
       satzZ = Kern.code(st.satz);
       var pr = Kern.satzPruefen(satzZ, z, o.n), passt = [5, 6, 7].filter(function(n){ return satzZ.length <= n * n - z.length; })[0];
-      $('#csSatzInfo').innerHTML = satzZ.length ? '<p class="cs-zaehler-haupt ' + (pr.fehlt.length || pr.L > pr.maxL ? 'fehlt' : 'ok') + '"><b>' + pr.L + tx('</b> Buchstaben') +
-        (pr.L > pr.maxL ? tx(' – im Feld ') + o.n + ' × ' + o.n + tx(' haben höchstens ') + pr.maxL + tx(' Platz.') : ' · ' + (o.n * o.n - pr.L) + tx(' Felder für Emojis')) + '</p>' +
+      $('#csSatzInfo').innerHTML = satzZ.length ? '<p class="cs-zaehler-haupt ' + (pr.fehlt.length || pr.L > pr.maxL ? 'fehlt' : 'ok') + '">' + tx('{n} Buchstaben', { n:'<b>' + pr.L + '</b>' }) +
+        (pr.L > pr.maxL ? tx(' – im Feld {g} × {g} haben höchstens {m} Platz.', { g:o.n, m:pr.maxL }) : ' · ' + tx('{n} Felder für Emojis', { n:o.n * o.n - pr.L })) + '</p>' +
         (!pr.fehlt.length && pr.L <= pr.maxL && pr.L < o.n * o.n * 0.35 ? tx('<p class="warnung">Der Satz ist kurz – im Feld stehen viele Emojis. Ein kleineres Feld passt besser.</p>') : '') : '';
       var problem = '';
       if (!satzZ.length) problem = tx('<p>Gib links den Satz ein, der im Feld stehen soll.</p>');
-      else if (pr.fehlt.length) problem = tx('<p>Der Code «') + esc(z.join('')) + tx('» lässt sich aus diesem Satz nicht legen: ') + pr.fehlt.map(function(f){
-          return f.hat ? '«' + esc(f.c) + tx('» kommt nur ') + f.hat + tx('-mal vor, der Code braucht es ') + f.braucht + tx('-mal') : '«' + esc(f.c) + tx('» kommt im Satz nicht vor');
-        }).join(', ') + tx('. Ändere den Satz oder den Code') + (Kern.satzVorschlag(z, o.n, Kern.zufall(1), null, o.thema) ? tx(' – oder nimm einen «Vorschlag»') : '') + '.</p>';
-      else if (pr.L > pr.maxL) problem = tx('<p>Der Satz hat ') + pr.L + tx(' Buchstaben – im Feld ') + o.n + ' × ' + o.n + tx(' haben höchstens ') + pr.maxL + tx(' Platz, weil es noch ') + z.length + tx(' Felder für die Emojis braucht. ') +
-        (passt ? tx('Wähle das Feld ') + passt + ' × ' + passt + tx(' oder kürze den Satz.') : tx('Kürze den Satz.')) + '</p>';
+      else if (pr.fehlt.length) problem = '<p>' + tx('Der Code «{z}» lässt sich aus diesem Satz nicht legen:', { z:esc(z.join('')) }) + ' ' + pr.fehlt.map(function(f){
+          return f.hat ? tx('«{c}» kommt nur {h}-mal vor, der Code braucht es {b}-mal', { c:esc(f.c), h:f.hat, b:f.braucht }) : tx('«{c}» kommt im Satz nicht vor', { c:esc(f.c) });
+        }).join(', ') + '. ' + (Kern.satzVorschlag(z, o.n, Kern.zufall(1), null, o.thema) ? tx('Ändere den Satz oder den Code – oder nimm einen «Vorschlag».') : tx('Ändere den Satz oder den Code.')) + '</p>';
+      else if (pr.L > pr.maxL) problem = '<p>' + tx('Der Satz hat {n} Buchstaben – im Feld {g} × {g} haben höchstens {m} Platz, weil es noch {e} Felder für die Emojis braucht.', { n:pr.L, g:o.n, m:pr.maxL, e:z.length }) + ' ' +
+        (passt ? tx('Wähle das Feld {p} × {p} oder kürze den Satz.', { p:passt }) : tx('Kürze den Satz.')) + '</p>';
       if (problem){ R = null; $('#csInhalt').hidden = true; ['#csZeigeLoesung', '#csNeu', '#csPdf', '#csHerunterladen'].forEach(function(s){ $(s).disabled = true; }); meldung(satzZ.length ? 'warnung' : 'info', problem); return; }
     }
     R = Kern.planen({ code:z, thema:o.thema, n:o.n, kaestchen:o.kaestchen, satz:satzZ, seed:st.seed });
@@ -567,7 +608,7 @@ function starte(bereich){
     eingabeSchluessel = schluessel;
     $('#csEingaben').innerHTML = R.ziele.map(function(ziel, i){
       return '<label class="cs-eingabe-stelle"><span class="cs-punkt" style="background:' + Kern.FARBE[ziel.farbe] + '"></span>' +
-        '<input type="text" maxlength="1" autocomplete="off" spellcheck="false" data-i="' + i + tx('" aria-label="Zeichen ') + (i + 1) + tx(' (Punkt ') + ziel.farbe.replace('gruen', tx('grün')) + ')"></label>';
+        '<input type="text" maxlength="1" autocomplete="off" spellcheck="false" data-i="' + i + '" aria-label="' + esc(tx('Zeichen {i} (Punkt {f})', { i:i + 1, f:FARBNAME[ziel.farbe] || ziel.farbe })) + '"></label>';
     }).join('');
     pruefen();
   }
@@ -613,7 +654,7 @@ function starte(bereich){
     var inhalt = [$('#csBlatt'), st.opt.mitLoesung && $('#csLoesung')].filter(Boolean).map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
     speicherOrt.save({ filename:name, data:Labor.blattDatei(tx('Code-Schloss'), inhalt, '.cs-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
-      meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
+      meldung('warnung', '<p>' + tx('Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
   });
 
