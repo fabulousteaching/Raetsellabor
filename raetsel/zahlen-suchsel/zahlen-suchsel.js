@@ -590,7 +590,7 @@ return { FORMEN:FORMEN, loese:loese, bauen:bauen, analyse:analyse, minWoerter:mi
 /* KERN-ENDE */
 
 /* ===== Vorlage: Oberfläche des Generators ===== */
-var VORLAGE = `<div class="zs">
+var VORLAGE = tx(`<div class="zs">
   <header class="zs-kopf">
     <p class="augenbraue">Rätselgenerator</p>
     <h1>Zahlen-Suchsel</h1>
@@ -677,7 +677,7 @@ var VORLAGE = `<div class="zs">
     </article>
   </section>
   </div>
-</div>`;
+</div>`);
 
 var SYMBOL = '<svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true"><g fill="currentColor" opacity=".45"><circle cx="4" cy="4" r="1.6"/><circle cx="11" cy="4" r="1.6"/><circle cx="18" cy="4" r="1.6"/><circle cx="4" cy="11" r="1.6"/><circle cx="11" cy="11" r="1.6"/><circle cx="18" cy="11" r="1.6"/><circle cx="4" cy="18" r="1.6"/><circle cx="11" cy="18" r="1.6"/><circle cx="18" cy="18" r="1.6"/></g><path d="M4 4h14v14" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 

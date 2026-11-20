@@ -33,7 +33,7 @@ var Kern = (function(){
 /* KERN-ENDE */
 
 var TINTE = '#1C1714';
-var SCHREIB = [['klein', 'kleinbuchstaben'], ['gross', 'GROSSBUCHSTABEN']];
+var SCHREIB = [['klein', tx('kleinbuchstaben')], ['gross', tx('GROSSBUCHSTABEN')]];
 function esc(t){ return Labor.esc(t); }
 
 var VORLAGE = '<div class="sw">' +
@@ -189,7 +189,7 @@ function starte(bereich){
     // Lösung: zwei Spalten, wenn die Zeilen schmal genug sind (Lösungskärtchen 21 px, Lösungswort etwa 12 px je Buchstabe)
     var maxL = Math.max.apply(null, R.map(function(e){ return 34 + breite(e, o.karten ? 21 : 15) + 26 + e.loesung.length * 12; }));
     $('#swLoesung').innerHTML = (o.titelAn ? '<h2>' + esc(titel ? tx('Schüttelwörter: ') + titel + tx(' – Lösung') : tx('Schüttelwörter – Lösung')) + '</h2>' : tx('<p class="sw-anleitung"><b>Lösung</b></p>')) +
-      '<ol class="sw-liste sw-loesungen' + (maxL <= 300 ? tx(' sw-zwei') : '') + '">' + R.map(function(e, i){ return zeile(e, true, i + 1); }).join('') + '</ol>';
+      '<ol class="sw-liste sw-loesungen' + (maxL <= 300 ? ' sw-zwei' : '') + '">' + R.map(function(e, i){ return zeile(e, true, i + 1); }).join('') + '</ol>';
   }
   // Eine Zeile: Schüttelwort (Kärtchen oder Buchstaben mit Abstand), dann Kästchen, Schreiblinie oder Lösung
   function zeile(e, loesung, nr){

@@ -16,8 +16,12 @@ var tx = Labor.uebersetzer('rebus');
 var Kern = (function(){
 'use strict';
 
+/* Sprache der Bildnamen: Deutsch, Englisch oder Französisch (Französisch ohne Akzente, wie im Rätsel geschrieben) */
+var SPRACHE = (typeof Labor !== 'undefined' && Labor.sprache) || 'de';
+var NAMEN_EN = 'COOK👨‍🍳 PILOT👨‍✈️ PAINTER👨‍🎨 FARMER👨‍🌾 ASTRONAUT👨‍🚀 TEACHER👨‍🏫 DOCTOR👨‍⚕️ DOG🐶 CAT🐱 MOUSE🐭 HAMSTER🐹 RABBIT🐰 FOX🦊 BEAR🐻 PANDA🐼 KOALA🐨 TIGER🐯 LION🦁 COW🐮 PIG🐷 FROG🐸 MONKEY🐵 HEN🐔 PENGUIN🐧 BIRD🐦 CHICK🐤 DUCK🦆 EAGLE🦅 OWL🦉 WOLF🐺 HORSE🐴 UNICORN🦄 BEE🐝 CATERPILLAR🐛 BUTTERFLY🦋 SNAIL🐌 LADYBIRD🐞 ANT🐜 SPIDER🕷️ TURTLE🐢 SNAKE🐍 LIZARD🦎 OCTOPUS🐙 CRAB🦀 LOBSTER🦞 FISH🐟 DOLPHIN🐬 WHALE🐳 SHARK🦈 CROCODILE🐊 ELEPHANT🐘 GIRAFFE🦒 ZEBRA🦓 CAMEL🐫 KANGAROO🦘 SHEEP🐑 GOAT🐐 DEER🦌 ROOSTER🐓 TURKEY🦃 PARROT🦜 SWAN🦢 FLAMINGO🦩 PEACOCK🦚 DOVE🕊️ HEDGEHOG🦔 BAT🦇 SQUIRREL🐿️ OTTER🦦 BULL🐂 RHINO🦏 HIPPO🦛 RAT🐀 SLOTH🦥 GORILLA🦍 LLAMA🦙 LEOPARD🐆 DINOSAUR🦕 DRAGON🐉 SCORPION🦂 WORM🪱 BEETLE🪲 FLY🪰 MOSQUITO🦟 SEAL🦭 APPLE🍎 PEAR🍐 BANANA🍌 GRAPES🍇 STRAWBERRY🍓 CHERRY🍒 LEMON🍋 ORANGE🍊 MELON🍉 PINEAPPLE🍍 KIWI🥝 COCONUT🥥 AVOCADO🥑 CARROT🥕 CORN🌽 CUCUMBER🥒 TOMATO🍅 POTATO🥔 ONION🧅 GARLIC🧄 BROCCOLI🥦 PEPPER🫑 OLIVE🫒 MUSHROOM🍄 PEANUT🥜 CHESTNUT🌰 BREAD🍞 PRETZEL🥨 CROISSANT🥐 BAGUETTE🥖 CHEESE🧀 EGG🥚 BUTTER🧈 BACON🥓 WAFFLE🧇 PANCAKES🥞 PIZZA🍕 BURGER🍔 CHIPS🍟 SANDWICH🥪 SPAGHETTI🍝 RICE🍚 SUSHI🍣 CAKE🍰 COOKIE🍪 DONUT🍩 POPCORN🍿 CHOCOLATE🍫 SWEET🍬 LOLLIPOP🍭 HONEY🍯 MILK🥛 COFFEE☕ TEA🍵 JUICE🧃 ICE🧊 SALT🧂 SPOON🥄 KNIFE🔪 POT🍲 SUN☀️ MOON🌙 STAR⭐ CLOUD☁️ RAINBOW🌈 LIGHTNING⚡ SNOWFLAKE❄️ SNOWMAN⛄ FIRE🔥 DROP💧 WAVE🌊 VOLCANO🌋 MOUNTAIN⛰️ ISLAND🏝️ STONE🪨 WOOD🪵 EARTH🌍 PLANET🪐 COMET☄️ TORNADO🌪️ TREE🌳 FIR🌲 PALM🌴 CACTUS🌵 SUNFLOWER🌻 ROSE🌹 TULIP🌷 BLOSSOM🌸 CLOVER🍀 LEAF🍁 SHELL🐚 FEATHER🪶 TENT⛺ UMBRELLA☂️ HOUSE🏠 CASTLE🏰 SCHOOL🏫 CHURCH⛪ TOWER🗼 BRIDGE🌉 FACTORY🏭 HOSPITAL🏥 HOTEL🏨 CAR🚗 BUS🚌 TRAM🚋 TRAIN🚆 ENGINE🚂 BICYCLE🚲 SCOOTER🛴 MOTORBIKE🏍️ TRACTOR🚜 LORRY🚚 TAXI🚕 PLANE✈️ ROCKET🚀 SHIP🚢 BOAT🚤 SAILBOAT⛵ CANOE🛶 HELICOPTER🚁 ANCHOR⚓ GONDOLA🚡 UFO🛸 SATELLITE🛰️ KEY🔑 LOCK🔒 HAMMER🔨 AXE🪓 SAW🪚 SCISSORS✂️ RULER📏 PENCIL✏️ BRUSH🖌️ BOOK📖 BOOKS📚 LETTER✉️ PARCEL📦 PRESENT🎁 BALLOON🎈 RIBBON🎀 KITE🪁 TEDDY🧸 DICE🎲 PUZZLE🧩 BALL⚽ TROPHY🏆 MEDAL🥇 GUITAR🎸 PIANO🎹 DRUM🥁 TRUMPET🎺 VIOLIN🎻 BELL🔔 MICROPHONE🎤 CAMERA📷 TELEVISION📺 TELEPHONE☎️ MOBILE📱 ALARM⏰ WATCH⌚ HOURGLASS⌛ CANDLE🕯️ TORCH🔦 MAGNET🧲 LADDER🪜 CHAIR🪑 BED🛏️ BATH🛁 SHOWER🚿 DOOR🚪 WINDOW🪟 BROOM🧹 SPONGE🧽 BASKET🧺 BUCKET🪣 SOCK🧦 JEANS👖 DRESS👗 SHOE👟 BOOT👢 HAT🎩 CROWN👑 RING💍 GLASSES👓 GLOVES🧤 SCARF🧣 BACKPACK🎒 HANDBAG👜 SUITCASE🧳 COIN🪙 DIAMOND💎 SHIELD🛡️ BOW🏹 BOOMERANG🪃 COMPASS🧭 MAP🗺️ MICROSCOPE🔬 TELESCOPE🔭 PLASTER🩹 SYRINGE💉 THERMOMETER🌡️ FLAG🚩 TARGET🎯 YOYO🪀 SKATEBOARD🛹 SKATE⛸️ SKIS🎿 SLEDGE🛷 PARACHUTE🪂 MASK🎭 VASE🏺 MOUSETRAP🪤 TOOTHBRUSH🪥 SOAP🧼 BATTERY🔋 PLUG🔌 CHAIN⛓️ SCREW🔩 NEEDLE🪡 THREAD🧵 WOOL🧶 PALETTE🎨 PICTURE🖼️ CALENDAR📅 MIRROR🪞 PAPERCLIP📎 PIN📌 WAND🪄 BABY👶 ROBOT🤖 GHOST👻 PUMPKIN🎃 HEART❤️ TOOTH🦷 EAR👂 NOSE👃 EYE👁️ MOUTH👄 TONGUE👅 HAND✋ FOOT🦶 LEG🦵 ARM💪 BRAIN🧠 BONE🦴 THUMB👍 KING🤴 PRINCESS👸 ANGEL👼 FAIRY🧚 CLOWN🤡 ZERO0️⃣ ONE1️⃣ TWO2️⃣ THREE3️⃣ FOUR4️⃣ FIVE5️⃣ SIX6️⃣ SEVEN7️⃣ EIGHT8️⃣ NINE9️⃣ TEN🔟 ARROW➡️ TICK✔️ PLUS➕ MINUS➖ STOP🛑 NOTE🎵 CROSS❌';
+var NAMEN_FR = 'CUISINIER👨‍🍳 PILOTE👨‍✈️ PEINTRE👨‍🎨 PAYSAN👨‍🌾 ASTRONAUTE👨‍🚀 ENSEIGNANT👨‍🏫 MEDECIN👨‍⚕️ CHIEN🐶 CHAT🐱 SOURIS🐭 HAMSTER🐹 LAPIN🐰 RENARD🦊 OURS🐻 PANDA🐼 KOALA🐨 TIGRE🐯 LION🦁 VACHE🐮 COCHON🐷 GRENOUILLE🐸 SINGE🐵 POULE🐔 PINGOUIN🐧 OISEAU🐦 POUSSIN🐤 CANARD🦆 AIGLE🦅 HIBOU🦉 LOUP🐺 CHEVAL🐴 LICORNE🦄 ABEILLE🐝 CHENILLE🐛 PAPILLON🦋 ESCARGOT🐌 COCCINELLE🐞 FOURMI🐜 ARAIGNEE🕷️ TORTUE🐢 SERPENT🐍 LEZARD🦎 PIEUVRE🐙 CRABE🦀 HOMARD🦞 POISSON🐟 DAUPHIN🐬 BALEINE🐳 REQUIN🦈 CROCODILE🐊 ELEPHANT🐘 GIRAFE🦒 ZEBRE🦓 CHAMEAU🐫 KANGOUROU🦘 MOUTON🐑 CHEVRE🐐 CERF🦌 COQ🐓 DINDE🦃 PERROQUET🦜 CYGNE🦢 FLAMANT🦩 PAON🦚 COLOMBE🕊️ HERISSON🦔 ECUREUIL🐿️ LOUTRE🦦 TAUREAU🐂 RHINOCEROS🦏 HIPPOPOTAME🦛 RAT🐀 PARESSEUX🦥 GORILLE🦍 LAMA🦙 LEOPARD🐆 DINOSAURE🦕 DRAGON🐉 SCORPION🦂 VER🪱 SCARABEE🪲 MOUCHE🪰 MOUSTIQUE🦟 PHOQUE🦭 POMME🍎 POIRE🍐 BANANE🍌 RAISIN🍇 FRAISE🍓 CERISE🍒 CITRON🍋 ORANGE🍊 PASTEQUE🍉 ANANAS🍍 KIWI🥝 AVOCAT🥑 CAROTTE🥕 MAIS🌽 CONCOMBRE🥒 TOMATE🍅 PATATE🥔 OIGNON🧅 AIL🧄 BROCOLI🥦 POIVRON🫑 OLIVE🫒 CHAMPIGNON🍄 CACAHUETE🥜 CHATAIGNE🌰 PAIN🍞 BRETZEL🥨 CROISSANT🥐 BAGUETTE🥖 FROMAGE🧀 OEUF🥚 BEURRE🧈 LARD🥓 GAUFRE🧇 CREPE🥞 PIZZA🍕 HAMBURGER🍔 FRITES🍟 SANDWICH🥪 SPAGHETTI🍝 RIZ🍚 SUSHI🍣 GATEAU🍰 BISCUIT🍪 BEIGNET🍩 POPCORN🍿 CHOCOLAT🍫 BONBON🍬 SUCETTE🍭 MIEL🍯 LAIT🥛 CAFE☕ THE🍵 JUS🧃 GLACE🍦 GLACON🧊 SEL🧂 CUILLERE🥄 COUTEAU🔪 MARMITE🍲 SOLEIL☀️ LUNE🌙 ETOILE⭐ NUAGE☁️ ECLAIR⚡ FLOCON❄️ FEU🔥 GOUTTE💧 VAGUE🌊 VOLCAN🌋 MONTAGNE⛰️ ILE🏝️ CAILLOU🪨 BOIS🪵 TERRE🌍 PLANETE🪐 COMETE☄️ TORNADE🌪️ ARBRE🌳 SAPIN🌲 PALMIER🌴 CACTUS🌵 TOURNESOL🌻 ROSE🌹 TULIPE🌷 FLEUR🌸 TREFLE🍀 FEUILLE🍁 COQUILLAGE🐚 PLUME🪶 TENTE⛺ PARAPLUIE☂️ MAISON🏠 CHATEAU🏰 ECOLE🏫 EGLISE⛪ TOUR🗼 PONT🌉 USINE🏭 HOPITAL🏥 HOTEL🏨 VOITURE🚗 BUS🚌 TRAM🚋 TRAIN🚆 LOCOMOTIVE🚂 VELO🚲 TROTTINETTE🛴 MOTO🏍️ TRACTEUR🚜 CAMION🚚 TAXI🚕 AVION✈️ FUSEE🚀 BATEAU🚢 VOILIER⛵ CANOE🛶 HELICOPTERE🚁 ANCRE⚓ TELECABINE🚡 OVNI🛸 SATELLITE🛰️ CHANTIER🚧 CLE🔑 CADENAS🔒 MARTEAU🔨 HACHE🪓 SCIE🪚 CISEAUX✂️ REGLE📏 CRAYON✏️ PINCEAU🖌️ LIVRE📖 LIVRES📚 LETTRE✉️ COLIS📦 CADEAU🎁 NOEUD🎀 NOUNOURS🧸 PUZZLE🧩 BALLON⚽ COUPE🏆 MEDAILLE🥇 GUITARE🎸 PIANO🎹 TAMBOUR🥁 TROMPETTE🎺 VIOLON🎻 CLOCHE🔔 MICRO🎤 PHOTO📷 TELEVISION📺 TELEPHONE☎️ PORTABLE📱 REVEIL⏰ MONTRE⌚ SABLIER⌛ BOUGIE🕯️ LAMPE🔦 AIMANT🧲 ECHELLE🪜 CHAISE🪑 LIT🛏️ BAIGNOIRE🛁 DOUCHE🚿 PORTE🚪 FENETRE🪟 BALAI🧹 EPONGE🧽 PANIER🧺 SEAU🪣 CHAUSSETTE🧦 JEAN👖 ROBE👗 CHAUSSURE👟 BOTTE👢 CHAPEAU🎩 COURONNE👑 BAGUE💍 LUNETTES👓 GANTS🧤 ECHARPE🧣 CARTABLE🎒 SAC👜 VALISE🧳 PIECE🪙 DIAMANT💎 BOUCLIER🛡️ ARC🏹 BOOMERANG🪃 BOUSSOLE🧭 CARTE🗺️ MICROSCOPE🔬 TELESCOPE🔭 PANSEMENT🩹 SERINGUE💉 THERMOMETRE🌡️ LOUPE🔍 DRAPEAU🚩 CIBLE🎯 YOYO🪀 SKATE🛹 PATIN⛸️ SKI🎿 LUGE🛷 PARACHUTE🪂 MASQUE🎭 VASE🏺 SONNETTE🛎️ PIEGE🪤 BROSSE🪥 SAVON🧼 PILE🔋 PRISE🔌 CHAINE⛓️ VIS🔩 AIGUILLE🪡 FIL🧵 LAINE🧶 PALETTE🎨 TABLEAU🖼️ CALENDRIER📅 MIROIR🪞 TROMBONE📎 PUNAISE📌 BEBE👶 ROBOT🤖 FANTOME👻 CITROUILLE🎃 COEUR❤️ DENT🦷 OREILLE👂 NEZ👃 OEIL👁️ BOUCHE👄 LANGUE👅 MAIN✋ PIED🦶 JAMBE🦵 BRAS💪 CERVEAU🧠 OS🦴 POUCE👍 ROI🤴 PRINCESSE👸 ANGE👼 FEE🧚 CLOWN🤡 ZERO0️⃣ UN1️⃣ DEUX2️⃣ TROIS3️⃣ QUATRE4️⃣ CINQ5️⃣ SIX6️⃣ SEPT7️⃣ HUIT8️⃣ NEUF9️⃣ DIX🔟 FLECHE➡️ PLUS➕ MOINS➖ STOP🛑 NOTE🎵 CROIX❌';
 /* Bilder: Name (Einzahl, ohne Artikel) und Emoji. Nur gut erkennbare, verbreitete Emojis. */
-var LISTE = (
+var LISTE = (SPRACHE === 'en' ? NAMEN_EN : SPRACHE === 'fr' ? NAMEN_FR : 
   'KOCH👨‍🍳 PILOT👨‍✈️ MALER👨‍🎨 BAUER👨‍🌾 ASTRONAUT👨‍🚀 LEHRER👨‍🏫 ARZT👨‍⚕️ ' +
   'HUND🐶 KATZE🐱 MAUS🐭 HAMSTER🐹 HASE🐰 FUCHS🦊 BÄR🐻 PANDA🐼 KOALA🐨 TIGER🐯 LÖWE🦁 KUH🐮 SCHWEIN🐷 FROSCH🐸 AFFE🐵 ' +
   'HUHN🐔 PINGUIN🐧 VOGEL🐦 KÜKEN🐤 ENTE🦆 ADLER🦅 EULE🦉 WOLF🐺 PFERD🐴 EINHORN🦄 BIENE🐝 RAUPE🐛 SCHMETTERLING🦋 ' +
@@ -54,7 +58,11 @@ var LISTE = (
   return { wort:m[1], emoji:m[2] };
 });
 
-function norm(t){ return String(t || '').normalize('NFC').toLocaleUpperCase('de-CH'); }
+function norm(t){
+  t = String(t || '').normalize('NFC').toLocaleUpperCase('de-CH');
+  // Englisch/Französisch: Akzente weg (É → E, Ç → C), Œ → OE
+  return SPRACHE === 'de' ? t : t.replace(/Œ/g, 'OE').replace(/Æ/g, 'AE').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
 /* Text → Wörter aus Grossbuchstaben (ß wird SS, Umlaute bleiben) */
 function woerter(t){ return norm(t).split(/[^A-ZÄÖÜ]+/).filter(Boolean); }
 
@@ -245,7 +253,7 @@ return { LISTE:LISTE, STUFEN:STUFEN, rebus:rebus, ersetze:ersetze, ergebnis:erge
 /* KERN-ENDE */
 
 /* ===== Vorlage: Oberfläche des Generators ===== */
-var VORLAGE = `<div class="rb">
+var VORLAGE = tx(`<div class="rb">
   <header class="rb-kopf">
     <p class="augenbraue">Rätselgenerator</p>
     <h1>Rebus</h1>
@@ -302,7 +310,7 @@ var VORLAGE = `<div class="rb">
       <article class="rb-blatt rb-loesungsblatt" id="rbLoesung" aria-hidden="true"></article>
     </section>
   </div>
-</div>`;
+</div>`);
 
 var SYMBOL = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
   '<rect x="4" y="6" width="16" height="14" rx="2.5"/><circle cx="9.5" cy="11" r="1.6"/><path d="m5 18 4.5-4.5 3 3 2-2L20 18"/><path d="M5 2.5 4.2 4.6M8.4 2.5l-.8 2.1"/></svg>';
@@ -356,10 +364,10 @@ function starte(bereich){
     var teile = String(text).split(/[\n;]+/).map(function(t){ return t.trim().replace(/\s+/g, ' '); }).filter(Boolean), notiz = [];
     teile.forEach(function(t){
       var w = Kern.woerter(t);
-      if (!w.length){ notiz.push('«' + esc(t) + tx('» enthält keine Buchstaben')); return; }
-      if (w.join('').length > 60){ notiz.push('«' + esc(t) + tx('» ist zu lang (höchstens 60 Buchstaben)')); return; }
-      if (st.eintraege.some(function(x){ return schluessel(x) === w.join(' '); })){ notiz.push('«' + esc(t) + tx('» ist schon in der Liste')); return; }
-      if (st.eintraege.length >= MAX){ notiz.push(tx('Höchstens ') + MAX + tx(' Rätsel pro Blatt')); return; }
+      if (!w.length){ notiz.push(tx('«{t}» enthält keine Buchstaben', { t:esc(t) })); return; }
+      if (w.join('').length > 60){ notiz.push(tx('«{t}» ist zu lang (höchstens 60 Buchstaben)', { t:esc(t) })); return; }
+      if (st.eintraege.some(function(x){ return schluessel(x) === w.join(' '); })){ notiz.push(tx('«{t}» ist schon in der Liste', { t:esc(t) })); return; }
+      if (st.eintraege.length >= MAX){ notiz.push(tx('Höchstens {n} Rätsel pro Blatt', { n:MAX })); return; }
       st.eintraege.push(t);
     });
     $('#rbInfo').innerHTML = notiz.join(' · ');
@@ -411,7 +419,7 @@ function starte(bereich){
     var tausch = ort ? ' rb-tauschbar" data-i="' + ort.i + '" data-w="' + ort.w + '" data-k="' + ort.k + tx('" role="button" tabindex="0" title="Anderes Bild" aria-label="Anderes Bild statt ') + esc(c.bild.wort.toLocaleLowerCase('de-CH')) : '';
     return '<div class="rb-teil' + tausch + '"><div class="rb-karte"><span class="rb-bild">' + c.bild.emoji + '</span>' +
       '<span class="rb-regeln">' + c.regeln.map(function(r){ return '<span class="rb-regel">' + esc(regelText(r)) + '</span>'; }).join('') + '</span>' +   // auch leer: hält den Platz frei
-      '</div><span class="rb-name' + (st.opt.namen ? tx(' rb-hilfe') : '') + '">' + esc(c.bild.wort) + '</span>' +
+      '</div><span class="rb-name' + (st.opt.namen ? ' rb-hilfe' : '') + '">' + esc(c.bild.wort) + '</span>' +
       '<span class="rb-ergebnis">' + esc(Kern.ergebnis(c)) + '</span></div>';
   }
   function blattHtml(liste, loesung, beispiel){
@@ -429,7 +437,7 @@ function starte(bereich){
     html += '<ol class="rb-raetsel" style="--z:' + zeichen + ';--n:' + regeln + '">';
     liste.forEach(function(x, i){
       html += '<li class="rb-eintrag" data-i="' + i + '"><span class="rb-nr">' + (liste.length > 1 ? (i + 1) + '.' : '') + '</span><div class="rb-inhalt">' +
-        '<div class="rb-zeile">' + x.r.map(function(w, wi){ return '<div class="rb-wort' + (w.teile.length > 1 ? tx(' rb-mehrteilig') : '') + '">' + w.teile.map(function(c, k){ return teilHtml(c, !loesung && !beispiel ? { i:i, w:wi, k:k } : null); }).join('') + '</div>'; }).join('<span class="rb-wortgrenze" aria-hidden="true"></span>') + '</div>';
+        '<div class="rb-zeile">' + x.r.map(function(w, wi){ return '<div class="rb-wort' + (w.teile.length > 1 ? ' rb-mehrteilig' : '') + '">' + w.teile.map(function(c, k){ return teilHtml(c, !loesung && !beispiel ? { i:i, w:wi, k:k } : null); }).join('') + '</div>'; }).join('<span class="rb-wortgrenze" aria-hidden="true"></span>') + '</div>';
       if (loesung) html += '<p class="rb-loesungswort">' + esc(x.r.map(function(w){ return w.wort; }).join(' ')) + '</p>';
       if (!loesung && !beispiel) html += tx('<div class="rb-pruefen nur-bildschirm"><span class="rb-pruefen-text">Deine Lösung:</span><input type="text" class="rb-eingabe-loesung" aria-label="Deine Lösung für Rätsel ') + (i + 1) + '" autocomplete="off" spellcheck="false">' +
         tx('<span class="rb-status" aria-live="polite"></span><button type="button" class="btn ghost klein rb-anders" title="Nur dieses Rätsel mit anderen Bildern">Anders</button></div>');
@@ -464,8 +472,8 @@ function starte(bereich){
     var hinweise = [];
     liste.forEach(function(x){
       var teile = [].concat.apply([], x.r.map(function(w){ return w.teile; })), einzeln = teile.filter(function(c){ return c.buchstabe; }).length;
-      if (x.r.length === 1 && teile.length === 1 && teile[0].bild) hinweise.push('«' + esc(x.t) + tx('» ist selbst ein Bild – dieses Rätsel ist sehr leicht.'));
-      else if (einzeln >= 3 && einzeln / teile.length > 0.4) hinweise.push(tx('Für «') + esc(x.t) + tx('» gibt es wenige passende Bilder, einige Buchstaben stehen einzeln. «Anders» oder eine höhere Schwierigkeit kann helfen.'));
+      if (x.r.length === 1 && teile.length === 1 && teile[0].bild) hinweise.push(tx('«{t}» ist selbst ein Bild – dieses Rätsel ist sehr leicht.', { t:esc(x.t) }));
+      else if (einzeln >= 3 && einzeln / teile.length > 0.4) hinweise.push(tx('Für «{t}» gibt es wenige passende Bilder, einige Buchstaben stehen einzeln. «Anders» oder eine höhere Schwierigkeit kann helfen.', { t:esc(x.t) }));
     });
     meldung(hinweise.length ? 'warnung' : '', hinweise.length ? '<ul>' + hinweise.map(function(h){ return '<li>' + h + '</li>'; }).join('') + '</ul>' : '');
   }
@@ -544,7 +552,7 @@ function starte(bereich){
     if (!speicherOrt || !st.eintraege.length) return;
     var titel = st.titel.trim() || tx('Bilderrätsel'), inhalt = ohneBildschirmteile($('#rbBlatt')).outerHTML;
     if (st.opt.mitLoesung){ var l = ohneBildschirmteile($('#rbLoesung')); l.classList.add('neue-seite'); inhalt += l.outerHTML; }
-    speicherOrt.save({ filename:tx('Rebus-') + (Labor.dateiname(titel) || tx('Raetsel')) + '.html', data:Labor.blattDatei(tx('Rebus – ') + titel, inhalt, '.rb-loesungsblatt{display:block}') }).catch(function(e){
+    speicherOrt.save({ filename:'Rebus-' + (Labor.dateiname(titel) || 'Raetsel') + '.html', data:Labor.blattDatei(tx('Rebus – ') + titel, inhalt, '.rb-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;
       meldung('warnung', tx('<p>Das Speichern hat nicht geklappt') + (e && e.message ? ' (' + esc(e.message) + ')' : '') + '.</p>');
     });
