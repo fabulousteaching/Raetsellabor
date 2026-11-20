@@ -1,5 +1,5 @@
 /* Rätsellabor – Baustein «Pixelschrift»: Ziffern 0–9 und Buchstaben A–Z als Blockschrift aus 3 × 5 Feldern
-   (eigene Zeichnung). Genutzt von «Überlappende Folien» und «Schiebefenster».
+   (eigene Zeichnung). Genutzt von «Überlappende Folien», «Schiebefenster» und «Nonogramm».
    Ziffern sind eckig, Buchstaben, die leicht mit einer Ziffer zu verwechseln wären, anders gezeichnet:
    O rund (0 eckig), S schräg (5 eckig), Z schräg (2 eckig), B mit Kerben (8 voll), I mit Querstrichen (1 mit Fahne).
    maske(c) → 15 Werte 0/1, Zeile für Zeile von oben links; schluessel(maske) → Text aus 0/1, um Masken zu vergleichen. */

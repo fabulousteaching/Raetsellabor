@@ -305,6 +305,15 @@ Je 6 Uhren (2 Spalten × 3 Zeilen, quadratisches Raster) bilden eine Ziffer. Die
 - **Uhren:** Zifferblatt mit Minuten- und Stundenstrichen (3, 6, 9 kräftiger, bei der 12 ein Dreieck), auf Wunsch die Zahlen 1–12; keine Städte oder anderen Beschriftungen in der Uhr. «Farbige Uhren»: jede Uhr mit farbigem Rand und einem Hauch der Farbe im Zifferblatt – **keine Farbe zweimal**, alle von Auge gut unterscheidbar: eine feste Liste von 24 Farben, nach Unterscheidbarkeit geordnet (rot, blau, gelb, grün, orange, lila, rosa, braun, schwarz, grau, hellblau, beige, dann weinrot, pink, hellgrün, dunkelblau, flieder, lachs, türkis, oliv, ocker, dunkelgrün, hellgrau, violett). Bis 12 Farben höchstens drei Blau-/Grüntöne. Die Uhren mit Zeit (die zu einem Wecker passen müssen) bekommen die vordersten Farben, die leeren Uhren den Rest.
 - **Blätter:** Alle Uhren auf einem Blatt – je mehr Ziffern, desto kleiner: 1 Ziffer 50 mm (Abstand 65 mm), 2 Ziffern 32 mm (44 mm) in einer Reihe, 3 oder 4 Ziffern 25 mm (33 mm) in zwei Reihen. Am Schluss Kästchen für die Zahl (abwählbar). Lösungsblatt: alle Uhren mit Zeigern und Zeiten, die Verbindungen orange, darunter die Zahl; «Lösung zeigen» blendet es oben ein. PDF.
 
+### Nonogramm
+
+Malen nach Zahlen: Links von jeder Zeile und über jeder Spalte stehen Zahlen. Sie sagen, wie viele Felder nebeneinander angemalt sind – in dieser Reihenfolge, zwischen zwei Gruppen bleibt mindestens ein Feld leer (0: die ganze Spalte oder Zeile bleibt leer). Ist alles richtig angemalt, erscheinen Ziffern oder Buchstaben.
+
+- **Lösung:** Ziffern und Buchstaben eintippen, bis 12 Zeichen, in der Blockschrift 3 × 5 (`window.Pixelschrift`, dieselbe wie bei Folien und Schiebefenster; Ä → AE usw.). Zwischen zwei Zeichen eine leere Spalte, ein Leerzeichen gibt eine Lücke von 3 Spalten. Ab 7 Zeichen zwei Zeilen (getrennt am Leerzeichen nahe der Mitte, sonst in der Mitte), dazwischen eine leere Zeile. Zeichen, die es nicht gibt, und ähnliche Zeichen (0 und O …) werden gemeldet.
+- **Immer ohne Raten lösbar:** Das Programm löst jedes Rätsel selbst, Zeile um Zeile und Spalte um Spalte (für jede Linie: was in jeder passenden Anordnung gleich ist; geprüft gegen Durchprobieren an 2'700 Linien). Bleibt es stecken, kommt das Hilfsfeld dazu, das am meisten weiterhilft – so lange, bis alles aufgeht. Hilfsfelder sind grau angemalt (oder, falls ein leeres Feld besser hilft, mit × markiert); die Anleitung erklärt sie. Einzeilige Codes gehen meist ganz ohne Hilfsfelder, zwei Zeilen brauchen einige.
+- **Raster:** Feldgrösse passt sich an (höchstens 11 mm), Zahlen rechtsbündig links und unten bündig oben, jede zweite Zeile und Spalte bei den Zahlen leicht hinterlegt; auf Wunsch dicke Linien alle 5 Felder. Linie für die Lösung (abwählbar).
+- **Lösungsblatt:** das ausgemalte Raster und die Lösung; «Lösung zeigen» blendet es oben ein. PDF.
+
 ## Aufbau
 
 ```
@@ -313,7 +322,7 @@ gemeinsam/labor.css             gemeinsames Aussehen (Farben, Schriften, Kopflei
 gemeinsam/labor.js              Menü, Startseite und Wechsel zwischen den Generatoren
 gemeinsam/wortwahl.js           Baustein «Thema und Wörter»: Wortarten, KI-Vorschläge, eingebaute Listen, Wort-Chips
 gemeinsam/gitter.js             Baustein «Buchstabengitter»: Zeichnen, Markieren, Füllbuchstaben
-gemeinsam/pixelschrift.js       Baustein «Pixelschrift»: Ziffern und A–Z als Blockschrift aus 3 × 5 Feldern (Überlappende Folien, Schiebefenster)
+gemeinsam/pixelschrift.js       Baustein «Pixelschrift»: Ziffern und A–Z als Blockschrift aus 3 × 5 Feldern (Überlappende Folien, Schiebefenster, Nonogramm)
 api/woerter.php                 Server-Teil (PHP): fragt Mistral für Wortvorschläge; Schlüssel in api/geheim.php (entsteht beim Hochladen)
 api/uebersetzen.php             Server-Teil (PHP): übersetzt Wörter für das Triomino (Deutsch ↔ Englisch/Französisch), gleiche KI und gleicher Schlüssel
 raetsel/zahlen-suchsel/         der Generator «Zahlen-Suchsel»
@@ -346,6 +355,7 @@ raetsel/schiebefenster/         der Generator «Schiebefenster» (Kern: Streifen
 raetsel/legekaertchen/          der Generator «Legekärtchen» (Kern: Figuren aus Feldern, Auslegen mit Kärtchen, Kanten, Paare belegen; Kärtchenblätter, Lösung)
 raetsel/blickwinkel/            der Generator «Blickwinkel» (Kern: Strichschrift, Sätze in die Form setzen und strecken, Sehnen der Form, Richtungen, Tarnlinien; Form als SVG, flacher Blick)
 raetsel/uhren/                  der Generator «Uhrenrätsel» (Kern: Ziffern als Striche zwischen 6 Uhren, Richtungen je Uhr, Uhrzeiten und Drehungen suchen, Zeit als Text; Uhren als SVG)
+raetsel/nonogramm/              der Generator «Nonogramm» (Kern: Text in Blockschrift aufs Raster, Zahlen, Linie lösen, Rätsel lösen, Hilfsfelder; Raster als SVG)
 raetsel/triomino/               der Generator «Triomino» (Kern: Formen, Kanten, Aufgaben, Belegung; Zeichnen mit Schriftanpassung)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)
