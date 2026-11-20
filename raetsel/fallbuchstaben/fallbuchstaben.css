@@ -81,3 +81,18 @@
 .fb-bild{margin-top:8px}
 .fb-svg{display:block;max-width:100%;height:auto;margin:0 auto}
 .fb-loesung-text{margin:16px 0 0;font-size:1.15rem;font-weight:600}
+
+/* Farbe der Felder zwischen den Wörtern */
+.fb-farbwahl{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}
+.fb-farbwahl label{position:relative;cursor:pointer}
+.fb-farbwahl input[type=radio]{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.fb-farbwahl label > span{display:block;width:26px;height:26px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line-2)}
+.fb-farbwahl input:checked + span{box-shadow:0 0 0 2px var(--ink)}
+.fb-farbwahl input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+.fb-eigene{display:inline-flex!important;align-items:center;gap:5px;padding:2px 9px 2px 3px;border:1px solid var(--line-2);border-radius:999px;background:#fff}
+.fb-eigene.gewaehlt{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.fb-eigene input{width:24px;height:24px;padding:0;border:0;background:none;cursor:pointer;-webkit-appearance:none;appearance:none}
+.fb-eigene input::-webkit-color-swatch-wrapper{padding:0}
+.fb-eigene input::-webkit-color-swatch{border:1px solid rgba(0,0,0,.15);border-radius:50%}
+.fb-eigene input::-moz-color-swatch{border:1px solid rgba(0,0,0,.15);border-radius:50%}
+.fb-eigene span{width:auto!important;height:auto!important;border:0!important;box-shadow:none!important;font-size:.84rem;color:var(--muted)}
