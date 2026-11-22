@@ -94,5 +94,20 @@ Labor.woerter('faltraetsel', {
   'Fertig! Lies die Felder Reihe für Reihe von links nach rechts.': ['Done! Read the squares row by row from left to right.', 'Terminé ! Lis les cases rangée par rangée, de gauche à droite.'],
   'Falträtsel – Lösung': ['Folding Puzzle – Answers', 'Pliage mystère – Corrigé'],
   'Rückseite (so, wie sie gedruckt ist)': ['Back (as printed)', 'Verso (tel qu’imprimé)'],
-  'So sieht das Päckchen nach jedem Schritt von oben aus:': ['This is what the packet looks like from above after each step:', 'Voici le paquet vu d’en haut après chaque étape :']
+  'So sieht das Päckchen nach jedem Schritt von oben aus:': ['This is what the packet looks like from above after each step:', 'Voici le paquet vu d’en haut après chaque étape :'],
+  // Darstellung: in Feldern oder zerschnitten
+  'Darstellung': ['Layout', 'Présentation'],
+  'Wie die Botschaft auf dem Blatt steht.': ['How the message appears on the sheet.', 'Comment le message figure sur la feuille.'],
+  'In Feldern': ['In squares', 'Dans les cases'],
+  'je Feld 1 bis 3 Zeichen, bis 60 Zeichen': ['1 to 3 characters per square, up to 60 characters', '1 à 3 signes par case, jusqu’à 60 signes'],
+  'Zerschnitten': ['Cut apart', 'Découpé'],
+  'Buchstaben über die Faltlinien verteilt, erst gefaltet lesbar – schwieriger, bis 80 Zeichen': ['letters spread across the fold lines, readable only when folded – harder, up to 80 characters', 'lettres réparties sur les plis, lisibles seulement une fois pliées – plus difficile, jusqu’à 80 signes'],
+  '2 bis 80 Zeichen. Wörter bleiben getrennt; die Satzzeichen . , ! ? - bleiben.': ['2 to 80 characters. Words stay separate; the punctuation marks . , ! ? - stay.', '2 à 80 signes. Les mots restent séparés ; les signes . , ! ? - restent.'],
+  '2 bis 60 Buchstaben oder Ziffern. Leerzeichen und Satzzeichen fallen weg.': ['2 to 60 letters or digits. Spaces and punctuation are dropped.', '2 à 60 lettres ou chiffres. Les espaces et la ponctuation disparaissent.'],
+  'In Feldern bis 60 Buchstaben oder Ziffern, zerschnitten bis 80 Zeichen.': ['In squares up to 60 letters or digits, cut apart up to 80 characters.', 'Dans les cases jusqu’à 60 lettres ou chiffres, découpé jusqu’à 80 signes.'],
+  'Höchstens {m} Zeichen – es werden die ersten {m} verwendet.': ['At most {m} characters – the first {m} are used.', '{m} signes au maximum – les {m} premiers sont utilisés.'],
+  'Wähle, wie die Botschaft auf dem Blatt steht: in Feldern oder zerschnitten.': ['Choose how the message appears on the sheet: in squares or cut apart.', 'Choisis comment le message figure sur la feuille : dans les cases ou découpé.'],
+  'Bei dieser Länge und Schwierigkeit passen auf dem flachen Blatt noch einige Stücke zusammen. Mit einer schwierigeren Faltung, beiden Seiten oder «Andere Faltung» wird es besser.':
+    ['With this length and level, some pieces still fit together on the flat sheet. A harder folding, both sides or “Different folding” makes it better.', 'Avec cette longueur et ce niveau, certains morceaux s’assemblent encore sur la feuille à plat. Un pliage plus difficile, les deux faces ou « Autre pliage » améliorent cela.'],
+  'Fertig! Jetzt setzen sich die Stücke zusammen – lies die Botschaft.': ['Done! Now the pieces fit together – read the message.', 'Terminé ! Les morceaux s’assemblent – lis le message.']
 });

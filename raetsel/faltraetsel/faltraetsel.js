@@ -103,16 +103,74 @@ var Kern = (function(){
     var a = achsen[Math.floor(rnd() * achsen.length)], dim = a === 'v' ? Z.W : Z.H, m = ganz(rnd, 1, Math.floor(dim / 2)), s = rnd() < 0.5 ? 'plus' : 'minus';
     return { a:a, k:s === 'plus' ? dim - m : m, s:s, t:rnd() < 0.5 ? 'tal' : 'berg' };
   }
+  /* Zerschnittene Schrift: der Text als Block auf dem fertigen Päckchen (W × H Felder), Wörter auf Zeilen verteilt, Schrift so
+     gross wie möglich. Jedes Zeichen sitzt an einer festen Stelle (Breite VOR, Zeilenabstand ZEILE, je in Schriftgrössen) –
+     so liegt fest, welches Stück eines Buchstabens auf welchem Feld landet, unabhängig von der Schrift. */
+  var VOR = 0.62, ZEILE = 1.28;
+  function textLayout(woerter, W, H){
+    var best = null, alle = woerter.join(' ').length;
+    for (var n = 1; n <= Math.max(1, Math.floor(H * 2.5)); n++){
+      var ziel = Math.ceil(alle / n), zeilen;
+      for (;;){
+        zeilen = []; var z = '';
+        woerter.forEach(function(w){ if (!z) z = w; else if ((z + ' ' + w).length <= ziel) z += ' ' + w; else { zeilen.push(z); z = w; } });
+        if (z) zeilen.push(z);
+        if (zeilen.length <= n) break;
+        ziel++;
+      }
+      var lang = Math.max.apply(null, zeilen.map(function(z){ return Array.from(z).length; }));
+      var fs = Math.min(W * 0.92 / (lang * VOR), H * 0.9 / (zeilen.length * ZEILE), 0.95);
+      if (!best || fs > best.fs + 1e-9) best = { fs:fs, zeilen:zeilen };
+    }
+    var fs = best.fs, nz = best.zeilen.length, l = [];
+    best.zeilen.forEach(function(z, k){
+      var y = H / 2 + (k - (nz - 1) / 2) * ZEILE * fs, a = Array.from(z), x0 = (W - a.length * VOR * fs) / 2;
+      a.forEach(function(c, q){ if (c !== ' ') l.push({ c:c, x:x0 + (q + 0.5) * VOR * fs, y:y }); });
+    });
+    // Felder ohne ein Stück Text
+    var leer = 0;
+    for (var yy = 0; yy < H; yy++) for (var xx = 0; xx < W; xx++){
+      if (!l.some(function(z){ return z.x + VOR * fs / 2 > xx && z.x - VOR * fs / 2 < xx + 1 && z.y + 0.36 * fs > yy && z.y - 0.36 * fs < yy + 1; })) leer++;
+    }
+    return { fs:fs, zeilen:best.zeilen, zeichen:l, leer:leer, W:W, H:H };
+  }
+  /* Wie viele Nachbarn im fertigen Päckchen sind auch auf dem gedruckten Blatt Nachbarn (gleiche Seite, gleich gedreht, in der
+     richtigen Richtung)? Dort könnte man Stücke der Botschaft schon ohne Falten zusammensetzen. → Anteil 0 … 1 */
+  function nachbarAnteil(C, S, W){
+    var paare = 0, gleich = 0;
+    S.forEach(function(a){
+      [[1, 0], [0, 1]].forEach(function(d){
+        if (a.x + d[0] >= W) return;
+        var b = S.filter(function(q){ return q.x === a.x + d[0] && q.y === a.y + d[1]; })[0];
+        if (!b) return;
+        paare++;
+        if (a.seite !== b.seite || a.dreh !== b.dreh) return;
+        var pa = ort(C, a.i, a.j, a.seite), pb = ort(C, b.i, b.j, b.seite), k = a.dreh ? -1 : 1;
+        if (pb.px - pa.px === d[0] * k && pb.py - pa.py === d[1] * k) gleich++;
+      });
+    });
+    return paare ? gleich / paare : 0;
+  }
   function lesIndex(C, R, p, dreh){ return dreh === 0 ? p.py * C + p.px : (R - 1 - p.py) * C + (C - 1 - p.px); }
-  function bewerten(C, R, ops, L, seiten, cfg, rnd){
-    var Zs = falten(C, R, ops), Z = Zs[Zs.length - 1];
+  function bewerten(C, R, ops, o, cfg, rnd){
+    var L = o.L, seiten = o.seiten, Zs = falten(C, R, ops), Z = Zs[Zs.length - 1];
     for (var q = 1; q < Zs.length; q++) if (lagen(Zs[q]) > cfg.lagen) return null;
     var S = sicht(Z), V = S.length;
-    if (V < 2 || V > L || Math.ceil(L / V) > MAXTEIL) return null;
+    if (V < 2) return null;
+    if (o.art !== 'schnitt' && (V > L || Math.ceil(L / V) > MAXTEIL)) return null;
     var nv = S.filter(function(s){ return s.seite === 'v'; }).length, nr = V - nv;
     if (seiten === 'vorne' && nr) return null;
     if (seiten === 'beide' && (!nv || !nr)) return null;
-    var strafe = 0;
+    var mm0 = feldMm(C, R), anteil = nachbarAnteil(C, S, Z.W);
+    if (o.art === 'schnitt'){
+      // Text muss gut lesbar sein: Buchstaben mindestens 30 % eines Feldes und mindestens 6 mm hoch
+      var lay = textLayout(o.woerter, Z.W, Z.H);
+      if (lay.fs < 0.3 || lay.fs * mm0 < 6) return null;
+      var st = anteil * 12 + Math.abs(lay.fs - 0.6) * 2 + lay.leer * 0.5 + (mm0 < 30 ? (30 - mm0) / 8 : 0);
+      if (seiten === 'beide') st += Math.abs(nv - nr) / V;
+      return { C:C, R:R, ops:ops, V:V, S:S, W:Z.W, H:Z.H, layout:lay, anteil:anteil, strafe:st + rnd() * 0.6 };
+    }
+    var strafe = anteil * 2;
     for (var n = 0; n + 1 < V; n++){
       var a = S[n], b = S[n + 1];
       if (a.seite !== b.seite || a.dreh !== b.dreh) continue;
@@ -125,13 +183,16 @@ var Kern = (function(){
     if (seiten === 'beide') strafe += Math.abs(nv - nr) / V;
     var mm = feldMm(C, R); if (mm < 30) strafe += (30 - mm) / 8;
     if (S.every(function(s){ return s.dreh === S[0].dreh; })) strafe += 0.6;   // alle gleich gedreht: zu leicht zu erkennen
-    return { C:C, R:R, ops:ops, V:V, S:S, strafe:strafe + rnd() * 0.8 };
+    return { C:C, R:R, ops:ops, V:V, S:S, W:Z.W, H:Z.H, anteil:anteil, strafe:strafe + rnd() * 0.8 };
   }
-  /* o: { L (Zeichen der Botschaft), seiten:'vorne'|'beide', stufe, seed } → bester Plan oder null */
+  /* o: { L (Zeichen der Botschaft), seiten:'vorne'|'beide', stufe, seed, art:'felder'|'schnitt', woerter (bei «schnitt») }
+     → bester Plan oder null. Längere Botschaften bekommen ein grösseres Raster (bis 8 × 10 Felder). */
   function planen(o){
     var cfg = STUFEN[o.stufe] || STUFEN.einfach, rnd = zufall(o.seed), best = null;
+    var extra = o.art === 'schnitt' ? Math.max(0, Math.ceil((o.L - 16) / 14)) : Math.max(0, Math.ceil((o.L - 24) / 8));
+    var cMax = Math.min(8, cfg.C[1] + extra), rMax = Math.min(10, cfg.R[1] + extra), cMin = Math.min(cMax, cfg.C[0] + Math.floor(extra / 2)), rMin = Math.min(rMax, cfg.R[0] + Math.floor(extra / 2));
     for (var versuch = 0; versuch < 6000; versuch++){
-      var C = ganz(rnd, cfg.C[0], cfg.C[1]), R = ganz(rnd, cfg.R[0], cfg.R[1]), anzahl = ganz(rnd, cfg.schritte[0], cfg.schritte[1]);
+      var C = ganz(rnd, cMin, cMax), R = ganz(rnd, rMin, rMax), anzahl = ganz(rnd, cfg.schritte[0], cfg.schritte[1]);
       var Z = start(C, R), ops = [], ok = true;
       for (var n = 0; n < anzahl; n++){
         var op = zufallsSchritt(Z, rnd, cfg, ops[n - 1], n, anzahl);
@@ -139,7 +200,7 @@ var Kern = (function(){
         ops.push(op); Z = schritt(Z, op);
       }
       if (!ok || ops[ops.length - 1].a === 'w') continue;
-      var b = bewerten(C, R, ops, o.L, o.seiten, cfg, rnd);
+      var b = bewerten(C, R, ops, o, cfg, rnd);
       if (b && (!best || b.strafe < best.strafe)) best = b;
       if (best && best.strafe < 0.5 && versuch > 600) break;
     }
@@ -167,7 +228,17 @@ var Kern = (function(){
     plan.S.forEach(function(s, n){ seiten[s.seite][s.j][s.i] = { text:teile[n], dreh:s.dreh, teil:n }; });
     return seiten;
   }
-  return { zufall:zufall, start:start, schritt:schritt, falten:falten, lagen:lagen, ansicht:ansicht, sicht:sicht, ort:ort, STUFEN:STUFEN, MAXTEIL:MAXTEIL, feldMm:feldMm, planen:planen, teilen:teilen, belegen:belegen };
+  /* Zerschnittene Schrift: Felder, die am Schluss oben liegen, zeigen ihr Stück des Textblocks (Stelle x, y im Päckchen);
+     alle anderen zerschnittene Füllbuchstaben (eigener Zufall je Feld). */
+  function belegenSchnitt(plan, o){
+    var rnd = zufall((o.seed || 1) + 7), C = plan.C, R = plan.R, seiten = { v:[], r:[] };
+    function fuell(){ return { fueller:Math.floor(rnd() * 1e9) + 1, dreh:rnd() < 0.5 ? 0 : 180, teil:-1 }; }
+    for (var j = 0; j < R; j++){ seiten.v.push([]); seiten.r.push([]); for (var i = 0; i < C; i++){ seiten.v[j].push(fuell()); seiten.r[j].push(o.seiten === 'beide' ? fuell() : null); } }
+    plan.S.forEach(function(s, n){ seiten[s.seite][s.j][s.i] = { schnitt:true, x:s.x, y:s.y, dreh:s.dreh, teil:n }; });
+    return seiten;
+  }
+  return { zufall:zufall, start:start, schritt:schritt, falten:falten, lagen:lagen, ansicht:ansicht, sicht:sicht, ort:ort, STUFEN:STUFEN, MAXTEIL:MAXTEIL, feldMm:feldMm, planen:planen, teilen:teilen, belegen:belegen,
+    textLayout:textLayout, nachbarAnteil:nachbarAnteil, belegenSchnitt:belegenSchnitt, VOR:VOR, ZEILE:ZEILE };
 })();
 /* KERN-ENDE */
 
@@ -175,12 +246,43 @@ var MM = 703 / 186;   // Pixel je Millimeter (Blatt 703 Pixel = 186 mm im PDF)
 var TINTE = '#1C2530', ROT = '#D32F2F', BLAU = '#0075BA', RUECKSEITE = '#E3F0FA', LEER = '#ECEEF1', MARKE = '#FFE9A8';
 function esc(t){ return Labor.esc(t); }
 function f1(x){ return (Math.round(x * 10) / 10).toString(); }
-var BEISPIELE = { de:['SCHATZ', '4711', 'IM KELLER', 'GUT GEMACHT', 'ZAUBERWALD', '2580'], en:['TREASURE', '4711', 'IN THE ATTIC', 'WELL DONE', 'MAGIC FOREST', '2580'], fr:['TRÉSOR', '4711', 'À LA CAVE', 'BRAVO', 'FORÊT MAGIQUE', '2580'] };
-var MAXZEICHEN = 24;
+var BEISPIELE = { de:['SCHATZ', '4711', 'IM KELLER', 'Der Schlüssel liegt unter der Treppe', 'GUT GEMACHT', 'Der nächste Hinweis ist im Bücherregal', '2580'],
+  en:['TREASURE', '4711', 'IN THE ATTIC', 'The key is under the stairs', 'WELL DONE', 'The next clue is on the bookshelf', '2580'],
+  fr:['TRÉSOR', '4711', 'À LA CAVE', 'La clé est sous l’escalier', 'BRAVO', 'Le prochain indice est dans la bibliothèque', '2580'] };
+var MAXZEICHEN = { felder:60, schnitt:80 };
 /* Zeichen der Botschaft: Buchstaben (auch Umlaute und Akzente) und Ziffern, gross; alles andere fällt weg */
 function zeichenVon(text){
   return Array.from(String(text || '').toUpperCase().replace(/ß/g, 'SS')).filter(function(c){ return /[A-Z0-9ÄÖÜÀÂÇÉÈÊËÎÏÔÙÛŸ]/.test(c); });
 }
+/* Zerschnittene Schrift: Wörter bleiben getrennt, einige Satzzeichen bleiben */
+function textVon(text){
+  return String(text || '').toUpperCase().replace(/ß/g, 'SS').replace(/[^A-Z0-9ÄÖÜÀÂÇÉÈÊËÎÏÔÙÛŸ.,!?'’\- ]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+/* Inhalt eines Feldes (Koordinaten 0 … g): Zeichen in der Mitte (Art «Felder») oder ein Stück zerschnittene Schrift.
+   dreh: 0 oder 180 Grad. Das Feld wird in ein eigenes kleines SVG gesetzt, das alles am Rand abschneidet. */
+function zellInhalt(f, g, dreh, plan){
+  if (!f) return '';
+  if (f.text !== undefined) return feldText(f.text, g / 2, g / 2, g, dreh);
+  var L = plan.layout, fs = L.fs * g, adv = Kern.VOR * fs, t = '';
+  if (f.schnitt){
+    // das Stück des Textblocks an der Stelle (x, y) des fertigen Päckchens
+    L.zeichen.forEach(function(z){
+      var cx = (z.x - f.x) * g, cy = (z.y - f.y) * g;
+      if (cx < -adv || cx > g + adv || cy < -fs || cy > g + fs) return;
+      t += '<text x="' + f1(cx) + '" y="' + f1(cy) + '">' + esc(z.c) + '</text>';
+    });
+  } else {
+    // Füllbuchstaben: gleiche Grösse und gleicher Abstand wie der Text, zufällig verschoben und abgeschnitten
+    var rz = Kern.zufall(f.fueller), zh = Kern.ZEILE * fs, vorrat = plan.fuellZeichen;
+    for (var y = -rz() * zh; y < g + zh; y += zh) for (var x = -rz() * adv; x < g + adv; x += adv){
+      if (rz() < 0.12) continue;   // Lücke wie zwischen Wörtern
+      t += '<text x="' + f1(x + adv / 2) + '" y="' + f1(y) + '">' + esc(vorrat[Math.floor(rz() * vorrat.length)]) + '</text>';
+    }
+  }
+  return '<g style="font-family:var(--blatt-buchstaben)" font-weight="700" font-size="' + f1(fs) + '" fill="' + TINTE + '" text-anchor="middle" dominant-baseline="central"' +
+    (dreh ? ' transform="rotate(180 ' + f1(g / 2) + ' ' + f1(g / 2) + ')"' : '') + '>' + t + '</g>';
+}
+function zelle(x, y, g, inhalt){ return inhalt ? '<svg x="' + f1(x) + '" y="' + f1(y) + '" width="' + f1(g) + '" height="' + f1(g) + '" viewBox="0 0 ' + f1(g) + ' ' + f1(g) + '" overflow="hidden">' + inhalt + '</svg>' : ''; }
 
 /* ---------- Zeichnen ---------- */
 // Text eines Feldes: Zeichen einzeln gesetzt (6 und 9 unterstrichen, damit man sie auch gedreht unterscheidet)
@@ -205,8 +307,8 @@ function faltblattSvg(plan, beleg, seite, o){
     var f = beleg[seite][j][i], p = Kern.ort(C, i, j, seite), x = p.px * s, y = p.py * s;
     if (seite === 'r') t += '<rect x="' + f1(x) + '" y="' + f1(y) + '" width="' + f1(s) + '" height="' + f1(s) + '" fill="' + RUECKSEITE + '"/>';
     if (o.marke && f && f.teil >= 0) t += '<rect x="' + f1(x + 1) + '" y="' + f1(y + 1) + '" width="' + f1(s - 2) + '" height="' + f1(s - 2) + '" fill="' + MARKE + '"/>';
-    if (f) t += feldText(f.text, x + s / 2, y + s / 2, s, f.dreh);
-    if (o.marke && f && f.teil >= 0) t += '<text x="' + f1(x + s - 4) + '" y="' + f1(y + 4) + '" text-anchor="end" dominant-baseline="hanging" font-size="' + f1(Math.max(9, s * 0.16)) + '" font-weight="700" fill="' + BLAU + '">' + (f.teil + 1) + '</text>';
+    if (f) t += zelle(x, y, s, zellInhalt(f, s, f.dreh, plan));
+    if (o.marke && f && f.teil >= 0 && !f.schnitt) t += '<text x="' + f1(x + s - 4) + '" y="' + f1(y + 4) + '" text-anchor="end" dominant-baseline="hanging" font-size="' + f1(Math.max(9, s * 0.16)) + '" font-weight="700" fill="' + BLAU + '">' + (f.teil + 1) + '</text>';
   }
   if (o.stern && seite === 'v') t += stern(s * 0.13, s * 0.14, s * 0.075, BLAU);
   var g = '';
@@ -227,7 +329,7 @@ function schrittSvg(Z, op, d, o){
     var cx = ox + s.x * d, cy = oy + s.y * d, f = o.beleg ? o.beleg[s.seite][s.j][s.i] : null;
     var fuell = f && f.teil >= 0 && o.markiert ? MARKE : s.seite === 'v' ? '#FFFFFF' : o.beide ? RUECKSEITE : LEER;
     t += '<rect x="' + f1(cx) + '" y="' + f1(cy) + '" width="' + f1(d) + '" height="' + f1(d) + '" fill="' + fuell + '" stroke="#7D8895" stroke-width="0.8"/>';
-    if (f) t += feldText(f.text, cx + d / 2, cy + d / 2, d, (f.dreh + s.dreh) % 360 ? 180 : 0);
+    if (f) t += zelle(cx, cy, d, zellInhalt(f, d, (f.dreh + s.dreh) % 360 ? 180 : 0, o.plan));
     if (o.nummern) t += '<text x="' + f1(cx + d / 2) + '" y="' + f1(cy + d / 2) + '" text-anchor="middle" dominant-baseline="central" font-size="' + f1(d * 0.42) + '" font-weight="700" fill="' + BLAU + '">' + (n + 1) + '</text>';
     if (o.stern && s.i === 0 && s.j === 0 && s.seite === 'v') t += stern(cx + (s.sx === 1 ? d * 0.17 : d * 0.83), cy + (s.sy === 1 ? d * 0.18 : d * 0.82), d * 0.1, BLAU);
   });
@@ -282,15 +384,20 @@ var VORLAGE = '<div class="ft">' +
       tx('<label class="feld-label" for="ftText">Botschaft</label>') +
       '<div class="ft-zeile"><input type="text" id="ftText" maxlength="40" autocomplete="off" spellcheck="false">' +
         tx('<button type="button" class="btn klein" id="ftBeispiel" title="Ein Beispiel einsetzen">Beispiel</button></div>') +
-      tx('<p class="hinweis">2 bis 24 Buchstaben oder Ziffern. Leerzeichen und Satzzeichen fallen weg.</p>') +
+      '<p class="hinweis" id="ftTextHinweis"></p>' +
       '<div id="ftInfo" aria-live="polite"></div>' +
     '</div>' +
-    tx('<div class="karte" id="ftSeitenKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Seiten</h2><p>Wo die Zeichen auf dem Blatt stehen.</p></div></div>') +
+    tx('<div class="karte" id="ftArtKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Darstellung</h2><p>Wie die Botschaft auf dem Blatt steht.</p></div></div>') +
+      tx('<div class="ft-wahl" role="radiogroup" aria-label="Darstellung">') +
+        tx('<label><input type="radio" name="ftArt" value="felder"><span><b>In Feldern</b><small>je Feld 1 bis 3 Zeichen, bis 60 Zeichen</small></span></label>') +
+        tx('<label><input type="radio" name="ftArt" value="schnitt"><span><b>Zerschnitten</b><small>Buchstaben über die Faltlinien verteilt, erst gefaltet lesbar – schwieriger, bis 80 Zeichen</small></span></label></div>') +
+    '</div>' +
+    tx('<div class="karte" id="ftSeitenKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Seiten</h2><p>Wo die Zeichen auf dem Blatt stehen.</p></div></div>') +
       tx('<div class="ft-wahl" role="radiogroup" aria-label="Seiten">') +
         tx('<label><input type="radio" name="ftSeiten" value="vorne"><span><b>Nur Vorderseite</b><small>einseitig drucken</small></span></label>') +
         tx('<label><input type="radio" name="ftSeiten" value="beide"><span><b>Vorder- und Rückseite</b><small>beidseitig drucken, an der langen Kante wenden</small></span></label></div>') +
     '</div>' +
-    tx('<div class="karte" id="ftStufeKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Faltanleitung</h2><p>Wie schwierig das Falten ist.</p></div></div>') +
+    tx('<div class="karte" id="ftStufeKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">4</span><div><h2>Faltanleitung</h2><p>Wie schwierig das Falten ist.</p></div></div>') +
       tx('<div class="ft-wahl" role="radiogroup" aria-label="Schwierigkeit">') +
         tx('<label><input type="radio" name="ftStufe" value="einfach"><span><b>Einfach</b><small>1–2 Faltungen</small></span></label>') +
         tx('<label><input type="radio" name="ftStufe" value="mittel"><span><b>Mittel</b><small>3 Faltungen, vorne und hinten</small></span></label>') +
@@ -298,9 +405,9 @@ var VORLAGE = '<div class="ft">' +
         tx('<label><input type="radio" name="ftStufe" value="profi"><span><b>Profi</b><small>6–7 Faltungen</small></span></label></div>') +
     '</div>' +
     tx('<div class="karte" id="ftEinstKarte" hidden><details class="optionen"><summary>Einstellungen</summary>') +
-      tx('<label class="opt"><input type="checkbox" id="ftAusBotschaft"><span>Füllzeichen vor allem aus der Botschaft (schwieriger zu erraten)</span></label>') +
+      tx('<label class="opt" id="ftAusBotschaftZeile"><input type="checkbox" id="ftAusBotschaft"><span>Füllzeichen vor allem aus der Botschaft (schwieriger zu erraten)</span></label>') +
       tx('<label class="opt"><input type="checkbox" id="ftStern"><span>Stern ★ oben links als Startmarke</span></label>') +
-      tx('<label class="opt"><input type="checkbox" id="ftNummern"><span>Lesereihenfolge am Schluss der Anleitung zeigen</span></label>') +
+      tx('<label class="opt" id="ftNummernZeile"><input type="checkbox" id="ftNummern"><span>Lesereihenfolge am Schluss der Anleitung zeigen</span></label>') +
       tx('<label class="opt"><input type="checkbox" id="ftKaestchen"><span>Kästchen für die Botschaft auf der Anleitung</span></label>') +
     '</details></div>' +
   '</section>' +
@@ -341,11 +448,12 @@ Labor.registriere({
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false;
   var TAB = 'faltraetsel-eingaben', OPT = 'faltraetsel-einstellungen';
-  var STANDARD = { seiten:'', stufe:'', ausBotschaft:false, stern:true, nummern:true, kaestchen:true, mitLoesung:true, titelAn:true, anleitungAn:true };
+  var STANDARD = { art:'', seiten:'', stufe:'', ausBotschaft:false, stern:true, nummern:true, kaestchen:true, mitLoesung:true, titelAn:true, anleitungAn:true };
   var st = { text:'', seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) }, zeigeLoesung = false;
   try { var o0 = JSON.parse(localStorage.getItem(OPT)); if (o0) Object.assign(st.opt, o0); } catch(x){}
   try { var e0 = JSON.parse(sessionStorage.getItem(TAB)); if (e0){ st.text = String(e0.text || ''); st.seed = +e0.seed || st.seed; } } catch(x){}
   if (['vorne', 'beide'].indexOf(st.opt.seiten) < 0) st.opt.seiten = '';
+  if (['felder', 'schnitt'].indexOf(st.opt.art) < 0) st.opt.art = '';
   if (!Kern.STUFEN[st.opt.stufe]) st.opt.stufe = '';
   var timer = 0;
   function speichernJetzt(){ clearTimeout(timer); timer = 0;
@@ -370,7 +478,7 @@ function starte(bereich){
       r.addEventListener('change', function(){ if (!r.checked) return; st.opt[k] = r.value; speichern(); zeichnen(); });
     });
   }
-  radios('ftSeiten', 'seiten'); radios('ftStufe', 'stufe');
+  radios('ftArt', 'art'); radios('ftSeiten', 'seiten'); radios('ftStufe', 'stufe');
   [['#ftAusBotschaft', 'ausBotschaft'], ['#ftStern', 'stern'], ['#ftNummern', 'nummern'], ['#ftKaestchen', 'kaestchen'], ['#ftMitLoesung', 'mitLoesung']].forEach(function(x){
     $(x[0]).checked = !!st.opt[x[1]];
     $(x[0]).addEventListener('change', function(){ st.opt[x[1]] = this.checked; speichern(); if (x[1] !== 'mitLoesung') zeichnen(); });
@@ -385,32 +493,55 @@ function starte(bereich){
   }
 
   /* ---------- Blätter ---------- */
-  var P = null, BL = null, Z = [], teile = [], zust = [];
+  var P = null, BL = null, Z = [], teile = [], zust = [], schnitt = false, TEXT = '', woerter = [];
   function rahmen(id){ return $(id).parentNode; }
   function alleZu(){ ['#ftVorne', '#ftHinten', '#ftAnleitung'].forEach(function(id){ rahmen(id).hidden = true; }); $('#ftWerkzeug').hidden = true; $('#ftDruck').hidden = true; $('#ftLoesung').innerHTML = ''; }
   function zeichnen(){
     if (aus) return;
-    Z = zeichenVon(st.text);
-    var info = '', zuViele = Z.length > MAXZEICHEN;
-    if (zuViele) Z = Z.slice(0, MAXZEICHEN);
-    if (Z.length) info = tx('<p class="ft-info ok">Botschaft: <b>{b}</b> · {n} Zeichen</p>', { b:esc(Z.join('')), n:Z.length });
-    if (zuViele) info += tx('<p class="ft-info warnung">Höchstens 24 Zeichen – es werden die ersten 24 verwendet.</p>');
+    schnitt = st.opt.art === 'schnitt';
+    var info = '', max = MAXZEICHEN[schnitt ? 'schnitt' : 'felder'], zuViele;
+    $('#ftTextHinweis').textContent = schnitt ? tx('2 bis 80 Zeichen. Wörter bleiben getrennt; die Satzzeichen . , ! ? - bleiben.') :
+      st.opt.art === 'felder' ? tx('2 bis 60 Buchstaben oder Ziffern. Leerzeichen und Satzzeichen fallen weg.') : tx('In Feldern bis 60 Buchstaben oder Ziffern, zerschnitten bis 80 Zeichen.');
+    if (schnitt){
+      TEXT = textVon(st.text); zuViele = TEXT.length > max;
+      if (zuViele) TEXT = TEXT.slice(0, max).trim();
+      woerter = TEXT ? TEXT.split(' ') : [];
+      Z = Array.from(TEXT.replace(/ /g, ''));
+      if (TEXT) info = tx('<p class="ft-info ok">Botschaft: <b>{b}</b> · {n} Zeichen</p>', { b:esc(TEXT), n:TEXT.length });
+    } else {
+      Z = zeichenVon(st.text); zuViele = Z.length > max;
+      if (zuViele) Z = Z.slice(0, max);
+      if (Z.length) info = tx('<p class="ft-info ok">Botschaft: <b>{b}</b> · {n} Zeichen</p>', { b:esc(Z.join('')), n:Z.length });
+    }
+    if (zuViele) info += '<p class="ft-info warnung">' + tx('Höchstens {m} Zeichen – es werden die ersten {m} verwendet.', { m:max }) + '</p>';
     if (Z.length === 1) info += tx('<p class="ft-info warnung">Mindestens 2 Zeichen.</p>');
     $('#ftInfo').innerHTML = info;
     var bereit = Z.length >= 2;
-    $('#ftSeitenKarte').hidden = !bereit;
-    $('#ftStufeKarte').hidden = !bereit || !st.opt.seiten;
-    $('#ftEinstKarte').hidden = !bereit || !st.opt.seiten || !st.opt.stufe;
+    $('#ftArtKarte').hidden = !bereit;
+    $('#ftSeitenKarte').hidden = !bereit || !st.opt.art;
+    $('#ftStufeKarte').hidden = !bereit || !st.opt.art || !st.opt.seiten;
+    $('#ftEinstKarte').hidden = !bereit || !st.opt.art || !st.opt.seiten || !st.opt.stufe;
+    $('#ftAusBotschaftZeile').hidden = $('#ftNummernZeile').hidden = schnitt;
     if (!bereit){ alleZu(); P = null; meldung('info', tx('<p>Gib links die Botschaft ein – zum Beispiel ein Lösungswort oder einen Zahlencode.</p>')); return; }
+    if (!st.opt.art){ alleZu(); P = null; meldung('info', tx('<p>Wähle, wie die Botschaft auf dem Blatt steht: in Feldern oder zerschnitten.</p>')); return; }
     if (!st.opt.seiten){ alleZu(); P = null; meldung('info', tx('<p>Wähle, ob die Zeichen nur auf der Vorderseite oder auf beiden Seiten stehen.</p>')); return; }
     if (!st.opt.stufe){ alleZu(); P = null; meldung('info', tx('<p>Wähle, wie schwierig die Faltanleitung sein soll.</p>')); return; }
     var beide = st.opt.seiten === 'beide';
-    P = Kern.planen({ L:Z.length, seiten:st.opt.seiten, stufe:st.opt.stufe, seed:st.seed });
+    P = Kern.planen(schnitt ? { L:TEXT.length, seiten:st.opt.seiten, stufe:st.opt.stufe, seed:st.seed, art:'schnitt', woerter:woerter } : { L:Z.length, seiten:st.opt.seiten, stufe:st.opt.stufe, seed:st.seed, art:'felder' });
     if (!P){ alleZu(); meldung('warnung', tx('<p>Für diese Botschaft finde ich keine passende Faltung. Versuche «Andere Faltung», eine andere Schwierigkeit oder eine kürzere Botschaft.</p>')); return; }
-    teile = Kern.teilen(Z, P.V);
-    BL = Kern.belegen(P, teile, { zeichen:Z, seiten:st.opt.seiten, ausBotschaft:st.opt.ausBotschaft, seed:st.seed });
+    if (schnitt){
+      // Füllbuchstaben: meist Buchstaben der Botschaft, dazu einige andere
+      P.fuellZeichen = Z.filter(function(c){ return /[A-Z0-9ÄÖÜÀÂÇÉÈÊËÎÏÔÙÛŸ]/.test(c); }).concat(Z.filter(function(c){ return /[A-Z0-9ÄÖÜÀÂÇÉÈÊËÎÏÔÙÛŸ]/.test(c); }), 'ABDEGHIKLMNORSTUW'.split(''));
+      teile = woerter;
+      BL = Kern.belegenSchnitt(P, { seiten:st.opt.seiten, seed:st.seed });
+    } else {
+      teile = Kern.teilen(Z, P.V);
+      BL = Kern.belegen(P, teile, { zeichen:Z, seiten:st.opt.seiten, ausBotschaft:st.opt.ausBotschaft, seed:st.seed });
+    }
     zust = Kern.falten(P.C, P.R, P.ops);
-    meldung(P.strafe > 3 ? 'warnung' : '', P.strafe > 3 ? tx('<p>Bei dieser Länge und Schwierigkeit stehen einige Teile der Botschaft auch auf dem flachen Blatt nebeneinander. Mit einer schwierigeren Faltung oder «Andere Faltung» wird es besser.</p>') : '');
+    var lesbar = schnitt ? P.anteil > 0.35 : P.strafe > 3;
+    meldung(lesbar ? 'warnung' : '', lesbar ? (schnitt ? tx('<p>Bei dieser Länge und Schwierigkeit passen auf dem flachen Blatt noch einige Stücke zusammen. Mit einer schwierigeren Faltung, beiden Seiten oder «Andere Faltung» wird es besser.</p>') :
+      tx('<p>Bei dieser Länge und Schwierigkeit stehen einige Teile der Botschaft auch auf dem flachen Blatt nebeneinander. Mit einer schwierigeren Faltung oder «Andere Faltung» wird es besser.</p>')) : '');
     $('#ftWerkzeug').hidden = false;
     var o = st.opt, mm = Math.round(Kern.feldMm(P.C, P.R));
     $('#ftDruck').hidden = false;
@@ -449,8 +580,8 @@ function starte(bereich){
       h += '<li><div class="ft-schritt-kopf"><span class="ft-nr">' + (n + 1) + '</span><span>' + esc(schrittText(zust[n], op)) + '</span></div>' + schrittSvg(zust[n], op, d, { beide:beide, stern:o.stern }) + '</li>';
     });
     var ende = zust[zust.length - 1];
-    h += '<li class="ft-schluss"><div class="ft-schritt-kopf"><span class="ft-nr">✓</span><span>' + (o.nummern ? tx('Fertig! Lies die Felder in dieser Reihenfolge.') : tx('Fertig! Lies die Felder Reihe für Reihe von links nach rechts.')) + '</span></div>' +
-      schrittSvg(ende, null, d, { beide:beide, stern:o.stern, nummern:o.nummern }) + '</li></ol>';
+    h += '<li class="ft-schluss"><div class="ft-schritt-kopf"><span class="ft-nr">✓</span><span>' + (schnitt ? tx('Fertig! Jetzt setzen sich die Stücke zusammen – lies die Botschaft.') : o.nummern ? tx('Fertig! Lies die Felder in dieser Reihenfolge.') : tx('Fertig! Lies die Felder Reihe für Reihe von links nach rechts.')) + '</span></div>' +
+      schrittSvg(ende, null, d, { beide:beide, stern:o.stern, nummern:o.nummern && !schnitt }) + '</li></ol>';
     if (o.kaestchen){
       var k = '', pos = 0;
       teile.forEach(function(t, n){ k += '<span class="ft-gruppe">' + Array.from(t).map(function(){ return '<span class="ft-kaestchen"></span>'; }).join('') + '</span>'; pos += t.length; });
@@ -461,13 +592,13 @@ function starte(bereich){
   function loesungHtml(beide){
     var o = st.opt, d = Math.max(12, Math.min(22, bildFeld() * 0.75)), h = '';
     h += o.titelAn ? tx('<h2>Falträtsel – Lösung</h2>') : tx('<p class="ft-anleitung"><b>Lösung</b></p>');
-    h += '<p class="ft-loesungswort">' + tx('Botschaft:') + ' <b>' + esc(Z.join('')) + '</b> <span class="ft-teile">(' + teile.map(esc).join(' · ') + ')</span></p>';
+    h += '<p class="ft-loesungswort">' + tx('Botschaft:') + ' <b>' + esc(schnitt ? TEXT : Z.join('')) + '</b>' + (schnitt ? '' : ' <span class="ft-teile">(' + teile.map(esc).join(' · ') + ')</span>') + '</p>';
     // Faltblatt verkleinert, die Felder der Botschaft gelb mit Nummer
     var platz = beide ? 300 : 420, s = Kern.feldMm(P.C, P.R) * MM, f = Math.min(1, platz / (P.C * s), 300 / (P.R * s));
     h += '<div class="ft-loesung-blaetter"><figure>' + faltblattSvg(P, BL, 'v', { stern:o.stern, marke:true, massstab:f, klein:true }) + '<figcaption>' + tx('Vorderseite') + '</figcaption></figure>' +
       (beide ? '<figure>' + faltblattSvg(P, BL, 'r', { marke:true, massstab:f, klein:true }) + '<figcaption>' + tx('Rückseite (so, wie sie gedruckt ist)') + '</figcaption></figure>' : '') + '</div>';
     h += tx('<p class="ft-anleitung">So sieht das Päckchen nach jedem Schritt von oben aus:</p>') + '<ol class="ft-schritte klein">';
-    P.ops.forEach(function(op, n){ h += '<li><div class="ft-schritt-kopf"><span class="ft-nr">' + (n + 1) + '</span></div>' + schrittSvg(zust[n + 1], null, d, { beide:beide, stern:o.stern, beleg:BL, markiert:n + 1 === P.ops.length }) + '</li>'; });
+    P.ops.forEach(function(op, n){ h += '<li><div class="ft-schritt-kopf"><span class="ft-nr">' + (n + 1) + '</span></div>' + schrittSvg(zust[n + 1], null, n + 1 === P.ops.length && schnitt ? Math.max(d, Math.min(44, 150 / Math.max(zust[n + 1].W, zust[n + 1].H))) : d, { beide:beide, stern:o.stern, beleg:BL, plan:P, markiert:n + 1 === P.ops.length }) + '</li>'; });
     return h + '</ol>';
   }
 
@@ -480,7 +611,7 @@ function starte(bereich){
   function druckVorbereiten(){ document.body.classList.toggle('mit-loesung', !!st.opt.mitLoesung); }
   window.addEventListener('beforeprint', druckVorbereiten);
   function fehler(t){ meldung('fehler', '<p>' + esc(t) + '</p>'); }
-  Labor.pdfKnopf($('#ftPdf'), function(){ return P && { blaetter:blaetter(), name:Labor.pdfName('Faltraetsel', Z.join('')) }; }, fehler);
+  Labor.pdfKnopf($('#ftPdf'), function(){ return P && { blaetter:blaetter(), name:Labor.pdfName('Faltraetsel', Z.join('').slice(0, 24)) }; }, fehler);
   var speicherOrt = null;
   if (Labor.imArtefakt()){
     $('#ftPdf').hidden = true;
@@ -488,7 +619,7 @@ function starte(bereich){
   }
   $('#ftHerunterladen').addEventListener('click', function(){
     if (!speicherOrt || !P) return;
-    var name = Labor.pdfName('Faltraetsel', Z.join('')).replace(/\.pdf$/, '.html');
+    var name = Labor.pdfName('Faltraetsel', Z.join('').slice(0, 24)).replace(/\.pdf$/, '.html');
     var inhalt = blaetter().filter(Boolean).map(function(b, i){ var k = b.cloneNode(true); k.removeAttribute('id'); k.removeAttribute('aria-hidden'); k.removeAttribute('hidden'); if (i) k.classList.add('neue-seite'); return k.outerHTML; }).join('');
     speicherOrt.save({ filename:name, data:Labor.blattDatei(tx('Falträtsel'), inhalt, '.ft-loesungsblatt{display:block}') }).catch(function(e){
       if (e && e.code === 'declined') return;

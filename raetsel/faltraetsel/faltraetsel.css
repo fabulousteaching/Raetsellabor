@@ -100,3 +100,4 @@
   body.mit-loesung .ft-leer.aktiv{display:block}
   body.mit-loesung .ft-loesungsblatt{display:block}
 }
+.ft .opt[hidden]{display:none}
