@@ -1,0 +1,102 @@
+/* Rätsellabor · Falträtsel – nur aktiv, solange dieser Generator offen ist.
+   Gemeinsame Bausteine (Karten, Knöpfe, Eingabefelder, Meldungen) stehen in gemeinsam/labor.css.
+   Das Blatt ist 703 Pixel breit (= 186 mm im PDF). Das Faltblatt-Raster ist in Originalgrösse gezeichnet, waagrecht
+   mittig und auf Vorder- und Rückseite gleich weit oben – beidseitig gedruckt liegen die Felder genau übereinander. */
+.ft{max-width:1440px;margin:0 auto;padding-block:22px 48px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.ft-kopf{display:grid;gap:4px;margin:0 0 20px}
+.ft-kopf h1{font-family:var(--display);font-weight:600;font-size:clamp(1.7rem,3vw,2.2rem);letter-spacing:-.01em;line-height:1.1;margin:0;color:var(--ink)}
+.ft-kopf h1:focus{outline:none}
+.ft-kopf p:last-child{margin:2px 0 0;color:var(--muted);max-width:70ch}
+.ft-layout{display:grid;grid-template-columns:minmax(300px,400px) minmax(0,1fr);gap:24px;align-items:start}
+.ft-eingabe{display:grid;gap:16px;min-width:0}
+.ft-eingabe .karte[hidden]{display:none}
+@media (min-width:961px){ .ft-eingabe{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--kopf-h) + 16px);max-height:calc(100vh - var(--kopf-h) - 32px);overflow:auto;padding:2px 4px 2px 2px;scrollbar-width:thin} }
+@media (max-width:960px){ .ft-layout{grid-template-columns:minmax(0,1fr);gap:18px} }
+@media (max-width:640px){ .ft{padding-block:18px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))} }
+
+/* ---------- Eingaben ---------- */
+.ft-zeile{display:flex;gap:8px;align-items:center}
+.ft-zeile input{flex:1;min-width:0;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:8px 11px;font-size:1.2rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;transition:border-color .15s,box-shadow .15s}
+.ft-zeile input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
+.ft-info{margin:8px 0 0;font-size:.88rem}
+.ft-info.ok{padding:8px 11px;border-radius:9px;background:var(--ok-soft);color:var(--ok)}
+.ft-info.warnung{color:var(--accent-2)}
+.ft-wahl{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ft-wahl label{position:relative;cursor:pointer;display:flex}
+.ft-wahl input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.ft-wahl span{display:grid;gap:3px;width:100%;padding:10px 12px;border:1px solid var(--line-2);border-radius:10px;background:#fff;transition:border-color .15s,background .15s,box-shadow .15s}
+.ft-wahl b{font-size:.95rem;font-weight:650;color:var(--text)}
+.ft-wahl small{font-size:.8rem;line-height:1.35;color:var(--muted)}
+.ft-wahl label:hover span{border-color:var(--accent-line)}
+.ft-wahl input:checked + span{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.ft-wahl input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+@media (max-width:400px){ .ft-wahl{grid-template-columns:1fr} }
+.ft .opt{display:flex;align-items:flex-start;gap:10px;margin:6px 0 0;font-size:.9rem}
+.ft .opt input[type=checkbox]{width:16px;height:16px;margin:3px 0 0;accent-color:var(--accent);flex:none}
+.ft details.optionen summary{cursor:pointer;font-weight:650;font-size:1rem;list-style:none;display:flex;align-items:center;justify-content:space-between}
+.ft details.optionen summary::-webkit-details-marker{display:none}
+.ft details.optionen summary::after{content:'';width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .2s;margin:0 6px 4px 0}
+.ft details.optionen[open] summary::after{transform:rotate(-135deg);margin-bottom:0}
+.ft details.optionen[open] summary{margin-bottom:10px}
+
+/* ---------- Ausgabe ---------- */
+.ft-ausgabe{min-width:0}
+.ft-werkzeug{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.ft-werkzeug[hidden]{display:none}
+.ft-werkzeug .abstand{flex:1}
+.ft-werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
+.ft-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+.ft-druckhinweis{margin:0 0 14px;padding:9px 12px;border-radius:10px;background:var(--accent-soft);font-size:.88rem;color:#1C2530;max-width:703px;box-sizing:border-box}
+.ft-druckhinweis[hidden]{display:none}
+.ft-rahmen{overflow-x:auto;padding-bottom:4px;margin-bottom:18px}
+.ft-rahmen[hidden]{display:none}
+.ft-seitenname{margin:0 0 6px;font-size:.8rem;font-weight:650;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.ft-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C2530;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:26px 32px 30px}
+.ft-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C2530}
+.ft-anleitung{margin:0 0 12px;color:#4B5563;line-height:1.45;font-size:.95rem}
+.ft-notiz{margin:10px 0 0;font-size:.78rem;color:#858D98;text-align:center}
+/* Faltblatt: Raster ganz oben und mittig, Text darunter (wird weggeschnitten) */
+.ft-faltblatt{padding:0 0 24px}
+.ft-faltblatt .ft-gitter{display:block;margin:0 auto}
+.ft-faltblatt h2,.ft-faltblatt .ft-anleitung{margin-left:32px;margin-right:32px}
+.ft-faltblatt h2{margin-top:16px}
+.ft-leer{display:none}
+.ft-loesungsblatt{display:none}
+.ft-loesungsblatt.offen{display:block}
+/* Anleitung */
+.ft-legende{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 14px;font-size:.8rem;color:#4B5563}
+.ft-legende span{display:inline-flex;align-items:center;gap:6px}
+.ft-legende svg{flex:none}
+.ft-schritte{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 14px}
+.ft-schritte li{border:1px solid #DDE3EA;border-radius:10px;padding:8px 8px 6px;display:flex;flex-direction:column;align-items:center;gap:4px;break-inside:avoid}
+.ft-schritt-kopf{display:flex;gap:7px;align-items:flex-start;align-self:stretch;font-size:.84rem;line-height:1.35;color:#1C2530}
+.ft-nr{flex:none;width:22px;height:22px;border-radius:50%;background:#1C2530;color:#fff;font-weight:700;font-size:.78rem;display:grid;place-items:center}
+.ft-schluss .ft-nr{background:#2E7D32}
+.ft-schritt-bild{display:block;max-width:100%;height:auto}
+.ft-schritte.klein{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.ft-schritte.klein li{padding:5px}
+.ft-antwort{margin:18px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-weight:700;font-size:1.05rem}
+.ft-kaestchen-reihe{display:flex;flex-wrap:wrap;gap:10px}
+.ft-gruppe{display:inline-flex}
+.ft-kaestchen{width:26px;height:32px;border:1.5px solid #5B6675;margin-left:-1.5px}
+.ft-gruppe .ft-kaestchen:first-child{margin-left:0}
+/* Lösung */
+.ft-loesungswort{margin:4px 0 12px;font-size:1.15rem}
+.ft-teile{font-size:.85rem;color:#6B7280;font-weight:400}
+.ft-loesung-blaetter{display:flex;flex-wrap:wrap;gap:18px;justify-content:center;margin:0 0 14px}
+.ft-loesung-blaetter figure{margin:0;display:grid;gap:4px;justify-items:center}
+.ft-loesung-blaetter figcaption{font-size:.8rem;color:#6B7280}
+
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#fff!important}
+  .ft-kopf,.ft-eingabe,.ft-werkzeug,#ftMeldung,.nur-bildschirm{display:none!important}
+  .ft{padding:0;max-width:none}
+  .ft-layout{display:block}
+  .ft-rahmen{overflow:visible;padding:0;margin:0}
+  .ft-blatt{box-shadow:none;border:0;border-radius:0;padding:0 32px;break-before:page}
+  .ft-faltblatt{padding:0}
+  #ftVorne{break-before:auto}
+  body.mit-loesung .ft-leer.aktiv{display:block}
+  body.mit-loesung .ft-loesungsblatt{display:block}
+}

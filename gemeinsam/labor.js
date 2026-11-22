@@ -44,7 +44,7 @@ var Labor = (function(){
   var SPRACHDATEIEN = ['labor', 'bausteine', 'zahlen-suchsel', 'suchsel', 'rebus', 'qr-code', 'labyrinth', 'emoji-rechnen', 'puzzle', 'geheimschrift',
     'triomino', 'kreuzwort', 'fleissner', 'kette', 'drehscheiben', 'codeschloss', 'regenbogen', 'rotfolie', 'folien', 'schiebefenster', 'legekaertchen',
     'blickwinkel', 'uhren', 'nonogramm', 'textformen', 'morsecode', 'plaettchen', 'schuettelwoerter', 'fallbuchstaben', 'buchstabenteile', 'skytale',
-    'richtungssuchsel', 'schachraetsel'];
+    'richtungssuchsel', 'schachraetsel', 'faltraetsel'];
   if (SPRACHE !== 'de' && document.readyState === 'loading'){
     try { SPRACHDATEIEN.forEach(function(n){ document.write('<script src="gemeinsam/sprachen/' + n + '.js' + (VERSION ? '?v=' + VERSION : '') + '"><\/script>'); }); } catch(e){}
   }
