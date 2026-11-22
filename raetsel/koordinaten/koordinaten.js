@@ -182,7 +182,7 @@ function kartenText(x, y, fs, text, farbe, gewicht){ return '<text x="' + x.toFi
 /* Kompass: Ring mit Strichen, Windrose (vier lange, vier kurze Zacken, je halb dunkel, halb hell), N O S W; in der Mitte ein
    Schild mit der Koordinate. Oben links die Marke (Linie und Nummer bzw. Buchstabe). */
 function kompassKarte(x, y, w, h, marke, text){
-  var cx = x + w / 2, cy = y + h / 2 + h * 0.03, R = Math.min(w, h) * 0.43, t = '', i;
+  var hh = marke.hilfe ? h * 0.86 : h, cx = x + w / 2, cy = y + hh / 2 + h * 0.03, R = Math.min(w, hh) * 0.43, t = '', i;
   t += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + R.toFixed(1) + '" fill="#F7FAFD" stroke="' + DUNKEL + '" stroke-width="' + Math.max(1, R * 0.035).toFixed(1) + '"/>';
   t += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + (R * 0.86).toFixed(1) + '" fill="none" stroke="' + DUNKEL + '" stroke-width="' + Math.max(0.6, R * 0.015).toFixed(1) + '"/>';
   var striche = '';
@@ -210,13 +210,60 @@ function kompassKarte(x, y, w, h, marke, text){
   return t;
 }
 function schlichtKarte(x, y, w, h, marke, text){
-  var fs = Math.min(h * 0.24, w * 0.86 / (Array.from(text).length * 0.56));
-  return kartenText(x + w / 2, y + h / 2 + h * 0.05, fs, text) + markeSvg(x, y, w, h, marke);
+  var fs = Math.min(h * 0.24, w * 0.86 / (Array.from(text).length * 0.56)), dy = marke.hilfe ? -h * 0.03 : h * 0.05;
+  return kartenText(x + w / 2, y + h / 2 + dy, fs, text) + markeSvg(x, y, w, h, marke);
 }
-function markeSvg(x, y, w, h, marke){
-  var fs = Math.max(8, Math.min(13, h * 0.1));
-  if (marke.length <= 2) return '<circle cx="' + (x + fs * 1.4).toFixed(1) + '" cy="' + (y + fs * 1.4).toFixed(1) + '" r="' + (fs * 0.95).toFixed(1) + '" fill="' + DUNKEL + '"/>' + kartenText(x + fs * 1.4, y + fs * 1.42, fs * 1.1, marke, '#FFFFFF');
-  return '<text x="' + (x + fs * 0.7).toFixed(1) + '" y="' + (y + fs * 1.5).toFixed(1) + '" font-size="' + fs.toFixed(1) + '" font-weight="700" fill="' + DUNKEL + '">' + esc(marke) + '</text>';
+/* Jede Linie hat eine eigene Farbe und ein eigenes Zeichen (auch schwarz-weiss gedruckt zu unterscheiden) */
+var LINIEN = [['#D32F2F', 'kreis'], ['#1565C0', 'quadrat'], ['#2E7D32', 'dreieck'], ['#EF6C00', 'raute'], ['#6A1B9A', 'stern'], ['#00838F', 'sechseck'],
+  ['#C2185B', 'herz'], ['#5D4037', 'kreuz'], ['#E0A800', 'ring'], ['#455A64', 'fuenfeck'], ['#558B2F', 'dreieckUnten'], ['#3949AB', 'quadratHohl']];
+function linie(n){ return LINIEN[n % LINIEN.length]; }
+function formSvg(form, cx, cy, r, farbe){
+  var a = ' fill="' + farbe + '"', p = [], i;
+  function eck(k, rr, dreh){ var l = []; for (var j = 0; j < k; j++){ var w = (dreh + j * 360 / k) * Math.PI / 180; l.push((cx + rr * Math.sin(w)).toFixed(1) + ',' + (cy - rr * Math.cos(w)).toFixed(1)); } return l.join(' '); }
+  switch (form){
+    case 'kreis': return '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + (r * 0.9).toFixed(1) + '"' + a + '/>';
+    case 'ring': return '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + (r * 0.72).toFixed(1) + '" fill="none" stroke="' + farbe + '" stroke-width="' + (r * 0.36).toFixed(1) + '"/>';
+    case 'quadrat': return '<rect x="' + (cx - r * 0.8).toFixed(1) + '" y="' + (cy - r * 0.8).toFixed(1) + '" width="' + (r * 1.6).toFixed(1) + '" height="' + (r * 1.6).toFixed(1) + '"' + a + '/>';
+    case 'quadratHohl': return '<rect x="' + (cx - r * 0.65).toFixed(1) + '" y="' + (cy - r * 0.65).toFixed(1) + '" width="' + (r * 1.3).toFixed(1) + '" height="' + (r * 1.3).toFixed(1) + '" fill="none" stroke="' + farbe + '" stroke-width="' + (r * 0.32).toFixed(1) + '"/>';
+    case 'dreieck': return '<polygon points="' + eck(3, r * 1.08, 0) + '"' + a + '/>';
+    case 'dreieckUnten': return '<polygon points="' + eck(3, r * 1.08, 180) + '"' + a + '/>';
+    case 'raute': return '<polygon points="' + eck(4, r * 1.05, 0) + '"' + a + '/>';
+    case 'fuenfeck': return '<polygon points="' + eck(5, r * 0.98, 0) + '"' + a + '/>';
+    case 'sechseck': return '<polygon points="' + eck(6, r * 0.95, 30) + '"' + a + '/>';
+    case 'stern': for (i = 0; i < 10; i++){ var rr = i % 2 ? r * 0.46 : r * 1.08, w = i * 36 * Math.PI / 180; p.push((cx + rr * Math.sin(w)).toFixed(1) + ',' + (cy + r * 0.08 - rr * Math.cos(w)).toFixed(1)); } return '<polygon points="' + p.join(' ') + '"' + a + '/>';
+    case 'kreuz': var d = r * 0.34; return '<path d="M' + (cx - d).toFixed(1) + ' ' + (cy - r).toFixed(1) + 'h' + (2 * d).toFixed(1) + 'v' + (r - d).toFixed(1) + 'h' + (r - d).toFixed(1) + 'v' + (2 * d).toFixed(1) + 'h' + (d - r).toFixed(1) + 'v' + (r - d).toFixed(1) + 'h' + (-2 * d).toFixed(1) + 'v' + (d - r).toFixed(1) + 'h' + (d - r).toFixed(1) + 'v' + (-2 * d).toFixed(1) + 'h' + (r - d).toFixed(1) + 'z"' + a + '/>';
+    case 'herz': var q = r / 10; return '<path d="M' + cx.toFixed(1) + ' ' + (cy + 9 * q).toFixed(1) + 'C' + (cx - 4 * q).toFixed(1) + ' ' + (cy + 5 * q).toFixed(1) + ' ' + (cx - 11 * q).toFixed(1) + ' ' + (cy + q).toFixed(1) + ' ' + (cx - 11 * q).toFixed(1) + ' ' + (cy - 4 * q).toFixed(1) +
+      'C' + (cx - 11 * q).toFixed(1) + ' ' + (cy - 9 * q).toFixed(1) + ' ' + (cx - 4 * q).toFixed(1) + ' ' + (cy - 11 * q).toFixed(1) + ' ' + cx.toFixed(1) + ' ' + (cy - 5.5 * q).toFixed(1) + 'C' + (cx + 4 * q).toFixed(1) + ' ' + (cy - 11 * q).toFixed(1) + ' ' + (cx + 11 * q).toFixed(1) + ' ' + (cy - 9 * q).toFixed(1) + ' ' + (cx + 11 * q).toFixed(1) + ' ' + (cy - 4 * q).toFixed(1) +
+      'C' + (cx + 11 * q).toFixed(1) + ' ' + (cy + q).toFixed(1) + ' ' + (cx + 4 * q).toFixed(1) + ' ' + (cy + 5 * q).toFixed(1) + ' ' + cx.toFixed(1) + ' ' + (cy + 9 * q).toFixed(1) + 'Z"' + a + '/>';
+  }
+  return '';
+}
+/* Zeichen einer Linie als kleines Bild im Text (Liste auf dem Blatt) */
+function formHtml(n, gr){ var l = linie(n), g = gr || 16; return '<svg class="ko-form" width="' + g + '" height="' + g + '" viewBox="0 0 20 20" aria-hidden="true">' + formSvg(l[1], 10, 10, 8.4, l[0]) + '</svg>'; }
+/* Marke oben links: Zeichen der Linie mit Nummer (Zeichen zeichnen) bzw. Buchstabe (Richtungsschloss);
+   mit Verbinde-Hilfe unten der Hinweis «Start · weiter zu …», «weiter zu …» oder «Ende». */
+function markeSvg(x, y, w, h, m){
+  var fs = Math.max(9, Math.min(15, h * 0.11)), t = '';
+  if (m.b){
+    t += '<circle cx="' + (x + fs * 1.4).toFixed(1) + '" cy="' + (y + fs * 1.4).toFixed(1) + '" r="' + (fs * 0.95).toFixed(1) + '" fill="' + DUNKEL + '"/>' + kartenText(x + fs * 1.4, y + fs * 1.42, fs * 1.1, m.b, '#FFFFFF');
+  } else {
+    var l = linie(m.linie);
+    t += formSvg(l[1], x + fs * 1.3, y + fs * 1.35, fs * 0.82, l[0]);
+    t += '<text x="' + (x + fs * 2.4).toFixed(1) + '" y="' + (y + fs * 1.38).toFixed(1) + '" font-size="' + (fs * 1.25).toFixed(1) + '" font-weight="700" fill="' + l[0] + '" dominant-baseline="central">' + m.nr + '</text>';
+  }
+  if (!m.hilfe) return t;
+  // Hinweis unten: Text, dann (bei «weiter zu») Zeichen der Linie und Nummer bzw. Buchstabe
+  var hs = Math.max(8, Math.min(12.5, h * 0.085)), yh = y + h - hs * 0.95, teile = [];
+  if (m.start) teile.push({ text:tx('Start') + ' · ', farbe:'#2E7D32' });
+  if (m.weiter){ teile.push({ text:tx('weiter zu') + ' ' }); if (!m.b) teile.push({ form:true }); teile.push({ text:String(m.weiter), fett:true }); }
+  else teile.push({ text:m.b ? tx('Ende') : tx('Ende – Stift absetzen'), farbe:'#C62828' });
+  var breite = teile.reduce(function(s, q){ return s + (q.form ? hs * 1.2 : Array.from(q.text).length * hs * 0.55); }, 0), xx = x + (w - breite) / 2;
+  teile.forEach(function(q){
+    if (q.form){ var l2 = linie(m.linie); t += formSvg(l2[1], xx + hs * 0.55, yh, hs * 0.5, l2[0]); xx += hs * 1.2; return; }
+    t += '<text x="' + xx.toFixed(1) + '" y="' + yh.toFixed(1) + '" font-size="' + hs.toFixed(1) + '" font-weight="' + (q.fett ? 700 : 600) + '" fill="' + (q.farbe || '#3A4452') + '" dominant-baseline="central">' + esc(q.text) + '</text>';
+    xx += Array.from(q.text).length * hs * 0.55;
+  });
+  return t;
 }
 
 var VORLAGE = '<div class="ko">' +
@@ -247,7 +294,8 @@ var VORLAGE = '<div class="ko">' +
         tx('<label><input type="radio" name="koQuad" value="1"><span><b>Nur positive Zahlen</b><small>ein Viertel (1. Quadrant) – einfacher</small></span></label>') +
         tx('<label><input type="radio" name="koQuad" value="4"><span><b>Auch negative Zahlen</b><small>alle vier Quadranten – schwieriger</small></span></label></div>') +
     '</div>' +
-    tx('<div class="karte" id="koKartenKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">✂</span><div><h2>Kärtchen zum Ausschneiden</h2></div></div>') +
+    tx('<div class="karte" id="koKartenKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">4</span><div><h2>Verbinden und Ausschneiden</h2></div></div>') +
+      tx('<label class="opt"><input type="checkbox" id="koHilfe"><span>Verbinde-Hilfe zeigen: jede Linie mit eigener Farbe und eigenem Zeichen, Pfeile, «Start», «weiter zu …» und «Ende»</span></label>') +
       tx('<label class="opt"><input type="checkbox" id="koKarten"><span>Koordinaten auf Kärtchen zum Ausschneiden (eigene Seite) – statt der Liste auf dem Blatt</span></label>') +
       '<div id="koKartenMehr" hidden>' +
         tx('<p class="feld-label ko-abstand">Grösse der Kärtchen</p><div class="ko-chips" role="radiogroup" aria-label="Grösse der Kärtchen">') +
@@ -296,7 +344,7 @@ Labor.registriere({
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false;
   var TAB = 'koordinaten-eingaben', OPT = 'koordinaten-einstellungen';
-  var STANDARD = { art:'', quad:0, gemischt:false, kaestchen:true, karten:false, kartenGroesse:'mittel', kartenDesign:'kompass', kartenGemischt:true, mitLoesung:true, titelAn:true, anleitungAn:true };
+  var STANDARD = { art:'', quad:0, gemischt:false, kaestchen:true, hilfe:true, karten:false, kartenGroesse:'mittel', kartenDesign:'kompass', kartenGemischt:true, mitLoesung:true, titelAn:true, anleitungAn:true };
   var st = { code:'', richtungen:[], seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) }, zeigeLoesung = false;
   try { var o0 = JSON.parse(localStorage.getItem(OPT)); if (o0) Object.assign(st.opt, o0); } catch(x){}
   try { var e0 = JSON.parse(sessionStorage.getItem(TAB)); if (e0){ st.code = String(e0.code || ''); st.richtungen = (e0.richtungen || []).filter(function(r){ return PFEIL[r]; }).slice(0, MAXR); st.seed = +e0.seed || st.seed; } } catch(x){}
@@ -330,7 +378,7 @@ function starte(bereich){
   }
   radios('koArt', 'art'); radios('koQuad', 'quad', true);
   radios('koKartenGroesse', 'kartenGroesse'); radios('koKartenDesign', 'kartenDesign');
-  [['#koGemischt', 'gemischt'], ['#koKaestchen', 'kaestchen'], ['#koKarten', 'karten'], ['#koKartenGemischt', 'kartenGemischt'], ['#koMitLoesung', 'mitLoesung']].forEach(function(x){
+  [['#koGemischt', 'gemischt'], ['#koKaestchen', 'kaestchen'], ['#koHilfe', 'hilfe'], ['#koKarten', 'karten'], ['#koKartenGemischt', 'kartenGemischt'], ['#koMitLoesung', 'mitLoesung']].forEach(function(x){
     $(x[0]).checked = !!st.opt[x[1]];
     $(x[0]).addEventListener('change', function(){ st.opt[x[1]] = this.checked; speichern(); if (x[1] !== 'mitLoesung') zeichnen(); });
   });
@@ -393,19 +441,31 @@ function starte(bereich){
   }
   function zeichenBlatt(loesung){
     var o = st.opt, u = einheit(P.rahmen), h = kopf(loesung, tx('Koordinaten-Rätsel'));
-    if (o.anleitungAn && !loesung) h += '<p class="ko-anleitung">' + tx('Trage die Punkte ins Koordinatensystem ein: zuerst nach rechts (x), dann nach oben (y). Verbinde die Punkte einer Linie der Reihe nach mit geraden Strichen; bei einer neuen Linie setzt du den Stift ab.') + ' ' +
+    if (o.anleitungAn && !loesung) h += '<p class="ko-anleitung">' + tx('Trage die Punkte ins Koordinatensystem ein: zuerst nach rechts (x), dann nach oben (y).') + ' ' +
+      (o.karten ? '' : o.hilfe ? tx('Jede Zeile unten ist eine Linie: Beginne bei «Start» und verbinde die Punkte der Reihe nach (→) mit geraden Strichen. Bei «Ende» setzt du den Stift ab und beginnst die nächste Linie.') :
+        tx('Verbinde die Punkte einer Linie der Reihe nach mit geraden Strichen; bei einer neuen Linie setzt du den Stift ab.')) + ' ' +
       (o.gemischt ? tx('Die Linien sind gemischt. Lies die Zeichen am Schluss von links nach rechts.') : tx('Welche Zeichen erscheinen?')) + '</p>';
     h += systemSvg(P.rahmen, u, loesung ? function(X, Y){
-      return P.alle.map(function(a){ return '<polyline points="' + a.linie.map(function(p){ return X(p[0]) + ',' + Y(p[1]); }).join(' ') + '" fill="none" stroke="#1565C0" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>'; }).join('') +
-        [].concat.apply([], P.alle.map(function(a){ return a.linie; })).map(function(p){ return '<circle cx="' + X(p[0]) + '" cy="' + Y(p[1]) + '" r="3" fill="#1565C0"/>'; }).join('');
+      // jede Linie in ihrer Farbe, am Anfang ihr Zeichen
+      return P.alle.map(function(a, n){ var f = o.hilfe ? linie(n)[0] : '#1565C0'; return '<polyline points="' + a.linie.map(function(p){ return X(p[0]) + ',' + Y(p[1]); }).join(' ') + '" fill="none" stroke="' + f + '" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>' +
+        a.linie.map(function(p){ return '<circle cx="' + X(p[0]) + '" cy="' + Y(p[1]) + '" r="3" fill="' + f + '"/>'; }).join(''); }).join('') +
+        (o.hilfe ? P.alle.map(function(a, n){ var p = a.linie[0], l = linie(n); return '<g>' + '<circle cx="' + X(p[0]) + '" cy="' + Y(p[1]) + '" r="9" fill="#fff" stroke="' + l[0] + '" stroke-width="1.4"/>' + formSvg(l[1], X(p[0]), Y(p[1]), 5.6, l[0]) + '</g>'; }).join('') : '');
     } : null);
     if (!loesung && o.karten){
-      h += '<p class="ko-kartenhinweis">' + tx('✂ Die Koordinaten stehen auf Kärtchen. Schneide sie aus und lege sie der Reihe nach: zuerst nach der Linie, dann nach der Nummer des Punktes.') + '</p>';
+      h += '<p class="ko-kartenhinweis">' + (o.hilfe ? tx('✂ Die Koordinaten stehen auf Kärtchen. Kärtchen mit der gleichen Farbe und dem gleichen Zeichen gehören zu einer Linie. Lege sie nach den Nummern (1, 2, 3 …) – jedes Kärtchen sagt dir, wie es weitergeht. Bei «Ende» setzt du den Stift ab.') :
+        tx('✂ Die Koordinaten stehen auf Kärtchen. Kärtchen mit dem gleichen Zeichen gehören zu einer Linie; die Nummer zeigt die Reihenfolge.')) + '</p>';
       if (o.kaestchen) h += '<div class="ko-antwort"><span>' + tx('Code:') + '</span>' + Z.map(function(){ return '<span class="ko-kaestchen"></span>'; }).join('') + '</div>';
     } else if (!loesung){
       var listen = o.gemischt ? [{ titel:null, linien:P.alle.map(function(a){ return a.linie; }) }] : P.gruppen.map(function(g, k){ return { titel:tx('Zeichen {n}', { n:k + 1 }), linien:g.linien }; }), nr = 0;
       h += '<div class="ko-listen' + (o.gemischt ? ' gemischt' : '') + '">' + listen.map(function(l){
-        return '<div class="ko-liste">' + (l.titel ? '<h3>' + l.titel + '</h3>' : '') + '<ol>' + l.linien.map(function(li){ nr++; return '<li><span class="ko-linie-nr">' + tx('Linie {n}', { n:nr }) + '</span> ' + li.map(punkt).join(' – ') + '</li>'; }).join('') + '</ol></div>';
+        return '<div class="ko-liste">' + (l.titel ? '<h3>' + l.titel + '</h3>' : '') + '<ol>' + l.linien.map(function(li){
+          nr++;
+          if (!o.hilfe) return '<li><span class="ko-linie-nr">' + tx('Linie {n}', { n:nr }) + '</span> ' + li.map(punkt).join(' – ') + '</li>';
+          // mit Hilfe: Zeichen der Linie, «Start», Pfeile, «Ende»
+          var f = linie(nr - 1)[0];
+          return '<li class="ko-hilfe" style="--linie:' + f + '">' + formHtml(nr - 1) + ' <span class="ko-start">' + tx('Start') + '</span> ' +
+            li.map(function(p){ return '<span class="ko-p">' + punkt(p) + '</span>'; }).join(' <span class="ko-pfeil-t">→</span> ') + ' <span class="ko-ende">' + tx('Ende') + '</span></li>';
+        }).join('') + '</ol></div>';
       }).join('') + '</div>';
       if (o.kaestchen) h += '<div class="ko-antwort"><span>' + tx('Code:') + '</span>' + Z.map(function(){ return '<span class="ko-kaestchen"></span>'; }).join('') + '</div>';
     } else h += '<p class="ko-loesungscode">' + tx('Code:') + ' <b>' + esc(Z.join('')) + '</b></p>';
@@ -420,7 +480,8 @@ function starte(bereich){
       pk.forEach(function(p, i){ t += '<circle cx="' + X(p[0]) + '" cy="' + Y(p[1]) + '" r="3.6" fill="#1565C0"/><text x="' + (X(p[0]) + 5) + '" y="' + (Y(p[1]) - 6) + '" font-size="12" font-weight="700" fill="#0D47A1" style="font-family:var(--blatt-schrift)">' + BUCHSTABEN[i] + '</text>'; });
       return t;
     } : null);
-    if (o.karten && !loesung) h += '<p class="ko-kartenhinweis">' + tx('✂ Die Punkte stehen auf Kärtchen. Schneide sie aus und lege sie nach dem Alphabet: A, B, C …') + '</p>';
+    if (o.karten && !loesung) h += '<p class="ko-kartenhinweis">' + (o.hilfe ? tx('✂ Die Punkte stehen auf Kärtchen. Beginne beim Kärtchen «Start» (A) – jedes Kärtchen sagt dir, mit welchem Punkt es weitergeht.') : tx('✂ Die Punkte stehen auf Kärtchen. Schneide sie aus und lege sie nach dem Alphabet: A, B, C …')) + '</p>';
+    else if (o.hilfe) h += '<div class="ko-punkte ko-hilfe"><span class="ko-start">' + tx('Start') + '</span>' + pk.map(function(p, i){ return '<span><b>' + BUCHSTABEN[i] + '</b> ' + punkt(p) + '</span>'; }).join('<span class="ko-pfeil-t">→</span>') + '<span class="ko-ende">' + tx('Ende') + '</span></div>';
     else h += '<div class="ko-punkte">' + pk.map(function(p, i){ return '<span><b>' + BUCHSTABEN[i] + '</b> ' + punkt(p) + '</span>'; }).join('') + '</div>';
     h += '<div class="ko-strecken">' + st.richtungen.map(function(r, i){
       return '<span class="ko-strecke"><small>' + BUCHSTABEN[i] + ' → ' + BUCHSTABEN[i + 1] + '</small><span class="ko-kaestchen">' + (loesung ? PFEIL[r] : '') + '</span></span>';
@@ -432,8 +493,9 @@ function starte(bereich){
   /* Kärtchen-Seiten: eine Karte je Punkt (Zeichen: «Linie 2 · 3», Richtungsschloss: «A»), auf Wunsch gemischt */
   function kartenSeiten(){
     var o = st.opt, K = KARTEN[o.kartenGroesse], W = K.w * MM, H = K.h * MM, karten = [];
-    if (o.art === 'zeichen') P.alle.forEach(function(a, n){ a.linie.forEach(function(p, k){ karten.push({ marke:tx('Linie {n}', { n:n + 1 }) + ' · ' + (k + 1), p:p }); }); });
-    else P.punkte.forEach(function(p, i){ karten.push({ marke:BUCHSTABEN[i], p:p }); });
+    if (o.art === 'zeichen') P.alle.forEach(function(a, n){ a.linie.forEach(function(p, k){
+      karten.push({ marke:{ linie:n, nr:k + 1, start:k === 0, weiter:k + 1 < a.linie.length ? k + 2 : 0, hilfe:o.hilfe }, p:p }); }); });
+    else P.punkte.forEach(function(p, i){ karten.push({ marke:{ b:BUCHSTABEN[i], start:i === 0, weiter:i + 1 < P.punkte.length ? BUCHSTABEN[i + 1] : '', hilfe:o.hilfe }, p:p }); });
     if (o.kartenGemischt){ var rnd = Kern.zufall(st.seed + 5); for (var i = karten.length - 1; i > 0; i--){ var j = Math.floor(rnd() * (i + 1)), x = karten[i]; karten[i] = karten[j]; karten[j] = x; } }
     var proSeite = K.sp * Math.floor(255 / K.h), seiten = Math.ceil(karten.length / proSeite), B = 639, html = '';
     for (var s = 0; s < seiten; s++){

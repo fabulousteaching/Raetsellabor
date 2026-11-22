@@ -104,3 +104,13 @@
   .ko-kartenblatt{break-before:page}
   body.mit-loesung .ko-loesungsblatt{display:block;break-before:page}
 }
+/* Verbinde-Hilfe: Zeichen der Linie, «Start», Pfeile, «Ende» */
+.ko-liste li.ko-hilfe{display:flex;flex-wrap:wrap;align-items:center;gap:3px 5px;padding:3px 0}
+.ko-form{display:inline-block;vertical-align:middle;flex:none}
+.ko-start,.ko-ende{display:inline-block;padding:1px 7px;border-radius:999px;font-size:.78rem;font-weight:700;line-height:1.4}
+.ko-start{background:#E3F4E4;color:#1B5E20}
+.ko-ende{background:#FDE3E2;color:#B71C1C}
+.ko-hilfe .ko-pfeil-t{color:var(--linie,#3A4452);font-weight:700}
+.ko-p{white-space:nowrap}
+.ko-punkte.ko-hilfe{align-items:center;gap:6px 8px}
+.ko-punkte.ko-hilfe .ko-pfeil-t{color:#1565C0}

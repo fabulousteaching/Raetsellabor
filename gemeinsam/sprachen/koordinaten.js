@@ -74,5 +74,20 @@ Labor.woerter('koordinaten', {
   '✂ Die Koordinaten stehen auf Kärtchen. Schneide sie aus und lege sie der Reihe nach: zuerst nach der Linie, dann nach der Nummer des Punktes.': ['✂ The coordinates are on cards. Cut them out and put them in order: first by line, then by the number of the point.', '✂ Les coordonnées sont sur des cartes. Découpe-les et range-les dans l’ordre : d’abord par ligne, puis par numéro du point.'],
   '✂ Die Punkte stehen auf Kärtchen. Schneide sie aus und lege sie nach dem Alphabet: A, B, C …': ['✂ The points are on cards. Cut them out and put them in alphabetical order: A, B, C …', '✂ Les points sont sur des cartes. Découpe-les et range-les dans l’ordre alphabétique : A, B, C …'],
   '✂ Koordinaten zum Ausschneiden': ['✂ Coordinates to cut out', '✂ Coordonnées à découper'],
-  'Seite {i} von {n}': ['page {i} of {n}', 'page {i} sur {n}']
+  'Seite {i} von {n}': ['page {i} of {n}', 'page {i} sur {n}'],
+  // Verbinde-Hilfe
+  'Start': ['Start', 'Départ'],
+  'weiter zu': ['go on to', 'continue vers'],
+  'Ende': ['End', 'Fin'],
+  'Ende – Stift absetzen': ['End – lift your pencil', 'Fin – lève le crayon'],
+  'Verbinden und Ausschneiden': ['Joining and cutting out', 'Relier et découper'],
+  'Verbinde-Hilfe zeigen: jede Linie mit eigener Farbe und eigenem Zeichen, Pfeile, «Start», «weiter zu …» und «Ende»': ['Show joining help: each line with its own colour and symbol, arrows, “Start”, “go on to …” and “End”', 'Afficher l’aide pour relier : chaque ligne avec sa couleur et son symbole, flèches, « Départ », « continue vers … » et « Fin »'],
+  'Trage die Punkte ins Koordinatensystem ein: zuerst nach rechts (x), dann nach oben (y).': ['Plot the points in the grid: first across (x), then up (y).', 'Place les points dans le repère : d’abord vers la droite (x), puis vers le haut (y).'],
+  'Jede Zeile unten ist eine Linie: Beginne bei «Start» und verbinde die Punkte der Reihe nach (→) mit geraden Strichen. Bei «Ende» setzt du den Stift ab und beginnst die nächste Linie.':
+    ['Each row below is one line: begin at “Start” and join the points in order (→) with straight strokes. At “End”, lift your pencil and begin the next line.', 'Chaque rangée ci-dessous est une ligne : commence au « Départ » et relie les points dans l’ordre (→) par des traits droits. À « Fin », lève le crayon et commence la ligne suivante.'],
+  'Verbinde die Punkte einer Linie der Reihe nach mit geraden Strichen; bei einer neuen Linie setzt du den Stift ab.': ['Join the points of each line in order with straight strokes; for a new line, lift your pencil.', 'Relie les points d’une ligne dans l’ordre par des traits droits ; pour une nouvelle ligne, lève le crayon.'],
+  '✂ Die Koordinaten stehen auf Kärtchen. Kärtchen mit der gleichen Farbe und dem gleichen Zeichen gehören zu einer Linie. Lege sie nach den Nummern (1, 2, 3 …) – jedes Kärtchen sagt dir, wie es weitergeht. Bei «Ende» setzt du den Stift ab.':
+    ['✂ The coordinates are on cards. Cards with the same colour and symbol belong to one line. Put them in order by number (1, 2, 3 …) – each card tells you where to go next. At “End”, lift your pencil.', '✂ Les coordonnées sont sur des cartes. Les cartes de même couleur et même symbole forment une ligne. Range-les selon les numéros (1, 2, 3 …) – chaque carte t’indique la suite. À « Fin », lève le crayon.'],
+  '✂ Die Koordinaten stehen auf Kärtchen. Kärtchen mit dem gleichen Zeichen gehören zu einer Linie; die Nummer zeigt die Reihenfolge.': ['✂ The coordinates are on cards. Cards with the same symbol belong to one line; the number shows the order.', '✂ Les coordonnées sont sur des cartes. Les cartes au même symbole forment une ligne ; le numéro indique l’ordre.'],
+  '✂ Die Punkte stehen auf Kärtchen. Beginne beim Kärtchen «Start» (A) – jedes Kärtchen sagt dir, mit welchem Punkt es weitergeht.': ['✂ The points are on cards. Begin with the “Start” card (A) – each card tells you which point comes next.', '✂ Les points sont sur des cartes. Commence par la carte « Départ » (A) – chaque carte t’indique le point suivant.']
 });
