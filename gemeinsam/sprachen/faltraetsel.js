@@ -109,5 +109,40 @@ Labor.woerter('faltraetsel', {
   'Wähle, wie die Botschaft auf dem Blatt steht: in Feldern oder zerschnitten.': ['Choose how the message appears on the sheet: in squares or cut apart.', 'Choisis comment le message figure sur la feuille : dans les cases ou découpé.'],
   'Bei dieser Länge und Schwierigkeit passen auf dem flachen Blatt noch einige Stücke zusammen. Mit einer schwierigeren Faltung, beiden Seiten oder «Andere Faltung» wird es besser.':
     ['With this length and level, some pieces still fit together on the flat sheet. A harder folding, both sides or “Different folding” makes it better.', 'Avec cette longueur et ce niveau, certains morceaux s’assemblent encore sur la feuille à plat. Un pliage plus difficile, les deux faces ou « Autre pliage » améliorent cela.'],
-  'Fertig! Jetzt setzen sich die Stücke zusammen – lies die Botschaft.': ['Done! Now the pieces fit together – read the message.', 'Terminé ! Les morceaux s’assemblent – lis le message.']
+  'Fertig! Jetzt setzen sich die Stücke zusammen – lies die Botschaft.': ['Done! Now the pieces fit together – read the message.', 'Terminé ! Les morceaux s’assemblent – lis le message.'],
+  // Faltformen: Himmel und Hölle, Stern, Segelboot
+  'Faltform': ['Folding shape', 'Forme à plier'],
+  'Was am Schluss gefaltet daliegt.': ['What lies there at the end, folded.', 'Ce qu’on obtient à la fin, une fois plié.'],
+  'Raster': ['Grid', 'Grille'],
+  'Blatt mit Feldern, Faltungen von einfach bis Profi': ['sheet with squares, folds from easy to expert', 'feuille à cases, pliages de facile à expert'],
+  'Himmel und Hölle': ['Fortune Teller', 'Cocotte en papier'],
+  'das Fingerspiel – die Botschaft steht aussen': ['the finger game – the message is on the outside', 'le jeu de doigts – le message est à l’extérieur'],
+  'Stern': ['Star', 'Étoile'],
+  'achtzackig, aus der Himmel-und-Hölle-Form': ['eight-pointed, from the fortune-teller base', 'à huit branches, à partir de la base de la cocotte'],
+  'Segelboot': ['Sailing boat', 'Voilier'],
+  'Rumpf und Segel tragen die Botschaft': ['hull and sail carry the message', 'la coque et la voile portent le message'],
+  '2 bis 40 Zeichen – je kürzer, desto grösser die Schrift. Wörter bleiben getrennt.': ['2 to 40 characters – the shorter, the larger the letters. Words stay separate.', '2 à 40 signes – plus c’est court, plus les lettres sont grandes. Les mots restent séparés.'],
+  'Wähle die Faltform: ein Raster oder eine Figur (Himmel und Hölle, Stern, Segelboot).': ['Choose the folding shape: a grid or a figure (fortune teller, star, sailing boat).', 'Choisis la forme : une grille ou une figure (cocotte, étoile, voilier).'],
+  'Falte alle vier Ecken genau zur Mitte.': ['Fold all four corners exactly to the centre.', 'Plie les quatre coins exactement vers le centre.'],
+  'Drehe das Papier um.': ['Turn the paper over.', 'Retourne le papier.'],
+  'Drehe das Papier um – auf dieser Seite steht jetzt die Botschaft.': ['Turn the paper over – the message is now on this side.', 'Retourne le papier – le message est maintenant de ce côté.'],
+  'Klappe die vier Spitzen in der Mitte nach aussen – an den gestrichelten Linien. Sie schauen über den Rand hinaus.': ['Fold the four points in the middle outwards – along the dashed lines. They stick out over the edge.', 'Rabats les quatre pointes du centre vers l’extérieur – le long des traits pointillés. Elles dépassent du bord.'],
+  'Falte die obere Hälfte nach unten.': ['Fold the top half down.', 'Plie la moitié du haut vers le bas.'],
+  'Klappe nur die vordere Spitze wieder nach oben – an der gestrichelten Linie. Das wird das Segel.': ['Fold only the front point back up – along the dashed line. That becomes the sail.', 'Rabats seulement la pointe de devant vers le haut – le long du trait pointillé. C’est la voile.'],
+  'Falte die untere Spitze nach oben.': ['Fold the bottom point up.', 'Plie la pointe du bas vers le haut.'],
+  'Die Botschaft ist für diese Figur recht lang – die Schrift wird nur {mm} mm hoch. Kürzer wird sie grösser und besser lesbar.': ['The message is rather long for this figure – the letters will only be {mm} mm high. Shorter makes them larger and easier to read.', 'Le message est assez long pour cette figure – les lettres ne mesureront que {mm} mm. Plus court, il sera plus grand et plus lisible.'],
+  'einseitig in Originalgrösse (100 %). Das Quadrat ist 18 cm gross.': ['one-sided at actual size (100 %). The square is 18 cm.', 'recto seulement en taille réelle (100 %). Le carré mesure 18 cm.'],
+  '▲ oben': ['▲ top', '▲ haut'],
+  'Schneide das Quadrat entlang der dicken Linie aus und falte es nach der Faltanleitung. Die bedruckte Seite liegt am Anfang unten – am Schluss steht auf ihr die Botschaft.': ['Cut out the square along the thick line and fold it following the instructions. The printed side starts facing down – at the end the message is on it.', 'Découpe le carré le long du trait épais et plie-le selon les instructions. La face imprimée est d’abord dessous – à la fin, le message y apparaît.'],
+  'leere Seite': ['blank side', 'face vierge'],
+  'bedruckte Seite': ['printed side', 'face imprimée'],
+  'Falte das Quadrat zuerst einmal diagonal und öffne es wieder, dann die andere Diagonale – so siehst du die Mitte. Lege es mit der bedruckten Seite nach unten vor dich (umdrehen wie eine Buchseite, ▲ oben bleibt oben). Die gelbe Fläche wird gefaltet; die gestrichelten Linien helfen dir, sobald die bedruckte Seite oben liegt.':
+    ['First fold the square along one diagonal and open it again, then along the other – now you can see the centre. Place it printed side down (turn it like a page, ▲ top stays at the top). The yellow area is the part you fold; the dashed lines help you as soon as the printed side is on top.',
+     'Plie d’abord le carré en diagonale et ouvre-le, puis l’autre diagonale – tu vois ainsi le centre. Pose-le face imprimée dessous (retourne-le comme une page, ▲ haut reste en haut). La zone jaune est celle que l’on plie ; les traits pointillés t’aident dès que la face imprimée est dessus.'],
+  'Fertig! Falte das Quadrat in der Mitte zusammen und wieder auf, dann in die andere Richtung. Stecke Daumen und Zeigefinger beider Hände von unten in die vier Taschen – schon ist das Himmel und Hölle bereit.':
+    ['Done! Fold the square in half and open it, then the other way. Put the thumbs and index fingers of both hands into the four pockets from below – the fortune teller is ready.', 'Terminé ! Plie le carré en deux et ouvre-le, puis dans l’autre sens. Glisse les pouces et les index des deux mains dans les quatre poches par-dessous – la cocotte est prête.'],
+  'Fertig ist der Stern! Was steht in der Mitte?': ['The star is done! What is written in the middle?', 'L’étoile est prête ! Qu’est-ce qui est écrit au milieu ?'],
+  'Fertig ist das Segelboot! Was steht darauf?': ['The sailing boat is done! What is written on it?', 'Le voilier est prêt ! Qu’est-ce qui est écrit dessus ?'],
+  'Faltblatt: gelb die Stücke der Botschaft': ['Folding sheet: the pieces of the message in yellow', 'Feuille à plier : en jaune, les morceaux du message'],
+  'So sieht die fertige Figur aus': ['This is what the finished figure looks like', 'Voici la figure terminée']
 });

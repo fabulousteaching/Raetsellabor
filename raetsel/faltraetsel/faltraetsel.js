@@ -387,17 +387,24 @@ var VORLAGE = '<div class="ft">' +
       '<p class="hinweis" id="ftTextHinweis"></p>' +
       '<div id="ftInfo" aria-live="polite"></div>' +
     '</div>' +
-    tx('<div class="karte" id="ftArtKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Darstellung</h2><p>Wie die Botschaft auf dem Blatt steht.</p></div></div>') +
+    tx('<div class="karte" id="ftFormKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">2</span><div><h2>Faltform</h2><p>Was am Schluss gefaltet daliegt.</p></div></div>') +
+      tx('<div class="ft-wahl" role="radiogroup" aria-label="Faltform">') +
+        tx('<label><input type="radio" name="ftForm" value="raster"><span><b>Raster</b><small>Blatt mit Feldern, Faltungen von einfach bis Profi</small></span></label>') +
+        tx('<label><input type="radio" name="ftForm" value="himmel"><span><b>Himmel und Hölle</b><small>das Fingerspiel – die Botschaft steht aussen</small></span></label>') +
+        tx('<label><input type="radio" name="ftForm" value="stern"><span><b>Stern</b><small>achtzackig, aus der Himmel-und-Hölle-Form</small></span></label>') +
+        tx('<label><input type="radio" name="ftForm" value="boot"><span><b>Segelboot</b><small>Rumpf und Segel tragen die Botschaft</small></span></label></div>') +
+    '</div>' +
+    tx('<div class="karte" id="ftArtKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Darstellung</h2><p>Wie die Botschaft auf dem Blatt steht.</p></div></div>') +
       tx('<div class="ft-wahl" role="radiogroup" aria-label="Darstellung">') +
         tx('<label><input type="radio" name="ftArt" value="felder"><span><b>In Feldern</b><small>je Feld 1 bis 3 Zeichen, bis 60 Zeichen</small></span></label>') +
         tx('<label><input type="radio" name="ftArt" value="schnitt"><span><b>Zerschnitten</b><small>Buchstaben über die Faltlinien verteilt, erst gefaltet lesbar – schwieriger, bis 80 Zeichen</small></span></label></div>') +
     '</div>' +
-    tx('<div class="karte" id="ftSeitenKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Seiten</h2><p>Wo die Zeichen auf dem Blatt stehen.</p></div></div>') +
+    tx('<div class="karte" id="ftSeitenKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">4</span><div><h2>Seiten</h2><p>Wo die Zeichen auf dem Blatt stehen.</p></div></div>') +
       tx('<div class="ft-wahl" role="radiogroup" aria-label="Seiten">') +
         tx('<label><input type="radio" name="ftSeiten" value="vorne"><span><b>Nur Vorderseite</b><small>einseitig drucken</small></span></label>') +
         tx('<label><input type="radio" name="ftSeiten" value="beide"><span><b>Vorder- und Rückseite</b><small>beidseitig drucken, an der langen Kante wenden</small></span></label></div>') +
     '</div>' +
-    tx('<div class="karte" id="ftStufeKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">4</span><div><h2>Faltanleitung</h2><p>Wie schwierig das Falten ist.</p></div></div>') +
+    tx('<div class="karte" id="ftStufeKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">5</span><div><h2>Faltanleitung</h2><p>Wie schwierig das Falten ist.</p></div></div>') +
       tx('<div class="ft-wahl" role="radiogroup" aria-label="Schwierigkeit">') +
         tx('<label><input type="radio" name="ftStufe" value="einfach"><span><b>Einfach</b><small>1–2 Faltungen</small></span></label>') +
         tx('<label><input type="radio" name="ftStufe" value="mittel"><span><b>Mittel</b><small>3 Faltungen, vorne und hinten</small></span></label>') +
@@ -406,7 +413,7 @@ var VORLAGE = '<div class="ft">' +
     '</div>' +
     tx('<div class="karte" id="ftEinstKarte" hidden><details class="optionen"><summary>Einstellungen</summary>') +
       tx('<label class="opt" id="ftAusBotschaftZeile"><input type="checkbox" id="ftAusBotschaft"><span>Füllzeichen vor allem aus der Botschaft (schwieriger zu erraten)</span></label>') +
-      tx('<label class="opt"><input type="checkbox" id="ftStern"><span>Stern ★ oben links als Startmarke</span></label>') +
+      tx('<label class="opt" id="ftSternZeile"><input type="checkbox" id="ftStern"><span>Stern ★ oben links als Startmarke</span></label>') +
       tx('<label class="opt" id="ftNummernZeile"><input type="checkbox" id="ftNummern"><span>Lesereihenfolge am Schluss der Anleitung zeigen</span></label>') +
       tx('<label class="opt"><input type="checkbox" id="ftKaestchen"><span>Kästchen für die Botschaft auf der Anleitung</span></label>') +
     '</details></div>' +
@@ -448,12 +455,13 @@ Labor.registriere({
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false;
   var TAB = 'faltraetsel-eingaben', OPT = 'faltraetsel-einstellungen';
-  var STANDARD = { art:'', seiten:'', stufe:'', ausBotschaft:false, stern:true, nummern:true, kaestchen:true, mitLoesung:true, titelAn:true, anleitungAn:true };
+  var STANDARD = { form:'', art:'', seiten:'', stufe:'', ausBotschaft:false, stern:true, nummern:true, kaestchen:true, mitLoesung:true, titelAn:true, anleitungAn:true };
   var st = { text:'', seed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) }, zeigeLoesung = false;
   try { var o0 = JSON.parse(localStorage.getItem(OPT)); if (o0) Object.assign(st.opt, o0); } catch(x){}
   try { var e0 = JSON.parse(sessionStorage.getItem(TAB)); if (e0){ st.text = String(e0.text || ''); st.seed = +e0.seed || st.seed; } } catch(x){}
   if (['vorne', 'beide'].indexOf(st.opt.seiten) < 0) st.opt.seiten = '';
   if (['felder', 'schnitt'].indexOf(st.opt.art) < 0) st.opt.art = '';
+  if (['raster', 'himmel', 'stern', 'boot'].indexOf(st.opt.form) < 0) st.opt.form = '';
   if (!Kern.STUFEN[st.opt.stufe]) st.opt.stufe = '';
   var timer = 0;
   function speichernJetzt(){ clearTimeout(timer); timer = 0;
@@ -478,7 +486,7 @@ function starte(bereich){
       r.addEventListener('change', function(){ if (!r.checked) return; st.opt[k] = r.value; speichern(); zeichnen(); });
     });
   }
-  radios('ftArt', 'art'); radios('ftSeiten', 'seiten'); radios('ftStufe', 'stufe');
+  radios('ftForm', 'form'); radios('ftArt', 'art'); radios('ftSeiten', 'seiten'); radios('ftStufe', 'stufe');
   [['#ftAusBotschaft', 'ausBotschaft'], ['#ftStern', 'stern'], ['#ftNummern', 'nummern'], ['#ftKaestchen', 'kaestchen'], ['#ftMitLoesung', 'mitLoesung']].forEach(function(x){
     $(x[0]).checked = !!st.opt[x[1]];
     $(x[0]).addEventListener('change', function(){ st.opt[x[1]] = this.checked; speichern(); if (x[1] !== 'mitLoesung') zeichnen(); });
@@ -496,11 +504,14 @@ function starte(bereich){
   var P = null, BL = null, Z = [], teile = [], zust = [], schnitt = false, TEXT = '', woerter = [];
   function rahmen(id){ return $(id).parentNode; }
   function alleZu(){ ['#ftVorne', '#ftHinten', '#ftAnleitung'].forEach(function(id){ rahmen(id).hidden = true; }); $('#ftWerkzeug').hidden = true; $('#ftDruck').hidden = true; $('#ftLoesung').innerHTML = ''; }
+  var FIGUR = null;
   function zeichnen(){
     if (aus) return;
-    schnitt = st.opt.art === 'schnitt';
+    FIGUR = st.opt.form && st.opt.form !== 'raster' ? st.opt.form : null;
+    schnitt = st.opt.art === 'schnitt' || !!FIGUR;
     var info = '', max = MAXZEICHEN[schnitt ? 'schnitt' : 'felder'], zuViele;
-    $('#ftTextHinweis').textContent = schnitt ? tx('2 bis 80 Zeichen. Wörter bleiben getrennt; die Satzzeichen . , ! ? - bleiben.') :
+    if (FIGUR) max = 40;
+    $('#ftTextHinweis').textContent = FIGUR ? tx('2 bis 40 Zeichen – je kürzer, desto grösser die Schrift. Wörter bleiben getrennt.') : schnitt ? tx('2 bis 80 Zeichen. Wörter bleiben getrennt; die Satzzeichen . , ! ? - bleiben.') :
       st.opt.art === 'felder' ? tx('2 bis 60 Buchstaben oder Ziffern. Leerzeichen und Satzzeichen fallen weg.') : tx('In Feldern bis 60 Buchstaben oder Ziffern, zerschnitten bis 80 Zeichen.');
     if (schnitt){
       TEXT = textVon(st.text); zuViele = TEXT.length > max;
@@ -517,12 +528,17 @@ function starte(bereich){
     if (Z.length === 1) info += tx('<p class="ft-info warnung">Mindestens 2 Zeichen.</p>');
     $('#ftInfo').innerHTML = info;
     var bereit = Z.length >= 2;
-    $('#ftArtKarte').hidden = !bereit;
-    $('#ftSeitenKarte').hidden = !bereit || !st.opt.art;
-    $('#ftStufeKarte').hidden = !bereit || !st.opt.art || !st.opt.seiten;
-    $('#ftEinstKarte').hidden = !bereit || !st.opt.art || !st.opt.seiten || !st.opt.stufe;
+    var raster = st.opt.form === 'raster';
+    $('#ftFormKarte').hidden = !bereit;
+    $('#ftArtKarte').hidden = !bereit || !raster;
+    $('#ftSeitenKarte').hidden = !bereit || !raster || !st.opt.art;
+    $('#ftStufeKarte').hidden = !bereit || !raster || !st.opt.art || !st.opt.seiten;
+    $('#ftEinstKarte').hidden = !bereit || (raster ? !st.opt.art || !st.opt.seiten || !st.opt.stufe : !FIGUR);
+    $('#ftSternZeile').hidden = !!FIGUR;
     $('#ftAusBotschaftZeile').hidden = $('#ftNummernZeile').hidden = schnitt;
     if (!bereit){ alleZu(); P = null; meldung('info', tx('<p>Gib links die Botschaft ein – zum Beispiel ein Lösungswort oder einen Zahlencode.</p>')); return; }
+    if (!st.opt.form){ alleZu(); P = null; meldung('info', tx('<p>Wähle die Faltform: ein Raster oder eine Figur (Himmel und Hölle, Stern, Segelboot).</p>')); return; }
+    if (FIGUR){ figurZeichnen(); return; }
     if (!st.opt.art){ alleZu(); P = null; meldung('info', tx('<p>Wähle, wie die Botschaft auf dem Blatt steht: in Feldern oder zerschnitten.</p>')); return; }
     if (!st.opt.seiten){ alleZu(); P = null; meldung('info', tx('<p>Wähle, ob die Zeichen nur auf der Vorderseite oder auf beiden Seiten stehen.</p>')); return; }
     if (!st.opt.stufe){ alleZu(); P = null; meldung('info', tx('<p>Wähle, wie schwierig die Faltanleitung sein soll.</p>')); return; }
@@ -602,8 +618,72 @@ function starte(bereich){
     return h + '</ol>';
   }
 
+  /* ---------- Figuren (Himmel und Hölle, Stern, Segelboot) ---------- */
+  var FIG = null;
+  var FIG_TEXT = {
+    ecken:function(){ return tx('Falte alle vier Ecken genau zur Mitte.'); },
+    umdrehen:function(){ return tx('Drehe das Papier um.'); },
+    umdrehenLesen:function(){ return tx('Drehe das Papier um – auf dieser Seite steht jetzt die Botschaft.'); },
+    spitzenRaus:function(){ return tx('Klappe die vier Spitzen in der Mitte nach aussen – an den gestrichelten Linien. Sie schauen über den Rand hinaus.'); },
+    halbieren:function(){ return tx('Falte die obere Hälfte nach unten.'); },
+    segel:function(){ return tx('Klappe nur die vordere Spitze wieder nach oben – an der gestrichelten Linie. Das wird das Segel.'); },
+    rumpf:function(){ return tx('Falte die untere Spitze nach oben.'); }
+  };
+  var FIG_NAME = { himmel:function(){ return tx('Himmel und Hölle'); }, stern:function(){ return tx('Stern'); }, boot:function(){ return tx('Segelboot'); } };
+  function figurZeichnen(){
+    var o = st.opt;
+    FIG = window.Faltfiguren.planen(FIGUR, woerter, st.seed);
+    P = { figur:true };
+    var mm = FIG.fs * 180, B = 180 * MM;
+    meldung(mm < 6 ? 'warnung' : '', mm < 6 ? tx('<p>Die Botschaft ist für diese Figur recht lang – die Schrift wird nur {mm} mm hoch. Kürzer wird sie grösser und besser lesbar.</p>', { mm:mm.toFixed(0) }) : '');
+    $('#ftWerkzeug').hidden = false;
+    $('#ftDruck').hidden = false;
+    $('#ftDruck').innerHTML = tx('<b>Drucken:</b> einseitig in Originalgrösse (100 %). Das Quadrat ist 18 cm gross.');
+    var vorrat = Z.filter(function(c){ return /[A-Z0-9ÄÖÜÀÂÇÉÈÊËÎÏÔÙÛŸ]/.test(c); }).concat(Z, 'ABDEGHIKLMNORSTUW'.split(''));
+    $('#ftNameVorne').textContent = tx('Seite 1 · Faltblatt');
+    $('#ftVorne').innerHTML = '<p class="ft-oben">' + tx('▲ oben') + '</p>' + window.Faltfiguren.blattSvg(FIG, 'r', B, { vorrat:vorrat, id:'b' }) +
+      (o.titelAn ? '<h2>' + esc(tx('Falträtsel')) + ' · ' + esc(FIG_NAME[FIGUR]()) + '</h2>' : '') +
+      (o.anleitungAn ? '<p class="ft-anleitung">' + tx('Schneide das Quadrat entlang der dicken Linie aus und falte es nach der Faltanleitung. Die bedruckte Seite liegt am Anfang unten – am Schluss steht auf ihr die Botschaft.') + '</p>' : '');
+    rahmen('#ftVorne').hidden = false;
+    rahmen('#ftHinten').hidden = true; $('#ftHinten').innerHTML = '';
+    $('#ftNameAnleitung').textContent = tx('Seite {n} · Faltanleitung', { n:2 });
+    $('#ftAnleitung').innerHTML = figurAnleitung();
+    rahmen('#ftAnleitung').hidden = false;
+    $('#ftLeer').classList.remove('aktiv');
+    $('#ftLoesung').innerHTML = figurLoesung(vorrat);
+    loesungZeigen();
+  }
+  function figurLegende(){
+    function kasten(farbe){ return '<svg width="18" height="18" viewBox="0 0 18 18"><rect x="1" y="1" width="16" height="16" fill="' + farbe + '" stroke="#7D8895"/></svg>'; }
+    function linie(muster){ return '<svg width="34" height="10" viewBox="0 0 34 10"><line x1="1" x2="33" y1="5" y2="5" stroke="' + ROT + '" stroke-width="2.2" stroke-dasharray="' + muster + '"/></svg>'; }
+    return '<div class="ft-legende"><span>' + linie('7 4') + tx('<b>Talfalte:</b> nach vorne falten (der Teil liegt danach oben)') + '</span>' +
+      '<span>' + kasten('#fff') + tx('leere Seite') + '</span><span>' + kasten(RUECKSEITE) + tx('bedruckte Seite') + '</span></div>';
+  }
+  function figurAnleitung(){
+    var o = st.opt, h = '', sch = FIG.modell.schritte;
+    if (o.titelAn) h += '<h2>' + tx('Faltanleitung') + ' · ' + esc(FIG_NAME[FIGUR]()) + '</h2>';
+    if (o.anleitungAn) h += '<p class="ft-anleitung">' + tx('Falte das Quadrat zuerst einmal diagonal und öffne es wieder, dann die andere Diagonale – so siehst du die Mitte. Lege es mit der bedruckten Seite nach unten vor dich (umdrehen wie eine Buchseite, ▲ oben bleibt oben). Die gelbe Fläche wird gefaltet; die gestrichelten Linien helfen dir, sobald die bedruckte Seite oben liegt.') + '</p>';
+    h += figurLegende() + '<ol class="ft-schritte">';
+    sch.forEach(function(s, n){
+      h += '<li><div class="ft-schritt-kopf"><span class="ft-nr">' + (n + 1) + '</span><span>' + esc((FIG_TEXT[s.text] || FIG_TEXT.ecken)()) + '</span></div>' + window.Faltfiguren.schrittSvg(FIG, n, 165, { id:'a' + n }) + '</li>';
+    });
+    var schluss = FIGUR === 'himmel' ? tx('Fertig! Falte das Quadrat in der Mitte zusammen und wieder auf, dann in die andere Richtung. Stecke Daumen und Zeigefinger beider Hände von unten in die vier Taschen – schon ist das Himmel und Hölle bereit.') :
+      FIGUR === 'stern' ? tx('Fertig ist der Stern! Was steht in der Mitte?') : tx('Fertig ist das Segelboot! Was steht darauf?');
+    h += '<li class="ft-schluss"><div class="ft-schritt-kopf"><span class="ft-nr">✓</span><span>' + esc(schluss) + '</span></div>' + window.Faltfiguren.schrittSvg(FIG, sch.length, 165, { id:'e' }) + '</li></ol>';
+    if (o.kaestchen) h += '<div class="ft-antwort"><span>' + tx('Botschaft:') + '</span><span class="ft-kaestchen-reihe">' + woerter.map(function(w){ return '<span class="ft-gruppe">' + Array.from(w).map(function(){ return '<span class="ft-kaestchen"></span>'; }).join('') + '</span>'; }).join('') + '</span></div>';
+    return h;
+  }
+  function figurLoesung(vorrat){
+    var o = st.opt, h = o.titelAn ? '<h2>' + tx('Falträtsel – Lösung') + '</h2>' : tx('<p class="ft-anleitung"><b>Lösung</b></p>');
+    h += '<p class="ft-loesungswort">' + tx('Botschaft:') + ' <b>' + esc(TEXT) + '</b></p>';
+    h += '<div class="ft-loesung-blaetter"><figure>' + window.Faltfiguren.blattSvg(FIG, 'r', 180 * MM, { vorrat:vorrat, id:'l', marke:true, massstab:0.45, klein:true }) + '<figcaption>' + tx('Faltblatt: gelb die Stücke der Botschaft') + '</figcaption></figure>' +
+      '<figure>' + window.Faltfiguren.schrittSvg(FIG, FIG.modell.schritte.length, 300, { id:'lz', mitText:true }) + '<figcaption>' + tx('So sieht die fertige Figur aus') + '</figcaption></figure></div>';
+    return h;
+  }
+
   /* ---------- PDF, Herunterladen ---------- */
   function blaetter(){
+    if (FIGUR) return [$('#ftVorne'), $('#ftAnleitung'), st.opt.mitLoesung && $('#ftLoesung')];
     var beide = st.opt.seiten === 'beide', l = [$('#ftVorne'), beide && $('#ftHinten'), $('#ftAnleitung')];
     if (st.opt.mitLoesung){ if (beide) l.push($('#ftLeer')); l.push($('#ftLoesung')); }
     return l;
