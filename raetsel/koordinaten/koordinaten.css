@@ -1,0 +1,91 @@
+/* Rätsellabor · Koordinaten-Rätsel – nur aktiv, solange dieser Generator offen ist.
+   Gemeinsame Bausteine (Karten, Knöpfe, Eingabefelder, Meldungen) stehen in gemeinsam/labor.css. Blatt 703 Pixel breit. */
+.ko{max-width:1440px;margin:0 auto;padding-block:22px 48px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.ko-kopf{display:grid;gap:4px;margin:0 0 20px}
+.ko-kopf h1{font-family:var(--display);font-weight:600;font-size:clamp(1.7rem,3vw,2.2rem);letter-spacing:-.01em;line-height:1.1;margin:0;color:var(--ink)}
+.ko-kopf h1:focus{outline:none}
+.ko-kopf p:last-child{margin:2px 0 0;color:var(--muted);max-width:70ch}
+.ko-layout{display:grid;grid-template-columns:minmax(300px,400px) minmax(0,1fr);gap:24px;align-items:start}
+.ko-eingabe{display:grid;gap:16px;min-width:0}
+.ko-eingabe .karte[hidden],.ko .opt[hidden]{display:none}
+@media (min-width:961px){ .ko-eingabe{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--kopf-h) + 16px);max-height:calc(100vh - var(--kopf-h) - 32px);overflow:auto;padding:2px 4px 2px 2px;scrollbar-width:thin} }
+@media (max-width:960px){ .ko-layout{grid-template-columns:minmax(0,1fr);gap:18px} }
+@media (max-width:640px){ .ko{padding-block:18px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))} }
+
+/* ---------- Eingaben ---------- */
+.ko-wahl{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ko-wahl label{position:relative;cursor:pointer;display:flex}
+.ko-wahl input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.ko-wahl span{display:grid;gap:3px;align-content:start;width:100%;padding:10px 12px;border:1px solid var(--line-2);border-radius:10px;background:#fff;transition:border-color .15s,background .15s,box-shadow .15s}
+.ko-wahl b{font-size:.95rem;font-weight:650;color:var(--text)}
+.ko-wahl small{font-size:.8rem;line-height:1.35;color:var(--muted)}
+.ko-wahl label:hover span{border-color:var(--accent-line)}
+.ko-wahl input:checked + span{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.ko-wahl input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+@media (max-width:400px){ .ko-wahl{grid-template-columns:1fr} }
+.ko-zeile{display:flex;gap:8px;align-items:center}
+.ko-zeile input{flex:1;min-width:0;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:8px 11px;font-size:1.2rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;transition:border-color .15s,box-shadow .15s}
+.ko-zeile input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
+.ko-info{margin:8px 0 0;font-size:.88rem}
+.ko-info.ok{padding:8px 11px;border-radius:9px;background:var(--ok-soft);color:var(--ok)}
+.ko-info.warnung{color:var(--accent-2)}
+.ko-steuer{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.ko-kreuz{display:grid;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,44px);gap:4px;flex:none}
+.ko-pfeil{border:1px solid var(--line-2);border-radius:10px;background:#fff;font-size:1.3rem;font-weight:700;cursor:pointer;color:var(--accent-2)}
+.ko-pfeil:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+.ko-pfeil:disabled{opacity:.4;cursor:default}
+.ko-U{grid-column:2;grid-row:1}.ko-L{grid-column:1;grid-row:2}.ko-R{grid-column:3;grid-row:2}.ko-D{grid-column:2;grid-row:3}
+.ko-codefeld{flex:1;min-width:150px;display:grid;gap:8px}
+.ko-codeliste{display:flex;flex-wrap:wrap;gap:6px;min-height:44px;align-items:center}
+.ko-codepfeil{display:grid;justify-items:center;min-width:30px;padding:3px 4px;border-radius:8px;background:var(--accent-soft);font-size:1.2rem;font-weight:700;color:var(--accent-2);line-height:1.1}
+.ko-codepfeil small{font-size:.62rem;color:var(--muted)}
+.ko-leer{font-size:.85rem;color:var(--muted)}
+.ko-codeknoepfe{display:flex;flex-wrap:wrap;gap:6px}
+.ko .opt{display:flex;align-items:flex-start;gap:10px;margin:6px 0 0;font-size:.9rem}
+.ko .opt input[type=checkbox]{width:16px;height:16px;margin:3px 0 0;accent-color:var(--accent);flex:none}
+.ko details.optionen summary{cursor:pointer;font-weight:650;font-size:1rem;list-style:none;display:flex;align-items:center;justify-content:space-between}
+.ko details.optionen summary::-webkit-details-marker{display:none}
+.ko details.optionen summary::after{content:'';width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .2s;margin:0 6px 4px 0}
+.ko details.optionen[open] summary::after{transform:rotate(-135deg);margin-bottom:0}
+.ko details.optionen[open] summary{margin-bottom:10px}
+
+/* ---------- Ausgabe ---------- */
+.ko-ausgabe{min-width:0}
+.ko-werkzeug{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.ko-werkzeug[hidden]{display:none}
+.ko-werkzeug .abstand{flex:1}
+.ko-werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
+.ko-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+.ko-rahmen{overflow-x:auto;padding-bottom:4px;margin-bottom:18px}
+.ko-rahmen[hidden]{display:none}
+.ko-blatt{width:703px;box-sizing:border-box;background:#fff;color:#1C2530;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:26px 32px 30px}
+.ko-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C2530}
+.ko-anleitung{margin:0 0 12px;color:#4B5563;line-height:1.45;font-size:.95rem}
+.ko-loesungsblatt{display:none}
+.ko-loesungsblatt.offen{display:block}
+.ko-system{display:block;margin:6px auto 0;max-width:100%;height:auto}
+.ko-listen{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px 18px;margin:14px 0 0}
+.ko-listen.gemischt{grid-template-columns:1fr}
+.ko-liste h3{margin:0 0 4px;font-size:.95rem;font-weight:700}
+.ko-liste ol{list-style:none;margin:0;padding:0;display:grid;gap:3px}
+.ko-liste li{font-family:var(--blatt-schrift);font-size:.92rem;line-height:1.4;font-variant-numeric:tabular-nums}
+.ko-linie-nr{font-weight:700;color:#005A90;white-space:nowrap}
+.ko-antwort{display:flex;align-items:center;gap:10px;margin:16px 0 0;font-weight:700;font-size:1.05rem}
+.ko-kaestchen{display:inline-grid;place-items:center;width:40px;height:44px;border:2px solid #5B6675;border-radius:6px;font-size:1.5rem;font-weight:700;color:#1565C0}
+.ko-punkte{display:flex;flex-wrap:wrap;gap:6px 16px;margin:14px 0 0;font-family:var(--blatt-schrift);font-size:1rem;font-variant-numeric:tabular-nums}
+.ko-punkte b{color:#005A90}
+.ko-strecken{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 0}
+.ko-strecke{display:grid;justify-items:center;gap:3px}
+.ko-strecke small{font-size:.75rem;font-weight:700;color:#4B5563}
+.ko-loesungscode{margin:14px 0 0;font-size:1.15rem;text-align:center}
+
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#fff!important}
+  .ko-kopf,.ko-eingabe,.ko-werkzeug,#koMeldung,.nur-bildschirm{display:none!important}
+  .ko{padding:0;max-width:none}
+  .ko-layout{display:block}
+  .ko-rahmen{overflow:visible;padding:0;margin:0}
+  .ko-blatt{box-shadow:none;border:0;border-radius:0;padding:0 32px}
+  body.mit-loesung .ko-loesungsblatt{display:block;break-before:page}
+}

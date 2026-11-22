@@ -434,6 +434,16 @@ Sudoku mit Zahlen oder Emojis in drei Grössen – und die markierten Felder erg
 - **Geprüft:** 435 Sudokus (alle Grössen und Stufen, zufällige Codes): immer genau eine Lösung, Leicht und Mittel immer ohne Raten lösbar, jedes Code-Feld leer und mit dem richtigen Symbol in der Lösung; 9 × 9 «Schwer» in wenigen Millisekunden.
 - **Blatt:** Anleitung (abschaltbar), Legende, das Gitter (HTML, damit Emojis auch im PDF sicher erscheinen; dicke Linien um die Kästen), darunter die Code-Kästchen (abschaltbar, bei Farben immer). Bei Emojis darf man statt zu zeichnen auch das Zeichen aus der Legende hineinschreiben. «Neues Sudoku» würfelt ein anderes mit demselben Code. Lösungsblatt: alle Zahlen (ergänzte blau), die Code-Felder hervorgehoben, der Code. PDF.
 
+### Koordinaten-Rätsel
+
+Punkte ins Koordinatensystem eintragen und verbinden – zwei Arten, klar beschriftet (keine Vorauswahl):
+
+- **Zeichen zeichnen** (für ein Zahlen- oder Buchstabenschloss): Code mit 1 bis 4 Ziffern oder Buchstaben (A–Z; Umlaute werden zu AE, OE, UE). Jedes Zeichen ist eine Strichfigur wie im Schachrätsel (Linienzüge auf 5 × 7 Punkten, gerade und schräge Striche); die Zeichen stehen nebeneinander im Koordinatensystem. Das Blatt nennt die Punkte Zeichen für Zeichen, Linie für Linie – «Linie 1: (5|2) – (5|8) – (2|5) – (6|5)»; bei einer neuen Linie wird der Stift abgesetzt. Einstellung: alle Linien in einer Liste gemischt (auch in umgekehrter Richtung), dann liest man die Zeichen am Schluss von links nach rechts.
+- **Für ein Richtungsschloss:** Richtungscode mit Pfeilknöpfen wie beim Richtungs-Suchsel (auch mit den Pfeiltasten), bis 12 Richtungen. Das Blatt nennt die Punkte A, B, C …; jede Strecke ist waagrecht oder senkrecht, 1 bis 3 Einheiten lang, und ihre Richtung ist ein Teil des Codes. Für jede Strecke («A → B») ein Kästchen, in das man den Pfeil zeichnet. Aus 400 zufälligen Wegen wird einer gewählt, der sich nicht selbst überdeckt (ausser bei einer Umkehr wie → ←, wo das nicht anders geht) und nicht zu gross wird.
+- **Koordinatensystem:** *Nur positive Zahlen* (1. Quadrant, einfacher) oder *Auch negative Zahlen* (alle vier Quadranten; die Zeichen bzw. der Weg liegen dann auf beiden Seiten beider Achsen). Gitter je Einheit, Achsen mit Pfeil und Zahlen, Punkte als (x|y) – auf Englisch (x, y), auf Französisch (x ; y), negative Zahlen mit echtem Minuszeichen. «Neu mischen» legt alles an eine andere Stelle.
+- **Geprüft:** 18'000 Pläne – alle Punkte im Koordinatensystem, im 1. Quadranten keine negativen Zahlen, bei vier Quadranten Punkte auf beiden Seiten beider Achsen, jede Strecke des Richtungswegs zeigt in die eingegebene Richtung, Wege ohne Umkehr überdecken sich nie.
+- **Blatt:** Anleitung (abschaltbar), Koordinatensystem, Punkteliste, Kästchen für den Code (abschaltbar). Lösungsblatt: die gezeichneten Zeichen bzw. der Weg mit Pfeilen und Buchstaben, dazu der Code. PDF.
+
 ## Aufbau
 
 ```
@@ -489,6 +499,7 @@ raetsel/skytale/                der Generator «Skytale» (Kern: Geometrie des s
 raetsel/schachraetsel/          der Generator «Schachrätsel» (Kern: Strichfiguren 0–9 und A–Z, erlaubte Figuren je Zug, Zeichen aufs Brett legen und in Züge zerlegen)
 raetsel/faltraetsel/           der Generator «Falträtsel» (Kern: Falten simulieren – Tal-, Bergfalte, Umdrehen –, Faltfolge planen, Botschaft verteilen; Faltblatt, Anleitungsbilder, Lösung)
 raetsel/sudoku/                der Generator «Sudoku» (Kern: Gitter füllen, Code-Felder wählen, Lösungen zählen, ohne Raten lösen, Zahlen wegnehmen)
+raetsel/koordinaten/           der Generator «Koordinaten-Rätsel» (Kern: Strichfiguren 0–9 und A–Z, Zeichen ins Koordinatensystem legen, Richtungsweg planen)
 raetsel/triomino/               der Generator «Triomino» (Kern: Formen, Kanten, Aufgaben, Belegung; Zeichnen mit Schriftanpassung)
 gemeinsam/extern/qrcode.js      QR-Code-Bibliothek (qrcode-generator 2.0.4, MIT-Lizenz, unverändert; Lizenz daneben)
 gemeinsam/extern/jsQR.js        QR-Leser zum Prüfen gestalteter Codes (jsQR 1.4.0, Apache-2.0, unverändert; Lizenz daneben)
