@@ -58,5 +58,21 @@ Labor.woerter('koordinaten', {
   'Trage die Punkte ins Koordinatensystem ein: zuerst nach rechts (x), dann nach oben (y). Verbinde sie der Reihe nach: A mit B, B mit C … Jede Strecke zeigt nach oben, unten, links oder rechts. Zeichne für jede Strecke den Pfeil ins Kästchen – das ist der Code für das Richtungsschloss.':
     ['Plot the points in the grid: first across (x), then up (y). Join them in order: A to B, B to C … Each segment points up, down, left or right. Draw the arrow for each segment in its box – that is the code for the directional lock.', 'Place les points dans le repère : d’abord vers la droite (x), puis vers le haut (y). Relie-les dans l’ordre : A à B, B à C … Chaque segment va vers le haut, le bas, la gauche ou la droite. Dessine la flèche de chaque segment dans sa case – c’est le code du cadenas directionnel.'],
   'Code fürs Richtungsschloss:': ['Code for the directional lock:', 'Code du cadenas directionnel :'],
-  'Richtungsschloss': ['Directional-lock', 'Cadenas-directionnel']
+  'Richtungsschloss': ['Directional-lock', 'Cadenas-directionnel'],
+  // Kärtchen zum Ausschneiden
+  'Kärtchen zum Ausschneiden': ['Cards to cut out', 'Cartes à découper'],
+  'Koordinaten auf Kärtchen zum Ausschneiden (eigene Seite) – statt der Liste auf dem Blatt': ['Coordinates on cards to cut out (separate page) – instead of the list on the sheet', 'Coordonnées sur des cartes à découper (page séparée) – au lieu de la liste sur la fiche'],
+  'Grösse der Kärtchen': ['Card size', 'Taille des cartes'],
+  'klein · 42 × 36 mm': ['small · 42 × 36 mm', 'petite · 42 × 36 mm'],
+  'mittel · 56 × 48 mm': ['medium · 56 × 48 mm', 'moyenne · 56 × 48 mm'],
+  'gross · 84 × 68 mm': ['large · 84 × 68 mm', 'grande · 84 × 68 mm'],
+  'Aussehen': ['Look', 'Apparence'],
+  'Aussehen der Kärtchen': ['Look of the cards', 'Apparence des cartes'],
+  '🧭 Kompass': ['🧭 Compass', '🧭 Boussole'],
+  'schlicht': ['plain', 'simple'],
+  'Kärtchen gemischt (die Nummern bzw. Buchstaben zeigen die Reihenfolge)': ['Cards shuffled (the numbers or letters show the order)', 'Cartes mélangées (les numéros ou les lettres indiquent l’ordre)'],
+  '✂ Die Koordinaten stehen auf Kärtchen. Schneide sie aus und lege sie der Reihe nach: zuerst nach der Linie, dann nach der Nummer des Punktes.': ['✂ The coordinates are on cards. Cut them out and put them in order: first by line, then by the number of the point.', '✂ Les coordonnées sont sur des cartes. Découpe-les et range-les dans l’ordre : d’abord par ligne, puis par numéro du point.'],
+  '✂ Die Punkte stehen auf Kärtchen. Schneide sie aus und lege sie nach dem Alphabet: A, B, C …': ['✂ The points are on cards. Cut them out and put them in alphabetical order: A, B, C …', '✂ Les points sont sur des cartes. Découpe-les et range-les dans l’ordre alphabétique : A, B, C …'],
+  '✂ Koordinaten zum Ausschneiden': ['✂ Coordinates to cut out', '✂ Coordonnées à découper'],
+  'Seite {i} von {n}': ['page {i} of {n}', 'page {i} sur {n}']
 });

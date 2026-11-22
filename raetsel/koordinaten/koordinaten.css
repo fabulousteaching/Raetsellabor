@@ -78,6 +78,20 @@
 .ko-strecke{display:grid;justify-items:center;gap:3px}
 .ko-strecke small{font-size:.75rem;font-weight:700;color:#4B5563}
 .ko-loesungscode{margin:14px 0 0;font-size:1.15rem;text-align:center}
+/* Kärtchen zum Ausschneiden */
+#koKartenMehr[hidden]{display:none}
+.ko-abstand{margin-top:12px}
+.ko-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+.ko-chips label{position:relative;cursor:pointer}
+.ko-chips input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.ko-chips span{display:inline-block;padding:6px 12px;border:1px solid var(--line-2);border-radius:999px;background:#fff;font-size:.86rem;font-weight:600;color:var(--muted);transition:border-color .15s,background .15s,color .15s}
+.ko-chips label:hover span{border-color:var(--accent-line)}
+.ko-chips input:checked + span{background:var(--accent);border-color:var(--accent);color:var(--auf-akzent)}
+.ko-chips input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+.ko-kartenhinweis{margin:14px 0 0;padding:9px 12px;border:1.5px dashed #B8C2CE;border-radius:10px;font-size:.95rem;color:#1C2530}
+.ko-seitenkopf{margin:0 0 8px;font-size:.85rem;font-weight:650;color:#4B5563}
+.ko-karten{display:block}
+#koKartenSeiten .ko-rahmen{margin-top:0}
 
 @media print{
   @page{size:A4;margin:12mm}
@@ -87,5 +101,6 @@
   .ko-layout{display:block}
   .ko-rahmen{overflow:visible;padding:0;margin:0}
   .ko-blatt{box-shadow:none;border:0;border-radius:0;padding:0 32px}
+  .ko-kartenblatt{break-before:page}
   body.mit-loesung .ko-loesungsblatt{display:block;break-before:page}
 }
