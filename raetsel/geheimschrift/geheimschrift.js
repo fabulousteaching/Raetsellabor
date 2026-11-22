@@ -114,6 +114,12 @@ var Kern = (function(){
   }
   /* Ein Zeichen verschlüsseln → { text } | { morse } | { braille:[muster, …] } | { glyphe:[codepoints] } | null (bleibt stehen)
      vorher: das Zeichen davor (für das Zahlzeichen der Blindenschrift) */
+  function roemisch(n){
+    var t = '';
+    [[10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']].forEach(function(p){ while (n >= p[0]){ t += p[1]; n -= p[0]; } });
+    return t;
+  }
+  function binaer(n){ return ('00000' + n.toString(2)).slice(-5); }
   function zeichen(art, c, o, vorher){
     var i = ABC.indexOf(c);
     switch (art){
@@ -125,6 +131,12 @@ var Kern = (function(){
       // Spiegelschrift: das Zeichen selbst, gespiegelt oder gedreht gezeichnet (o.spiegelArt)
       case 'spiegel': return /\s/.test(c) ? null : { spiegel:c, sp:o.spiegelArt || 'horizontal' };
       case 'zahlen': return i < 0 ? null : { text:String(i + 1) };
+      // Römische Zahlen: Stelle im Alphabet (A = I … Z = XXVI); Ziffern 1–9 ebenfalls römisch, die Null bleibt
+      case 'roemisch': return i >= 0 ? { text:roemisch(i + 1) } : /[1-9]/.test(c) ? { text:roemisch(+c) } : null;
+      // Binärcode: Stelle im Alphabet als Binärzahl mit 5 Stellen (A = 00001 … Z = 11010), als Ziffern oder Perlen
+      case 'binaer': return i < 0 ? null : o.binArt === 'perlen' ? { perlen:binaer(i + 1) } : { text:binaer(i + 1) };
+      // Halbe Schrift: nur die obere oder untere Hälfte jedes Buchstabens (und jeder Ziffer)
+      case 'halb': return /[A-Z0-9]/.test(c) ? { halb:c, ha:o.halbArt === 'unten' ? 'unten' : 'oben' } : null;
       case 'handy':
         for (var h = 0; h < HANDY.length; h++){ var p = HANDY[h][1].indexOf(c); if (p >= 0) return { text:new Array(p + 2).join(HANDY[h][0]) }; }
         return null;
@@ -274,7 +286,7 @@ var Kern = (function(){
     });
   }
   return { ABC:ABC, GITTER:GITTER, MORSE:MORSE, BRAILLE:BRAILLE, ZAHLZEICHEN:ZAHLZEICHEN, HANDY:HANDY, HIERO:HIERO, HIERO_NAME:HIERO_NAME, notenName:notenName, spiegelText:spiegelText,
-    normal:normal, zeichen:zeichen, zerlege:zerlege, freimaurer:freimaurer, VOEGEL:VOEGEL, KREISE:KREISE, BUECHER:BUECHER, BILDZEICHEN:BILDZEICHEN,
+    normal:normal, zeichen:zeichen, zerlege:zerlege, roemisch:roemisch, binaer:binaer, freimaurer:freimaurer, VOEGEL:VOEGEL, KREISE:KREISE, BUECHER:BUECHER, BILDZEICHEN:BILDZEICHEN,
     SEGMENTE:SEGMENTE, FINGER:FINGER, UMLAUTE:UMLAUTE, BAUSTEINE:BAUSTEINE, STEIN_FARBEN:STEIN_FARBEN,
     EMOJI_THEMEN:EMOJI_THEMEN, FARB_CODE:FARB_CODE, NOTEN:NOTEN, NOTEN_WOERTER:NOTEN_WOERTER, NOTEN_WOERTER_BS:NOTEN_WOERTER_BS, notenFalsch:notenFalsch, notenBuchstaben:notenBuchstaben, notenMidi:notenMidi };
 })();
@@ -286,7 +298,10 @@ var SCHRIFTEN = [
   ['farben', tx('Regenbogen-Scheibe'), tx('Wie Caesar, innen 26 Farben im Regenbogen')],
   ['atbasch', tx('Rückwärts-Alphabet'), tx('A wird zu Z, B zu Y …')],
   ['spiegel', tx('Spiegelschrift'), tx('Gespiegelt, auf dem Kopf oder rückwärts')],
+  ['halb', tx('Halbe Schrift'), tx('Nur die obere oder die untere Hälfte jedes Buchstabens')],
   ['zahlen', tx('Zahlen-Code'), 'A = 1, B = 2 … Z = 26'],
+  ['roemisch', tx('Römische Zahlen'), 'A = I, B = II … Z = XXVI'],
+  ['binaer', tx('Binärcode'), tx('Nullen und Einsen wie im Computer: A = 00001')],
   ['handy', tx('Handy-Tasten'), tx('So oft tippen wie auf der Handytaste: B = 22')],
   ['polybios', tx('Koordinaten-Gitter'), tx('Zeile und Spalte im Gitter: B = 12')],
   ['freimaurer', tx('Freimaurer-Code'), tx('Stücke von Gittern, manche mit Punkt')],
@@ -672,6 +687,31 @@ function schnipselHtml(code){
   var stil = erpStil(code.seed, code.nr || 0), c = code.schnipsel;
   return erpHtml(code.misch && stil.klein < 0.42 && c !== 'ß' ? c.toLowerCase() : c, stil);
 }
+/* Binärcode als Perlen: dunkle Perle = 1, helle = 0 */
+function perlenSvg(bits, klasse){
+  var t = '';
+  Array.from(bits).forEach(function(b, i){ t += '<circle cx="' + (10 + i * 20) + '" cy="10" r="7.6" fill="' + (b === '1' ? TINTE : '#fff') + '" stroke="' + TINTE + '" stroke-width="1.6"/>'; });
+  return '<svg class="' + (klasse || 'gs-perlen') + '" viewBox="0 0 100 20" aria-hidden="true"><path d="M0 10H100" stroke="#9AA4B1" stroke-width="1.2"/>' + t + '</svg>';
+}
+/* Halbe Schrift: der Buchstabe in der Blattschrift, die Hälfte über oder unter der Mitte der Grossbuchstaben weggeschnitten.
+   Die Höhe der Grossbuchstaben wird für die gewählte Schrift gemessen, damit der Schnitt genau in der Mitte liegt. */
+var halbMass = null;
+function halbMasse(){
+  var fam = (getComputedStyle(document.body).getPropertyValue('--blatt-buchstaben') || '').trim() || 'sans-serif';
+  if (halbMass && halbMass.fam === fam) return halbMass;
+  var cv = document.createElement('canvas').getContext('2d');
+  cv.font = '700 100px ' + fam;
+  var h = cv.measureText('H'), q = cv.measureText('Q'), j = cv.measureText('J');
+  halbMass = { fam:fam, cv:cv, cap:(h.actualBoundingBoxAscent || 70) / 100, unter:Math.max(q.actualBoundingBoxDescent || 0, j.actualBoundingBoxDescent || 0, 0.02) / 100 };
+  return halbMass;
+}
+function halbSvg(c, art, klasse){
+  var M = halbMasse(), w = Math.max(30, M.cv.measureText(c).width), B = 100, mitte = B - M.cap * 50, rand = 4;
+  var y0 = art === 'unten' ? mitte : B - M.cap * 100 - rand, y1 = art === 'unten' ? B + M.unter * 100 + rand : mitte, hoehe = (y1 - y0) / 100;
+  return '<svg class="' + (klasse || 'gs-halb') + '" viewBox="0 ' + y0.toFixed(1) + ' ' + (w + 8).toFixed(1) + ' ' + (y1 - y0).toFixed(1) + '" style="--hh:' + hoehe.toFixed(3) + '" aria-hidden="true">' +
+    '<text x="' + ((w + 8) / 2).toFixed(1) + '" y="' + B + '" text-anchor="middle" font-size="100" font-weight="700" fill="' + TINTE + '" style="font-family:var(--blatt-buchstaben)">' + esc(c) + '</text>' +
+    '<path d="M0 ' + mitte.toFixed(1) + 'H' + (w + 8).toFixed(1) + '" stroke="#9AA4B1" stroke-width="2" stroke-dasharray="6 5"/></svg>';
+}
 function symbolHtml(code){
   if (code.emoji) return '<span class="gs-t gs-emoji">' + code.emoji + '</span>';
   if (code.farbe) return '<span class="gs-farbpunkt" style="background:' + code.farbe + '"></span>';
@@ -682,6 +722,8 @@ function symbolHtml(code){
   if (code.segmente) return segmentHtml(code);
   if (code.kreis) return kreisSvg(code.kreis);
   if (code.vogel) return vogelSvg(code.vogel);
+  if (code.perlen) return perlenSvg(code.perlen);
+  if (code.halb) return halbSvg(code.halb, code.ha);
   if (code.text !== undefined) return '<span class="gs-t">' + esc(code.text) + '</span>';
   if (code.spiegel !== undefined) return '<span class="gs-t gs-sp gs-sp-' + code.sp + '">' + esc(code.spiegel) + '</span>';
   if (code.freimaurer) return fmSvg(code.freimaurer);
@@ -799,6 +841,23 @@ function schluesselHtml(art, o){
         zweiReihen(A, A.map(function(c){ return Kern.zeichen('atbasch', c, o).text; }), [tx('Klartext'), tx('Geheim')]);
     case 'zahlen':
       return tx('<p class="gs-erklaerung">Jeder Buchstabe wird durch seine Stelle im Alphabet ersetzt.</p>') + zweiReihen(A, A.map(function(c, i){ return String(i + 1); }), [tx('Buchstabe'), tx('Zahl')]);
+    case 'roemisch':
+      return tx('<p class="gs-erklaerung">Jeder Buchstabe ist seine Stelle im Alphabet als römische Zahl. Die Römer schrieben <b>I</b> = 1, <b>V</b> = 5 und <b>X</b> = 10 und zählten zusammen: XII = 10 + 1 + 1 = 12 = L. Steht I vor V oder X, wird es abgezogen: IV = 4, IX = 9. Ziffern im Text sind auch römisch geschrieben – eine Null kannten die Römer nicht, sie bleibt stehen.</p>') +
+        tabelle(A.map(function(c, i){ return [c, '<span class="gs-t">' + Kern.roemisch(i + 1) + '</span>']; }), 'gs-tab-text') +
+        tx('<h3 class="gs-unter">Ziffern</h3>') + tabelle('123456789'.split('').map(function(d){ return [d, '<span class="gs-t">' + Kern.roemisch(+d) + '</span>']; }), 'gs-tab-text');
+    case 'binaer':
+      var perlen = o.binArt === 'perlen';
+      return '<p class="gs-erklaerung">' + tx('So rechnet der Computer: Jeder Buchstabe ist seine Stelle im Alphabet als Binärzahl mit fünf Stellen. Die Stellen sind von links nach rechts <b>16, 8, 4, 2, 1</b> wert. Zähle die Werte zusammen, wo eine 1 steht: 01011 = 8 + 2 + 1 = 11, also K.') +
+        (perlen ? ' ' + tx('Eine dunkle Perle bedeutet 1, eine helle 0.') : '') + '</p>' +
+        // Beispiel K = 01011: Perlen bzw. Ziffern, darunter der Wert jeder Stelle
+        '<div class="gs-bin-beispiel"><svg viewBox="0 0 100 34" aria-hidden="true">' + Array.from('01011').map(function(b, i){ return (perlen ? '<circle cx="' + (10 + i * 20) + '" cy="9" r="7.6" fill="' + (b === '1' ? TINTE : '#fff') + '" stroke="' + TINTE + '" stroke-width="1.6"/>' :
+          '<text x="' + (10 + i * 20) + '" y="14" text-anchor="middle" font-size="15" font-weight="700" fill="' + TINTE + '">' + b + '</text>') +
+          '<text x="' + (10 + i * 20) + '" y="31" text-anchor="middle" font-size="10" font-weight="700" fill="#005A90">' + [16, 8, 4, 2, 1][i] + '</text>'; }).join('') + '</svg><span>' + tx('8 + 2 + 1 = 11 → K') + '</span></div>' +
+        tabelle(A.map(function(c, i){ var b = Kern.binaer(i + 1); return perlen ? [c, perlenSvg(b, 'gs-perlen-k'), b] : [c, '<span class="gs-t">' + b + '</span>']; }), perlen ? 'gs-tab-perlen' : 'gs-tab-text');
+    case 'halb':
+      var ha = o.halbArt === 'unten' ? 'unten' : 'oben';
+      return '<p class="gs-erklaerung">' + (ha === 'oben' ? tx('Von jedem Buchstaben ist nur die obere Hälfte zu sehen. Ergänze im Kopf die untere Hälfte – manche Buchstaben sehen oben gleich aus, dann hilft das Wort.') : tx('Von jedem Buchstaben ist nur die untere Hälfte zu sehen. Ergänze im Kopf die obere Hälfte – manche Buchstaben sehen unten gleich aus, dann hilft das Wort.')) + '</p>' +
+        tabelle(A.concat('0123456789'.split('')).map(function(c){ return [c, halbSvg(c, ha, 'gs-halb-k')]; }), 'gs-tab-halb');
     case 'handy':
       return tx('<p class="gs-erklaerung">Wie früher beim SMS-Schreiben: Die Ziffer zeigt die Taste, und so oft, wie sie dasteht, wird getippt. B ist der zweite Buchstabe auf der Taste 2, also <b>22</b>.</p>') +
         '<div class="gs-handy">' + [['1', ''], ['2', 'ABC'], ['3', 'DEF'], ['4', 'GHI'], ['5', 'JKL'], ['6', 'MNO'], ['7', 'PQRS'], ['8', 'TUV'], ['9', 'WXYZ'], ['*', ''], ['0', ''], ['#', '']]
@@ -908,6 +967,15 @@ var VORLAGE = '<div class="gs">' +
         tx('<button type="button" class="btn klein" id="gsSpiegelKopieren" title="Als Text zum Einfügen in WhatsApp, Word oder eine E-Mail">Als Text kopieren</button>') +
         tx('<p class="hinweis">«Als Text kopieren» nimmt ähnlich aussehende Sonderzeichen – so lässt sich der Text überall einfügen. Auf dem Blatt wird die echte Schrift gespiegelt.</p>') +
       '</div>' +
+      '<div class="gs-caesar" id="gsBinaer">' +
+        tx('<p class="feld-label">Darstellung</p><div class="gs-chips" role="radiogroup" aria-label="Darstellung des Binärcodes">') +
+          [['ziffern', tx('Nullen und Einsen')], ['perlen', tx('Perlen (dunkel = 1)')]].map(function(a){ return '<label><input type="radio" name="gsBinArt" value="' + a[0] + '"><span>' + a[1] + '</span></label>'; }).join('') + '</div>' +
+      '</div>' +
+      '<div class="gs-caesar" id="gsHalb">' +
+        tx('<p class="feld-label">Welche Hälfte bleibt sichtbar?</p><div class="gs-chips" role="radiogroup" aria-label="Sichtbare Hälfte">') +
+          [['oben', tx('Obere Hälfte')], ['unten', tx('Untere Hälfte')]].map(function(a){ return '<label><input type="radio" name="gsHalbArt" value="' + a[0] + '"><span>' + a[1] + '</span></label>'; }).join('') + '</div>' +
+        tx('<p class="hinweis">Die obere Hälfte ist meist leichter zu lesen als die untere.</p>') +
+      '</div>' +
       '<div class="gs-caesar" id="gsSegment">' +
         tx('<p class="feld-label">Aufgabe</p><div class="gs-chips" role="radiogroup" aria-label="Aufgabe beim Segment-Code">') +
           [['ausmalen', tx('Segmente ausmalen')], ['anzeige', tx('Anzeige lesen')]].map(function(a){ return '<label><input type="radio" name="gsSegArt" value="' + a[0] + '"><span>' + a[1] + '</span></label>'; }).join('') + '</div>' +
@@ -1006,7 +1074,7 @@ window.addEventListener('hashchange', alterLink);
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false;
   var TAB = 'geheimschrift-eingaben', OPT = 'geheimschrift-einstellungen';
-  var STANDARD = { art:'', wahl:'', scheibenArt:'', spiegelArt:'horizontal', verschiebung:3, scheibe:true, segArt:'ausmalen', erpSeed:1, erpMisch:true, emojiThema:'', bildVerschiebung:0, bildScheibe:true, notenBS:false, notenAudio:false, qrCm:6, groesse:'mittel', linien:true, mitLoesung:true, mitSchluessel:true, titelAn:true, anleitungAn:true };
+  var STANDARD = { art:'', wahl:'', scheibenArt:'', spiegelArt:'horizontal', binArt:'ziffern', halbArt:'oben', verschiebung:3, scheibe:true, segArt:'ausmalen', erpSeed:1, erpMisch:true, emojiThema:'', bildVerschiebung:0, bildScheibe:true, notenBS:false, notenAudio:false, qrCm:6, groesse:'mittel', linien:true, mitLoesung:true, mitSchluessel:true, titelAn:true, anleitungAn:true };
   var st = { text:'', titel:'', opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
   if (Labor.sprache !== 'de') st.opt.notenBS = false;   // B und S (wie bei Bach) gibt es nur mit deutschen Tonnamen
@@ -1119,6 +1187,14 @@ function starte(bereich){
   $('#gsBildVerschiebung').value = String(st.opt.bildVerschiebung || 0);
   $('#gsBildVerschiebung').addEventListener('change', function(){ st.opt.bildVerschiebung = +this.value; speichern(); alles(); });
   $('#gsVerschiebung').addEventListener('change', function(){ st.opt.verschiebung = +this.value; speichern(); alles(); });
+  [['gsBinArt', 'binArt', 'ziffern'], ['gsHalbArt', 'halbArt', 'oben']].forEach(function(x){
+    [].forEach.call(bereich.querySelectorAll('input[name="' + x[0] + '"]'), function(r){
+      r.checked = r.value === (st.opt[x[1]] || x[2]);
+      r.addEventListener('change', function(){ if (!r.checked) return; st.opt[x[1]] = r.value; speichern(); alles(); });
+    });
+  });
+  // Halbe Schrift misst die Blattschrift: sobald sie geladen ist, noch einmal zeichnen
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ if (!aus && st.opt.art === 'halb'){ halbMass = null; alles(); } });
   [].forEach.call(bereich.querySelectorAll('input[name="gsSpiegelArt"]'), function(r){
     r.checked = r.value === (st.opt.spiegelArt || 'horizontal');
     r.addEventListener('change', function(){ if (!r.checked) return; st.opt.spiegelArt = r.value; speichern(); alles(); });
@@ -1163,6 +1239,8 @@ function starte(bereich){
     $('#gsCaesar').hidden = o.art !== 'caesar';
     $('#gsSegment').hidden = o.art !== 'segmente';
     $('#gsSpiegel').hidden = o.art !== 'spiegel';
+    $('#gsBinaer').hidden = o.art !== 'binaer';
+    $('#gsHalb').hidden = o.art !== 'halb';
     $('#gsScheibenWahl').hidden = o.wahl !== 'scheibe';
     // Menüs nacheinander: Text erst nach der Wahl der Schrift, Blatt erst mit Text
     var bild = o.art === 'emojis' || o.art === 'farben', themaFehlt = o.art === 'emojis' && !Kern.EMOJI_THEMEN[o.emojiThema];
@@ -1189,7 +1267,9 @@ function starte(bereich){
     var erp = o.art === 'erpresser';   // keine Geheimschrift: ohne Linien, Lösung und Schlüssel – nur die Nachricht zum Drucken oder Kopieren
     bereich.querySelector('.gs').classList.toggle('gs-erpresser', erp);
     $('.gs-teil-titel').textContent = erp ? tx('Nachricht') : tx('Geheimtext');
-    $('#gsTextHinweis').textContent = o.art === 'spiegel' ? tx('Gross- und Kleinbuchstaben, Umlaute, Ziffern und Satzzeichen bleiben, wie sie sind.') : o.art === 'noten' ? tx('Nur Wörter aus den Buchstaben {t} – den Namen der Töne. Andere Wörter werden weggelassen; Satzzeichen bleiben stehen.', { t:tonnamen }) : o.art === 'erpresser' ? tx('Buchstaben (auch Ä, Ö, Ü und ß), Ziffern, ! und ? werden ausgeschnitten; andere Satzzeichen bleiben stehen.') : o.art === 'finger' ? tx('Ä, Ö, Ü, CH und SCH haben eigene Handzeichen; ß wird als SS geschrieben. Ziffern und Satzzeichen bleiben stehen.') : o.art === 'segmente' ? tx('Umlaute werden als AE, OE, UE geschrieben, ß als SS. Ziffern haben eigene Zeichen; Satzzeichen bleiben stehen.') : Kern.UMLAUTE[o.art] ? tx('Ä, Ö, Ü und ß haben in dieser Schrift eigene Zeichen') + (o.art === 'morse' ? tx('; Ziffern und einige Satzzeichen auch.') : tx('; Ziffern bekommen das Zahlzeichen.')) :
+    $('#gsTextHinweis').textContent = o.art === 'spiegel' ? tx('Gross- und Kleinbuchstaben, Umlaute, Ziffern und Satzzeichen bleiben, wie sie sind.') :
+      o.art === 'roemisch' ? tx('Umlaute werden als AE, OE, UE geschrieben, ß als SS. Ziffern 1–9 werden auch römisch, die Null bleibt; Satzzeichen bleiben stehen.') :
+      o.art === 'halb' ? tx('Alles in Grossbuchstaben; Umlaute werden als AE, OE, UE geschrieben, ß als SS. Ziffern werden auch halbiert, Satzzeichen bleiben stehen.') : o.art === 'noten' ? tx('Nur Wörter aus den Buchstaben {t} – den Namen der Töne. Andere Wörter werden weggelassen; Satzzeichen bleiben stehen.', { t:tonnamen }) : o.art === 'erpresser' ? tx('Buchstaben (auch Ä, Ö, Ü und ß), Ziffern, ! und ? werden ausgeschnitten; andere Satzzeichen bleiben stehen.') : o.art === 'finger' ? tx('Ä, Ö, Ü, CH und SCH haben eigene Handzeichen; ß wird als SS geschrieben. Ziffern und Satzzeichen bleiben stehen.') : o.art === 'segmente' ? tx('Umlaute werden als AE, OE, UE geschrieben, ß als SS. Ziffern haben eigene Zeichen; Satzzeichen bleiben stehen.') : Kern.UMLAUTE[o.art] ? tx('Ä, Ö, Ü und ß haben in dieser Schrift eigene Zeichen') + (o.art === 'morse' ? tx('; Ziffern und einige Satzzeichen auch.') : tx('; Ziffern bekommen das Zahlzeichen.')) :
       tx('Umlaute werden als AE, OE, UE geschrieben, ß als SS.') + (o.art === 'polybios' ? tx(' J wird wie I geschrieben.') : '') + tx(' Ziffern und Satzzeichen bleiben stehen.');
     if (!o.art || themaFehlt){
       $('#gsBlatt').innerHTML = $('#gsLoesung').innerHTML = '';

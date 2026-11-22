@@ -130,6 +130,17 @@
 .gs-vorschau .gs-vogel{height:24px}
 .gs-vorschau.gs-v-voegel{gap:0}
 .gs-kreis{height:calc(var(--fm) * .92);width:auto;aspect-ratio:1;display:block}
+/* Römische Zahlen, Binärcode (Ziffern oder Perlen), Halbe Schrift */
+.gs-art-roemisch .gs-t,.gs-art-binaer .gs-t{font-size:calc(var(--fm) * .5);letter-spacing:.03em}
+.gs-perlen{height:calc(var(--fm) * .34);width:auto;display:block}
+.gs-perlen-k{height:15px;width:auto;display:block}
+.gs-halb{height:calc(var(--fm) * 1.25 * var(--hh));width:auto;display:block}
+.gs-halb-k{height:calc(58px * var(--hh));width:auto;display:block}
+.gs-vorschau .gs-perlen{height:7px}
+.gs-vorschau .gs-halb{height:calc(20px * var(--hh))}
+.gs-bin-beispiel{display:flex;align-items:center;gap:14px;margin:0 0 12px;font-size:.9rem;color:#4B5563}
+.gs-bin-beispiel svg{height:46px;width:auto;flex:none}
+.gs-tab-perlen .gs-tab-zelle small{font-family:var(--blatt-buchstaben);font-size:.72rem;letter-spacing:.06em}
 .gs-kreis-k{height:40px;width:40px;display:block}
 .gs-vorschau .gs-kreis{height:20px}
 .gs-buch{height:calc(var(--fm) * 1.25);width:auto;aspect-ratio:232/236;display:block}
