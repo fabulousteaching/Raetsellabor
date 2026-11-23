@@ -301,10 +301,19 @@
 /* Spiegelschrift, Kopfstand und Rückwärts beginnen rechts */
 .gs-sp-art-horizontal .gs-zeile,.gs-sp-art-kopf .gs-zeile,.gs-sp-art-rueckwaerts .gs-zeile{justify-content:flex-end}
 /* Anlaut-Emojis: Schlüssel – je Buchstabe die Emojis mit ihren Wörtern (erster Buchstabe unterstrichen) */
-.gs-anlaut-tabelle{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px}
+.gs-anlaut-tabelle{columns:2;column-gap:22px}
 .gs-anlaut-zeile{display:flex;align-items:baseline;gap:10px;padding:4px 0;border-bottom:1px solid #E3E8EE;break-inside:avoid}
 .gs-anlaut-zeile > b{flex:none;width:1.2em;font-family:var(--blatt-buchstaben);font-size:1.15rem;color:#1C2530}
 .gs-anlaut-zeile > span{display:flex;flex-wrap:wrap;gap:2px 12px}
 .gs-anlaut-paar{white-space:nowrap;font-size:.86rem;color:#1C2530}
 .gs-anlaut-paar .gs-emoji-k{font-size:1.1rem}
 .gs-anlaut-wort u{text-decoration:none;font-weight:700;color:#005A90}
+/* Anlaut-Emojis: im Geheimtext antippen → anderes Emoji mit dem gleichen Anfangsbuchstaben */
+#gsBlatt .gs-anlaut-tausch{display:inline-block;cursor:pointer;border-radius:8px;transition:background .15s,box-shadow .15s}
+#gsBlatt .gs-anlaut-tausch:hover{background:var(--accent-soft);box-shadow:0 0 0 3px var(--accent-soft)}
+#gsBlatt .gs-anlaut-tausch:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+#gsBlatt .gs-anlaut-tausch.gs-getauscht{animation:gs-tausch .35s ease}
+@keyframes gs-tausch{0%{transform:scale(.55) rotate(-14deg)}70%{transform:scale(1.15)}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){ #gsBlatt .gs-anlaut-tausch.gs-getauscht{animation:none} }
+@media print{ #gsBlatt .gs-anlaut-tausch{background:none!important;box-shadow:none!important;animation:none!important} }
+.gs-anlaut-tipp{margin:0 0 8px;padding:8px 11px;border-radius:9px;background:var(--accent-soft);color:#1C2530}
