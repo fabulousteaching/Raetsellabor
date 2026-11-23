@@ -1,0 +1,134 @@
+/* Rätsellabor · Gegenlicht-Rätsel – nur aktiv, solange dieser Generator offen ist.
+   Gemeinsame Bausteine (Karten, Knöpfe, Eingabefelder, Meldungen) stehen in gemeinsam/labor.css.
+   Blatt 703 Pixel breit (= 186 mm im PDF). Die Rückseite ist dieselbe Seite wie die Vorderseite, aber alles unsichtbar
+   ausser den Zeichen und waagrecht gespiegelt – darum stimmen Umbruch und Lage überein. */
+.gl{max-width:1440px;margin:0 auto;padding-block:22px 48px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+.gl-kopf{display:grid;gap:4px;margin:0 0 20px}
+.gl-kopf h1{font-family:var(--display);font-weight:600;font-size:clamp(1.7rem,3vw,2.2rem);letter-spacing:-.01em;line-height:1.1;margin:0;color:var(--ink)}
+.gl-kopf h1:focus{outline:none}
+.gl-kopf p:last-child{margin:2px 0 0;color:var(--muted);max-width:70ch}
+.gl-layout{display:grid;grid-template-columns:minmax(300px,420px) minmax(0,1fr);gap:24px;align-items:start}
+.gl-eingabe{display:grid;gap:16px;min-width:0}
+.gl-eingabe .karte[hidden],#glEigeneZeile[hidden],#glPosZeile[hidden]{display:none}
+@media (min-width:961px){ .gl-eingabe{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--kopf-h) + 16px);max-height:calc(100vh - var(--kopf-h) - 32px);overflow:auto;padding:2px 4px 2px 2px;scrollbar-width:thin} }
+@media (max-width:960px){ .gl-layout{grid-template-columns:minmax(0,1fr);gap:18px} }
+@media (max-width:640px){ .gl{padding-block:18px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))} }
+
+/* ---------- Eingaben ---------- */
+.gl textarea{width:100%;box-sizing:border-box;min-height:9em;resize:vertical;background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:9px 11px;font:inherit;font-size:1rem;line-height:1.45}
+.gl textarea:focus,.gl input[type=text]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,117,186,.28)}
+.gl input[type=text]{width:100%;box-sizing:border-box}
+.gl-zeile-knoepfe{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-top:8px}
+.gl-zeile-knoepfe .hinweis{margin:0}
+.gl-abstand{margin-top:14px}
+/* Wörter zum Antippen */
+.gl-woerter{max-height:340px;overflow:auto;padding:10px 12px;border:1px solid var(--line-2);border-radius:10px;background:#fff;font-size:1rem;line-height:2.05}
+.gl-wahl-zeile{display:block}
+.gl-wahl-g{white-space:nowrap}
+.gl-wahl-p{color:var(--muted)}
+.gl-wahl-w{cursor:pointer;padding:2px 3px;border-radius:6px;transition:background .12s,box-shadow .12s}
+.gl-wahl-w:hover{background:var(--accent-soft)}
+.gl-wahl-w:focus-visible{outline:2px solid var(--accent-2);outline-offset:1px}
+.gl-wahl-w.an{background:#FFE07A;box-shadow:inset 0 -2px 0 #C79A00;font-weight:650}
+.gl-mark-info{font-size:.88rem;color:var(--muted);flex:1}
+/* Auswahlkarten */
+.gl-wahl{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.gl-wahl.drei{grid-template-columns:1fr 1fr 1fr}
+.gl-wahl label,.gl-chips label{position:relative;cursor:pointer;display:flex}
+.gl-wahl input,.gl-chips input{position:absolute;opacity:0;width:1px;height:1px;pointer-events:none}
+.gl-wahl span{display:grid;gap:3px;align-content:start;justify-items:start;width:100%;padding:9px 11px;border:1px solid var(--line-2);border-radius:10px;background:#fff;transition:border-color .15s,background .15s,box-shadow .15s}
+.gl-wahl i{font-style:normal;font-weight:800;font-size:1.05rem;letter-spacing:.08em;color:var(--accent-2);line-height:1.2}
+.gl-wahl b{font-size:.92rem;font-weight:650;color:var(--text)}
+.gl-wahl small{font-size:.78rem;line-height:1.3;color:var(--muted)}
+.gl-wahl label:hover span,.gl-chips label:hover span{border-color:var(--accent-line)}
+.gl-wahl input:checked + span,.gl-chips input:checked + span{border-color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.gl-wahl input:focus-visible + span,.gl-chips input:focus-visible + span{outline:2px solid var(--accent-2);outline-offset:2px}
+@media (max-width:480px){ .gl-wahl.drei{grid-template-columns:1fr 1fr} }
+.gl-chips{display:flex;flex-wrap:wrap;gap:6px}
+.gl-chips span{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border:1px solid var(--line-2);border-radius:999px;background:#fff;font-size:.9rem;font-weight:600}
+.gl-farbpunkt{display:inline-block;width:14px;height:14px;border-radius:50%;flex:none}
+.gl-fp-bunt{background:conic-gradient(#C62828,#E65100,#827717,#2E7D32,#00838F,#1565C0,#6A1B9A,#AD1457,#C62828)}
+.gl .opt{display:flex;align-items:flex-start;gap:10px;margin:8px 0 0;font-size:.9rem}
+.gl .opt input[type=checkbox]{width:16px;height:16px;margin:3px 0 0;accent-color:var(--accent);flex:none}
+.gl details.optionen summary{cursor:pointer;font-weight:650;font-size:1rem;list-style:none;display:flex;align-items:center;justify-content:space-between}
+.gl details.optionen summary::-webkit-details-marker{display:none}
+.gl details.optionen summary::after{content:'';width:8px;height:8px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform .2s;margin:0 6px 4px 0}
+.gl details.optionen[open] summary::after{transform:rotate(-135deg);margin-bottom:0}
+.gl details.optionen[open] summary{margin-bottom:10px}
+
+/* ---------- Ausgabe ---------- */
+.gl-ausgabe{min-width:0}
+.gl-werkzeug{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.gl-werkzeug[hidden],.gl-druckhinweis[hidden],.gl-rahmen[hidden]{display:none}
+.gl-werkzeug .abstand{flex:1}
+.gl-werkzeug label{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
+.gl-werkzeug input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent)}
+.gl-druckhinweis{margin:0 0 14px;padding:9px 12px;border-radius:10px;background:var(--accent-soft);font-size:.88rem;color:#1C2530;max-width:703px;box-sizing:border-box}
+.gl-rahmen{overflow-x:auto;padding-bottom:4px;margin-bottom:18px}
+.gl-seitenname{margin:0 0 6px;font-size:.8rem;font-weight:650;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;max-width:703px}
+.gl-blatt{position:relative;width:703px;box-sizing:border-box;background:#fff;color:#1C2530;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:26px 32px 30px;font-family:var(--blatt-schrift)}
+.gl-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C2530}
+.gl-anleitung{margin:0 0 10px;color:#4B5563;line-height:1.45;font-size:.95rem}
+/* Text: grosser Zeilenabstand, damit das Zeichen über dem Wort Platz hat */
+.gl-text{line-height:2.3;padding-top:.15em}
+.gl-absatz{margin:0}
+.gl-g{white-space:nowrap}
+.gl-w{position:relative}
+/* Zeichen (nur auf der Rückseite sichtbar; in der Lösung und in der Vorschau «gegen das Licht» auch vorne) */
+.gl-z{position:absolute;left:50%;transform:translateX(-50%);display:block;font-family:var(--blatt-display);font-weight:800;line-height:1;color:#000;white-space:nowrap;pointer-events:none}
+.gl-z-in{display:inline-block}
+.gl-pos-ueber .gl-z{bottom:calc(100% - .12em)}
+.gl-pos-ueber .gl-z-zahlen,.gl-pos-ueber .gl-z-buchstaben,.gl-pos-ueber .gl-z-eigene{font-size:.62em}
+.gl-pos-ueber .gl-z-punkt{font-size:.46em;bottom:calc(100% + .1em)}
+.gl-pos-ueber .gl-z-stern{font-size:.64em}
+.gl-pos-auf .gl-z{top:50%;transform:translate(-50%,-50%)}
+.gl-pos-auf .gl-z-zahlen,.gl-pos-auf .gl-z-buchstaben,.gl-pos-auf .gl-z-eigene{font-size:1.1em}
+.gl-pos-auf .gl-z-punkt{font-size:1em}
+.gl-pos-auf .gl-z-stern{font-size:1.25em}
+.gl-z-kreis{left:-.3em;right:-.3em;top:.05em;bottom:-.05em;transform:none;border:.09em solid #000;border-radius:50%}
+/* Antworten */
+.gl-antworten{margin-top:18px}
+.gl-antworten-titel{margin:0 0 4px;font-weight:700;font-size:.95rem;color:#1C2530}
+.gl-linien{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:4px 22px}
+.gl-linien li{display:flex;align-items:flex-end;gap:8px;min-height:2.4em}
+.gl-l-zeichen{flex:none;min-width:1.2em;font-family:var(--blatt-display);font-weight:800;font-size:1.05rem;color:#1C2530}
+.gl-linie{flex:1;border-bottom:1.5px solid #5B6675;min-height:1.6em;display:flex;align-items:flex-end;padding:0 4px 2px}
+.gl-l-wort{font-weight:700;color:#005A90;font-size:1.05rem}
+
+/* Vorderseite am Bildschirm: Wörter antippbar, markierte gelb hinterlegt (nicht im PDF) */
+.gl-vorne .gl-z{display:none}
+.gl-vorne .gl-w{cursor:pointer;border-radius:5px;transition:background .12s,box-shadow .12s}
+.gl-vorne .gl-w:hover{background:var(--accent-soft)}
+.gl-vorne .gl-w:focus-visible{outline:2px solid var(--accent-2);outline-offset:1px}
+.gl-vorne .gl-w.an{background:#FFF0B3;box-shadow:inset 0 -.08em 0 #E0B400}
+/* Vorschau «gegen das Licht»: die Zeichen der Rückseite blass durchscheinend */
+.gl-vorne.licht{background:linear-gradient(#FFFDF3,#FFF8E1)}
+.gl-vorne.licht .gl-w.an{background:none;box-shadow:none}
+.gl-vorne.licht .gl-z{display:block;opacity:.42;filter:blur(.4px)}
+.gl-vorne.licht.ungespiegelt .gl-z-in{transform:scaleX(-1)}
+/* Rückseite: alles unsichtbar ausser den Zeichen, das Ganze gespiegelt; ohne «spiegeln» die Zeichen selbst zurückgespiegelt */
+.gl-hinten .gl-innen{transform:scaleX(-1)}
+.gl-hinten .gl-innen,.gl-hinten .gl-innen *{color:transparent!important;border-color:transparent!important;background:none!important;box-shadow:none!important;text-decoration-color:transparent!important}
+.gl-hinten .gl-innen .gl-z,.gl-hinten .gl-innen .gl-z *{color:#000!important}
+.gl-hinten .gl-innen .gl-z-kreis{border-color:#000!important}
+.gl-hinten.ungespiegelt .gl-z-in{transform:scaleX(-1)}
+/* Lösung: markierte Wörter gelb, Zeichen wie von vorne gesehen */
+.gl-loesungsblatt{display:none}
+.gl-loesungsblatt.offen{display:block}
+.gl-loesungsblatt .gl-w.an{background:#FFE88A;border-radius:4px;box-shadow:0 0 0 .06em #FFE88A}
+.gl-loesungsblatt .gl-z{color:#005A90}
+.gl-loesungsblatt .gl-z-kreis{border-color:#005A90}
+
+@media print{
+  @page{size:A4;margin:12mm}
+  html,body{background:#fff!important}
+  .gl-kopf,.gl-eingabe,.gl-werkzeug,.gl-druckhinweis,.gl-seitenname,#glMeldung,.nur-bildschirm{display:none!important}
+  .gl{padding:0;max-width:none}
+  .gl-layout{display:block}
+  .gl-rahmen{overflow:visible;padding:0;margin:0}
+  .gl-blatt{box-shadow:none;border:0;border-radius:0;padding:0 32px;break-before:page;background:#fff!important}
+  #glVorne{break-before:auto}
+  .gl-vorne .gl-z{display:none!important}
+  .gl-vorne .gl-w,.gl-vorne .gl-w.an{background:none!important;box-shadow:none!important}
+  body.mit-loesung .gl-loesungsblatt{display:block}
+}
