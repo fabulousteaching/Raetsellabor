@@ -127,6 +127,8 @@ var Kern = (function(){
       // Caesar für die Unterstufe: innere Scheibe mit Emojis (Thema wählbar) oder 26 Farben; Verschiebung 0–25
       case 'emojis': return i < 0 || !EMOJI_THEMEN[o.emojiThema] ? null : { emoji:EMOJI_THEMEN[o.emojiThema].liste[(i + (+o.bildVerschiebung || 0)) % 26] };
       case 'farben': return i < 0 ? null : { farbe:FARB_CODE[(i + (+o.bildVerschiebung || 0)) % 26] };
+      // Anlaut-Emojis: ein Emoji, dessen Wort mit dem Buchstaben anfängt (welches, entscheidet zerlege – siehe anlautWahl)
+      case 'anlaut': return i < 0 ? null : anlautWahl(c, o, 0);
       case 'atbasch': return i < 0 ? null : { text:ABC[25 - i] };
       // Spiegelschrift: das Zeichen selbst, gespiegelt oder gedreht gezeichnet (o.spiegelArt)
       case 'spiegel': return /\s/.test(c) ? null : { spiegel:c, sp:o.spiegelArt || 'horizontal' };
@@ -188,6 +190,46 @@ var Kern = (function(){
     natur:{ name:'Natur & Garten', liste:['🌲', '🌳', '🌴', '🌵', '🌱', '🌿', '🍀', '🍁', '🍂', '🌾', '🌷', '🌹', '🌻', '🌼', '🌸', '💐', '🍄', '🌰', '🐚', '🐌', '🐛', '🐜', '🕷️', '🐿️', '🦔', '🐸'] },
     fahrzeuge:{ name:'Fahrzeuge', liste:['🚗', '🚕', '🚌', '🚑', '🚒', '🚓', '🚜', '🏎️', '🏍️', '🚲', '🛴', '🛹', '🚂', '🚄', '🚇', '🚁', '✈️', '🪂', '🚀', '🛸', '🛶', '⛵', '🚢', '🚤', '🚠', '🎈'] }
   };
+  /* Anlaut-Emojis: jeder Buchstabe ein Emoji, dessen Wort mit diesem Buchstaben anfängt – in der Sprache der Seite.
+     Je Buchstabe mehrere Emojis (gut erkennbar, möglichst eindeutig benannt; ohne Wörter, die gleich klingen wie ein anderer
+     Buchstabe, z. B. kein «Schlange» für S). «*» = neues Emoji (ab 2021), nur wenn das Gerät es zeigen kann (o.anlautDa).
+     Für X gibt es (fast) kein Emoji: X bleibt dann stehen. */
+  var ANLAUT_ROH = {
+    de:{ A:'🐒 Affe|🍎 Apfel|🍍 Ananas|⚓ Anker', B:'🍌 Banane|🐝 Biene|🐻 Bär|🌳 Baum|📖 Buch', C:'🤡 Clown|💻 Computer|🤠 Cowboy', D:'🦕 Dino|🐉 Drache|🍩 Donut',
+      E:'🐘 Elefant|🦆 Ente|🍓 Erdbeere', F:'🐸 Frosch|🐟 Fisch|🦊 Fuchs|🔥 Feuer', G:'🦒 Giraffe|🎸 Gitarre|👻 Gespenst|🎁 Geschenk', H:'🏠 Haus|🐶 Hund|🎩 Hut|🐔 Huhn|🍯 Honig',
+      I:'🦔 Igel|🏝️ Insel', J:'🧥 Jacke|👖 Jeans|🃏 Joker', K:'🐱 Katze|👑 Krone|🌵 Kaktus|🍒 Kirsche|🐄 Kuh', L:'🦁 Löwe|🦙 Lama|🍭 Lolli',
+      M:'🐭 Maus|🌙 Mond|🐞 Marienkäfer|🧲 Magnet', N:'👃 Nase|🦏 Nashorn|*🪺 Nest', O:'👂 Ohr|🍊 Orange|👵 Oma|🦦 Otter', P:'🐧 Pinguin|🍕 Pizza|🍄 Pilz|🐼 Panda',
+      Q:'*🪼 Qualle|🟦 Quadrat', R:'🚀 Rakete|🌈 Regenbogen|🤖 Roboter|🌹 Rose', S:'☀️ Sonne|🧦 Socken|🥗 Salat|🍲 Suppe', T:'🐯 Tiger|🍅 Tomate|🌷 Tulpe|🚜 Traktor|🥁 Trommel',
+      U:'⌚ Uhr|🛸 Ufo|🩲 Unterhose', V:'🐦 Vogel|🌋 Vulkan|🧛 Vampir', W:'🐋 Wal|🐺 Wolf|🎲 Würfel|☁️ Wolke', X:'', Y:'🧘 Yoga|🪀 Yo-Yo', Z:'🦓 Zebra|🍋 Zitrone|⛺ Zelt|🧅 Zwiebel|🦷 Zahn' },
+    en:{ A:'🍎 apple|🐜 ant|🥑 avocado|🚑 ambulance', B:'🍌 banana|🐻 bear|🎈 balloon|🦋 butterfly|🐝 bee', C:'🐱 cat|🚗 car|🐄 cow|🍪 cookie|🤡 clown', D:'🐶 dog|🦆 duck|🐬 dolphin|🐉 dragon|🍩 donut',
+      E:'🐘 elephant|🥚 egg|👂 ear|🦅 eagle', F:'🐸 frog|🐟 fish|🦊 fox|🔥 fire', G:'🦒 giraffe|🍇 grapes|🎸 guitar|👻 ghost|🎁 gift', H:'🏠 house|🐴 horse|🎩 hat|🍯 honey|🦔 hedgehog',
+      I:'🍦 ice cream|🏝️ island|🧊 ice', J:'🧥 jacket|👖 jeans|🧃 juice|🃏 joker|*🪼 jellyfish', K:'🔑 key|🪁 kite|🦘 kangaroo|🐨 koala|🥝 kiwi', L:'🦁 lion|🍋 lemon|🐞 ladybug|🦙 llama',
+      M:'🐭 mouse|🌙 moon|🐒 monkey|🍄 mushroom|🧲 magnet', N:'👃 nose|🍜 noodles|📰 newspaper|*🪺 nest', O:'🐙 octopus|🍊 orange|🦉 owl|🧅 onion|🦦 otter', P:'🐧 penguin|🍕 pizza|🐷 pig|🐼 panda|🍍 pineapple',
+      Q:'❓ question mark', R:'🚀 rocket|🌈 rainbow|🐰 rabbit|🤖 robot|🌹 rose', S:'⭐ star|🐍 snake|🐌 snail|🧦 socks|🍓 strawberry|☀️ sun', T:'🐯 tiger|🍅 tomato|🌳 tree|🐢 turtle|🚂 train',
+      U:'🦄 unicorn|☂️ umbrella|🛸 UFO', V:'🌋 volcano|🎻 violin|🧛 vampire|🚐 van', W:'🐋 whale|🐺 wolf|🍉 watermelon|⌚ watch', X:'*🩻 x-ray', Y:'🪀 yo-yo|🧶 yarn|🧘 yoga', Z:'🦓 zebra|🧟 zombie' },
+    fr:{ A:'🐝 abeille|🍍 ananas|🌳 arbre|⚓ ancre|🥑 avocat', B:'🍌 banane|⛵ bateau|🍬 bonbon|🐳 baleine', C:'🥕 carotte|🍒 cerise|🦀 crabe|🐊 crocodile|🐱 chat', D:'🐬 dauphin|🐉 dragon|🎲 dé|🦷 dent|🦕 dinosaure',
+      E:'🐘 éléphant|⭐ étoile|🐌 escargot|🧽 éponge', F:'🍓 fraise|🐜 fourmi|🧀 fromage|👻 fantôme|🌸 fleur', G:'🦒 girafe|🍰 gâteau|🎸 guitare|🐸 grenouille|🧤 gants', H:'🦉 hibou|🚁 hélicoptère|🦔 hérisson|🍔 hamburger',
+      I:'🏝️ île|🏢 immeuble', J:'🧃 jus|👖 jean|🦵 jambe|🃏 joker', K:'🥝 kiwi|🦘 kangourou|🐨 koala|🛶 kayak', L:'🦁 lion|🐰 lapin|🌙 lune|🐺 loup|🥛 lait',
+      M:'🐑 mouton|🍯 miel|🍈 melon|🏍️ moto', N:'👃 nez|☁️ nuage|🍜 nouilles|*🪺 nid', O:'👂 oreille|🍊 orange|🐦 oiseau|🐻 ours|🧅 oignon', P:'🍎 pomme|🐧 pingouin|🐔 poule|🍐 poire|🦜 perroquet',
+      Q:'🎳 quilles', R:'🤖 robot|🌹 rose|🦊 renard|🦈 requin|🍇 raisin', S:'🐍 serpent|🐭 souris|🐒 singe|☀️ soleil|🍲 soupe', T:'🐯 tigre|🍅 tomate|🐢 tortue|🚂 train|🚜 tracteur',
+      U:'🏭 usine', V:'🚲 vélo|🐄 vache|🌋 volcan|🎻 violon|🚗 voiture', W:'🚃 wagon', X:'', Y:'👀 yeux|🪀 yo-yo|🧘 yoga', Z:'🦓 zèbre|🧟 zombie' }
+  };
+  var ANLAUT = {};   // Sprache → Buchstabe → [[Emoji, Wort, neu], …]
+  Object.keys(ANLAUT_ROH).forEach(function(sp){
+    ANLAUT[sp] = {};
+    Object.keys(ANLAUT_ROH[sp]).forEach(function(c){
+      ANLAUT[sp][c] = ANLAUT_ROH[sp][c] ? ANLAUT_ROH[sp][c].split('|').map(function(x){ var neu = x[0] === '*', t = neu ? x.slice(1) : x, k = t.indexOf(' '); return [t.slice(0, k), t.slice(k + 1), neu]; }) : [];
+    });
+  });
+  // die Emojis, die das Gerät zeigen kann: alte immer, neue nur mit o.anlautDa[emoji]
+  function anlautListe(c, o){ return ((ANLAUT[SPR] || ANLAUT.de)[c] || []).filter(function(x){ return !x[2] || !!(o && o.anlautDa && o.anlautDa[x[0]]); }); }
+  /* k: wievielter gleicher Buchstabe im Text (0, 1, 2 …) – mit Abwechslung bekommt jeder ein anderes Emoji; anlautSeed: «Andere Emojis» */
+  function anlautWahl(c, o, k){
+    var l = anlautListe(c, o);
+    if (!l.length) return null;
+    var s = +(o && o.anlautSeed) || 0, start = s ? (s * 7 + ABC.indexOf(c) * 3) % l.length : 0, w = l[(start + (o && o.anlautMisch === false ? 0 : k)) % l.length];
+    return { emoji:w[0], wort:w[1], anlaut:c };
+  }
   /* Regenbogen-Scheibe: 13 Regenbogenfarben, je dunkel und hell abwechselnd – Nachbarn sind so gut zu unterscheiden */
   var FARB_CODE = ['#B71C1C', '#FF8A80', '#E65100', '#FFB74D', '#A86400', '#FFD54F', '#8C8500', '#FFF176', '#4E7D16', '#C5E384', '#1B5E20', '#7FCF86', '#00695C',
     '#7ED3C8', '#00707F', '#84E0EC', '#01579B', '#8BD3F9', '#1A3FA8', '#9DB4F0', '#311B92', '#B8A6E0', '#6A1B9A', '#DDA0E8', '#A0105A', '#F7A1C4'];
@@ -267,10 +309,11 @@ var Kern = (function(){
     if (art === 'spiegel') return spiegelZerlegen(text, o || {});
     if (art === 'finger') text = String(text || '').replace(/[ßẞ]/g, 'SS');   // ß hat kein eigenes Handzeichen
     var nr = 0;   // laufende Nummer der Schnipsel (Erpresserschrift): jeder sieht anders aus
+    var schon = {};   // Anlaut-Emojis: wie oft der Buchstabe schon vorkam
     return normal(text, UMLAUTE[art]).split(/\r?\n/).map(function(z){
       return z.split(/\s+/).filter(Boolean).map(function(w){
         var zeichenListe = teilen(w, art);
-        var zellen = zeichenListe.map(function(c, k){ var code = zeichen(art, c, o, zeichenListe[k - 1]); if (code && code.schnipsel) code.nr = nr++; return { b:c, code:code }; });
+        var zellen = zeichenListe.map(function(c, k){ var code = zeichen(art, c, o, zeichenListe[k - 1]); if (code && code.schnipsel) code.nr = nr++; if (code && code.anlaut){ code = anlautWahl(c, o, schon[c] || 0); schon[c] = (schon[c] || 0) + 1; } return { b:c, code:code }; });
         if (art === 'noten'){
           // Wort mit Buchstaben, die keine Töne sind: weglassen (die Oberfläche meldet es)
           if (zellen.some(function(z){ return !z.code && /[\p{L}\p{N}]/u.test(z.b); })) return null;
@@ -288,7 +331,7 @@ var Kern = (function(){
   return { ABC:ABC, GITTER:GITTER, MORSE:MORSE, BRAILLE:BRAILLE, ZAHLZEICHEN:ZAHLZEICHEN, HANDY:HANDY, HIERO:HIERO, HIERO_NAME:HIERO_NAME, notenName:notenName, spiegelText:spiegelText,
     normal:normal, zeichen:zeichen, zerlege:zerlege, roemisch:roemisch, binaer:binaer, freimaurer:freimaurer, VOEGEL:VOEGEL, KREISE:KREISE, BUECHER:BUECHER, BILDZEICHEN:BILDZEICHEN,
     SEGMENTE:SEGMENTE, FINGER:FINGER, UMLAUTE:UMLAUTE, BAUSTEINE:BAUSTEINE, STEIN_FARBEN:STEIN_FARBEN,
-    EMOJI_THEMEN:EMOJI_THEMEN, FARB_CODE:FARB_CODE, NOTEN:NOTEN, NOTEN_WOERTER:NOTEN_WOERTER, NOTEN_WOERTER_BS:NOTEN_WOERTER_BS, notenFalsch:notenFalsch, notenBuchstaben:notenBuchstaben, notenMidi:notenMidi };
+    EMOJI_THEMEN:EMOJI_THEMEN, FARB_CODE:FARB_CODE, ANLAUT:ANLAUT, anlautListe:anlautListe, anlautWahl:anlautWahl, NOTEN:NOTEN, NOTEN_WOERTER:NOTEN_WOERTER, NOTEN_WOERTER_BS:NOTEN_WOERTER_BS, notenFalsch:notenFalsch, notenBuchstaben:notenBuchstaben, notenMidi:notenMidi };
 })();
 /* KERN-ENDE */
 
@@ -296,6 +339,7 @@ var SCHRIFTEN = [
   ['caesar', tx('Caesar-Verschiebung'), tx('Jeder Buchstabe rückt im Alphabet weiter.')],
   ['emojis', tx('Emoji-Scheibe'), tx('Wie Caesar, innen 26 Emojis zu einem Thema')],
   ['farben', tx('Regenbogen-Scheibe'), tx('Wie Caesar, innen 26 Farben im Regenbogen')],
+  ['anlaut', tx('Anlaut-Emojis'), tx('Jedes Emoji steht für seinen ersten Buchstaben: 🐒 Affe = A')],
   ['atbasch', tx('Rückwärts-Alphabet'), tx('A wird zu Z, B zu Y …')],
   ['spiegel', tx('Spiegelschrift'), tx('Gespiegelt, auf dem Kopf oder rückwärts')],
   ['halb', tx('Halbe Schrift'), tx('Nur die obere oder die untere Hälfte jedes Buchstabens')],
@@ -712,6 +756,23 @@ function halbSvg(c, art, klasse){
     '<text x="' + ((w + 8) / 2).toFixed(1) + '" y="' + B + '" text-anchor="middle" font-size="100" font-weight="700" fill="' + TINTE + '" style="font-family:var(--blatt-buchstaben)">' + esc(c) + '</text>' +
     '<path d="M0 ' + mitte.toFixed(1) + 'H' + (w + 8).toFixed(1) + '" stroke="#9AA4B1" stroke-width="2" stroke-dasharray="6 5"/></svg>';
 }
+/* Anlaut-Emojis: Kann dieses Gerät ein neues Emoji zeigen? Farbig gezeichnet = ja (fehlt es, erscheint ein graues Kästchen).
+   Das PDF zeichnet mit denselben Schriften wie der Bildschirm – was hier fehlt, fehlt auch dort. */
+function anlautNeueDa(){
+  var da = {}, neue = [];
+  Object.keys(Kern.ANLAUT).forEach(function(sp){ Object.keys(Kern.ANLAUT[sp]).forEach(function(c){ Kern.ANLAUT[sp][c].forEach(function(x){ if (x[2] && neue.indexOf(x[0]) < 0) neue.push(x[0]); }); }); });
+  try {
+    var cv = document.createElement('canvas'); cv.width = cv.height = 40;
+    var g = cv.getContext('2d', { willReadFrequently:true });
+    neue.forEach(function(e){
+      g.clearRect(0, 0, 40, 40); g.font = '30px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; g.textBaseline = 'top'; g.fillStyle = '#000'; g.fillText(e, 2, 2);
+      var d = g.getImageData(0, 0, 40, 40).data, bunt = 0;
+      for (var i = 0; i < d.length; i += 4) if (d[i + 3] > 60 && Math.max(d[i], d[i + 1], d[i + 2]) - Math.min(d[i], d[i + 1], d[i + 2]) > 40) bunt++;
+      da[e] = bunt > 20;
+    });
+  } catch(x){}
+  return da;
+}
 function symbolHtml(code){
   if (code.emoji) return '<span class="gs-t gs-emoji">' + code.emoji + '</span>';
   if (code.farbe) return '<span class="gs-farbpunkt" style="background:' + code.farbe + '"></span>';
@@ -824,6 +885,16 @@ function schluesselHtml(art, o){
           (sf ? tx('Der ★ auf der kleinen Scheibe zeigt den Anfang. Dreh die kleine Scheibe so, dass der ★ unter dem {b} steht.', { b:'<b>' + Kern.ABC[(26 - sf) % 26] + '</b>' }) : tx('Der ★ auf der kleinen Scheibe zeigt den Anfang. Dreh die kleine Scheibe so, dass der ★ unter dem {b} steht (also unter dem A).', { b:'<b>A</b>' })) + ' ' +
           tx('Jetzt steht unter jedem Buchstaben seine Farbe – unter dem A {f}.', { f:punkt(F[sf]) }) + '</p>' +
           caesarScheibe({ name:tx('Regenbogen-Scheibe'), innen:function(){ return ''; }, innenFarbe:function(i){ return F[i]; }, aussenFarbe:function(i){ return F[i]; } }) : '');
+    case 'anlaut':
+      var misch = o.anlautMisch !== false, fehlt = [];
+      var zeilen = A.map(function(c){
+        var l = misch ? Kern.anlautListe(c, o) : [Kern.anlautWahl(c, o, 0)].filter(Boolean).map(function(w){ return [w.emoji, w.wort]; });
+        if (!l.length){ fehlt.push(c); return ''; }
+        return '<div class="gs-anlaut-zeile"><b>' + c + '</b><span>' + l.map(function(x){ return '<span class="gs-anlaut-paar"><span class="gs-emoji-k">' + x[0] + '</span> <span class="gs-anlaut-wort"><u>' + esc(Array.from(x[1])[0]) + '</u>' + esc(Array.from(x[1]).slice(1).join('')) + '</span></span>'; }).join('') + '</span></div>';
+      }).join('');
+      return '<p class="gs-erklaerung">' + tx('Jedes Emoji steht für den ersten Buchstaben seines Namens: {e} {w} ist {b}. Sag das Wort leise vor dich hin und schreib nur den ersten Buchstaben auf.', { e:Kern.anlautListe('A', o)[0] ? Kern.anlautListe('A', o)[0][0] : '', w:Kern.anlautListe('A', o)[0] ? esc(Kern.anlautListe('A', o)[0][1]) : '', b:'<b>A</b>' }) +
+        (misch ? ' ' + tx('Derselbe Buchstabe kann verschiedene Emojis haben.') : '') + (fehlt.length ? ' ' + tx('Für {x} gibt es kein passendes Emoji – im Geheimtext steht der Buchstabe selbst.', { x:'<b>' + fehlt.join(', ') + '</b>' }) : '') + '</p>' +
+        '<div class="gs-anlaut-tabelle">' + zeilen + '</div>';
     case 'spiegel':
       var sp = o.spiegelArt || 'horizontal', spA = A.concat([]), klein = 'abcdefghijklmnopqrstuvwxyz'.split('');
       function sz(c){ return '<span class="gs-t gs-sp gs-sp-' + sp + '">' + esc(c) + '</span>'; }
@@ -984,6 +1055,11 @@ var VORLAGE = '<div class="gs">' +
       '<div class="gs-caesar" id="gsNoten">' +
         (Labor.sprache === 'de' ? tx('<label class="opt"><input type="checkbox" id="gsNotenBS"><span>Mit B und S – wie bei Bach: B ist das H mit ♭, S das Es (E mit ♭)</span></label>') : '<input type="checkbox" id="gsNotenBS" hidden>') +
       '</div>' +
+      '<div class="gs-caesar" id="gsAnlaut">' +
+        tx('<label class="opt"><input type="checkbox" id="gsAnlautMisch"><span>Abwechslung: Derselbe Buchstabe bekommt verschiedene Emojis</span></label>') +
+        tx('<button type="button" class="btn klein" id="gsAnlautNeu" title="Andere Emojis für die Buchstaben wählen">Andere Emojis</button>') +
+        tx('<p class="hinweis">Jedes Emoji steht für den ersten Buchstaben seines Namens – auf Deutsch. Wechselst du oben die Sprache, passen die Emojis zur neuen Sprache. Im Schlüssel stehen alle Emojis mit ihren Wörtern.</p>') +
+      '</div>' +
       '<div class="gs-caesar" id="gsErpresser">' +
         tx('<button type="button" class="btn klein" id="gsErpNeu" title="Alle Buchstaben neu ausschneiden und aufkleben">Neu ausschneiden</button>') +
         tx('<label class="opt"><input type="checkbox" id="gsErpMisch"><span>Gross- und Kleinbuchstaben gemischt</span></label>') +
@@ -1051,8 +1127,8 @@ Labor.registriere({
   id:'geheimschrift',
   titel:'Geheimschriften',
   kurz:'Geheimscheibe, Freimaurer, Vögel, Bücher, Bärte, Segmente, Bausteine, Erpresserschrift, Noten, Runen, Morse, Hieroglyphen und mehr',
-  beschreibung:'Ein eigener Text in einer von zwanzig Geheimschriften – Geheimscheibe (Buchstaben wie bei Caesar, Emojis oder Regenbogen-Farben), Rückwärts-Alphabet, Zahlen, Handy-Tasten, Koordinaten, Freimaurer-Code, Vögel auf dem Draht, Kreis-Code, Bücher-Code, Bärte-Code, Segment-Code, Bausteine, Erpresserschrift, Notenschrift, Altlatein, Runen, Fingeralphabet, Morse, Blindenschrift oder Hieroglyphen. Mit Schlüssel zum Entschlüsseln.',
-  merkmale:['Zwanzig Geheimschriften', 'Schlüssel einzeln als PDF oder Bild', 'Mit Lösungsblatt'],
+  beschreibung:'Ein eigener Text in einer von 25 Geheimschriften – Geheimscheibe (Buchstaben wie bei Caesar, Emojis oder Regenbogen-Farben), Anlaut-Emojis, Rückwärts-Alphabet, Spiegelschrift, Halbe Schrift, Zahlen, Römische Zahlen, Binärcode, Handy-Tasten, Koordinaten, Freimaurer-Code, Vögel auf dem Draht, Kreis-Code, Bücher-Code, Bärte-Code, Segment-Code, Bausteine, Erpresserschrift, Notenschrift, Altlatein, Runen, Fingeralphabet, Morse, Blindenschrift oder Hieroglyphen. Mit Schlüssel zum Entschlüsseln.',
+  merkmale:['25 Geheimschriften', 'Schlüssel einzeln als PDF oder Bild', 'Mit Lösungsblatt'],
   symbol:SYMBOL,
   css:'raetsel/geheimschrift/geheimschrift.css',
   html:VORLAGE,
@@ -1074,7 +1150,7 @@ window.addEventListener('hashchange', alterLink);
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false;
   var TAB = 'geheimschrift-eingaben', OPT = 'geheimschrift-einstellungen';
-  var STANDARD = { art:'', wahl:'', scheibenArt:'', spiegelArt:'horizontal', binArt:'ziffern', halbArt:'oben', verschiebung:3, scheibe:true, segArt:'ausmalen', erpSeed:1, erpMisch:true, emojiThema:'', bildVerschiebung:0, bildScheibe:true, notenBS:false, notenAudio:false, qrCm:6, groesse:'mittel', linien:true, mitLoesung:true, mitSchluessel:true, titelAn:true, anleitungAn:true };
+  var STANDARD = { art:'', wahl:'', scheibenArt:'', spiegelArt:'horizontal', binArt:'ziffern', halbArt:'oben', verschiebung:3, scheibe:true, segArt:'ausmalen', erpSeed:1, erpMisch:true, anlautMisch:true, anlautSeed:0, emojiThema:'', bildVerschiebung:0, bildScheibe:true, notenBS:false, notenAudio:false, qrCm:6, groesse:'mittel', linien:true, mitLoesung:true, mitSchluessel:true, titelAn:true, anleitungAn:true };
   var st = { text:'', titel:'', opt:Object.assign({}, STANDARD) };
   try { var o = JSON.parse(localStorage.getItem(OPT)); if (o) Object.assign(st.opt, o); } catch(x){}
   if (Labor.sprache !== 'de') st.opt.notenBS = false;   // B und S (wie bei Bach) gibt es nur mit deutschen Tonnamen
@@ -1087,6 +1163,7 @@ function starte(bereich){
   else if (st.opt.wahl !== 'scheibe') st.opt.wahl = '';
   if (!istScheibe(st.opt.scheibenArt)) st.opt.scheibenArt = '';
   st.opt.erpSeed = erpNeuerZufall(); erpVorschau = erpNeuerZufall();   // Erpresserschrift: jedes Mal anders
+  st.opt.anlautDa = anlautNeueDa();   // Anlaut-Emojis: welche neuen Emojis dieses Gerät zeigen kann
   var timer = 0;
   function speichernJetzt(){ clearTimeout(timer); timer = 0;
     try { sessionStorage.setItem(TAB, JSON.stringify({ text:st.text, titel:st.titel })); } catch(x){}
@@ -1170,6 +1247,7 @@ function starte(bereich){
   }
   $('#gsAndere').addEventListener('click', function(){ listeZu(false); var r = bereich.querySelector('input[name="gsSchrift"]:checked'); if (r) r.focus(); });
   $('#gsErpNeu').addEventListener('click', function(){ st.opt.erpSeed = erpNeuerZufall(); speichern(); alles(); });
+  $('#gsAnlautNeu').addEventListener('click', function(){ st.opt.anlautSeed = ((+st.opt.anlautSeed || 0) % 97) + 1; speichern(); alles(); });
   $('#gsVerschiebung').value = String(st.opt.verschiebung);
   // Geheimscheibe: welche Scheibe?
   [].forEach.call(bereich.querySelectorAll('input[name="gsScheibenArt"]'), function(r){
@@ -1206,7 +1284,7 @@ function starte(bereich){
       k.textContent = tx('✓ Kopiert'); setTimeout(function(){ k.textContent = alt; }, 1600);
     }, function(){ meldung('warnung', '<p>' + tx('Das Kopieren hat nicht geklappt') + '.</p>'); });
   });
-  [['#gsLinien', 'linien', zeichnen], ['#gsScheibe', 'scheibe', schluesselZeichnen], ['#gsBildScheibe', 'bildScheibe', schluesselZeichnen], ['#gsErpMisch', 'erpMisch', zeichnen], ['#gsNotenBS', 'notenBS', alles], ['#gsNotenAudio', 'notenAudio', zeichnen], ['#gsMitLoesung', 'mitLoesung'], ['#gsMitSchluessel', 'mitSchluessel']].forEach(function(c){
+  [['#gsLinien', 'linien', zeichnen], ['#gsScheibe', 'scheibe', schluesselZeichnen], ['#gsBildScheibe', 'bildScheibe', schluesselZeichnen], ['#gsErpMisch', 'erpMisch', zeichnen], ['#gsAnlautMisch', 'anlautMisch', alles], ['#gsNotenBS', 'notenBS', alles], ['#gsNotenAudio', 'notenAudio', zeichnen], ['#gsMitLoesung', 'mitLoesung'], ['#gsMitSchluessel', 'mitSchluessel']].forEach(function(c){
     $(c[0]).checked = !!st.opt[c[1]];
     $(c[0]).addEventListener('change', function(){ st.opt[c[1]] = this.checked; speichern(); if (c[2]) c[2](); });
   });
@@ -1241,6 +1319,7 @@ function starte(bereich){
     $('#gsSpiegel').hidden = o.art !== 'spiegel';
     $('#gsBinaer').hidden = o.art !== 'binaer';
     $('#gsHalb').hidden = o.art !== 'halb';
+    $('#gsAnlaut').hidden = o.art !== 'anlaut';
     $('#gsScheibenWahl').hidden = o.wahl !== 'scheibe';
     // Menüs nacheinander: Text erst nach der Wahl der Schrift, Blatt erst mit Text
     var bild = o.art === 'emojis' || o.art === 'farben', themaFehlt = o.art === 'emojis' && !Kern.EMOJI_THEMEN[o.emojiThema];
@@ -1270,7 +1349,8 @@ function starte(bereich){
     $('#gsTextHinweis').textContent = o.art === 'spiegel' ? tx('Gross- und Kleinbuchstaben, Umlaute, Ziffern und Satzzeichen bleiben, wie sie sind.') :
       o.art === 'roemisch' ? tx('Umlaute werden als AE, OE, UE geschrieben, ß als SS. Ziffern 1–9 werden auch römisch, die Null bleibt; Satzzeichen bleiben stehen.') :
       o.art === 'halb' ? tx('Alles in Grossbuchstaben; Umlaute werden als AE, OE, UE geschrieben, ß als SS. Ziffern werden auch halbiert, Satzzeichen bleiben stehen.') : o.art === 'noten' ? tx('Nur Wörter aus den Buchstaben {t} – den Namen der Töne. Andere Wörter werden weggelassen; Satzzeichen bleiben stehen.', { t:tonnamen }) : o.art === 'erpresser' ? tx('Buchstaben (auch Ä, Ö, Ü und ß), Ziffern, ! und ? werden ausgeschnitten; andere Satzzeichen bleiben stehen.') : o.art === 'finger' ? tx('Ä, Ö, Ü, CH und SCH haben eigene Handzeichen; ß wird als SS geschrieben. Ziffern und Satzzeichen bleiben stehen.') : o.art === 'segmente' ? tx('Umlaute werden als AE, OE, UE geschrieben, ß als SS. Ziffern haben eigene Zeichen; Satzzeichen bleiben stehen.') : Kern.UMLAUTE[o.art] ? tx('Ä, Ö, Ü und ß haben in dieser Schrift eigene Zeichen') + (o.art === 'morse' ? tx('; Ziffern und einige Satzzeichen auch.') : tx('; Ziffern bekommen das Zahlzeichen.')) :
-      tx('Umlaute werden als AE, OE, UE geschrieben, ß als SS.') + (o.art === 'polybios' ? tx(' J wird wie I geschrieben.') : '') + tx(' Ziffern und Satzzeichen bleiben stehen.');
+      tx('Umlaute werden als AE, OE, UE geschrieben, ß als SS.') + (o.art === 'polybios' ? tx(' J wird wie I geschrieben.') : '') + tx(' Ziffern und Satzzeichen bleiben stehen.') +
+      (o.art === 'anlaut' ? ' ' + tx('Buchstaben ohne passendes Emoji (wie X) bleiben auch stehen.') : '');
     if (!o.art || themaFehlt){
       $('#gsBlatt').innerHTML = $('#gsLoesung').innerHTML = '';
       $('#gsTeilText').hidden = true;

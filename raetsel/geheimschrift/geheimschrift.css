@@ -300,3 +300,11 @@
 #gsSpiegelKopieren{margin-top:10px}
 /* Spiegelschrift, Kopfstand und Rückwärts beginnen rechts */
 .gs-sp-art-horizontal .gs-zeile,.gs-sp-art-kopf .gs-zeile,.gs-sp-art-rueckwaerts .gs-zeile{justify-content:flex-end}
+/* Anlaut-Emojis: Schlüssel – je Buchstabe die Emojis mit ihren Wörtern (erster Buchstabe unterstrichen) */
+.gs-anlaut-tabelle{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px}
+.gs-anlaut-zeile{display:flex;align-items:baseline;gap:10px;padding:4px 0;border-bottom:1px solid #E3E8EE;break-inside:avoid}
+.gs-anlaut-zeile > b{flex:none;width:1.2em;font-family:var(--blatt-buchstaben);font-size:1.15rem;color:#1C2530}
+.gs-anlaut-zeile > span{display:flex;flex-wrap:wrap;gap:2px 12px}
+.gs-anlaut-paar{white-space:nowrap;font-size:.86rem;color:#1C2530}
+.gs-anlaut-paar .gs-emoji-k{font-size:1.1rem}
+.gs-anlaut-wort u{text-decoration:none;font-weight:700;color:#005A90}
