@@ -43,5 +43,7 @@ Labor.woerter('rebus', {
   'Richtig!': ['Correct!', 'Juste !'],
   'Noch nicht': ['Not yet', 'Pas encore'],
   'Für dieses Bild gibt es keinen anderen Vorschlag. Mit «Anders» bekommt das ganze Rätsel neue Bilder.': ['There is no other suggestion for this picture. «Change» gives the whole puzzle new pictures.', 'Il n’y a pas d’autre proposition pour cette image. « Changer » donne de nouvelles images à tout le rébus.'],
-  'Rebus –': ['Rebus –', 'Rébus –']
+  'Rebus –': ['Rebus –', 'Rébus –'],
+  'Unter jedem Rebus ein eigener Strich, auf den man das Wort schreibt': ['A separate line under each rebus for writing the word', 'Un trait sous chaque rébus pour écrire le mot'],
+  'Schreiblinien': ['Writing lines', 'Lignes d’écriture']
 });

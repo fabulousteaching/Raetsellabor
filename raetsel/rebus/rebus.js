@@ -301,6 +301,7 @@ var VORLAGE = tx(`<div class="rb">
         <button type="button" class="btn klein" id="rbZeigeLoesung" aria-pressed="false">Lösung zeigen</button>
         <span class="abstand"></span>
         ${Labor.blattSchalterHtml()}
+        <label title="Unter jedem Rebus ein eigener Strich, auf den man das Wort schreibt"><input type="checkbox" id="rbStriche"> Schreiblinien</label>
         <label><input type="checkbox" id="rbMitLoesung"> mit Lösungsblatt</label>
         <button type="button" class="btn klein primary" id="rbDrucken">PDF herunterladen</button>
         <button type="button" class="btn klein primary" id="rbHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>
@@ -332,7 +333,7 @@ function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); };
   var esc = Labor.esc, aus = false;
   var TAB = 'rebus-eingaben', OPT = 'rebus-einstellungen', MAX = 12;
-  var STANDARD = { stufe:'mittel', namen:false, mitLoesung:true, titelAn:true, anleitungAn:true };
+  var STANDARD = { stufe:'mittel', namen:false, striche:true, mitLoesung:true, titelAn:true, anleitungAn:true };
 
   /* ---------- Zustand: Einträge nur für diesen Tab, Einstellungen bleiben ---------- */
   var st = { titel:'', eintraege:[], opt:Object.assign({}, STANDARD) };
@@ -403,7 +404,7 @@ function starte(bereich){
   titelFeld.value = st.titel;
   titelFeld.addEventListener('input', function(){ st.titel = titelFeld.value; speichern(); zeige(); });
   Labor.blattSchalter(bereich, st.opt, function(){ speichern(); zeige(); });
-  [['rbNamen', 'namen'], ['rbMitLoesung', 'mitLoesung']].forEach(function(p){
+  [['rbNamen', 'namen'], ['rbStriche', 'striche'], ['rbMitLoesung', 'mitLoesung']].forEach(function(p){
     var el = $('#' + p[0]); el.checked = !!st.opt[p[1]];
     el.addEventListener('change', function(){ st.opt[p[1]] = el.checked; speichern(); if (p[1] !== 'mitLoesung') zeige(); });
   });
@@ -437,8 +438,11 @@ function starte(bereich){
     html += '<ol class="rb-raetsel" style="--z:' + zeichen + ';--n:' + regeln + '">';
     liste.forEach(function(x, i){
       html += '<li class="rb-eintrag" data-i="' + i + '"><span class="rb-nr">' + (liste.length > 1 ? (i + 1) + '.' : '') + '</span><div class="rb-inhalt">' +
-        '<div class="rb-zeile">' + x.r.map(function(w, wi){ return '<div class="rb-wort' + (w.teile.length > 1 ? ' rb-mehrteilig' : '') + '">' + w.teile.map(function(c, k){ return teilHtml(c, !loesung && !beispiel ? { i:i, w:wi, k:k } : null); }).join('') + '</div>'; }).join('<span class="rb-wortgrenze" aria-hidden="true"></span>') + '</div>';
-      if (loesung) html += '<p class="rb-loesungswort">' + esc(x.r.map(function(w){ return w.wort; }).join(' ')) + '</p>';
+        // Schreiblinien: unter jedem Wort-Rebus ein eigener Strich, so breit wie das Kärtchen (bzw. der Kasten um mehrere Teile);
+        // in der Lösung steht das Wort darauf
+        '<div class="rb-zeile">' + x.r.map(function(w, wi){ return '<div class="rb-wortblock"><div class="rb-wort' + (w.teile.length > 1 ? ' rb-mehrteilig' : '') + '">' + w.teile.map(function(c, k){ return teilHtml(c, !loesung && !beispiel ? { i:i, w:wi, k:k } : null); }).join('') + '</div>' +
+          (st.opt.striche && !beispiel ? '<span class="rb-strich"><b class="rb-strich-wort">' + esc(w.wort) + '</b></span>' : '') + '</div>'; }).join('<span class="rb-wortgrenze" aria-hidden="true"></span>') + '</div>';
+      if (loesung && !(st.opt.striche && x.r.length === 1)) html += '<p class="rb-loesungswort">' + esc(x.r.map(function(w){ return w.wort; }).join(' ')) + '</p>';
       if (!loesung && !beispiel) html += tx('<div class="rb-pruefen nur-bildschirm"><span class="rb-pruefen-text">Deine Lösung:</span><input type="text" class="rb-eingabe-loesung" aria-label="Deine Lösung für Rätsel ') + (i + 1) + '" autocomplete="off" spellcheck="false">' +
         tx('<span class="rb-status" aria-live="polite"></span><button type="button" class="btn ghost klein rb-anders" title="Nur dieses Rätsel mit anderen Bildern">Anders</button></div>');
       html += '</div></li>';
