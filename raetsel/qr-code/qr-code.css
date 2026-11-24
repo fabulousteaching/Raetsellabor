@@ -111,6 +111,15 @@ svg.qr-raster text.inhalt{font-weight:600}
 svg.qr-raster text.nr{font-size:3.4px;fill:#6B7280;font-weight:500}
 svg.qr-raster .kreis{fill:none;stroke:#1C2530;stroke-width:.9;pointer-events:none}
 .opt-raster [hidden]{display:none}
+.qr-ziffern-wahl{margin-top:14px}
+.qr-ziffern-wahl[hidden]{display:none}
+.qr-ziffern{display:flex;flex-wrap:wrap;gap:6px}
+.qr-ziffer{width:40px;height:40px;padding:0;border:1px solid var(--line-2);border-radius:10px;background:#fff;color:var(--text);font:600 1.15rem/1 var(--font);cursor:pointer;transition:border-color .15s,background .15s}
+.qr-ziffer:hover:not(:disabled){border-color:var(--accent-line)}
+.qr-ziffer[aria-pressed="true"]{border-color:var(--accent);background:var(--accent);color:var(--auf-akzent,#fff);box-shadow:0 0 0 2px var(--accent-line)}
+.qr-ziffer:disabled{opacity:.35;cursor:not-allowed}
+.qr-ziffer:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+.qr-ziffern-wahl .hinweis{margin:8px 0 0}
 svg.qr-raster .ebene-loesung{fill:var(--accent);opacity:0;pointer-events:none;transition:opacity .2s}
 .zeige-loesung svg.qr-raster .ebene-loesung{opacity:.45}
 svg.qr-raster .ebene-gemalt path{fill:#1C2530;pointer-events:none}

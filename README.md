@@ -103,7 +103,7 @@ Aus einem Text oder Link wird ein QR-Code – in zwei Varianten:
   Wer am Bildschirm fertig ausmalt, bekommt den Knopf «Link öffnen» bzw. «Botschaft öffnen».
   Woran die Kinder die Felder erkennen:
   - *Kreise* – Felder mit Kreis ausmalen (ab der 1. Klasse; Kreise mit weisser Mitte, damit das leere Blatt nicht schon scannbar ist),
-  - *Zahlen* – gerade Zahlen (bis 20, 50 oder 100) oder Zahlen einer Einmaleins-Reihe (3er bis 10er, bis 10·k),
+  - *Zahlen* – gerade Zahlen (bis 20, 50 oder 100), Zahlen einer Einmaleins-Reihe (3er bis 10er, bis 10·k) oder **gewählte Ziffern**: Man tippt die Ziffern 0–9 an, die ausgemalt werden (z. B. 3 und 7; keine Vorauswahl, höchstens neun – eine bleibt für die weissen Felder). Jedes Feld bekommt eine einzelne Ziffer: die auszumalenden eine der gewählten, die anderen eine der übrigen. Weil einstellige Ziffern grösser gedruckt werden können, sind dabei Raster bis 37 × 37 möglich (sonst 33 × 33). Anleitung auf dem Blatt: «Male alle Felder mit den Ziffern 3 oder 7 aus.»
   - *Rechnungen* – Plus/Minus bis 20, Plus und Minus bis 100, Einmaleins mal oder geteilt; ist das Ergebnis gerade, wird ausgemalt.
   - *Buchstaben* – Vokale (A, E, I, O, U), Konsonanten oder drei zufällig gewählte Buchstaben ausmalen (Grossbuchstaben, ohne Umlaute, Y, Q und X); die anderen Felder bekommen die übrigen Buchstaben.
 

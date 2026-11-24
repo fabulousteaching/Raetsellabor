@@ -2,8 +2,8 @@
    Zwei Teile:
    – Zum Ausmalen: Aus einem Text oder Link entsteht ein Raster. Die Kinder malen die richtigen Felder aus; ist alles
      richtig, lässt sich der Code mit Tablet oder Handy scannen und verrät die Botschaft (Selbstkontrolle).
-     Woran die Felder erkennbar sind: Kreise, Zahlen (gerade oder aus einer Einmaleins-Reihe) oder Rechnungen
-     (Ergebnis gerade). Die Erkennungsquadrate in den Ecken können vorgedruckt sein.
+     Woran die Felder erkennbar sind: Kreise, Zahlen (gerade, aus einer Einmaleins-Reihe oder gewählte Ziffern),
+     Rechnungen (Ergebnis gerade) oder Buchstaben. Die Erkennungsquadrate in den Ecken können vorgedruckt sein.
    – Fertige QR-Codes: ein oder mehrere Codes mit Titel, als Blatt zum Ausdrucken oder als Bild.
    Die QR-Codes berechnet gemeinsam/extern/qrcode.js (Kazuhiko Arase, MIT-Lizenz). */
 (function(){
@@ -20,7 +20,8 @@ var Kern = (function(){
   var BLOECKE = { L:[1, 1, 1, 1, 1, 2], M:[1, 1, 1, 2, 2, 4], Q:[1, 1, 2, 2, 4, 4], H:[1, 1, 2, 4, 4, 4] };   // Fehler verteilen sich ungleich auf Blöcke
   // Mittelpunkte der kleinen Ausrichtungsquadrate je Version (QR-Norm)
   var AUSRICHTUNG = [[], [], [6, 18], [6, 22], [6, 26], [6, 30], [6, 34], [6, 22, 38], [6, 24, 42], [6, 26, 46], [6, 28, 50]];
-  var GRENZE = { punkte:41, zahlen:33, rechnungen:25, buchstaben:37 };   // grösstes Raster je Ausmal-Art (Felder pro Seite)
+  var GRENZE = { punkte:41, zahlen:33, rechnungen:25, buchstaben:37, ziffern:37 };   // grösstes Raster je Ausmal-Art (Felder pro Seite)
+  var ZIFFERN = '0123456789';
   // Buchstaben (Grossbuchstaben, ohne Umlaute; ohne Y, das mal Vokal, mal Konsonant ist; ohne Q und X, die selten sind)
   var VOKALE = 'AEIOU', KONSONANTEN = 'BCDFGHJKLMNPRSTVWZ';
 
@@ -78,6 +79,10 @@ var Kern = (function(){
       var q = dunkel ? ja : nein;
       return q.charAt(Math.floor(r() * q.length));
     }
+    if (o.art === 'zahlen' && o.regel === 'ziffern'){   // auszumalende Felder: eine der gewählten Ziffern; die anderen: eine der übrigen
+      var zq = dunkel ? o.ziffern : ZIFFERN.replace(new RegExp('[' + o.ziffern + ']', 'g'), '');
+      return zq.charAt(Math.floor(r() * zq.length));
+    }
     if (o.art === 'zahlen'){
       var k = o.regel === 'reihe' ? o.reihe : 2, max = o.regel === 'reihe' ? o.reihe * 10 : o.zahlenraum, x;   // Reihen wie im Einmaleins bis 10·k
       for (var i = 0; i < 500; i++){ x = zahl(1, max, r); if ((x % k === 0) === dunkel) return String(x); }
@@ -86,6 +91,10 @@ var Kern = (function(){
     var rc = rechnung(dunkel, o.rechenart, r);
     return rc ? rc.text : '';
   }
+  /* Gewählte Ziffern aufräumen: nur 0–9, jede einmal, aufsteigend */
+  function ziffernNorm(t){ return ZIFFERN.split('').filter(function(z){ return String(t || '').indexOf(z) >= 0; }).join(''); }
+  /* Grösstes Raster für die gewählte Art (einzelne Ziffern brauchen weniger Platz als mehrstellige Zahlen) */
+  function grenze(o){ return GRENZE[o.art === 'zahlen' && o.regel === 'ziffern' ? 'ziffern' : o.art] || 41; }
   /* Drei zufällige Buchstaben zum Ausmalen (Art «Buchstaben – zufällig»), alphabetisch */
   function auswahl(seed){
     var r = zufall((seed || 1) * 31 + 7), vorrat = (VOKALE + KONSONANTEN).split(''), a = [];
@@ -121,10 +130,14 @@ var Kern = (function(){
   }
   /* Ganzes Ausmal-Raster: { n, stufe, dunkel, vorgedruckt, inhalt, anzahl (auszumalende Felder) } oder { fehler, … } */
   function raster(text, o){
+    if (o.art === 'zahlen' && o.regel === 'ziffern'){   // mindestens eine Ziffer zum Ausmalen, mindestens eine für die weissen Felder
+      o = Object.assign({}, o, { ziffern:ziffernNorm(o.ziffern) });
+      if (!o.ziffern || o.ziffern.length > 9) return { fehler:'ziffern' };
+    }
     var q = imRaster(text, o.raster || 0);
     if (!q){ var min = kleinstesRaster(text); return min ? { fehler:'passtNicht', min:min } : { fehler:'zuLang' }; }
-    var grenze = GRENZE[o.art] || 41;
-    if (q.n > grenze) return { fehler:'zuGross', n:q.n, grenze:grenze };
+    var g = grenze(o);
+    if (q.n > g) return { fehler:'zuGross', n:q.n, grenze:g };
     var m = vorgedruckt(q, o), r = zufall(o.seed || 1), inhalt = [], anzahl = 0;
     if (o.art === 'buchstaben' && o.buchstaben === 'zufall') o = Object.assign({}, o, { auswahl:auswahl(o.seed) });
     for (var y = 0; y < q.n; y++){
@@ -238,7 +251,7 @@ var Kern = (function(){
     }
     return h + '</svg>';
   }
-  return { STUFEN:STUFEN, GRENZE:GRENZE, code:code, muster:muster, raster:raster, rechnung:rechnung, zufall:zufall, GROESSEN:GROESSEN, imRaster:imRaster, auswahl:auswahl, VOKALE:VOKALE, KONSONANTEN:KONSONANTEN, kleinstesRaster:kleinstesRaster, verzeiht:verzeiht,
+  return { STUFEN:STUFEN, GRENZE:GRENZE, grenze:grenze, ZIFFERN:ZIFFERN, ziffernNorm:ziffernNorm, code:code, muster:muster, raster:raster, rechnung:rechnung, zufall:zufall, GROESSEN:GROESSEN, imRaster:imRaster, auswahl:auswahl, VOKALE:VOKALE, KONSONANTEN:KONSONANTEN, kleinstesRaster:kleinstesRaster, verzeiht:verzeiht,
     gestaltet:gestaltet, modulPfad:modulPfad, rahmenPfad:rahmenPfad, mittePfad:mittePfad, MITTE_ZU:MITTE_ZU, passendeMitte:passendeMitte };
 })();
 /* KERN-ENDE */
@@ -277,13 +290,16 @@ var VORLAGE = '<div class="qr">' +
       tx('<div class="karte"><div class="karte-kopf"><span class="stufe" aria-hidden="true">3</span><div><h2>Welche Felder ausmalen?</h2><p>Woran die Kinder erkennen, welche Felder sie ausmalen.</p></div></div>') +
         tx('<div class="qr-arten" role="radiogroup" aria-label="Ausmal-Art">') +
           tx('<label class="qr-art"><input type="radio" name="qrArt" value="punkte"><span><b>Kreise</b><small>Felder mit einem Kreis ausmalen – schon ab der 1. Klasse</small></span></label>') +
-          tx('<label class="qr-art"><input type="radio" name="qrArt" value="zahlen"><span><b>Zahlen</b><small>gerade Zahlen oder Zahlen einer Einmaleins-Reihe ausmalen</small></span></label>') +
+          tx('<label class="qr-art"><input type="radio" name="qrArt" value="zahlen"><span><b>Zahlen</b><small>gerade Zahlen, Zahlen einer Einmaleins-Reihe oder bestimmte Ziffern ausmalen</small></span></label>') +
           tx('<label class="qr-art"><input type="radio" name="qrArt" value="rechnungen"><span><b>Rechnungen</b><small>rechnen – ist das Ergebnis gerade, wird ausgemalt</small></span></label>') +
           tx('<label class="qr-art"><input type="radio" name="qrArt" value="buchstaben"><span><b>Buchstaben</b><small>Vokale, Konsonanten oder bestimmte Buchstaben ausmalen</small></span></label>') +
         '</div>' +
-        tx('<div class="opt-raster" data-fuer="zahlen"><label for="qrRegel">Ausmalen, wenn die Zahl …</label><select id="qrRegel"><option value="gerade">gerade ist</option>') +
+        tx('<div class="opt-raster" data-fuer="zahlen"><label for="qrRegel">Ausmalen, wenn die Zahl …</label><select id="qrRegel"><option value="gerade">gerade ist</option><option value="ziffern">eine der gewählten Ziffern ist</option>') +
           [3, 4, 5, 6, 7, 8, 9, 10].map(function(k){ return '<option value="' + k + '">' + tx('in der {k}er-Reihe ist', { k:k }) + '</option>'; }).join('') + '</select>' +
           tx('<label for="qrZahlenraum" data-gerade>Zahlenraum</label><select id="qrZahlenraum" data-gerade><option value="20">bis 20</option><option value="50">bis 50</option><option value="100">bis 100</option></select></div>') +
+        tx('<div class="qr-ziffern-wahl" id="qrZiffernWahl" hidden><p class="feld-label" id="qrZiffernTitel">Diese Ziffern ausmalen</p>') +
+          '<div class="qr-ziffern" role="group" aria-labelledby="qrZiffernTitel">' + '0123456789'.split('').map(function(z){ return '<button type="button" class="qr-ziffer" data-z="' + z + '" aria-pressed="false">' + z + '</button>'; }).join('') + '</div>' +
+          '<p class="hinweis" id="qrZiffernInfo" aria-live="polite"></p></div>' +
         tx('<div class="opt-raster" data-fuer="buchstaben"><label for="qrBuchstaben">Ausmalen</label><select id="qrBuchstaben">') +
           tx('<option value="vokale">Vokale (A, E, I, O, U)</option><option value="konsonanten">Konsonanten</option><option value="zufall">zufällige Buchstaben (z. B. B, M, R)</option></select></div>') +
         tx('<div class="opt-raster" data-fuer="rechnungen"><label for="qrRechenart">Rechnungen</label><select id="qrRechenart">') +
@@ -373,7 +389,7 @@ Labor.registriere({
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, esc = Labor.esc, aus = false;
   var TAB = 'qr-code-eingaben', OPT = 'qr-code-einstellungen', NS = 'http://www.w3.org/2000/svg';
-  var STANDARD = { modus:'malen', ziel:'text', symbol:'🎉', art:'punkte', regel:'gerade', zahlenraum:20, rechenart:'plus20', buchstaben:'vokale', raster:0, schwarz:0.75, ecken:true, nummern:true, mitLoesung:true, titelAn:true, anleitungAn:true,
+  var STANDARD = { modus:'malen', ziel:'text', symbol:'🎉', art:'punkte', regel:'gerade', ziffern:'', zahlenraum:20, rechenart:'plus20', buchstaben:'vokale', raster:0, schwarz:0.75, ecken:true, nummern:true, mitLoesung:true, titelAn:true, anleitungAn:true,
     proBlatt:4, stufeFertig:'M', titelZeigen:true, inhaltZeigen:false, schnitt:true };
 
   /* ---------- Zustand: Inhalte nur für diesen Tab, Einstellungen bleiben ---------- */
@@ -467,7 +483,7 @@ function starte(bereich){
   /* ---------- Raster: «so klein wie möglich» oder eine feste Grösse; die Fehlertoleranz ergibt sich daraus ---------- */
   var rasterWahl = $('#qrRaster');
   function rasterZeigen(){
-    var t = malInhalt(), grenze = Kern.GRENZE[st.opt.art] || 41, gueltig = t && !(st.opt.ziel === 'link' && !linkGueltig(t));
+    var t = malInhalt(), grenze = Kern.grenze(st.opt), gueltig = t && !(st.opt.ziel === 'link' && !linkGueltig(t));
     var min = gueltig ? Kern.kleinstesRaster(t) : null;
     var h = tx('<option value="0">So klein wie möglich') + (min ? ' (' + min + ' × ' + min + ')' : '') + '</option>';
     Kern.GROESSEN.forEach(function(n){
@@ -482,8 +498,9 @@ function starte(bereich){
     if (rasterWahl.selectedIndex < 0 || rasterWahl.options[rasterWahl.selectedIndex].disabled){ rasterWahl.value = '0'; if (st.opt.raster){ st.opt.raster = 0; speichern(); } }
     var info = $('#qrRasterInfo');
     if (!gueltig){ info.textContent = tx('Das Raster richtet sich nach dem Inhalt: Je kürzer, desto kleiner.'); return; }
-    var o = { art:st.opt.art, regel:st.opt.regel, reihe:st.opt.reihe || 3, zahlenraum:st.opt.zahlenraum, rechenart:st.opt.rechenart, buchstaben:st.opt.buchstaben, raster:+rasterWahl.value, schwarz:+st.opt.schwarz || 0, ecken:st.opt.ecken, seed:st.seed };
+    var o = { art:st.opt.art, regel:st.opt.regel, reihe:st.opt.reihe || 3, ziffern:Kern.ziffernNorm(st.opt.ziffern), zahlenraum:st.opt.zahlenraum, rechenart:st.opt.rechenart, buchstaben:st.opt.buchstaben, raster:+rasterWahl.value, schwarz:+st.opt.schwarz || 0, ecken:st.opt.ecken, seed:st.seed };
     var r = Kern.raster(t, o);
+    if (r.fehler === 'ziffern'){ info.textContent = tx('Wähle unten noch die Ziffern, die ausgemalt werden.'); return; }
     if (r.fehler === 'zuLang'){ info.textContent = tx('Der Inhalt ist zu lang für einen QR-Code.'); return; }
     if (r.fehler === 'passtNicht'){ info.textContent = tx('Für diesen Inhalt braucht es mindestens {n} × {n} Felder.', { n:r.min }); return; }
     if (r.fehler === 'zuGross'){ info.textContent = tx('Dieser Inhalt braucht {n} × {n} Felder – für «{a}» sind höchstens {g} × {g} möglich. Kürze ihn oder wähle «Kreise».', { n:r.n, a:artName(), g:r.grenze }); return; }
@@ -521,21 +538,50 @@ function starte(bereich){
     r.addEventListener('change', function(){ if (r.checked){ st.opt.symbol = r.value; speichern(); veraltet(); } });
   });
   linkFeld.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); erstellen(); } });
-  function artName(){ return { punkte:tx('Kreise'), zahlen:tx('Zahlen'), rechnungen:tx('Rechnungen'), buchstaben:tx('Buchstaben') }[st.opt.art]; }
+  function artName(){ if (st.opt.art === 'zahlen' && st.opt.regel === 'ziffern') return tx('Ziffern'); return { punkte:tx('Kreise'), zahlen:tx('Zahlen'), rechnungen:tx('Rechnungen'), buchstaben:tx('Buchstaben') }[st.opt.art]; }
   textFeld.addEventListener('input', function(){ st.text = textFeld.value; speichern(); textInfo(); veraltet(); });
   $('#qrTitel').addEventListener('input', function(){ st.titel = this.value; speichern(); if (aktuell) zeichnen(); });
   function veraltet(){ var b = bereich.querySelector('.qr-blatt'); if (b && st.opt.modus === 'malen' && aktuell) b.classList.add('veraltet'); }
 
   [].forEach.call(bereich.querySelectorAll('input[name="qrArt"]'), function(r){
     r.checked = r.value === st.opt.art;
-    r.addEventListener('change', function(){ if (!r.checked) return; st.opt.art = r.value; speichern(); unteroptionen(); textInfo(); modusZeigen(); if (erstellt) erstellen(); });
+    r.addEventListener('change', function(){ if (!r.checked) return; st.opt.art = r.value; speichern(); unteroptionen(); textInfo(); modusZeigen(); neu(); });
   });
   function unteroptionen(){
     [].forEach.call(bereich.querySelectorAll('[data-fuer]'), function(d){ d.hidden = d.dataset.fuer !== st.opt.art; });
     [].forEach.call(bereich.querySelectorAll('[data-gerade]'), function(d){ d.hidden = st.opt.regel !== 'gerade'; });   // Reihen gehen immer bis 10·k
+    $('#qrZiffernWahl').hidden = !(st.opt.art === 'zahlen' && st.opt.regel === 'ziffern');
   }
-  var regel = $('#qrRegel'); regel.value = st.opt.regel === 'gerade' ? 'gerade' : String(st.opt.reihe || 3);
-  regel.addEventListener('change', function(){ if (regel.value === 'gerade'){ st.opt.regel = 'gerade'; } else { st.opt.regel = 'reihe'; st.opt.reihe = +regel.value; } speichern(); unteroptionen(); if (erstellt) erstellen(); });
+  function zifferFehlt(){ return st.opt.art === 'zahlen' && st.opt.regel === 'ziffern' && !Kern.ziffernNorm(st.opt.ziffern); }
+  // Neu erstellen, wenn schon ein Blatt da ist – fehlen noch die Ziffern, bleibt das alte Blatt (als veraltet markiert) stehen
+  function neu(){ if (!erstellt) return; if (zifferFehlt()) veraltet(); else erstellen(); }
+  var regel = $('#qrRegel'); regel.value = st.opt.regel === 'gerade' || st.opt.regel === 'ziffern' ? st.opt.regel : String(st.opt.reihe || 3);
+  regel.addEventListener('change', function(){
+    if (regel.value === 'gerade' || regel.value === 'ziffern') st.opt.regel = regel.value; else { st.opt.regel = 'reihe'; st.opt.reihe = +regel.value; }
+    speichern(); unteroptionen(); textInfo(); neu();
+    if (st.opt.regel === 'ziffern' && zifferFehlt()) bereich.querySelector('.qr-ziffer').focus();
+  });
+  /* Ziffern zum Ausmalen: antippen = an/aus; eine Ziffer muss für die weissen Felder übrig bleiben */
+  function ziffernListe(z){ return z.split('').join(', ').replace(/, (\d)$/, ' ' + tx('oder') + ' $1'); }
+  function zifferZeigen(){
+    var an = Kern.ziffernNorm(st.opt.ziffern), rest = Kern.ZIFFERN.replace(new RegExp('[' + (an || 'x') + ']', 'g'), '');
+    [].forEach.call(bereich.querySelectorAll('.qr-ziffer'), function(b){
+      var ja = an.indexOf(b.dataset.z) >= 0;
+      b.setAttribute('aria-pressed', ja ? 'true' : 'false');
+      b.disabled = !ja && an.length >= 9;
+      b.title = b.disabled ? tx('Eine Ziffer bleibt für die Felder, die weiss bleiben.') : '';
+    });
+    $('#qrZiffernInfo').innerHTML = !an ? tx('Tippe die Ziffern an, die ausgemalt werden. Die anderen Felder bekommen die übrigen Ziffern.')
+      : tx('Ausgemalt werden Felder mit {a}. Die anderen Felder bekommen {b}.', { a:'<b>' + ziffernListe(an) + '</b>', b:ziffernListe(rest) });
+  }
+  [].forEach.call(bereich.querySelectorAll('.qr-ziffer'), function(b){
+    b.addEventListener('click', function(){
+      var an = Kern.ziffernNorm(st.opt.ziffern), z = b.dataset.z;
+      if (an.indexOf(z) >= 0) an = an.replace(z, ''); else if (an.length < 9) an += z;
+      st.opt.ziffern = Kern.ziffernNorm(an); speichern(); zifferZeigen(); textInfo(); neu();
+    });
+  });
+  zifferZeigen();
   var schwarzWahl = $('#qrSchwarz'); schwarzWahl.value = String(st.opt.schwarz);
   schwarzWahl.addEventListener('change', function(){ st.opt.schwarz = +schwarzWahl.value; speichern(); rasterZeigen(); modusZeigen(); if (erstellt) erstellen(); });
   [['qrZahlenraum', 'zahlenraum', true], ['qrRechenart', 'rechenart', false], ['qrBuchstaben', 'buchstaben', false]].forEach(function(p){
@@ -569,11 +615,12 @@ function starte(bereich){
     var link = ziel === 'link';
     if (!t){ nichts(link ? tx('<h3>Noch kein Link</h3><p>Gib zuerst den Ziellink ein, z. B. www.fabulousteaching.ch.</p>') : tx('<h3>Noch keine Botschaft</h3><p>Gib zuerst einen Text ein.</p>')); return; }
     if (link && !linkGueltig(t)){ nichts(tx('<h3>Kein gültiger Link</h3>') + '<p>' + tx('«{l}» sieht nicht wie ein Link aus. Gib eine Adresse wie www.beispiel.ch oder https://www.beispiel.ch/seite ein.', { l:esc(st.link.trim()) }) + '</p>'); return; }
-    var o = { art:st.opt.art, regel:st.opt.regel, reihe:st.opt.reihe || 3, zahlenraum:st.opt.zahlenraum, rechenart:st.opt.rechenart, buchstaben:st.opt.buchstaben, raster:st.opt.raster || 0, schwarz:+st.opt.schwarz || 0, ecken:st.opt.ecken, seed:st.seed };
+    var o = { art:st.opt.art, regel:st.opt.regel, reihe:st.opt.reihe || 3, ziffern:Kern.ziffernNorm(st.opt.ziffern), zahlenraum:st.opt.zahlenraum, rechenart:st.opt.rechenart, buchstaben:st.opt.buchstaben, raster:st.opt.raster || 0, schwarz:+st.opt.schwarz || 0, ecken:st.opt.ecken, seed:st.seed };
     var r = Kern.raster(t, o);
     if (r.fehler){
       aktuell = null; $('#qrBlaetter').innerHTML = ''; $('#qrWerkzeug').hidden = true;
-      if (r.fehler === 'zuLang') meldung('fehler', '<h3>' + (link ? tx('Der Link ist zu lang') : tx('Der Text ist zu lang')) + tx('</h3><p>So viel passt in keinen QR-Code. Kürze ihn bitte.</p>'));
+      if (r.fehler === 'ziffern') meldung('fehler', tx('<h3>Noch keine Ziffern gewählt</h3><p>Tippe bei «Welche Felder ausmalen?» die Ziffern an, die ausgemalt werden sollen.</p>'));
+      else if (r.fehler === 'zuLang') meldung('fehler', '<h3>' + (link ? tx('Der Link ist zu lang') : tx('Der Text ist zu lang')) + tx('</h3><p>So viel passt in keinen QR-Code. Kürze ihn bitte.</p>'));
       else if (r.fehler === 'passtNicht') meldung('fehler', tx('<h3>Das Raster ist zu klein</h3>') + '<p>' + (link ? tx('Für diesen Inhalt braucht es mindestens {n} × {n} Felder. Wähle unter «Raster» eine grössere Grösse oder «So klein wie möglich» – oder nimm einen kürzeren Link.', { n:r.min })
         : tx('Für diesen Inhalt braucht es mindestens {n} × {n} Felder. Wähle unter «Raster» eine grössere Grösse oder «So klein wie möglich» – oder kürze den Text.', { n:r.min })) + '</p>');
       else meldung('fehler', tx('<h3>Das Raster wird zu gross</h3>') + '<p>' + tx('Dieser Inhalt braucht {n} × {n} Felder. Für «{a}» sind höchstens {g} × {g} möglich, damit alles gut lesbar bleibt.', { n:r.n, a:artName(), g:r.grenze }) + '</p><ul><li>' +
@@ -596,6 +643,8 @@ function starte(bereich){
   function anleitung(){
     var o = aktuell.o, a;
     if (o.art === 'punkte') a = tx('Male alle Felder mit einem Kreis aus.');
+    else if (o.art === 'zahlen' && o.regel === 'ziffern') a = o.ziffern.length === 1 ? tx('Male alle Felder mit der Ziffer {l} aus.', { l:o.ziffern })
+      : tx('Male alle Felder mit den Ziffern {l} aus.', { l:ziffernListe(o.ziffern) });
     else if (o.art === 'zahlen') a = o.regel === 'reihe'
       ? tx('Male alle Felder aus, deren Zahl in der {r}er-Reihe vorkommt ({l}).', { r:o.reihe, l:o.reihe + ', ' + 2 * o.reihe + ', ' + 3 * o.reihe + ' … ' + 10 * o.reihe })
       : tx('Male alle Felder mit einer geraden Zahl aus (2, 4, 6, 8, …).');
@@ -621,7 +670,7 @@ function starte(bereich){
       h.push('<text class="nr" x="' + (-rand / 2) + '" y="' + (i * S + S / 2) + '">' + (i + 1) + '</text>');
     }
     h.push('<rect x="0" y="0" width="' + n * S + '" height="' + n * S + '" fill="#fff"/>');
-    var schrift = aktuell.o.art === 'rechnungen' ? 2.9 : aktuell.o.art === 'zahlen' ? 4 : aktuell.o.art === 'buchstaben' ? 5.2 : 6;
+    var schrift = aktuell.o.art === 'rechnungen' ? 2.9 : aktuell.o.art === 'zahlen' ? (aktuell.o.regel === 'ziffern' ? 5.2 : 4) : aktuell.o.art === 'buchstaben' ? 5.2 : 6;
     for (var y = 0; y < n; y++) for (var x = 0; x < n; x++){
       var dunkel = r.dunkel[y][x], vor = r.vorgedruckt && r.vorgedruckt[y][x];
       if (art === 'loesung'){ if (dunkel) h.push('<rect x="' + x * S + '" y="' + y * S + '" width="' + S + '" height="' + S + '" fill="#000"/>'); continue; }
