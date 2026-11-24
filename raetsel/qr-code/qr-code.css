@@ -105,11 +105,16 @@ svg.qr-raster{display:block;width:100%;height:auto;max-width:calc(var(--felder, 
 svg.qr-raster.spiel{touch-action:none;user-select:none;-webkit-user-select:none;cursor:crosshair}
 svg.qr-raster.fertig{max-width:min(100%, 360px)}
 svg.qr-raster .feld{fill:#fff;stroke:#C4CBD3;stroke-width:.35}
-svg.qr-raster .rahmen{stroke:#374151;stroke-width:.6}
+svg.qr-raster .rahmen{stroke:#8A929C;stroke-width:.6}
 svg.qr-raster text{font-family:var(--blatt-schrift);text-anchor:middle;dominant-baseline:central;pointer-events:none;fill:#1C2530}
-svg.qr-raster text.inhalt{font-weight:600}
-svg.qr-raster text.nr{font-size:3.4px;fill:#6B7280;font-weight:500}
-svg.qr-raster .kreis{fill:none;stroke:#1C2530;stroke-width:.9;pointer-events:none}
+/* Inhalt der Felder in Grau statt Schwarz: Dunkle Zahlen in weissen Feldern liest der Scanner sonst als ausgemalt
+   (er schaut vor allem auf die Feldmitte, wo die Zahl steht). Je grösser die Schrift, desto heller – mit dem QR-Leser
+   jsQR an simulierten Handyfotos nachgemessen; kleine Rechnungen etwas dunkler, damit sie gut lesbar bleiben. */
+svg.qr-raster text.inhalt{font-weight:600;fill:#A3AAB3}
+svg.qr-raster.schrift-gross text.inhalt{fill:#ADB4BC}
+svg.qr-raster.schrift-klein text.inhalt{fill:#8A929C}
+svg.qr-raster text.nr{font-size:3.4px;fill:#9CA3AF;font-weight:500}
+svg.qr-raster .kreis{fill:none;stroke:#8A929C;stroke-width:.9;pointer-events:none}
 .opt-raster [hidden]{display:none}
 .qr-ziffern-wahl{margin-top:14px}
 .qr-ziffern-wahl[hidden]{display:none}

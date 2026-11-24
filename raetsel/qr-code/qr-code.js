@@ -660,7 +660,8 @@ function starte(bereich){
     var r = aktuell.r, n = r.n, S = 10, rand = st.opt.nummern && art === 'spiel' ? 9 : 0, w = n * S + rand;
     var s = document.createElementNS(NS, 'svg');
     s.setAttribute('viewBox', (-rand) + ' ' + (-rand) + ' ' + w + ' ' + w);
-    s.setAttribute('class', 'qr-raster ' + (art === 'spiel' ? 'spiel' : 'fertig'));
+    var ao = aktuell.o, groesse = ao.art === 'rechnungen' ? 'klein' : ao.art === 'buchstaben' || (ao.art === 'zahlen' && ao.regel === 'ziffern') ? 'gross' : 'mittel';
+    s.setAttribute('class', 'qr-raster ' + (art === 'spiel' ? 'spiel schrift-' + groesse : 'fertig'));
     s.style.setProperty('--felder', n);
     s.setAttribute('role', 'img');
     s.setAttribute('aria-label', art === 'spiel' ? tx('Raster mit {n} mal {n} Feldern zum Ausmalen', { n:n }) : tx('Fertiger QR-Code'));
