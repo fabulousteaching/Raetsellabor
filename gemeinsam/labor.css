@@ -3,8 +3,10 @@
    Markierfarben aus den Flüssigkeiten im Logo (Gelb, Grün, Blau, Rot). Schrift: Fredoka und Inter.
    Aufbau: helle Kopfleiste mit Menü oben rechts; darunter die Startseite oder genau ein Generator.
    Bewusst nur ein helles Erscheinungsbild (Arbeitsblätter zum Drucken). */
-/* Deutschschweizer Basisschrift: nur vom Computer (installiert), nicht vom Server – siehe Schriftwahl in labor.js */
-@font-face{font-family:'DCH Basisschrift';src:local('DCH-Basisschrift'),local('DCHBasisschrift'),local('DCHBasisschrift Regular');font-display:swap}
+/* Deutschschweizer Basisschrift (DCH-Basisschrift, unverbunden, © D-EDK): vom Computer, wenn installiert, sonst vom eigenen
+   Server (Erlaubnis für das Online-Tool liegt vor; die Datei kommt beim Hochladen aus einem GitHub-Secret, nicht aus dem
+   Repository) – siehe Schriftwahl in labor.js */
+@font-face{font-family:'DCH Basisschrift';src:local('DCH-Basisschrift'),local('DCHBasisschrift'),local('DCHBasisschrift Regular'),url(schriften/DCH-Basisschrift.woff2) format('woff2');font-display:swap}
 :root{
   --bg:#F4F7F9; --card:#fff; --line:#E2E7EB; --line-2:#CDD5DC; --text:#1C2530; --ink:#000; --muted:#6B7280; --muted-2:#9AA1AD;
   /* Blau aus dem Logo: Flächen in --accent (Schrift darauf weiss: --auf-akzent), Schrift und Hover in --accent-2 */

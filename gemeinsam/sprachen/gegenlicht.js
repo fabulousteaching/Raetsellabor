@@ -73,5 +73,17 @@ Labor.woerter('gegenlicht', {
   'Tippe links die Wörter an, die auf der Rückseite ein Zeichen bekommen sollen.': ['On the left, tap the words that should get a sign on the back.', 'À gauche, touche les mots qui doivent recevoir un signe au dos.'],
   'Wähle links, welches Zeichen auf der Rückseite hinter den markierten Wörtern stehen soll.': ['On the left, choose which sign goes on the back behind the marked words.', 'À gauche, choisis quel signe se trouve au dos derrière les mots marqués.'],
   'Der Text ist lang für eine A4-Seite – im PDF werden Vorder- und Rückseite gleich stark verkleinert (die Zeichen bleiben hinter ihren Wörtern). Kürze den Text oder wähle eine kleinere Schrift.': ['The text is long for an A4 page – in the PDF, front and back are reduced by the same amount (the signs stay behind their words). Shorten the text or choose a smaller font.', 'Le texte est long pour une page A4 – dans le PDF, le recto et le verso sont réduits de la même façon (les signes restent derrière leurs mots). Raccourcis le texte ou choisis une écriture plus petite.'],
-  'Gegenlicht': ['Light-puzzle', 'Contre-jour']
+  'Gegenlicht': ['Light-puzzle', 'Contre-jour'],
+  // Format
+  'Blatt und Schrift': ['Sheet and text', 'Feuille et écriture'],
+  'Format des Blatts, Grösse und Farbe des Texts.': ['Sheet format, size and colour of the text.', 'Format de la feuille, taille et couleur du texte.'],
+  'Format': ['Format', 'Format'],
+  'Format des Blatts': ['Sheet format', 'Format de la feuille'],
+  'Hochformat': ['Portrait', 'Portrait'],
+  'Querformat': ['Landscape', 'Paysage'],
+  '«an der kurzen Kante wenden»': ['«flip on short edge»', '« retourner sur le bord court »'],
+  '«an der langen Kante wenden»': ['«flip on long edge»', '« retourner sur le bord long »'],
+  '{k} und in Originalgrösse (100 %). Dünnes Papier scheint besser durch.': ['{k} and at actual size (100 %). Thin paper shows through better.', '{k} et en taille réelle (100 %). Le papier fin laisse mieux passer la lumière.'],
+  'Tipp: zuerst ein Blatt ausprobieren – stehen die Zeichen auf dem Kopf oder auf der falschen Seite, die andere Kante wählen.': ['Tip: try one sheet first – if the signs are upside down or on the wrong side, choose the other edge.', 'Astuce : essaie d’abord une feuille – si les signes sont à l’envers ou du mauvais côté, choisis l’autre bord.'],
+  'Der Text ist lang für eine A4-Seite quer – im PDF werden Vorder- und Rückseite gleich stark verkleinert (die Zeichen bleiben hinter ihren Wörtern). Kürze den Text, wähle eine kleinere Schrift oder das Hochformat.': ['The text is long for a landscape A4 page – in the PDF, front and back are reduced by the same amount (the signs stay behind their words). Shorten the text, choose a smaller font or portrait format.', 'Le texte est long pour une page A4 en paysage – dans le PDF, le recto et le verso sont réduits de la même façon (les signes restent derrière leurs mots). Raccourcis le texte, choisis une écriture plus petite ou le format portrait.']
 });

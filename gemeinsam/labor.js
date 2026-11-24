@@ -348,15 +348,16 @@ var Labor = (function(){
      --blatt-schrift (Text, Standard Inter), --blatt-buchstaben (Rätselbuchstaben, Standard Andika), --blatt-display
      (Zierschrift, Standard Fredoka). Schriften kommen von Google Fonts und werden erst geladen, wenn man sie braucht.
      Im Suchfeld kann man auch eine beliebige andere Schrift von Google Fonts eintippen.
-     Ausnahme: die Deutschschweizer Basisschrift (DCH-Basisschrift, unverbunden). Sie ist urheberrechtlich geschützt –
-     Lehrpersonen dürfen sie gratis für Unterrichtsdokumente nutzen, verbreitet werden darf sie nur mit schriftlicher
-     Zustimmung (Dienststelle Volksschulbildung Kanton Luzern). Darum liegt die Schriftdatei nicht auf dem Server: Ist sie
-     auf dem Computer installiert, kommt sie von dort (@font-face mit local() in labor.css). Sonst wählt man die Datei
-     einmal aus; sie wird nur in diesem Browser gespeichert. */
-  var BASIS = 'DCH Basisschrift', BASIS_DATEI = 'DCH Basisschrift Datei', BASIS_SPEICHER = 'labor-basisschrift-datei';
+     Ausnahme: die Deutschschweizer Basisschrift (DCH-Basisschrift, unverbunden, © D-EDK). Für das Online-Tool liegt die
+     Erlaubnis vor: Sie kommt als Webschrift vom eigenen Server (gemeinsam/schriften/DCH-Basisschrift.woff2, @font-face in
+     labor.css), niemand muss sie installieren. Die Datei steht nicht im öffentlichen Repository – das Hochladen auf
+     Infomaniak legt sie aus dem GitHub-Secret BASISSCHRIFT bereit. Ist sie installiert, kommt sie vom Computer. Fehlt sie
+     auf dem Server (z. B. im Claude-Artefakt), kann man die Datei wie früher einmal auswählen; sie bleibt dann nur in
+     diesem Browser. */
+  var BASIS = 'DCH Basisschrift', BASIS_DATEI = 'DCH Basisschrift Datei', BASIS_SPEICHER = 'labor-basisschrift-datei', BASIS_URL = 'gemeinsam/schriften/DCH-Basisschrift.woff2';
   var SCHRIFTEN = [
     { id:'standard', name:'Standard', info:'Inter, Rätselbuchstaben in Andika' },
-    { id:'basisschrift', name:'Basisschrift', info:'Deutschschweizer Basisschrift, unverbunden (DCH-Basisschrift vom Computer)', familie:BASIS, lokal:true,
+    { id:'basisschrift', name:'Basisschrift', info:'Deutschschweizer Basisschrift, unverbunden', familie:BASIS, lokal:true,
       stapel:"'" + BASIS + "','" + BASIS_DATEI + "',Andika,system-ui,sans-serif" },
     { id:'grundschrift', name:'Grundschrift', info:'aufrechte Schulschrift, unverbunden', familie:'Playwrite DE Grund', gf:'Playwrite+DE+Grund:wght@100..400' },
     { id:'andika', name:'Andika', info:'klar unterscheidbare Buchstaben, für Leseanfänger', familie:'Andika', gf:'Andika:wght@400;700' },
@@ -596,17 +597,20 @@ var Labor = (function(){
   }
   function schriftCssFuer(familien){
     if (!familien.length) return Promise.resolve('');
-    var basis = '';
-    if (familien.indexOf(BASIS.toLowerCase()) >= 0){
+    // Basisschrift: aus der selbst gewählten Datei oder vom eigenen Server, als Daten eingebettet (Bilder laden nichts nach)
+    var mitBasis = familien.indexOf(BASIS.toLowerCase()) >= 0, basis = Promise.resolve('');
+    if (mitBasis){
       var daten = ''; try { daten = localStorage.getItem(BASIS_SPEICHER) || ''; } catch(e){}
-      basis = "@font-face{font-family:'" + BASIS + "';src:local('DCH-Basisschrift'),local('DCHBasisschrift')" + (daten ? ",url(data:font/otf;base64," + daten + ")" : '') + "}\n";
+      basis = (daten ? Promise.resolve('data:font/otf;base64,' + daten) : schriftBloecke().alsDaten(new URL(BASIS_URL, document.baseURI).href)).then(function(d){
+        return "@font-face{font-family:'" + BASIS + "';src:local('DCH-Basisschrift'),local('DCHBasisschrift')" + (d ? ",url(" + d + ")" : '') + "}\n";
+      });
     }
-    if (basis && familien.length === 1) return Promise.resolve(basis);
+    if (mitBasis && familien.length === 1) return basis;
     var p = schriftBloecke();
     return p.then(function(bloecke){
       var passend = bloecke.filter(function(b){ return familien.indexOf(b.familie) >= 0; });
       return Promise.all(passend.map(function(b){ return p.alsDaten(b.url).then(function(d){ return d ? b.css.replace(b.url, d) : ''; }); }));
-    }).then(function(t){ return basis + t.join('\n'); }).catch(function(){ return basis; });
+    }).then(function(t){ return basis.then(function(b){ return b + t.join('\n'); }); }).catch(function(){ return basis; });
   }
   var SVG_STILE = ['display', 'visibility', 'opacity', 'fill', 'fill-opacity', 'fill-rule', 'stroke', 'stroke-width', 'stroke-opacity', 'stroke-linecap',
     'stroke-linejoin', 'stroke-dasharray', 'font-family', 'font-size', 'font-weight', 'font-style', 'text-anchor', 'dominant-baseline', 'letter-spacing', 'paint-order'];
@@ -638,7 +642,7 @@ var Labor = (function(){
         basisStil.textContent = "@font-face{font-family:'" + BASIS_DATEI + "';src:url(data:font/otf;base64," + daten + ")}";
         doc.head.appendChild(basisStil);
         basisWarten = doc.fonts.load("20px '" + BASIS_DATEI + "'").catch(function(){});
-      }
+      } else if (doc.fonts && doc.fonts.load) basisWarten = doc.fonts.load("20px '" + BASIS + "'").catch(function(){});   // vom Computer oder Server
     }
     doc.body.classList.add('mit-loesung');
     [blatt].concat([].slice.call(blatt.querySelectorAll('.zeige-loesung, .geschafft, .veraltet'))).forEach(function(e){ e.classList.remove('zeige-loesung', 'geschafft', 'veraltet'); });

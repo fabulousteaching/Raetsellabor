@@ -96,8 +96,11 @@ var VORLAGE = '<div class="gl">' +
         tx('<label><input type="radio" name="glPos" value="ueber"><span>Über dem Wort</span></label>') +
         tx('<label><input type="radio" name="glPos" value="auf"><span>Auf dem Wort</span></label></div></div>') +
     '</div>' +
-    tx('<div class="karte" id="glAussehenKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">4</span><div><h2>Schrift</h2><p>Grösse und Farbe des Texts auf der Vorderseite.</p></div></div>') +
-      tx('<p class="feld-label">Grösse</p><div class="gl-chips" role="radiogroup" aria-label="Schriftgrösse">') +
+    tx('<div class="karte" id="glAussehenKarte" hidden><div class="karte-kopf"><span class="stufe" aria-hidden="true">4</span><div><h2>Blatt und Schrift</h2><p>Format des Blatts, Grösse und Farbe des Texts.</p></div></div>') +
+      tx('<p class="feld-label">Format</p><div class="gl-chips" role="radiogroup" aria-label="Format des Blatts">') +
+        tx('<label><input type="radio" name="glFormat" value="hoch"><span><i class="gl-format gl-format-hoch" aria-hidden="true"></i>Hochformat</span></label>') +
+        tx('<label><input type="radio" name="glFormat" value="quer"><span><i class="gl-format gl-format-quer" aria-hidden="true"></i>Querformat</span></label></div>') +
+      tx('<p class="feld-label gl-abstand">Grösse</p><div class="gl-chips" role="radiogroup" aria-label="Schriftgrösse">') +
         GROESSEN.map(function(g){ return '<label><input type="radio" name="glGroesse" value="' + g[0] + '"><span style="font-size:' + (0.72 + g[2] / 100).toFixed(2) + 'rem">' + g[1] + '</span></label>'; }).join('') + '</div>' +
       tx('<p class="feld-label gl-abstand">Farbe</p><div class="gl-chips gl-farben" role="radiogroup" aria-label="Farbe">') +
         FARBWAHL.map(function(f){ return '<label><input type="radio" name="glFarbe" value="' + f[0] + '"><span><i class="gl-farbpunkt gl-fp-' + f[0] + '"' + (Kern.FARBEN[f[0]] ? ' style="background:' + Kern.FARBEN[f[0]] + '"' : '') + ' aria-hidden="true"></i>' + f[1] + '</span></label>'; }).join('') + '</div>' +
@@ -119,7 +122,7 @@ var VORLAGE = '<div class="gl">' +
       tx('<button type="button" class="btn klein primary" id="glPdf">PDF herunterladen</button>') +
       tx('<button type="button" class="btn klein primary" id="glHerunterladen" hidden title="Als HTML-Datei speichern, öffnen und drucken">Arbeitsblatt herunterladen</button>') +
     '</div>' +
-    tx('<p class="gl-druckhinweis" id="glDruckhinweis" hidden><b>Beidseitig drucken:</b> «an der langen Kante wenden» und in Originalgrösse (100 %). Dünnes Papier scheint besser durch.</p>') +
+    '<p class="gl-druckhinweis" id="glDruckhinweis" hidden></p>' +
     tx('<div class="gl-rahmen" id="glRahmenVorne" hidden><p class="gl-seitenname">Vorderseite</p><article class="gl-blatt gl-vorne" id="glVorne"></article></div>') +
     tx('<div class="gl-rahmen" id="glRahmenHinten" hidden><p class="gl-seitenname">Rückseite – gespiegelt, damit jedes Zeichen beim beidseitigen Druck genau hinter seinem Wort liegt</p><article class="gl-blatt gl-hinten" id="glHinten"></article></div>') +
     '<div class="gl-rahmen"><article class="gl-blatt gl-loesungsblatt" id="glLoesung" aria-hidden="true"></article></div>' +
@@ -144,7 +147,7 @@ Labor.registriere({
 function starte(bereich){
   var $ = function(s){ return bereich.querySelector(s); }, aus = false;
   var TAB = 'gegenlicht-eingaben', OPT = 'gegenlicht-einstellungen';
-  var STANDARD = { zeichen:'', pos:'ueber', eigene:'', groesse:'mittel', farbe:'schwarz', spiegeln:true, linien:true, mitLoesung:true, titelAn:true, anleitungAn:true };
+  var STANDARD = { zeichen:'', pos:'ueber', eigene:'', format:'hoch', groesse:'mittel', farbe:'schwarz', spiegeln:true, linien:true, mitLoesung:true, titelAn:true, anleitungAn:true };
   var st = { text:'', titel:'', marks:[], farbSeed:Math.floor(Math.random() * 1e9) + 1, opt:Object.assign({}, STANDARD) }, licht = false, zeigeLoesung = false;
   try { var o0 = JSON.parse(localStorage.getItem(OPT)); if (o0) Object.assign(st.opt, o0); } catch(x){}
   try { var e0 = JSON.parse(sessionStorage.getItem(TAB)); if (e0){ st.text = String(e0.text || ''); st.titel = String(e0.titel || ''); st.marks = Array.isArray(e0.marks) ? e0.marks.map(String) : []; st.farbSeed = +e0.farbSeed || st.farbSeed; } } catch(x){}
@@ -178,7 +181,7 @@ function starte(bereich){
       });
     });
   }
-  radios('glZeichen', 'zeichen'); radios('glPos', 'pos'); radios('glGroesse', 'groesse'); radios('glFarbe', 'farbe');
+  radios('glZeichen', 'zeichen'); radios('glPos', 'pos'); radios('glFormat', 'format'); radios('glGroesse', 'groesse'); radios('glFarbe', 'farbe');
   [['#glSpiegeln', 'spiegeln'], ['#glLinien', 'linien'], ['#glMitLoesung', 'mitLoesung']].forEach(function(x){
     $(x[0]).checked = !!st.opt[x[1]];
     $(x[0]).addEventListener('change', function(){ st.opt[x[1]] = this.checked; speichern(); if (x[1] !== 'mitLoesung') zeichnen(); });
@@ -297,6 +300,13 @@ function starte(bereich){
       return;
     }
     meldung('', '');
+    /* Querformat: 273 mm breit (A4 quer im PDF). Beidseitig: beim Hochformat an der langen, beim Querformat an der kurzen
+       Kante wenden – dann ist die Rückseite in beiden Fällen links-rechts gespiegelt (wie eine Buchseite) */
+    var quer = o.format === 'quer';
+    ['#glVorne', '#glHinten', '#glLoesung'].forEach(function(s){ $(s).classList.toggle('blatt-quer', quer); });
+    $('#glDruckhinweis').classList.toggle('quer', quer);
+    $('#glDruckhinweis').innerHTML = tx('<b>Beidseitig drucken:</b> {k} und in Originalgrösse (100 %). Dünnes Papier scheint besser durch.', { k:quer ? tx('«an der kurzen Kante wenden»') : tx('«an der langen Kante wenden»') }) + ' ' +
+      tx('Tipp: zuerst ein Blatt ausprobieren – stehen die Zeichen auf dem Kopf oder auf der falschen Seite, die andere Kante wählen.');
     var vorne = blattHtml('vorne', Z, nummer, labels);
     $('#glVorne').innerHTML = vorne;
     $('#glHinten').innerHTML = vorne;   // dieselbe Seite: per CSS unsichtbar bis auf die Zeichen, gespiegelt
@@ -307,7 +317,7 @@ function starte(bereich){
     $('#glVorne').classList.toggle('licht', licht);
     $('#glLoesung').innerHTML = blattHtml('loesung', Z, nummer, labels);
     var b = $('#glVorne');
-    if (b.offsetHeight > 1032) meldung('warnung', tx('<p>Der Text ist lang für eine A4-Seite – im PDF werden Vorder- und Rückseite gleich stark verkleinert (die Zeichen bleiben hinter ihren Wörtern). Kürze den Text oder wähle eine kleinere Schrift.</p>'));
+    if (b.offsetHeight > (quer ? 703 : 1032)) meldung('warnung', (quer ? tx('<p>Der Text ist lang für eine A4-Seite quer – im PDF werden Vorder- und Rückseite gleich stark verkleinert (die Zeichen bleiben hinter ihren Wörtern). Kürze den Text, wähle eine kleinere Schrift oder das Hochformat.</p>') : tx('<p>Der Text ist lang für eine A4-Seite – im PDF werden Vorder- und Rückseite gleich stark verkleinert (die Zeichen bleiben hinter ihren Wörtern). Kürze den Text oder wähle eine kleinere Schrift.</p>')));
   }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ if (!aus) zeichnen(); });
 

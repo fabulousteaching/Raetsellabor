@@ -44,7 +44,7 @@ Labor.woerter('labor', {
   'Standard': ['Default', 'Standard'],
   'Inter, Rätselbuchstaben in Andika': ['Inter, puzzle letters in Andika', 'Inter, lettres des énigmes en Andika'],
   'Basisschrift': ['Basisschrift', 'Basisschrift'],
-  'Deutschschweizer Basisschrift, unverbunden (DCH-Basisschrift vom Computer)': ['Swiss German school font, print style (DCH-Basisschrift from your computer)', 'Écriture scolaire de Suisse alémanique, non liée (DCH-Basisschrift de l’ordinateur)'],
+  'Deutschschweizer Basisschrift, unverbunden': ['Swiss German school font, print style', 'Écriture scolaire de Suisse alémanique, script'],
   'Grundschrift': ['Grundschrift', 'Grundschrift'],
   'aufrechte Schulschrift, unverbunden': ['upright school handwriting, print style', 'écriture scolaire droite, non liée'],
   'klar unterscheidbare Buchstaben, für Leseanfänger': ['clearly distinct letters, for beginning readers', 'lettres bien distinctes, pour les lecteurs débutants'],

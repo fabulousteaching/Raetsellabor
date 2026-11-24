@@ -67,6 +67,12 @@
 .gl-rahmen{overflow-x:auto;padding-bottom:4px;margin-bottom:18px}
 .gl-seitenname{margin:0 0 6px;font-size:.8rem;font-weight:650;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;max-width:703px}
 .gl-blatt{position:relative;width:703px;box-sizing:border-box;background:#fff;color:#1C2530;border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 12px 32px rgba(16,24,40,.08);padding:26px 32px 30px;font-family:var(--blatt-schrift)}
+.gl-blatt.blatt-quer{width:1032px}
+.gl-druckhinweis.quer{max-width:1032px}
+/* Format-Symbole: kleines Blatt hoch bzw. quer */
+.gl-format{display:inline-block;flex:none;border:1.6px solid currentColor;border-radius:2px;opacity:.75}
+.gl-format-hoch{width:10px;height:14px}
+.gl-format-quer{width:14px;height:10px}
 .gl-blatt h2{font-size:1.6rem;font-weight:700;margin:0 0 6px;letter-spacing:-.015em;color:#1C2530}
 .gl-anleitung{margin:0 0 10px;color:#4B5563;line-height:1.45;font-size:.95rem}
 /* Text: grosser Zeilenabstand, damit das Zeichen über dem Wort Platz hat */
